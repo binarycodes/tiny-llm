@@ -1,0 +1,215 @@
+Navigate to a View
+
+Learn how to navigate between the views of a Vaadin application.
+
+In this guide, you’ll learn how to use RouterLink and UI.navigate() to navigate between views. You’ll also learn how to improve the readability of your code by encapsulating some of the navigation logic into your own API.
+
+You can navigate to a view either programmatically through an API, by clicking a link, or by changing the URL of the browser.
+
+In a Vaadin application, navigation is handled by a router. The router takes care of rendering the correct view (i.e. the route target) and keeping the URL in sync.
+
+If the view accepts parameters, the router also extracts them from the URL and passes them on to the view. This is covered in the Pass Data to a View guide.
+
+Copy-Paste into Your Project
+
+If you want to quickly try out navigating between views, you can copy-paste the following two classes into your Vaadin project:
+
+[HomeView.java]
+package com.vaadin.demo.buildingapps.navigate;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
+
+@Route("building-apps/navigate/home")
+public class HomeView extends VerticalLayout {
+
+    HomeView() {
+        add(new RouterLink("Go to About (link)", AboutView.class));
+        add(new Button("Go to About (button)", e -> AboutView.showView()));
+    }
+}
+
+[AboutView.java]
+package com.vaadin.demo.buildingapps.navigate;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/navigate/about")
+public class AboutView extends VerticalLayout {
+
+    AboutView() {
+        add("You'll navigate to this view.");
+    }
+
+    public static void showView() {
+        UI.getCurrentOrThrow().navigate(AboutView.class);
+    }
+}
+
+For more detailed instructions on how to navigate between views, continue reading below.
+
+Router Links
+
+RouterLink is a component that creates a clickable link for navigation. In HTML, it corresponds to an anchor (<a>) element.
+
+Tip: Links are preferable to programmatic navigation because they improve accessibility. They also allow users to open links in new browser tabs.
+
+The following example creates a link to the MainView:
+
+[Java]
+var link = new RouterLink("Home", MainView.class);
+myLayout.add(link);
+
+Route Parameters in Links
+
+If the view is accepting a single route parameter, you can pass the parameter value to the RouterLink constructor.
+
+In the following example, CustomerDetailsView implements the HasUrlParameter<T> interface and takes a single string parameter - the customer’s ID. The link navigates to the details of the customer with ID "cu1234":
+
+[Java]
+var link = new RouterLink("Customer Details", CustomerDetailsView.class, "cu1234");
+myLayout.add(link);
+
+If the view is accepting multiple route parameters, you need to construct an instance of RouteParameters and pass it to the RouterLink constructor. You can construct it in different ways; see its API documentation for details.
+
+The following example creates a link to the customer details view with two route parameters; customerId with the value of "cu1234", and mode with the value of "edit":
+
+[Java]
+var link = new RouterLink("Edit Customer", CustomerDetailsView.class,
+    new RouteParameters(Map.of("customerId", "cu1234", "mode", "edit")));
+myLayout.add(link);
+
+For more information about route parameters, see the Route Parameters guide.
+
+Programmatic Navigation
+
+Using links is not the only way to navigate from a view to another. You can trigger a navigation in Java by calling any of the UI.navigate() methods. You typically do this in response to user actions, such as inside button click listeners, but this is not a requirement. You could also trigger navigation from a background thread using server push, for instance.
+
+The API of UI.navigate() is similar to that of RouterLink. In the following example, the router attempts to navigate to the home view when the user clicks the button:
+
+[Java]
+var button = new Button("Home");
+button.addClickListener(event ->
+    UI.getCurrentOrThrow().navigate(MainView.class)
+);
+
+Route Parameters in Programmatic Navigation
+
+If the view is accepting a single route parameter, you can pass the parameter value to UI.navigate(), like this:
+
+[Java]
+var button = new Button("Customer Details");
+button.addClickListener(event ->
+    UI.getCurrentOrThrow().navigate(CustomerDetailsView.class, "cu1234")
+);
+
+If the view is accepting multiple route parameters, you need to construct an instance of RouteParameters and pass it to UI.navigate(), like this:
+
+[Java]
+var button = new Button("Edit Customer");
+button.addClickListener(event ->
+    UI.getCurrentOrThrow().navigate(CustomerDetailsView.class,
+        new RouteParameters(Map.of("customerId", "cu1234", "mode", "edit"))
+    )
+);
+
+Your Own API
+
+Instead of scattering UI.navigate() calls throughout your codebase, it’s a good practice to encapsulate navigation logic within dedicated methods. This makes the code more readable, maintainable, and easier to refactor.
+
+In the following example, the CustomerDetailsView has a static method for navigating to the details of the customer with the given ID:
+
+[Java]
+@Route("customer")
+public class CustomerDetailsView extends Main implements HasUrlParameter<String> {
+
+    public static void showCustomerDetails(String customerId) {
+        UI.getCurrentOrThrow().navigate(CustomerDetailsView.class, customerId);
+    }
+    ...
+}
+
+When you want to navigate to the view, you call the method, like this:
+
+[Java]
+var button = new Button("Customer Details");
+button.addClickListener(event ->
+    CustomerDetailsView.showCustomerDetails("cu1234")
+);
+
+Multiple Route Parameters
+
+If you use multiple route parameters, or custom parameter types, this approach becomes even more useful.
+
+In the following example, the CustomerDetailsView accepts two route parameters; a value object CustomerId and an enum Mode:
+
+[Java]
+@Route("customer/:customerId/:mode?(edit|view)") 1
+public class CustomerDetailsView extends Main implements HasUrlParameter<String> {
+
+    public enum Mode {
+        edit, view
+    }
+
+    private static RouteParameters createRouteParameters(
+            CustomerId customerId, Mode mode) {
+        return new RouteParameters(
+            Map.of(
+                "customerId", customerId.toString(),
+                "mode", mode.toString()
+            )
+        );
+    }
+
+    public static RouterLink createEditLinkTo(String text, CustomerId customerId) {
+        return new RouterLink(text, CustomerDetailsView.class,
+            createRouteParameters(customerId, Mode.edit));
+    }
+
+    public static void editCustomerDetails(CustomerId customerId) {
+        UI.getCurrentOrThrow().navigate(CustomerDetailsView.class,
+            createRouteParameters(customerId, Mode.edit));
+    }
+    ...
+}
+
+1. This is a route template with two route parameters.
+
+With an API like this, you can create a new router link like this:
+
+[Java]
+CustomerId customerId = ...;
+myLayout.add(CustomerDetailsView.createEditLinkTo("Edit Customer", customerId));
+
+If you want to programmatically navigate to the view, you can do it like this:
+
+[Java]
+CustomerId customerId = ...;
+var button = new Button("Edit Customer");
+button.addClickListener(event ->
+    CustomerDetailsView.editCustomerDetails(customerId)
+);
+
+React Views
+
+So far, all the examples have covered navigating from one Java view to another. However, you can also navigate from a Java view to a React view. Unlike Java views, which use class references for navigation, React views require string-based routes because they don’t have a corresponding Java class.
+
+You can use anchor elements for navigation, or trigger programmatic navigation using UI.navigate().
+
+You create anchors like this:
+
+[Java]
+var link = new Anchor("path/to/react/view", "Link to React View");
+myLayout.add(link);
+
+Note: Vaadin sets the base URL of the application to the path of the main view. All relative links are resolved against this URL. This means that you don’t have to worry about the context path when you create Anchor objects.
+
+You can also programmatically navigate to React views, like this:
+
+[Java]
+var button = new Button("Go to React view");
+button.addClickListener(event -> UI.getCurrentOrThrow().navigate("path/to/react/view"));

@@ -1,0 +1,147 @@
+Forms & Data Binding
+
+Learn how to bind data to forms and selection components in Vaadin Flow.
+
+Vaadin Flow includes mechanisms to bind field components, as well as forms consisting of fields, to business objects (e.g., Java beans). Binding is buffered, so you can load and reload data from the source to fields, and then save the edited data back.
+
+[DataBinding.java]
+package com.vaadin.demo.flow.binding;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.router.Route;
+
+@Route("binding-overview")
+public class DataBinding extends VerticalLayout {
+
+    public DataBinding() {
+        // Data model
+        BusinessPerson person = new BusinessPerson();
+
+        // Two editors: the actual editor and read-only display
+        PersonEditor editor1 = new PersonEditor(false);
+        PersonEditor editor2 = new PersonEditor(true);
+
+        // The editor and buttons
+        VerticalLayout layout1 = new VerticalLayout();
+        HorizontalLayout buttons = new HorizontalLayout();
+        Button saveButton = new Button("Save");
+        saveButton.addClickListener(click -> {
+            try {
+                editor1.getBinder().writeBean(person);
+                editor2.getBinder().readBean(person);
+            } catch (ValidationException e) {
+            }
+        });
+        Button resetButton = new Button("Reset");
+        resetButton.addClickListener(click -> {
+            editor1.getBinder().readBean(person);
+        });
+        buttons.add(saveButton, resetButton);
+        layout1.add(editor1, buttons);
+
+        VerticalLayout layout2 = new VerticalLayout();
+        layout2.add(editor2);
+
+        // Show the two editors side-by-side
+        HorizontalLayout hlayout = new HorizontalLayout();
+        hlayout.setDefaultVerticalComponentAlignment(
+                FlexComponent.Alignment.START);
+        hlayout.add(layout1, layout2);
+        add(hlayout);
+    }
+
+}
+
+[PersonEditor.java]
+package com.vaadin.demo.flow.binding;
+
+import com.vaadin.flow.data.binder.Binder;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.TextField;
+
+// tag::snippet[]
+public class PersonEditor extends FormLayout {
+    private Binder<BusinessPerson> binder;
+
+    public PersonEditor(boolean readOnly) {
+        // For binding the form to the data model
+        binder = new Binder<>(BusinessPerson.class);
+
+        TextField nameField = new TextField();
+        addFormItem(nameField, "Name");
+        binder.bind(nameField, BusinessPerson::getName,
+                BusinessPerson::setName);
+        nameField.setReadOnly(readOnly);
+
+        TextField titleField = new TextField();
+        addFormItem(titleField, "Title");
+        binder.forField(titleField).bind(BusinessPerson::getTitle,
+                BusinessPerson::setTitle);
+        titleField.setReadOnly(readOnly);
+    }
+
+    public Binder<BusinessPerson> getBinder() {
+        return binder;
+    }
+}
+// end::snippet[]
+
+[BusinessPerson.java]
+package com.vaadin.demo.flow.binding;
+
+// tag::snippet[]
+public class BusinessPerson {
+    String name;
+    String title;
+    int age;
+
+    public BusinessPerson() {
+    }
+
+    void setName(String name) {
+        this.name = name;
+    }
+
+    String getName() {
+        return name;
+    }
+
+    void setTitle(String title) {
+        this.title = title;
+    }
+
+    String getTitle() {
+        return title;
+    }
+
+    void setAge(int age) {
+        this.age = age;
+    }
+
+    int getAge() {
+        return age;
+    }
+}
+// end::snippet[]
+
+Field and form input can be validated before saving. Additionally, when loading and saving, the data representation may need to be converted between the field type and the underlying data types in the business objects.
+
+Topics
+
+Binding Data to Forms
+    How to bind data to forms, which are composites with multiple fields that each bind to sub-structures in data.
+Validating & Converting User Input
+    Validating forms with multiple fields, and converting field values from input format to acceptable data format.
+Loading & Saving to Business Objects
+    Loading business objects and then saving them.
+Binding Beans to Forms
+    How beans, the standard Java model for business objects are bound to forms.
+Binding Items to Components
+    Binding and displaying a list of items in components, such as Grid and Combo Box.
+Creating a Component that Has a Value
+    How to create a field component.

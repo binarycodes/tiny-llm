@@ -1,0 +1,915 @@
+Accordion
+
+Accordion is a vertically stacked set of expandable panels.
+
+Accordion is a vertically stacked set of expandable panels. It reduces clutter and helps maintain the user’s focus by showing only the relevant content at any time.
+
+[Flow: AccordionBasic.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-basic")
+public class AccordionBasic extends Div {
+
+    public AccordionBasic() {
+        // tag::snippet[]
+        Accordion accordion = new Accordion();
+
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout personalInformationLayout = new VerticalLayout(name,
+                email, phone);
+        personalInformationLayout.setSpacing(false);
+        personalInformationLayout.setPadding(false);
+
+        accordion.add("Personal information", personalInformationLayout);
+        // end::snippet[]
+
+        Span street = new Span("4027 Amber Lake Canyon");
+        Span zipCode = new Span("72333-5884 Cozy Nook");
+        Span city = new Span("Arkansas");
+
+        VerticalLayout billingAddressLayout = new VerticalLayout();
+        billingAddressLayout.setSpacing(false);
+        billingAddressLayout.setPadding(false);
+        billingAddressLayout.add(street, zipCode, city);
+        accordion.add("Billing address", billingAddressLayout);
+
+        Span cardBrand = new Span("Mastercard");
+        Span cardNumber = new Span("1234 5678 9012 3456");
+        Span expiryDate = new Span("Expires 06/21");
+
+        VerticalLayout paymentLayout = new VerticalLayout();
+        paymentLayout.setSpacing(false);
+        paymentLayout.setPadding(false);
+        paymentLayout.add(cardBrand, cardNumber, expiryDate);
+        accordion.add("Payment", paymentLayout);
+
+        add(accordion);
+    }
+
+}
+
+[React: accordion-basic.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Personal information">
+        <VerticalLayout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Billing address">
+        <VerticalLayout>
+          <span>4027 Amber Lake Canyon</span>
+          <span>72333-5884 Cozy Nook</span>
+          <span>Arkansas</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Payment">
+        <VerticalLayout>
+          <span>MasterCard</span>
+          <span>1234 5678 9012 3456</span>
+          <span>Expires 06/21</span>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-basic.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Personal information">
+          <vaadin-vertical-layout>
+            <span>Sophia Williams</span>
+            <span>sophia.williams@company.com</span>
+            <span>(501) 555-9128</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- end::snippet[] -->
+
+        <vaadin-accordion-panel summary="Billing address">
+          <vaadin-vertical-layout>
+            <span>4027 Amber Lake Canyon</span>
+            <span>72333-5884 Cozy Nook</span>
+            <span>Arkansas</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Payment">
+          <vaadin-vertical-layout>
+            <span>MasterCard</span>
+            <span>1234 5678 9012 3456</span>
+            <span>Expires 06/21</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- tag::snippet[] -->
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Anatomy
+
+Accordion consists of stacked panels, each composed of two parts: a summary and a content area. Only one panel can be expanded at a time. Use the Details component to allow multiple, simultaneously expanded sections.
+
+Summary
+
+The summary is the part that’s always visible, and typically describes the content, for example, with a title. Clicking on the summary toggles the content area’s visibility.
+
+The summary supports rich content and can contain any component. This can be utilized, for example, to display the status of the corresponding content.
+
+[Flow: AccordionSummary.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+
+@Route("accordion-summary")
+public class AccordionSummary extends Div {
+
+    private static final String PAYMENT = "Payment";
+    private static final String BILLING_ADDRESS = "Billing address";
+    private static final String CUSTOMER_DETAILS = "Customer details";
+
+    public AccordionSummary() {
+        Accordion accordion = new Accordion();
+
+        FormLayout customerDetailsFormLayout = createFormLayout();
+        VerticalLayout customerDetailsLayout = new VerticalLayout(
+                customerDetailsFormLayout);
+        customerDetailsLayout.setPadding(false);
+        AccordionPanel customDetailsPanel = accordion.add(CUSTOMER_DETAILS,
+                customerDetailsLayout);
+
+        FormLayout billingAddressFormLayout = createFormLayout();
+        VerticalLayout billingAddressLayout = new VerticalLayout(
+                billingAddressFormLayout);
+        billingAddressLayout.setPadding(false);
+        AccordionPanel billingAddressPanel = accordion.add(BILLING_ADDRESS,
+                billingAddressLayout);
+
+        FormLayout paymentFormLayout = createFormLayout();
+        VerticalLayout paymentLayout = new VerticalLayout(paymentFormLayout);
+        paymentLayout.setPadding(false);
+        AccordionPanel paymentPanel = accordion.add(PAYMENT, paymentLayout);
+
+        // Customer details fields
+
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email address");
+        TextField phone = new TextField("Phone number");
+
+        customerDetailsFormLayout.add(firstName, lastName);
+        customerDetailsFormLayout.add(email, 2);
+        customerDetailsFormLayout.add(phone, 2);
+
+        // tag::snippet[]
+        Button customDetailsButton = new Button("Continue", (e) -> {
+            billingAddressPanel.setOpened(true);
+            customDetailsPanel
+                    .setSummary(createCompletedSummary(CUSTOMER_DETAILS));
+        });
+        // end::snippet[]
+        customDetailsButton.addThemeVariants(ButtonVariant.PRIMARY);
+        customerDetailsLayout.add(customDetailsButton);
+
+        // Billing address fields
+
+        TextField address = new TextField("Address");
+        TextField zipCode = new TextField("ZIP code");
+        TextField city = new TextField("City");
+        ComboBox<Country> countries = new ComboBox<>("Country");
+        countries.setItems(DataService.getCountries());
+        countries.setItemLabelGenerator(Country::getName);
+
+        billingAddressFormLayout.add(address, 2);
+        billingAddressFormLayout.add(zipCode, city, countries);
+
+        Button billingAddressButton = new Button("Continue", (e) -> {
+            paymentPanel.setOpened(true);
+            billingAddressPanel
+                    .setSummary(createCompletedSummary(BILLING_ADDRESS));
+        });
+        billingAddressButton.addThemeVariants(ButtonVariant.PRIMARY);
+        billingAddressLayout.add(billingAddressButton);
+
+        // Payment fields
+
+        TextField accountNumber = new TextField("Card number");
+        TextField expiryDate = new TextField("Expiry date");
+        TextField cvv = new TextField("CVV");
+
+        paymentFormLayout.add(accountNumber, 2);
+        paymentFormLayout.add(expiryDate, cvv);
+
+        Button paymentButton = new Button("Finish", (e) -> {
+            paymentPanel.setOpened(false);
+            paymentPanel.setSummary(createCompletedSummary(PAYMENT));
+        });
+        paymentButton.addThemeVariants(ButtonVariant.PRIMARY);
+        paymentLayout.add(paymentButton);
+
+        add(accordion);
+    }
+
+    private FormLayout createFormLayout() {
+        FormLayout billingAddressFormLayout = new FormLayout();
+        billingAddressFormLayout.setResponsiveSteps(
+                new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("20em", 2));
+        return billingAddressFormLayout;
+    }
+    // tag::snippet[]
+
+    private HorizontalLayout createCompletedSummary(String title) {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setSpacing(true);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        layout.add(title);
+
+        Icon icon = VaadinIcon.CHECK.create();
+        icon.getStyle().set("--vaadin-icon-size", "1rem");
+        layout.add(icon);
+
+        return layout;
+    }
+    // end::snippet[]
+
+}
+
+[React: accordion-summary.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Accordion,
+  AccordionHeading,
+  type AccordionOpenedChangedEvent,
+  AccordionPanel,
+  Button,
+  ComboBox,
+  EmailField,
+  FormLayout,
+  type FormLayoutResponsiveStep,
+  HorizontalLayout,
+  Icon,
+  TextField,
+  VerticalLayout,
+} from '@vaadin/react-components';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+const responsiveSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1 },
+  { minWidth: '20em', columns: 2 },
+];
+
+function Example() {
+  const countries = useSignal<Country[]>([]);
+  const openedPanelIndex = useSignal<number | null>(0);
+  const customerComplete = useSignal<boolean>(false);
+  const billingComplete = useSignal<boolean>(false);
+  const paymentComplete = useSignal<boolean>(false);
+
+  const handleAccordionPanelOpen = (event: AccordionOpenedChangedEvent) => {
+    openedPanelIndex.value = event.detail.value;
+  };
+
+  useEffect(() => {
+    getCountries().then((items) => {
+      countries.value = items;
+    });
+  }, []);
+
+  return (
+    <Accordion opened={openedPanelIndex.value} onOpenedChanged={handleAccordionPanelOpen}>
+      {/* tag::snippet[] */}
+      <AccordionPanel>
+        <AccordionHeading slot="summary">
+          <HorizontalLayout theme="spacing">
+            Customer details
+            {customerComplete.value && (
+              <Icon icon="vaadin:check" style={{ '--vaadin-icon-size': '1rem' }} />
+            )}
+          </HorizontalLayout>
+        </AccordionHeading>
+        <VerticalLayout theme="spacing">
+          <FormLayout responsiveSteps={responsiveSteps}>
+            <TextField label="First name" />
+            <TextField label="Last name" />
+            <EmailField label="Email address" data-colspan="2" />
+            <TextField label="Phone number" data-colspan="2" />
+          </FormLayout>
+
+          <Button
+            theme="primary"
+            onClick={() => {
+              openedPanelIndex.value = 1;
+              customerComplete.value = true;
+            }}
+          >
+            Continue
+          </Button>
+        </VerticalLayout>
+      </AccordionPanel>
+      {/* end::snippet[] */}
+      <AccordionPanel>
+        <AccordionHeading slot="summary">
+          <HorizontalLayout theme="spacing">
+            Billing address
+            {billingComplete.value && (
+              <Icon icon="vaadin:check" style={{ '--vaadin-icon-size': '1rem' }} />
+            )}
+          </HorizontalLayout>
+        </AccordionHeading>
+
+        <VerticalLayout theme="spacing">
+          <FormLayout responsiveSteps={responsiveSteps}>
+            <TextField label="Address" data-colspan="2" />
+            <TextField label="ZIP code" />
+            <TextField label="City" />
+            <ComboBox
+              label="Country"
+              itemLabelPath="name"
+              itemValuePath="name"
+              items={countries.value}
+            />
+          </FormLayout>
+
+          <Button
+            theme="primary"
+            onClick={() => {
+              openedPanelIndex.value = 2;
+              billingComplete.value = true;
+            }}
+          >
+            Continue
+          </Button>
+        </VerticalLayout>
+      </AccordionPanel>
+      <AccordionPanel>
+        <AccordionHeading slot="summary">
+          <HorizontalLayout theme="spacing">
+            Payment
+            {paymentComplete.value && (
+              <Icon icon="vaadin:check" style={{ '--vaadin-icon-size': '1rem' }} />
+            )}
+          </HorizontalLayout>
+        </AccordionHeading>
+
+        <VerticalLayout theme="spacing">
+          <FormLayout responsiveSteps={responsiveSteps}>
+            <TextField label="Card number" data-colspan="2" />
+            <TextField label="Expiry date" />
+            <TextField label="CVV" />
+          </FormLayout>
+
+          <Button
+            theme="primary"
+            onClick={() => {
+              openedPanelIndex.value = -1;
+              paymentComplete.value = true;
+            }}
+          >
+            Finish
+          </Button>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+  );
+}
+
+[Lit: accordion-summary.ts]
+import '@vaadin/accordion';
+import '@vaadin/button';
+import '@vaadin/combo-box';
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement, nothing } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { AccordionOpenedChangedEvent } from '@vaadin/accordion';
+import type { FormLayoutResponsiveStep } from '@vaadin/form-layout';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+const responsiveSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1 },
+  { minWidth: '20em', columns: 2 },
+];
+
+@customElement('accordion-summary')
+export class Example extends LitElement {
+  @state()
+  private countries: Country[] = [];
+
+  @state()
+  private openedPanelIndex: number | null = 0;
+
+  @state()
+  private customerComplete: boolean = false;
+
+  @state()
+  private billingComplete: boolean = false;
+
+  @state()
+  private paymentComplete: boolean = false;
+
+  protected override async firstUpdated() {
+    this.countries = await getCountries();
+  }
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion
+        .opened="${this.openedPanelIndex}"
+        @opened-changed="${(event: AccordionOpenedChangedEvent) => {
+          this.openedPanelIndex = event.detail.value;
+        }}"
+      >
+        <vaadin-accordion-panel>
+          <vaadin-accordion-heading slot="summary">
+            <vaadin-horizontal-layout theme="spacing">
+              Customer details
+              ${this.customerComplete
+                ? html`
+                    <vaadin-icon icon="vaadin:check" style="--vaadin-icon-size: 1rem"></vaadin-icon>
+                  `
+                : nothing}
+            </vaadin-horizontal-layout>
+          </vaadin-accordion-heading>
+          <!-- end::snippet[] -->
+
+          <vaadin-vertical-layout theme="spacing">
+            <vaadin-form-layout .responsiveSteps="${responsiveSteps}">
+              <vaadin-text-field label="First name"></vaadin-text-field>
+              <vaadin-text-field label="Last name"></vaadin-text-field>
+              <vaadin-email-field label="Email address" colspan="2"></vaadin-email-field>
+              <vaadin-text-field label="Phone number" colspan="2"></vaadin-text-field>
+            </vaadin-form-layout>
+            <vaadin-button
+              theme="primary"
+              @click="${() => {
+                this.openedPanelIndex = 1;
+                this.customerComplete = true;
+              }}"
+            >
+              Continue
+            </vaadin-button>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel>
+          <vaadin-accordion-heading slot="summary">
+            <vaadin-horizontal-layout theme="spacing">
+              Billing address
+              ${this.billingComplete
+                ? html`
+                    <vaadin-icon icon="vaadin:check" style="--vaadin-icon-size: 1rem"></vaadin-icon>
+                  `
+                : nothing}
+            </vaadin-horizontal-layout>
+          </vaadin-accordion-heading>
+
+          <vaadin-vertical-layout theme="spacing">
+            <vaadin-form-layout .responsiveSteps="${responsiveSteps}">
+              <vaadin-text-field label="Address" colspan="2"></vaadin-text-field>
+              <vaadin-text-field label="ZIP code"></vaadin-text-field>
+              <vaadin-text-field label="City"></vaadin-text-field>
+              <vaadin-combo-box
+                label="Country"
+                item-label-path="name"
+                item-value-path="name"
+                .items="${this.countries}"
+              ></vaadin-combo-box>
+            </vaadin-form-layout>
+            <vaadin-button
+              theme="primary"
+              @click="${() => {
+                this.openedPanelIndex = 2;
+                this.billingComplete = true;
+              }}"
+            >
+              Continue
+            </vaadin-button>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel>
+          <vaadin-accordion-heading slot="summary">
+            <vaadin-horizontal-layout theme="spacing">
+              Payment
+              ${this.paymentComplete
+                ? html`
+                    <vaadin-icon icon="vaadin:check" style="--vaadin-icon-size: 1rem"></vaadin-icon>
+                  `
+                : nothing}
+            </vaadin-horizontal-layout>
+          </vaadin-accordion-heading>
+
+          <vaadin-vertical-layout theme="spacing">
+            <vaadin-form-layout .responsiveSteps="${responsiveSteps}">
+              <vaadin-text-field label="Card number" colspan="2"></vaadin-text-field>
+              <vaadin-text-field label="Expiry date"></vaadin-text-field>
+              <vaadin-text-field label="CVV"></vaadin-text-field>
+            </vaadin-form-layout>
+            <vaadin-button
+              theme="primary"
+              @click="${() => {
+                this.openedPanelIndex = -1;
+                this.paymentComplete = true;
+              }}"
+            >
+              Finish
+            </vaadin-button>
+          </vaadin-vertical-layout>
+          <!-- tag::snippet[] -->
+        </vaadin-accordion-panel>
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Content
+
+This is the collapsible part of a panel. It can contain any component. When the content area is collapsed, the content is invisible and inaccessible by keyboard or screen reader.
+
+[Flow: AccordionContent.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-content")
+public class AccordionContent extends Div {
+
+    public AccordionContent() {
+        // tag::snippet[]
+        Accordion accordion = new Accordion();
+
+        accordion.add("Analytics",
+                createContent(createStyledAnchor("#", "Dashboard"),
+                        createStyledAnchor("#", "Reports"),
+                        createStyledAnchor("#", "Data sources")));
+        // end::snippet[]
+
+        accordion.add("Customers",
+                createContent(createStyledAnchor("#", "Accounts"),
+                        createStyledAnchor("#", "Contacts")));
+
+        AccordionPanel financesPanel = new AccordionPanel();
+        financesPanel.setSummaryText("Finances");
+        financesPanel.add(createContent(createStyledAnchor("#", "Invoices"),
+                createStyledAnchor("#", "Transactions"),
+                createStyledAnchor("#", "Statements")));
+        accordion.add(financesPanel);
+
+        add(accordion);
+    }
+
+    private VerticalLayout createContent(Anchor... anchors) {
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.add(anchors);
+
+        return content;
+    }
+
+    private Anchor createStyledAnchor(String href, String text) {
+        Anchor anchor = new Anchor(href, text);
+        anchor.getStyle().set("text-decoration", "none");
+
+        return anchor;
+    }
+
+}
+
+[React: accordion-content.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Analytics">
+        <VerticalLayout>
+          <a href="#">Dashboard</a>
+          <a href="#">Reports</a>
+          <a href="#">Data sources</a>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Customers">
+        <VerticalLayout>
+          <a href="#">Accounts</a>
+          <a href="#">Contacts</a>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Finances">
+        <VerticalLayout>
+          <a href="#">Invoices</a>
+          <a href="#">Transactions</a>
+          <a href="#">Statements</a>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-content.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-content')
+export class Example extends LitElement {
+  static override styles = css`
+    a {
+      text-decoration: none;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Analytics">
+          <vaadin-vertical-layout>
+            <a href="#">Dashboard</a>
+            <a href="#">Reports</a>
+            <a href="#">Data sources</a>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- end::snippet[] -->
+
+        <vaadin-accordion-panel summary="Customers">
+          <vaadin-vertical-layout>
+            <a href="#">Accounts</a>
+            <a href="#">Contacts</a>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Finances">
+          <vaadin-vertical-layout>
+            <a href="#">Invoices</a>
+            <a href="#">Transactions</a>
+            <a href="#">Statements</a>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- tag::snippet[] -->
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Disabled Panels
+
+Accordion panels can be disabled to prevent them from being expanded or collapsed. Details can also be disabled to prevent them from being expanded or collapsed. Components inside a disabled expanded panel are automatically disabled as well.
+
+[Flow: AccordionDisabledPanels.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-disabled-panels")
+public class AccordionDisabledPanels extends Div {
+
+    public AccordionDisabledPanels() {
+        // tag::snippet[]
+        Accordion accordion = new Accordion();
+        // end::snippet[]
+
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout personalInformationLayout = new VerticalLayout(name,
+                email, phone);
+        personalInformationLayout.setSpacing(false);
+        personalInformationLayout.setPadding(false);
+
+        accordion.add("Personal information", personalInformationLayout);
+
+        Span street = new Span("4027 Amber Lake Canyon");
+        Span zipCode = new Span("72333-5884 Cozy Nook");
+        Span city = new Span("Arkansas");
+
+        VerticalLayout billingAddressLayout = new VerticalLayout();
+        billingAddressLayout.setSpacing(false);
+        billingAddressLayout.setPadding(false);
+        billingAddressLayout.add(street, zipCode, city);
+
+        // tag::snippet[]
+        AccordionPanel billingAddressPanel = accordion.add("Billing address",
+                billingAddressLayout);
+        billingAddressPanel.setEnabled(false);
+        // end::snippet[]
+
+        Span cardBrand = new Span("Mastercard");
+        Span cardNumber = new Span("1234 5678 9012 3456");
+        Span expiryDate = new Span("Expires 06/21");
+
+        VerticalLayout paymentLayout = new VerticalLayout();
+        paymentLayout.setSpacing(false);
+        paymentLayout.setPadding(false);
+        paymentLayout.add(cardBrand, cardNumber, expiryDate);
+
+        AccordionPanel paymentPanel = accordion.add("Payment", paymentLayout);
+        paymentPanel.setEnabled(false);
+
+        add(accordion);
+    }
+
+}
+
+[React: accordion-disabled-panels.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Personal information">
+        <VerticalLayout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Billing address" disabled>
+        <VerticalLayout>
+          <span>4027 Amber Lake Canyon</span>
+          <span>72333-5884 Cozy Nook</span>
+          <span>Arkansas</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Payment" disabled>
+        <VerticalLayout>
+          <span>MasterCard</span>
+          <span>1234 5678 9012 3456</span>
+          <span>Expires 06/21</span>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-disabled-panels.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-disabled-panels')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Personal information">
+          <vaadin-vertical-layout>
+            <span>Sophia Williams</span>
+            <span>sophia.williams@company.com</span>
+            <span>(501) 555-9128</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Billing address" disabled>
+          <vaadin-vertical-layout>
+            <span>4027 Amber Lake Canyon</span>
+            <span>72333-5884 Cozy Nook</span>
+            <span>Arkansas</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Payment" disabled>
+          <vaadin-vertical-layout>
+            <span>MasterCard</span>
+            <span>1234 5678 9012 3456</span>
+            <span>Expires 06/21</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Best Practices
+
+Accordions are suitable when users need to focus on smaller pieces of content at any given time. However, when all of the content is relevant to the user to make a decision, Accordions should be avoided. Content areas that are logically linked should be grouped together in one panel.
+
+Accordions are better suited than Tabs for long labels. However, Accordions can feel jumpy as panels are toggled — especially if there are several panels or the panel content is long.
+
+Details can be used instead of Accordion when there is a need to see content from multiple panels, simultaneously.
+
+Accordions can be used to break a complex form into smaller step-by-step sections.
+
+The expandable and collapsible nature of accordions can sometimes be difficult for users to discover. Use the filled variant and apply tooltips on the panels to make this more discoverable.
+
+Related Components
+
+Component | Usage Recommendation
+Details | Single collapsible panel.
+Tabs | Component for organizing and grouping content into navigable sections.

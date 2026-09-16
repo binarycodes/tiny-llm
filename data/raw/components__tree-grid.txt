@@ -1,0 +1,2131 @@
+Tree Grid
+
+The Tree Grid component displays hierarchical tabular data grouped in expandable nodes.
+
+Tree Grid is a component for displaying hierarchical tabular data grouped into expandable nodes.
+
+[Flow: TreeGridBasic.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("tree-grid-basic")
+public class TreeGridBasic extends Div {
+
+    private List<Person> managers = DataService.getManagers();
+
+    public TreeGridBasic() {
+        // tag::snippet[]
+        TreeGrid<Person> treeGrid = new TreeGrid<>();
+        treeGrid.setItems(managers, this::getStaff);
+        treeGrid.addHierarchyColumn(Person::getFirstName)
+                .setHeader("First name");
+        treeGrid.addColumn(Person::getLastName).setHeader("Last name");
+        treeGrid.addColumn(Person::getEmail).setHeader("Email");
+        // end::snippet[]
+        add(treeGrid);
+    }
+
+    public List<Person> getStaff(Person manager) {
+        return DataService.getPeople(manager.getId());
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[React: tree-grid-basic.tsx]
+import React from 'react';
+import {
+  Grid,
+  type GridDataProviderCallback,
+  type GridDataProviderParams,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridTreeColumn } from '@vaadin/react-components/GridTreeColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+async function dataProvider(
+  params: GridDataProviderParams<Person>,
+  callback: GridDataProviderCallback<Person>
+) {
+  // The requested page and the full length of the corresponding
+  // hierarchy level is requested from the data service
+  const { people, hierarchyLevelSize } = await getPeople({
+    count: params.pageSize,
+    startIndex: params.page * params.pageSize,
+    managerId: params.parentItem ? params.parentItem.id : null,
+  });
+
+  callback(people, hierarchyLevelSize);
+}
+
+function Example() {
+  return (
+    <Grid itemHasChildrenPath="manager" dataProvider={dataProvider}>
+      <GridTreeColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+  );
+}
+// end::snippet[]
+
+[Lit: tree-grid-basic.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-tree-column.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { GridDataProviderCallback, GridDataProviderParams } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('tree-grid-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  async dataProvider(
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) {
+    // The requested page and the full length of the corresponding
+    // hierarchy level is requested from the data service
+    const { people, hierarchyLevelSize } = await getPeople({
+      count: params.pageSize,
+      startIndex: params.page * params.pageSize,
+      managerId: params.parentItem ? params.parentItem.id : null,
+    });
+
+    callback(people, hierarchyLevelSize);
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .itemHasChildrenPath="${'manager'}" .dataProvider="${this.dataProvider}">
+        <vaadin-grid-tree-column path="firstName"></vaadin-grid-tree-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+  // end::snippet[]
+}
+
+Tree Grid is an extension of the Grid component, so it inherits all of Grid’s features, including:
+
+- Sorting
+- Filtering
+- Columns
+- Selection
+- Renderers
+- and more
+
+However, Tree Grid isn’t meant to be used as a navigation menu.
+
+Tree Column
+
+The tree column contains the toggles for expanding and collapsing nodes. Nodes are opened and closed by clicking a tree column’s cell. They can also be toggled programmatically.
+
+[Flow: TreeGridColumn.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("tree-grid-column")
+public class TreeGridColumn extends Div {
+
+    private List<Person> managers = DataService.getManagers();
+
+    public TreeGridColumn() {
+        TreeGrid<Person> treeGrid = new TreeGrid<>();
+        treeGrid.setItems(managers, this::getStaff);
+        treeGrid.addHierarchyColumn(Person::getFirstName)
+                .setHeader("First name");
+        treeGrid.addColumn(Person::getLastName).setHeader("Last name");
+        treeGrid.addColumn(Person::getEmail).setHeader("Email");
+
+        H3 employees = new H3("Employees");
+
+        // tag::snippet[]
+        Button expand = new Button("Expand All");
+        expand.addClickListener(event -> treeGrid.expand(managers));
+
+        Button collapse = new Button("Collapse All");
+        collapse.addClickListener(event -> treeGrid.collapse(managers));
+        // end::snippet[]
+
+        HorizontalLayout header = new HorizontalLayout(employees);
+        header.addToEnd(expand, collapse);
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setHeight("3.5rem");
+
+        add(header, treeGrid);
+    }
+
+    public List<Person> getStaff(Person manager) {
+        return DataService.getPeople(manager.getId());
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[React: tree-grid-column.tsx]
+import React, { useMemo } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import {
+  Grid,
+  type GridDataProviderCallback,
+  type GridDataProviderParams,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridTreeColumn } from '@vaadin/react-components/GridTreeColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const managers = useSignal<Person[]>([]);
+  const expandedItems = useSignal<Person[]>([]);
+
+  const dataProvider = useMemo(
+    () =>
+      async (
+        params: GridDataProviderParams<Person>,
+        callback: GridDataProviderCallback<Person>
+      ) => {
+        const { people, hierarchyLevelSize } = await getPeople({
+          count: params.pageSize,
+          startIndex: params.page * params.pageSize,
+          managerId: params.parentItem ? params.parentItem.id : null,
+        });
+
+        if (!managers.value.length && !params.parentItem) {
+          managers.value = people;
+        }
+
+        callback(people, hierarchyLevelSize);
+      },
+    []
+  );
+
+  const expandAll = () => {
+    expandedItems.value = [...managers.value];
+  };
+
+  const collapseAll = () => {
+    expandedItems.value = [];
+  };
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <HorizontalLayout style={{ alignItems: 'center', height: '3.5rem' }} theme="spacing">
+        <h3>Employee</h3>
+        <Button slot="end" onClick={expandAll}>
+          Expand All
+        </Button>
+        <Button slot="end" onClick={collapseAll}>
+          Collapse All
+        </Button>
+      </HorizontalLayout>
+
+      <Grid
+        dataProvider={dataProvider}
+        itemIdPath="id"
+        itemHasChildrenPath="manager"
+        expandedItems={expandedItems.value}
+      >
+        <GridTreeColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+      </Grid>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: tree-grid-column.ts]
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-tree-column.js';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridDataProviderCallback, GridDataProviderParams } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('tree-grid-column')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private managers: Person[] = [];
+
+  private dataProvider = async (
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) => {
+    const { people, hierarchyLevelSize } = await getPeople({
+      count: params.pageSize,
+      startIndex: params.page * params.pageSize,
+      managerId: params.parentItem ? params.parentItem.id : null,
+    });
+
+    if (!params.parentItem) {
+      this.managers = people;
+    }
+
+    callback(people, hierarchyLevelSize);
+  };
+
+  // tag::snippet[]
+  @state()
+  private expandedItems: unknown[] = [];
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout style="align-items: center; height: 3.5rem;" theme="spacing">
+        <h3>Employee</h3>
+        <vaadin-button slot="end" @click="${this.expandAll}">Expand All</vaadin-button>
+        <vaadin-button slot="end" @click="${this.collapseAll}">Collapse All</vaadin-button>
+      </vaadin-horizontal-layout>
+
+      <vaadin-grid
+        .dataProvider="${this.dataProvider}"
+        .itemIdPath="${'id'}"
+        .itemHasChildrenPath="${'manager'}"
+        .expandedItems="${this.expandedItems}"
+      >
+        <vaadin-grid-tree-column path="firstName"></vaadin-grid-tree-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private expandAll() {
+    this.expandedItems = [...this.managers];
+  }
+
+  private collapseAll() {
+    this.expandedItems = [];
+  }
+  // end::snippet[]
+}
+
+Rich Content
+
+Like Grid, Tree Grid supports rich content.
+
+[Flow: TreeGridRichContent.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("tree-grid-rich-content")
+public class TreeGridRichContent extends Div {
+
+    private List<Person> managers = DataService.getManagers();
+
+    public TreeGridRichContent() {
+        TreeGrid<Person> treeGrid = new TreeGrid<>();
+        treeGrid.setItems(managers, this::getStaff);
+
+        // tag::snippet[]
+        treeGrid.addComponentHierarchyColumn(person -> {
+            Avatar avatar = new Avatar(person.getFullName(),
+                    person.getPictureUrl());
+            avatar.getStyle().set("--vaadin-avatar-size", "2.25rem");
+            Span name = new Span(person.getFullName());
+            Span profession = new Span(person.getProfession());
+
+            Div personItem = new Div(avatar, name, profession);
+            personItem.addClassName("person-item");
+            return personItem;
+        }).setHeader("Employee");
+
+        treeGrid.addComponentColumn(person -> {
+            Icon emailIcon = createIcon(VaadinIcon.ENVELOPE);
+            Span email = new Span(person.getEmail());
+
+            Anchor emailLink = new Anchor();
+            emailLink.add(emailIcon, email);
+            emailLink.setHref("mailto:" + person.getEmail());
+            emailLink.getStyle().set("align-items", "center").set("display",
+                    "flex");
+
+            Icon phoneIcon = createIcon(VaadinIcon.PHONE);
+            Span phone = new Span(person.getAddress().getPhone());
+
+            Anchor phoneLink = new Anchor();
+            phoneLink.add(phoneIcon, phone);
+            phoneLink.setHref("tel:" + person.getAddress().getPhone());
+            phoneLink.getStyle().set("align-items", "center").set("display",
+                    "flex");
+
+            VerticalLayout column = new VerticalLayout(emailLink, phoneLink);
+            column.getStyle().set("font-size", "0.875rem").set("line-height",
+                    "1.625");
+            column.setPadding(false);
+            column.setSpacing(false);
+            return column;
+        }).setHeader("Contact");
+        // end::snippet[]
+
+        add(treeGrid);
+    }
+
+    private Icon createIcon(VaadinIcon vaadinIcon) {
+        Icon icon = vaadinIcon.create();
+        icon.getStyle().set("margin-inline-end", "var(--vaadin-gap-s)");
+        icon.setSize("1.25em");
+        return icon;
+    }
+
+    public List<Person> getStaff(Person manager) {
+        return DataService.getPeople(manager.getId());
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: tree-grid-rich-content.tsx]
+import '@vaadin/icons';
+import React, { useCallback } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import {
+  Grid,
+  type GridDataProviderCallback,
+  type GridDataProviderParams,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridTreeToggle } from '@vaadin/react-components/GridTreeToggle.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+async function dataProvider(
+  params: GridDataProviderParams<Person>,
+  callback: GridDataProviderCallback<Person>
+) {
+  const { people, hierarchyLevelSize } = await getPeople({
+    count: params.pageSize,
+    startIndex: params.page * params.pageSize,
+    managerId: params.parentItem ? params.parentItem.id : null,
+  });
+
+  callback(people, hierarchyLevelSize);
+}
+
+// tag::snippet[]
+function contactRenderer({ item: person }: { item: Person }) {
+  return (
+    <VerticalLayout
+      style={{
+        fontSize: '.875rem',
+        lineHeight: '1.625',
+      }}
+    >
+      <a href={`mailto:${person.email}`} style={{ display: 'flex', alignItems: 'center' }}>
+        <Icon
+          icon="vaadin:envelope"
+          style={{
+            width: '1.25em',
+            height: '1.25em',
+            marginInlineEnd: 'var(--vaadin-gap-s)',
+          }}
+        />
+        <span>{person.email}</span>
+      </a>
+      <a href={`tel:${person.address.phone}`} style={{ display: 'flex', alignItems: 'center' }}>
+        <Icon
+          icon="vaadin:phone"
+          style={{
+            width: '1.25em',
+            height: '1.25em',
+            marginInlineEnd: 'var(--vaadin-gap-s)',
+          }}
+        />
+        <span>{person.address.phone}</span>
+      </a>
+    </VerticalLayout>
+  );
+}
+
+function Example() {
+  const expandedItems = useSignal<Person[]>([]);
+
+  const toggleRenderer = useCallback(
+    ({ item: person, model }: { item: Person; model: { level?: number; expanded?: boolean } }) => (
+      <GridTreeToggle
+        leaf={!person.manager}
+        level={model?.level ?? 0}
+        expanded={!!model?.expanded}
+        onClick={(e) => {
+          if (!e.defaultPrevented) {
+            return;
+          }
+          if (e.currentTarget.expanded) {
+            expandedItems.value = [...expandedItems.value, person];
+          } else {
+            expandedItems.value = expandedItems.value.filter((p) => p.id !== person.id);
+          }
+        }}
+      >
+        <div className="person-item">
+          <Avatar
+            img={person.pictureUrl}
+            name={`${person.firstName} ${person.lastName}`}
+            style={{ '--vaadin-avatar-size': '2.25rem' }}
+          />
+          <span>
+            {person.firstName} {person.lastName}
+          </span>
+          <span>{person.profession}</span>
+        </div>
+      </GridTreeToggle>
+    ),
+    []
+  );
+
+  return (
+    <Grid dataProvider={dataProvider} expandedItems={expandedItems.value}>
+      <GridColumn autoWidth header="Employee" renderer={toggleRenderer} />
+      <GridColumn autoWidth header="Contact" renderer={contactRenderer} />
+    </Grid>
+  );
+}
+// end::snippet[]
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: tree-grid-rich-content.ts]
+import '@vaadin/avatar';
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-tree-toggle.js';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridDataProviderCallback, GridDataProviderParams } from '@vaadin/grid';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import type { GridTreeToggleExpandedChangedEvent } from '@vaadin/grid/vaadin-grid-tree-toggle.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('tree-grid-rich-content')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private expandedItems: Person[] = [];
+
+  async dataProvider(
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) {
+    const { people, hierarchyLevelSize } = await getPeople({
+      count: params.pageSize,
+      startIndex: params.page * params.pageSize,
+      managerId: params.parentItem ? params.parentItem.id : null,
+    });
+
+    callback(people, hierarchyLevelSize);
+  }
+
+  // tag::snippet[]
+  private employeeRenderer: GridColumnBodyLitRenderer<Person> = (person, model) => html`
+    <vaadin-grid-tree-toggle
+      .leaf="${!person.manager}"
+      .level="${model.level ?? 0}"
+      @expanded-changed="${(e: GridTreeToggleExpandedChangedEvent) => {
+        if (e.detail.value) {
+          this.expandedItems = [...this.expandedItems, person];
+        } else {
+          this.expandedItems = this.expandedItems.filter((p) => p.id !== person.id);
+        }
+      }}"
+      .expanded="${!!model.expanded}"
+    >
+      <div class="person-item">
+        <vaadin-avatar
+          .img="${person.pictureUrl}"
+          .name="${`${person.firstName} ${person.lastName}`}"
+          style="--vaadin-avatar-size: 2.25rem"
+        ></vaadin-avatar>
+        <span>${person.firstName} ${person.lastName}</span>
+        <span>${person.profession}</span>
+      </div>
+    </vaadin-grid-tree-toggle>
+  `;
+
+  private contactRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-vertical-layout style="font-size: .875rem; line-height: 1.625;">
+      <a href="mailto:${person.email}" style="align-items: center; display: flex;">
+        <vaadin-icon
+          icon="vaadin:envelope"
+          style="width: 1.25em; height: 1.25em; margin-inline-end: var(--vaadin-gap-s);"
+        ></vaadin-icon>
+        <span>${person.email}</span>
+      </a>
+      <a href="tel:${person.address.phone}" style="align-items: center; display: flex;">
+        <vaadin-icon
+          icon="vaadin:phone"
+          style="width: 1.25em; height: 1.25em; margin-inline-end: var(--vaadin-gap-s);"
+        ></vaadin-icon>
+        <span>${person.address.phone}</span>
+      </a>
+    </vaadin-vertical-layout>
+  `;
+
+  protected override render() {
+    return html`
+      <vaadin-grid .dataProvider="${this.dataProvider}" .expandedItems="${this.expandedItems}">
+        <vaadin-grid-column
+          auto-width
+          header="Employee"
+          ${columnBodyRenderer(this.employeeRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          auto-width
+          header="Contact"
+          ${columnBodyRenderer(this.contactRenderer, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+  // end::snippet[]
+}
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Programmatic Scrolling
+
+Tree Grid supports programmatic navigation to a specific item. This is particularly useful when dealing with large data sets. It saves users from having to scroll through potentially hundreds or thousands of rows.
+
+Tree Grid also supports scrolling to a column, which works the same as in the Grid component. See the Grid Programmatic Scrolling documentation.
+
+Scrolling to Item By Reference Flow
+
+In Flow, you can bring an item into view by passing its object reference to the scrollToItem(T item) method. This method expands all parent items leading to the specified item and then scrolls the Tree Grid to position that item at the top of the viewport. Scrolling is skipped if the item is already in the viewport and fully visible.
+
+[TreeGridScrollToItem.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.router.Route;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Route("tree-grid-scroll-to-item")
+public class TreeGridScrollToItem extends Div {
+    private final TreeGrid<Person> treeGrid = new TreeGrid<>();
+
+    public TreeGridScrollToItem() {
+        TreeData<Person> treeData = new TreeData<>();
+        treeData.addItems(DataService.getManagers(),
+                manager -> DataService.getPeople(manager.getId()));
+        treeGrid.setDataProvider(new TreeDataProvider<>(treeData));
+        treeGrid.addHierarchyColumn(Person::getFullName).setWidth("300px")
+                .setFlexGrow(0).setHeader("Full name");
+        treeGrid.addColumn(Person::getEmail).setHeader("Email");
+
+        add(treeGrid);
+
+        Select<Person> scrollToItem = new Select<>();
+        scrollToItem.setLabel("Scroll to item");
+        scrollToItem.setItemLabelGenerator(Person::getFullName);
+        scrollToItem.setItems(getItemsToScrollTo());
+        scrollToItem.setWidth("200px");
+        scrollToItem.addValueChangeListener(event -> {
+            Person item = event.getValue();
+            // tag::snippet[]
+            treeGrid.scrollToItem(item);
+            // end::snippet[]
+        });
+        add(scrollToItem);
+    }
+
+    private List<Person> getItemsToScrollTo() {
+        List<Person> itemsToScrollTo = new ArrayList<>();
+        List<Person> managers = DataService.getManagers();
+        Person middleRootItem = managers.get(managers.size() / 2);
+        itemsToScrollTo.add(middleRootItem);
+        List<Person> children = DataService.getPeople(middleRootItem.getId());
+        while (!children.isEmpty()) {
+            Person middleChild = children.get(children.size() / 2);
+            itemsToScrollTo.add(middleChild);
+            children = DataService.getPeople(middleChild.getId());
+        }
+        return itemsToScrollTo;
+    }
+
+}
+
+This feature is available out of the box when using TreeDataProvider, a built-in data provider for connecting a TreeData structure to the Tree Grid.
+
+Other data providers must implement two additional methods to support this feature:
+
+- HierarchicalDataProvider#getParent(T item)
+- HierarchicalDataProvider#getItemIndex(T item, HierarchicalQuery query)
+
+You can find more information about using custom hierarchical data providers on the Data Binding page.
+
+Scrolling to Item by Path
+
+You can also scroll to an item by providing its hierarchical path – an array of indexes where each index refers to a child of the item at the previous index. For example, to scroll to the second child-row (index 1) of the third root-level row (index 2), you would provide the path 2, 1. Scrolling continues until it reaches the last index in the array or encounters a collapsed item.
+
+[Flow: TreeGridScrollToIndex.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.AbstractHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+import com.vaadin.flow.router.Route;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+
+@Route("tree-grid-scroll-to-index")
+public class TreeGridScrollToIndex extends Div {
+
+    private IntegerField parentIndexField = new IntegerField("Parent index");
+    private IntegerField childIndexField = new IntegerField("Child index");
+    private Button scrollToIndexButton = new Button();
+
+    private Map<Person, List<Integer>> personToIndexAddress = new HashMap<>();
+    private TreeGrid<Person> treeGrid = new TreeGrid<>();
+
+    public TreeGridScrollToIndex() {
+        treeGrid.setDataProvider(new LazyLoadingProvider());
+
+        treeGrid.setUniqueKeyDataGenerator("key", (person) -> {
+            return String.valueOf(person.getId());
+        });
+
+        treeGrid.expand(DataService.getManagers());
+
+        treeGrid.addHierarchyColumn(Person::getFirstName).setWidth("200px")
+                .setFlexGrow(0).setHeader("First name");
+
+        treeGrid.addSelectionListener(e -> {
+            if (e.getFirstSelectedItem().isPresent()) {
+                Person person = e.getFirstSelectedItem().get();
+                List<Integer> indexAddress = personToIndexAddress.get(person);
+                if (indexAddress != null) {
+                    parentIndexField.setValue(indexAddress.get(0));
+                    if (indexAddress.size() > 1) {
+                        childIndexField.setValue(indexAddress.get(1));
+                    }
+                }
+            }
+        });
+
+        treeGrid.addColumn(person -> StringUtils
+                .join(personToIndexAddress.get(person), ", ")).setWidth("80px")
+                .setFlexGrow(0).setHeader("Index");
+        treeGrid.addColumn(Person::getEmail).setHeader("Email");
+
+        add(treeGrid);
+
+        HorizontalLayout controls = new HorizontalLayout();
+        controls.setSpacing(true);
+        controls.setAlignItems(Alignment.END);
+
+        parentIndexField.setWidth("120px");
+        childIndexField.setWidth("120px");
+        parentIndexField.setMin(0);
+        childIndexField.setMin(0);
+        parentIndexField.setStepButtonsVisible(true);
+        childIndexField.setStepButtonsVisible(true);
+        parentIndexField.setValue(13);
+        childIndexField.setValue(6);
+        parentIndexField.addValueChangeListener(e -> updateSelectedItem());
+        childIndexField.addValueChangeListener(e -> updateSelectedItem());
+        controls.add(parentIndexField);
+        controls.add(childIndexField);
+
+        scrollToIndexButton.addClickListener(e -> {
+            int[] indexesToScrollTo = { parentIndexField.getValue(),
+                    childIndexField.getValue() };
+            // tag::snippet[]
+            treeGrid.scrollToIndex(indexesToScrollTo);
+            // end::snippet[]
+        });
+        controls.add(scrollToIndexButton);
+
+        add(controls);
+    }
+
+    private void updateSelectedItem() {
+        treeGrid.select(null);
+        Integer parentIndex = parentIndexField.getValue();
+        Integer childIndex = childIndexField.getValue();
+        personToIndexAddress.entrySet().stream().filter(entry -> {
+            List<Integer> indexes = entry.getValue();
+            return indexes.size() == 2
+                    && List.of(parentIndex, childIndex).equals(indexes);
+        }).findFirst().ifPresent(entry -> {
+            treeGrid.select(entry.getKey());
+        });
+
+        scrollToIndexButton
+                .setText("Scroll to index: " + parentIndex + ", " + childIndex);
+    }
+
+    private class LazyLoadingProvider
+            extends AbstractHierarchicalDataProvider<Person, Void> {
+
+        @Override
+        public int getChildCount(HierarchicalQuery<Person, Void> query) {
+            return (int) this.fetchChildren(query).count();
+        }
+
+        @Override
+        public Stream<Person> fetchChildren(
+                HierarchicalQuery<Person, Void> query) {
+            List<Person> people;
+            if (query.getParent() == null) {
+                people = DataService.getManagers();
+            } else {
+                people = DataService.getPeople(query.getParent().getId());
+            }
+
+            int limit = query.getLimit();
+            int offset = query.getOffset();
+
+            // Cache the index address of each person for demo purposes
+            AtomicInteger personIndex = new AtomicInteger(0);
+            people.stream().skip(offset).limit(limit).forEach(person -> {
+                int index = offset + personIndex.getAndIncrement();
+                List<Integer> parentIndexAddress = personToIndexAddress
+                        .get(query.getParent());
+                List<Integer> indexAddress = parentIndexAddress == null
+                        ? List.of(index)
+                        : List.of(parentIndexAddress.get(0), index);
+                personToIndexAddress.put(person, indexAddress);
+            });
+            updateSelectedItem();
+
+            return people.stream().skip(offset).limit(limit);
+        }
+
+        @Override
+        public boolean hasChildren(Person item) {
+            return DataService.getPeople(item.getId()).size() > 0;
+        }
+
+        @Override
+        public boolean isInMemory() {
+            return false;
+        }
+    }
+
+}
+
+[React: tree-grid-scroll-to-index.tsx]
+import React, { useMemo, useRef } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import {
+  Grid,
+  type GridDataProviderCallback,
+  type GridDataProviderParams,
+  type GridElement,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridTreeColumn } from '@vaadin/react-components/GridTreeColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { IntegerField } from '@vaadin/react-components/IntegerField.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type PersonOrId =
+  | Person
+  | {
+      id: number;
+    };
+
+function Example() {
+  const gridRef = useRef<GridElement>(null);
+
+  const idToIndexes = useMemo(() => new Map<number, number[]>(), []);
+
+  const expandedItems = useSignal<Person[]>([]);
+  const indexesToScrollTo = useSignal<number[]>([13, 6]);
+
+  const indexesToScrollToRef = useRef<number[]>(indexesToScrollTo.value);
+  indexesToScrollToRef.current = indexesToScrollTo.value;
+
+  const dataProvider = useMemo(
+    () =>
+      async (
+        params: GridDataProviderParams<PersonOrId>,
+        callback: GridDataProviderCallback<PersonOrId>
+      ) => {
+        const startIndex = params.page * params.pageSize;
+        const { people, hierarchyLevelSize } = await getPeople({
+          count: params.pageSize,
+          startIndex,
+          managerId: params.parentItem ? params.parentItem.id : null,
+        });
+
+        // Cache the index address of each person for demo purposes
+        people.forEach((person, idx) => {
+          const index = startIndex + idx;
+          const parentIndexes = params.parentItem
+            ? (idToIndexes.get(params.parentItem.id) ?? [])
+            : [];
+          const indexAddress = [...parentIndexes, index];
+          idToIndexes.set(person.id, indexAddress);
+
+          if (
+            indexAddress[0] === indexesToScrollToRef.current[0] &&
+            indexAddress[1] === indexesToScrollToRef.current[1]
+          ) {
+            indexesToScrollTo.value = indexAddress;
+          }
+        });
+
+        if (!expandedItems.value.length && !params.parentItem) {
+          // Expand the root level by default
+          expandedItems.value = people;
+        }
+
+        callback(people, hierarchyLevelSize);
+      },
+    []
+  );
+
+  const selectedItems = useComputed(() => {
+    const indexAddress = indexesToScrollTo.value.join(', ');
+    const id = Array.from(idToIndexes.entries()).find(
+      ([, indexes]) => indexes.join(', ') === indexAddress
+    )?.[0];
+    return id ? [{ id }] : [];
+  });
+
+  return (
+    <>
+      <Grid
+        ref={gridRef}
+        itemIdPath="id"
+        itemHasChildrenPath="manager"
+        dataProvider={dataProvider}
+        expandedItems={expandedItems.value}
+        selectedItems={selectedItems.value}
+        onActiveItemChanged={(e) => {
+          if (e.detail.value) {
+            indexesToScrollTo.value = idToIndexes.get(e.detail.value.id) ?? [];
+          }
+        }}
+      >
+        <GridTreeColumn<Person> path="firstName" width="200px" flexGrow={0} />
+        <GridColumn<Person> header="Index" width="80px" flexGrow={0}>
+          {({ item }) => idToIndexes.get(item.id)?.join(', ')}
+        </GridColumn>
+        <GridColumn<Person> path="email" />
+      </Grid>
+
+      <HorizontalLayout theme="spacing" style={{ alignItems: 'flex-end' }}>
+        <IntegerField
+          label="Parent index"
+          stepButtonsVisible
+          min={0}
+          style={{ width: '120px' }}
+          value={String(indexesToScrollTo.value[0])}
+          onChange={(e) => {
+            indexesToScrollTo.value = [parseInt(e.target.value) || 0, indexesToScrollTo.value[1]];
+          }}
+        />
+
+        <IntegerField
+          label="Child index"
+          stepButtonsVisible
+          min={0}
+          style={{ width: '120px' }}
+          value={String(indexesToScrollTo.value[1])}
+          onChange={(e) => {
+            indexesToScrollTo.value = [indexesToScrollTo.value[0], parseInt(e.target.value) || 0];
+          }}
+        />
+
+        <Button
+          onClick={() => {
+            const grid = gridRef.current;
+            if (grid) {
+              // tag::snippet[]
+              grid.scrollToIndex(...indexesToScrollTo.value);
+              // end::snippet[]
+            }
+          }}
+        >
+          Scroll to index: {indexesToScrollTo.value.join(', ')}
+        </Button>
+      </HorizontalLayout>
+    </>
+  );
+}
+
+[Lit: tree-grid-scroll-to-index.ts]
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-tree-column.js';
+import '@vaadin/horizontal-layout';
+import '@vaadin/integer-field';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type {
+  Grid,
+  GridActiveItemChangedEvent,
+  GridBodyRenderer,
+  GridDataProviderCallback,
+  GridDataProviderParams,
+} from '@vaadin/grid';
+import type { IntegerFieldChangeEvent } from '@vaadin/integer-field';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('tree-grid-scroll-to-index')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-grid')
+  private grid!: Grid<Person>;
+
+  @state()
+  private expandedItems?: Person[];
+
+  @state()
+  private indexesToScrollTo: number[] = [13, 6];
+
+  @state()
+  private idToIndexes = new Map<number, number[]>();
+
+  constructor() {
+    super();
+    this.dataProvider = this.dataProvider.bind(this);
+  }
+
+  async dataProvider(
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) {
+    const startIndex = params.page * params.pageSize;
+    const { people, hierarchyLevelSize } = await getPeople({
+      count: params.pageSize,
+      startIndex,
+      managerId: params.parentItem ? params.parentItem.id : null,
+    });
+
+    // Cache the index address of each person for demo purposes
+    people.forEach((person, idx) => {
+      const index = startIndex + idx;
+      const parentIndexes = params.parentItem
+        ? (this.idToIndexes.get(params.parentItem.id) ?? [])
+        : [];
+      const indexes = [...parentIndexes, index];
+      this.idToIndexes = new Map(this.idToIndexes).set(person.id, indexes);
+    });
+
+    if (!this.expandedItems && !params.parentItem) {
+      // Expand the root level by default
+      this.expandedItems = people;
+    }
+
+    callback(people, hierarchyLevelSize);
+  }
+
+  private indexRenderer: GridBodyRenderer<Person> = (root, _, { item }) => {
+    root.textContent = this.idToIndexes.get(item.id)?.join(', ') ?? '';
+  };
+
+  private getSelectedItems(indexes: number[], idToIndexes: Map<number, number[]>) {
+    const id = Array.from(idToIndexes.entries()).find(
+      ([, idxs]) => idxs[0] === indexes[0] && idxs[1] === indexes[1]
+    )?.[0];
+
+    return id ? [{ id }] : [];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid
+        item-id-path="id"
+        item-has-children-path="manager"
+        .dataProvider="${this.dataProvider}"
+        .expandedItems="${this.expandedItems ?? []}"
+        .selectedItems="${this.getSelectedItems(this.indexesToScrollTo, this.idToIndexes)}"
+        @active-item-changed=${(e: GridActiveItemChangedEvent<Person>) => {
+          if (e.detail.value) {
+            this.indexesToScrollTo = this.idToIndexes.get(e.detail.value.id) ?? [];
+          }
+        }}
+      >
+        <vaadin-grid-tree-column
+          path="firstName"
+          width="200px"
+          flex-grow="0"
+        ></vaadin-grid-tree-column>
+
+        <vaadin-grid-column
+          header="Index"
+          .renderer=${this.indexRenderer}
+          width="80px"
+          flex-grow="0"
+        ></vaadin-grid-column>
+
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+
+      <vaadin-horizontal-layout theme="spacing" style="align-items: flex-end">
+        <vaadin-integer-field
+          label="Parent index"
+          step-buttons-visible
+          min="0"
+          style="width: 120px"
+          .value=${String(this.indexesToScrollTo[0] ?? '')}
+          @change=${(e: IntegerFieldChangeEvent) => {
+            this.indexesToScrollTo = [parseInt(e.target.value) || 0, this.indexesToScrollTo[1]];
+          }}
+        ></vaadin-integer-field>
+
+        <vaadin-integer-field
+          label="Child index"
+          step-buttons-visible
+          min="0"
+          style="width: 120px"
+          .value=${String(this.indexesToScrollTo[1] ?? '')}
+          @change=${(e: IntegerFieldChangeEvent) => {
+            this.indexesToScrollTo = [this.indexesToScrollTo[0], parseInt(e.target.value) || 0];
+          }}
+        ></vaadin-integer-field>
+
+        <vaadin-button
+          @click=${() => {
+            // tag::snippet[]
+            this.grid.scrollToIndex(...this.indexesToScrollTo);
+            // end::snippet[]
+          }}
+        >
+          Scroll to index: ${this.indexesToScrollTo.join(', ')}
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Drag & Drop
+
+Tree Grid supports drag-and-drop operations. You can enable and handle them in your logic, for example, to allow users to move rows from one parent node to another:
+
+[Flow: TreeGridDragDrop.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider.HierarchyFormat;
+import com.vaadin.flow.router.Route;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Route("tree-grid-drag-drop")
+public class TreeGridDragDrop extends Div {
+
+    private final List<Person> people = DataService.getPeople();
+    private final List<Person> managers = people.stream()
+            .filter(Person::isManager).toList();
+    private final Map<Integer, List<Person>> staffByManagerId = people.stream()
+            .filter(person -> person.getManagerId() != null)
+            .collect(Collectors.groupingBy(Person::getManagerId));
+
+    private Person draggedItem;
+
+    public TreeGridDragDrop() {
+        // tag::snippet[]
+        TreeGrid<Person> treeGrid = setupTreeGrid();
+        TreeData<Person> treeData = new TreeData<>();
+        treeData.addItems(managers, this::getStaffByManager);
+
+        // To preserve scroll position after refreshAll(), configure
+        // TreeDataProvider to return data in the flattened hierarchy format.
+        // More details can be found in the JavaDoc of the HierarchyFormat enum.
+        TreeDataProvider<Person> treeDataProvider = new TreeDataProvider<>(
+                treeData, HierarchyFormat.FLATTENED);
+        treeGrid.setDataProvider(treeDataProvider);
+
+        // Enable drag and drop
+        treeGrid.setRowsDraggable(true);
+
+        // Set a filter to allow dragging staff only
+        treeGrid.setDragFilter(person -> !person.isManager());
+
+        treeGrid.addDragStartListener(e -> {
+            draggedItem = e.getDraggedItems().get(0);
+
+            // Allow dropping on top of rows only
+            treeGrid.setDropMode(GridDropMode.ON_TOP);
+
+            // Set a filter to define valid drop targets
+            treeGrid.setDropFilter(person ->
+                    // Allow dropping on supervisors only
+                    person.isManager() &&
+                    // Disallow dropping on the same manager
+                    !person.getId().equals(draggedItem.getManagerId()));
+        });
+
+        treeGrid.addDropListener(e -> {
+            Person newManager = e.getDropTargetItem().orElse(null);
+            if (newManager == null) {
+                return;
+            }
+
+            draggedItem.setManagerId(newManager.getId());
+            treeData.setParent(draggedItem, newManager);
+
+            // Reset TreeGrid's cache to reflect the hierarchy changes in the UI
+            treeDataProvider.refreshAll();
+        });
+
+        treeGrid.addDragEndListener(e -> {
+            draggedItem = null;
+
+            treeGrid.setDropMode(null);
+            treeGrid.setDropFilter(null);
+        });
+        // end::snippet[]
+
+        add(treeGrid);
+    }
+
+    private static TreeGrid<Person> setupTreeGrid() {
+        TreeGrid<Person> treeGrid = new TreeGrid<>();
+        treeGrid.addHierarchyColumn(Person::getFirstName)
+                .setHeader("First name");
+        treeGrid.addColumn(Person::getLastName).setHeader("Last name");
+        treeGrid.addColumn(Person::getEmail).setHeader("Email");
+
+        return treeGrid;
+    }
+
+    private List<Person> getStaffByManager(Person manager) {
+        return staffByManagerId.getOrDefault(manager.getId(),
+                Collections.emptyList());
+    }
+
+}
+
+[React: tree-grid-drag-drop.tsx]
+import React, { useEffect, useMemo } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Grid,
+  type GridDataProviderCallback,
+  type GridDataProviderParams,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridTreeColumn } from '@vaadin/react-components/GridTreeColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const draggedItem = useSignal<Person | undefined>(undefined);
+  const items = useSignal<Person[]>([]);
+  const expandedItems = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  const dataProvider = useMemo(
+    () => (params: GridDataProviderParams<Person>, callback: GridDataProviderCallback<Person>) => {
+      const { page, pageSize, parentItem } = params;
+      const startIndex = page * pageSize;
+      const endIndex = startIndex + pageSize;
+
+      /*
+    We cannot change the underlying data in this demo so this dataProvider uses
+    a local field to fetch its values. This allows us to keep a reference to the
+    modified list instead of loading a new list every time the dataProvider gets
+    called. In a real application, you should always access your data source
+    here and avoid using grid.clearCache() whenever possible.
+    */
+      const result = parentItem
+        ? items.value.filter((item) => item.managerId === parentItem.id)
+        : items.value.filter((item) => item.manager).slice(startIndex, endIndex);
+
+      callback(result, result.length);
+    },
+    [items.value]
+  );
+
+  return (
+    <Grid
+      dataProvider={dataProvider}
+      itemIdPath="id"
+      itemHasChildrenPath="manager"
+      expandedItems={expandedItems.value}
+      onExpandedItemsChanged={(event) => {
+        expandedItems.value = event.detail.value;
+      }}
+      rowsDraggable
+      onGridDragstart={(event) => {
+        draggedItem.value = event.detail.draggedItems[0];
+      }}
+      onGridDragend={() => {
+        draggedItem.value = undefined;
+      }}
+      onGridDrop={(event) => {
+        const manager = event.detail.dropTargetItem;
+        if (draggedItem.value) {
+          draggedItem.value.managerId = manager.id;
+          items.value = [...items.value];
+        }
+      }}
+      dropMode={draggedItem.value ? 'on-top' : undefined}
+      dragFilter={(model) => {
+        const { item } = model;
+        return !item.manager; // Only drag non-managers
+      }}
+      dropFilter={(model) => {
+        const { item } = model;
+        return (
+          item.manager && // Can only drop on a supervisor
+          item.id !== draggedItem.value?.managerId // Disallow dropping on the same manager
+        );
+      }}
+    >
+      <GridTreeColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: tree-grid-drag-drop.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-tree-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type {
+  Grid,
+  GridDataProviderCallback,
+  GridDataProviderParams,
+  GridDragStartEvent,
+  GridDropEvent,
+  GridExpandedItemsChangedEvent,
+  GridItemModel,
+} from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('tree-grid-drag-drop')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    // Apply custom theme (only supported if your app uses one)
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-grid')
+  private grid!: Grid<Person>;
+
+  @state()
+  private draggedItem: Person | undefined;
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private managers: Person[] = [];
+
+  @state()
+  private expandedItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+    this.managers = this.items.filter((item) => item.manager);
+    // Avoid using this method
+    this.grid.clearCache();
+  }
+
+  private dataProvider = (
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) => {
+    const { page, pageSize, parentItem } = params;
+    const startIndex = page * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    /*
+    We cannot change the underlying data in this demo so this dataProvider uses
+    a local field to fetch its values. This allows us to keep a reference to the
+    modified list instead of loading a new list every time the dataProvider gets
+    called. In a real application, you should always access your data source
+    here and avoid using grid.clearCache() whenever possible.
+    */
+    const result = parentItem
+      ? this.items.filter((item) => item.managerId === parentItem.id)
+      : this.managers.slice(startIndex, endIndex);
+
+    callback(result, result.length);
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-grid
+        .dataProvider="${this.dataProvider}"
+        item-id-path="id"
+        item-has-children-path="manager"
+        .expandedItems="${this.expandedItems}"
+        @expanded-items-changed="${(event: GridExpandedItemsChangedEvent<Person>) => {
+          this.expandedItems = event.detail.value;
+        }}"
+        rows-draggable
+        @grid-dragstart="${(event: GridDragStartEvent<Person>) => {
+          this.draggedItem = event.detail.draggedItems[0];
+        }}"
+        @grid-dragend="${() => {
+          this.draggedItem = undefined;
+        }}"
+        @grid-drop="${(event: GridDropEvent<Person>) => {
+          const manager = event.detail.dropTargetItem;
+          if (this.draggedItem) {
+            // In a real application, when using a data provider, you should
+            // change the persisted data instead of updating a field
+            this.draggedItem.managerId = manager.id;
+            // Avoid using this method
+            this.grid.clearCache();
+          }
+        }}"
+        .dropMode="${this.draggedItem ? 'on-top' : undefined}"
+        .dragFilter="${(model: GridItemModel<Person>) => {
+          const { item } = model;
+          return !item.manager; // Only drag non-managers
+        }}"
+        .dropFilter="${(model: GridItemModel<Person>) => {
+          const { item } = model;
+          return (
+            item.manager && // Can only drop on a supervisor
+            item.id !== this.draggedItem?.managerId // Disallow dropping on the same manager
+          );
+        }}"
+      >
+        <vaadin-grid-tree-column path="firstName"></vaadin-grid-tree-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+}
+// end::snippet[]
+
+For more drag-and-drop examples and API references, refer to the Grid’s Drag and Drop documentation.
+
+Note: In Flow, Tree Grid drag-and-drop works best with data providers that use the flattened hierarchy format. This format gives more predictable scrolling and allows Tree Grid to maintain its scroll position after hierarchy changes. For more details on this and other supported formats, see the Hierarchy Formats section on the Data Binding page.
+
+Related Components
+
+Component | Usage Recommendation
+Grid | Component for showing tabular data.
+Grid Pro | Component for showing and editing tabular data.
+CRUD | Component for creating, displaying, updating, and deleting tabular data.

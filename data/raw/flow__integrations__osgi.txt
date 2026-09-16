@@ -1,0 +1,3 @@
+Using Vaadin with OSGi
+
+Vaadin 24 doesn’t have OSGi integration. You can see the Vaadin 23 OSGi documentation, if you wish to build OSGi-based applications using Vaadin Flow.

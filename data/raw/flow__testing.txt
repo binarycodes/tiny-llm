@@ -1,0 +1,64 @@
+Testing Vaadin Applications
+
+Vaadin provides browserless testing and end-to-end testing approaches for your applications.
+
+Vaadin provides two approaches to test your application: browserless testing and end-to-end testing, with different advantages.
+
+Browserless testing is free for all users. End-to-end testing requires a commercial TestBench subscription.
+
+Although Selenium has certain limitations compared to TestBench end-to-end testing, you can also use it for testing your applications.
+
+Browserless Testing
+    Learn how browserless testing helps you test Vaadin applications faster.
+End-to-End Testing
+    Simulating an application with end-to-end testing to verify expected actions took place.
+Load Testing
+    Reuse TestBench end-to-end tests to generate k6 load tests for your Vaadin application.
+Testing with Playwright
+    How to set up end-to-end testing of a Vaadin application with Playwright.
+Testing with Selenium
+    Describes how to set up end-to-end testing for a Vaadin application using Selenium.
+
+Comparison
+
+Browserless tests allow you to write user interface tests that don’t need a browser or a servlet container to run. This testing approach speeds up your test runs, making the results less flaky compared to end-to-end tests. End-to-end tests are closer to a real-world user experience and can simulate user actions that are impossible with browserless tests.
+
+Because browserless tests are faster and more stable, they are suitable for development workflows where you need to write many tests, perhaps with every commit, and you want to run those tests often. This is the case, for example, with the Test-Driven Development (TDD) approach.
+
+End-to-end tests are more suitable for testing the critical parts of your application, such as the login and the checkout process, to simulate your users' real-life experience with your application.
+
+Advantages of Browserless Testing
+
+Advantages of browserless testing over end-to-end testing:
+
+- Fast: Browser-less tests are typically 100× faster than end-to-end tests and run in 5–60 milliseconds, depending on their complexity.
+- Reliable: No arbitrary sleeps are needed, since the test runs on the server side and can wait until the request is fully processed. No random failures due to incompatibilities between Selenium drivers and the browser.
+- Headless: The tests run headless, as there is no browser. No need to set up the screen in your CI environment.
+- Robust: The test runs in the same JVM as the server-side components. If the server-side bootstrap fails and throws an exception, the test method fails with that same exception. No need to hunt for exceptions in log files on a CI server.
+- No need to write Page Objects: You have direct access to the actual Java components, which already provide high-level APIs, just like Page Objects.
+- Full access to the database: Since you are on the server side, you can access the database from your tests the same way your business logic does. You can run SQL statements to restore the database to a known state before every test. Even better, you can run the test in a transaction and roll back afterward for a fast reset to a known state.
+
+With this technique, you can run 600 UI tests in 7 seconds, as opposed to 1 to 2 hours with the end-to-end testing approach. Because of the speed, you can let the UI tests run after every commit via your continuous integration server.
+
+Bypassing the browser and talking to the Vaadin server API directly eliminates the need to start the servlet container. You can add the server JARs to the testing classpath and call the Vaadin server API, which, in turn, invokes your server logic.
+
+Advantages of End-to-End Testing
+
+Though browserless testing is faster and less flaky, end-to-end testing is still sometimes needed.
+
+Specifically, end-to-end testing is more suitable for testing the critical parts of your application, such as the login and the checkout process, to simulate your users' real-life experience with your application.
+
+Moreover, end-to-end testing enables you to test the client-side functionality of your application, such as JavaScript code or the parts of the UI that are implemented using the Polymer or Lit libraries.
+
+Additionally, end-to-end testing is necessary for cross-browser testing. If you are building custom components or need to verify that your application works correctly across different browsers, you need end-to-end tests that run in actual browsers.
+
+These kinds of tests are impossible with browserless testing, which runs on the server side without initializing a browser.
+
+Differences between TestBench, Selenium and Playwright
+
+TestBench, Selenium and Playwright are all end-to-end testing frameworks. The end-to-end testing part in TestBench is based on Selenium. However, TestBench is specifically designed for testing Vaadin applications. Playwright is similar in nature to Selenium, with no special Vaadin support. Compared to Selenium and Playwright, TestBench is designed to:
+
+- ease the handling of Vaadin components. Unlike Selenium, which operates on the DOM of the web page and provides basic methods to interact with elements like click() or sendKeys(), TestBench provides helper methods to interact with Vaadin components, like select() or setValue(). Moreover, TestBench provides a more convenient way to interact with elements in the shadow DOM of Vaadin components.
+- take the nature of client-server communication in Vaadin applications into account. During the course of a test, TestBench automatically suspends client-side execution if the server is busy and resume it when the server is ready. This makes it possible to write tests in TestBench without the need to explicitly set wait timeouts for various events like page load or waiting for long-running server calls to finish.
+- an easy-to-use API for conducting visual regression tests (screenshot comparison).
+- enable parallel testing of Vaadin applications.

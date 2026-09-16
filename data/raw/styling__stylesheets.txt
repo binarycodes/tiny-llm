@@ -1,0 +1,124 @@
+Stylesheets
+
+A guide on how to use stylesheets to style Vaadin applications.
+
+In most project configurations, stylesheets are placed in the src/main/resources/META-INF/resources folder. In non-Spring projects packaged as WAR files they are placed in the src/main/webapp folder.
+
+In both cases they are loaded with the @StyleSheet annotation.
+
+Usually, you should apply @StyleSheet annotations to the main application class that implements the AppShellConfigurator interface. This ensures that the CSS in it is applied globally, up-front, when the application UI is loaded into the browser.
+
+[Java]
+@StyleSheet("styles.css")
+public class Application implements AppShellConfigurator {
+ ...
+}
+
+You can split your CSS over multiple stylesheets, and load them either with separate @StyleSheet annotations, or load additional stylesheets using the CSS @import rule.
+
+[src/main/resources/META-INF/resources/styles.css]
+@import "additional-styles.css";
+
+/* your CSS goes here */
+
+Stylesheets are applied to your UI in the order in which the @StyleSheet annotations and @import rules occur in your code.
+
+Automatic Browser Cache Invalidation
+
+In production mode, stylesheets loaded via @StyleSheet automatically get a content-based hash appended to the URL (e.g., styles.css?v-c=abc123). This ensures browsers cache stylesheets efficiently and automatically reload them when the file content changes after a deployment. No action is needed from developers.
+
+Custom VaadinServlet URL Mapping
+
+Stylesheets referenced by @StyleSheet annotation are loaded by the servlet container. If the application is configured to use a custom URL mapping for the VaadinServlet (e.g. vaadin.url-mapping setting in Spring applications), the referenced stylesheet must be prefixed by the context:// protocol.
+
+[Java]
+@StyleSheet("context://styles.css")
+public class Application implements AppShellConfigurator {}
+
+External Stylesheets
+
+All methods mentioned before for loading stylesheets also allow you to load stylesheets from external URIs, including other domains, by supplying an absolute path to @StyleSheet or @import.
+
+[Java]
+@StyleSheet("styles.css")
+@StyleSheet("https://example.com/external-styles.css")
+public class Application implements AppShellConfigurator {
+ ...
+}
+
+[src/main/resources/META-INF/resources/styles.css]
+@import "https://example.com/external-styles.css";
+
+You can read more about the @import at-rule on MDN.
+
+Lazy-Loading Stylesheets
+
+If you want to delay the loading of a particular stylesheet until it’s needed – for example if the stylesheet is big and only needed in a particular view or Flow component – you can apply the @StyleSheet annotation to its class instead of the main application class.
+
+[Java]
+@StyleSheet("calendar-view.css")
+public class CalendarView extends VerticalLayout {
+  ...
+}
+
+The stylesheet remains loaded even after the user navigates away from the view, or when the component is no longer displayed. This means you still need to ensure that the styles in it are scoped appropriately. You can use CSS class names to scope styles to a particular view or other part of the UI.
+
+[Java]
+@StyleSheet("calendar-view.css")
+public class CalendarView extends VerticalLayout {
+  public CalendarView() {
+    addClassName("calendar-view");
+  }
+}
+
+[src/main/resources/META-INF/resources/calendar-view.css]
+.calendar-view {
+  /* style rules in here only apply to CalendarView */
+  vaadin-button {
+    --aura-accent-color: green;
+  }
+}
+
+Note: CSS Class Names
+
+CSS class names are identifier-attributes applied to HTML elements that scope CSS styling to them. The same class name can be applied to multiple elements, and each element can have multiple class names. They have nothing to do with Java or TypeScript classes.
+
+Stylesheets can also be loaded and unloaded dynamically through Java code.
+
+Spring Security
+
+If you are using Spring Security in your Vaadin application, you need to ensure that your stylesheets are accessible to unauthenticated users. The default Vaadin Spring Security configuration only permits access to src/main/resources/META-INF/resources/styles.css as well as the Aura and Lumo theme stylesheets.
+
+To allow access to more stylesheets, you can modify your Spring Security configuration like so:
+
+[Java]
+public class SecurityConfig {
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.with(VaadinSecurityConfigurer.vaadin(), configurer -> {
+            ...
+        });
+
+        // Permit access to common static resource paths
+        http.authorizeHttpRequests(auth -> {
+            auth.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll();
+        });
+
+        return http.build();
+    }
+
+    ...
+}
+
+This allows access to common locations for static resources, one of which is the css path. To make stylesheets available under that path, place them in the src/main/resources/META-INF/resources/css folder. For example, if you place a stylesheet in src/main/resources/META-INF/resources/css/additional-styles.css, you can import it in your main stylesheet like so:
+
+[src/main/resources/META-INF/resources/styles.css]
+@import "css/additional-styles.css";
+
+When using lazy-loading, you can load the stylesheet with @StyleSheet like so:
+
+[Java]
+@StyleSheet("css/additional-styles.css")
+public class SomeView extends VerticalLayout {
+    ...
+}

@@ -1,0 +1,35 @@
+Adding Vaadin Views Inside a Swing Application
+
+Learn how to annotate and access Vaadin application views that you wish to render inside your Swing application.
+
+Enabling Flow Views
+
+In your Vaadin application, add the @Bridge annotation to any views you want to render inside your Swing application. You can use the isSwingRendered() method to check if a view is rendered in a normal browser or inside a Swing application, For example:
+
+[Java]
+...
+import com.vaadin.swingkit.server.Bridge;
+
+@Route("example-view")
+@Bridge
+public class ExampleView extends HorizontalLayout {
+    public ExampleView() {
+      if (SwingVaadinServer.isSwingRendered()) {
+        // Code which is run only if this view is rendered inside a Swing application
+      }
+    }
+}
+
+Rendering Flow Views in Swing
+
+Once you have prepared your Flow views, they can be rendered as a component in your Swing application. The JVaadinPanel class extends the Panel component, and can be added to standard Swing layouts. You can check when the view has been completely rendered using the isReady() method. For example:
+
+[Java]
+...
+import com.vaadin.swingkit.client.SwingVaadinClient;
+import com.vaadin.swingkit.client.JVaadinPanel;
+
+...
+    JVaadinPanel vaadinPanel = SwingVaadinClient.getBuilder().build("example-view");
+    vaadinPanel.isReady();
+...

@@ -1,0 +1,48 @@
+Hilla & Lit Quick Start
+
+How to create and run a Hilla Lit application.
+
+This brief page can help you to get started doing this, quickly.
+
+Requirements
+
+Only two basic things are required, other than your usual equipment and tools:
+
+1. Node 18.0 or later.
+2. JDK 17 or later, for example, Eclipse Temurin JDK.
+
+Creating a Hilla Project
+
+You can create a new Hilla project with the Hilla CLI by executing the following from the command-line in your terminal:
+
+[terminal]
+npx @hilla/cli init --lit my-hilla-app
+
+Creating with Basic Security
+
+You can create a project with a basic security configuration by adding the --auth option to the command:
+
+[terminal]
+npx @hilla/cli init --lit --auth hilla-with-auth
+
+Downloading a Project ZIP
+
+Another option is to download a starter project as a ZIP and extract it:
+
+Download
+
+Running a Hilla Project
+
+Open a terminal in the created directory (i.e., my-hilla-app) and execute the following at the command-line to build the project with the built-in Maven wrapper:
+
+[Windows: terminal]
+mvnw
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./mvnw
+
+[macOS / Linux: terminal]
+
+Running this command builds both the front and backend. Once built, it opens your default web browser to http://localhost:8080.

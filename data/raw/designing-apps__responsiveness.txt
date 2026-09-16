@@ -1,0 +1,117 @@
+Responsiveness
+
+Introduces the principles behind making responsive user interfaces in Vaadin.
+
+In the scope of UX design, responsiveness refers to the UI responding to changes in the viewport size. Making a responsive application often means adapting the UI to mobile phone screen sizes and taking touch interactions into consideration. The same responsive techniques can also be adapted to make the best out of large screen sizes. The goal is not to squeeze or stretch the UI elements to fill the available space, but rather to adapt the user interfaces to best use the available screen estate.
+
+Designing for Mobile Responsiveness
+
+You can optimize a user interface for a small touchscreen in different ways, depending on your application’s specific needs. As a rule of thumb it’s better to do a limited set of mobile functionalities well, than to rush through and force everything to fit on a small screen.
+
+Reduce Features on Small Screens
+
+The most lightweight option is to reduce the number of features on smaller screens. This works for applications that are primarily used on the desktop, and whose mobile UI is used only from time to time to access read-only data or simple workflows. For instance, users may not need to do system administration and heavy data entry on their mobiles.
+
+In the following example, you can see two variants of the same user interface. On the left is the desktop variant with all the features. On the right is the mobile variant with less filters:
+
+[image: Desktop UI on the left; Mobile UI with less filters on the right]
+
+Build a Responsive UI
+
+The next option is to adapt the entire user interface to be mobile friendly. To make this easy, you should base the UI on a design system that takes responsiveness into account. In practice, you use CSS media queries and container queries to make responsive UI building blocks. To reduce the need for one-off, view specific overrides, the building blocks should adapt to the viewport size independently.
+
+In the following example, the mobile variant of the user interface contains all the filters of the desktop variant. To adapt to the smaller viewport, the filter panel shows up as an overlay that the user can show and hide as needed:
+
+[image: Desktop UI on left; Mobile UI with filter panel as overlay on right]
+
+Start with Small Screens
+
+If the mobile variant of your user interface is as important as the desktop variant, you should start by designing the mobile variant. This approach is called “mobile first”. The user experience on mobile becomes more natural without the burden of an existing desktop design. Once the mobile UI is ready, you adapt it to larger viewport sizes for the desktop variant.
+
+The following example shows a UI design that was first made for mobile, and then adapted to the desktop. The use case is the same as in the earlier examples, but the desktop variant is based on the mobile variant and not vice versa:
+
+[image: Mobile UI with a list of cards on left; Desktop UI with a list of cards on right]
+
+Adapting a mobile user interface to the desktop is not only about adjusting the size of elements. For instance, a workflow may consist of a series of smaller steps on the mobile that can be combined on the desktop.
+
+Build Separate UIs
+
+The approaches covered so far have been compromises: either the mobile UI is a variant of the desktop UI or vice versa. When the best possible user experience is required for both, you should develop the user interfaces independently from each other. However, this doubles the effort and amount of UI code. You may also need to create separate backend services for each UI, making the application more complex. This in turn makes it more expensive to add new features and make changes.
+
+Because of this, you should aim for a responsive user interface, and only create separate versions for the parts where it is needed. For instance, QR code scanning, or a full-screen map, may benefit from having their own UI implementations for mobile and desktop.
+
+The following example shows a mobile UI that relies on swipe gestures, while the desktop version has totally different interaction patterns:
+
+[image: Mobile UI with a touch slider on the left; Desktop UI with a data grid on the right]
+
+Design for Fluid Screen Sizes
+
+Avoid designing explicitly for any specific screen resolution like 1920x1080 or “iPhone 22 Pro”. Even if your users have a specific hardware setup they would still benefit from being able to resize their browser window to half screen, or use browser zoom. The design tool canvas needs to have some size, but consider that to be fluid. Also, the browser window is often smaller than the screen resolution. Push yourself to test how your design adapts to larger and smaller sizes.
+
+The following image demonstrates that only 75% of the height is actually available for the browser content on a 1270x900 screen:
+
+[image: Height of browser content area is 697px while screen height is 900px]
+
+Responsive Features in Vaadin
+
+Some Vaadin components have responsive features built into them. For example, the position of the Date Picker’s overlay is changed to optimize for touchscreen devices. This is demonstrated in the following image, with the desktop version on the left, and the mobile version on the right. On the desktop version, the overlay shows up below the field itself. On the mobile version, the overlay is fixed to the bottom of the screen:
+
+[image: Left field has overlay below field; Right shows overlay docked to bottom of viewport]
+
+The following table contains an overview of the responsive features of each component:
+
+Component | Responsive Features
+App Layout | The navigation drawer can be displayed as an overlay or bottom navbar. The drawer automatically collapses to a hamburger menu on small viewports.
+Dashboard | The layout is automatically optimized and adjusted based on the screen size.
+Charts | All chart types can be configured to fill any available space. Charts scale in real time when the container size changes.
+Context Menu | The menu is fixed to the bottom of the screen on small viewports.
+CRUD | The editor is always shown as an overlay on small viewports.
+Date Picker | The calendar is fixed to the bottom of the screen on small viewports.
+Dialog, Confirm Dialog | The button toolbar changes to a vertical layout when space is limited.
+Email Field | An email specific touchscreen keyboard is used if provided by the OS.
+Form Layout | The label positions and number of columns are adjusted based on the screen size.
+Menu Bar | An overflow menu appears when items don’t fit into the width of the menu bar.
+Number Field | A number specific touchscreen keyboard is used if provided by the OS.
+Password Field | Mobile browsers can display the typed character for a moment before obscuring it.
+Select | The overlay is fixed to bottom of the screen on small viewports.
+Tabs | Horizontal scroll buttons appear when tabs don’t fit into the width of the tab bar. The tab bar is also horizontally scrollable.
+
+Native Inputs and Vaadin Fields
+
+At first glance the operating system’s native overlays for selecting days or options from a list may seem like a good choice. However, Vaadin components allow for better control when the input has min-max limits, disabled options, or other logic for entering a value. For instance, some operating systems might not offer date pickers that can limit the dates or times the user can choose. This in turn can lead to usability issues and a different experience depending on the user’s device. Because of this, you should use Vaadin components in favour of native inputs.
+
+The following image shows the Vaadin Time Picker on the left, next to two native time pickers from Android and iOS:
+
+[image: Time Picker components in Vaadin]
+
+Developing Responsive User Interfaces
+
+The Vaadin components use standard web technologies to implement responsiveness: flexbox, grid, media queries, and container queries. You use the same technologies to make your user interfaces responsive, and if you are unfamiliar with CSS, the Lumo theme also provides utility classes for them. This section introduces these techniques from a design standpoint. For how to apply them in a Vaadin view — with code for both the Lumo and Aura themes — see Responsive Layouts in the Building Apps guide.
+
+Flexbox and Grid
+
+Flexbox is a one-dimensional layout system for arranging items in rows or columns. Items either expand to fill the available space, or shrink to minimize the used space. In addition, flexbox can be configured to wrap its children to a new line when needed. This is useful when adapting user interfaces for smaller viewports.
+
+For more information, see the MDN web docs for flexbox.
+
+Grid is a two-dimensional layout system that is slightly more complex than flexbox. It’s similar to having multiple flexboxes next to each other, but adds more control over the layout. By mastering both grid and flexbox, you can implement sophisticated responsive layouts.
+
+Important: Don’t confuse the CSS grid layout system with the Vaadin Grid component.
+
+For more information, see the MDN web docs for grid.
+
+In Vaadin, the layout components already use flexbox and grid under the hood. This makes them easier to use even if you are not familiar with how the CSS works. If the Vaadin layout components don’t fit your specific needs, you can write your own CSS or use the Lumo utility classes. For how to build two-dimensional grids with CSS Grid in a Vaadin view, see CSS Grid Layouts.
+
+CSS Media Query and Container Query
+
+Media queries apply CSS styles based on characteristics of the device, most commonly the width of the viewport. You use them to adapt the UI to the screen size — for example, hiding a desktop-only toolbar on narrow screens or revealing a mobile-only one. For more information, see the MDN web docs for media queries.
+
+Sometimes styling based on the viewport width isn’t enough. If an application has resizable content areas, it’s often better to style the content based on the width of the content area rather than the whole screen. Container queries allow this, so a component adapts to its own container no matter where it’s placed. For more information, see the MDN web docs for container queries.
+
+Lumo Utility Classes
+
+The Lumo utility classes are small, single-purpose CSS classes that you apply directly to a component or HTML element, offering a modular, reusable alternative to writing custom styles. The responsive utility classes follow a mobile-first approach: the default styles optimize for mobile viewports, and breakpoints add styles for larger screens. For instance, the Small breakpoint applies to screens 640px or wider, and Medium to screens 768px or wider.
+
+Note: Utility classes are specific to the Lumo theme. With the Aura theme, use CSS media and container queries instead.
+
+For the code to apply these techniques in a Vaadin view, see Responsive Layouts.

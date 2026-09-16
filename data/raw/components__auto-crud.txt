@@ -1,0 +1,452 @@
+Auto CRUD Hilla React
+
+Used to populate automatically CRUD views and actions based on a Java backend service.
+
+Auto CRUD is a component that provides CRUD functionality (i.e., Create, Read, Update, Delete) based on a Java backend service. It includes a sortable, filterable and lazy-loaded grid, as well as a form for creating, updating and deleting items.
+
+Important: Scaled down examples
+
+The examples on this page are scaled down so that their viewport-size-dependent behavior can be demonstrated. Some examples also change their behavior based on your browser viewport size.
+
+Basic Usage
+
+Auto CRUD requires a Java service that implements the CrudService<T, ID> interface. In the example here, the EmployeeService class extends CrudRepositoryService<T, ID, R>, which in turn implements the CrudService<T, ID>:
+
+[EmployeeService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.CrudRepositoryService;
+
+@BrowserCallable
+@AnonymousAllowed
+public class EmployeeService
+        extends CrudRepositoryService<Employee, Long, EmployeeRepository> {
+}
+
+[Employee.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.hilla.Nullable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Entity
+public class Employee {
+
+    public enum Gender {
+        FEMALE, MALE, NON_BINARY, OTHER
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    private String firstName;
+
+    @NotBlank
+    private String lastName;
+
+    @NotNull
+    private Gender gender;
+
+    @NotNull
+    private LocalDate startDate;
+
+    private LocalTime shiftStartsAt;
+
+    private boolean active;
+
+    private String description;
+
+    @Version
+    @Nullable
+    private long version;
+
+    // getters and setters omitted for brevity
+
+    public Employee() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalTime getShiftStartsAt() {
+        return shiftStartsAt;
+    }
+
+    public void setShiftStartsAt(LocalTime shiftStartAt) {
+        this.shiftStartsAt = shiftStartAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
+    }
+
+}
+
+[EmployeeRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface EmployeeRepository extends JpaRepository<Employee, Long>,
+        JpaSpecificationExecutor<Employee> {
+}
+
+Hilla generates TypeScript objects for each @BrowserCallable service implementing the CrudService<T, ID> interface. These TypeScript objects have callable methods that execute the corresponding Java service methods, enabling the Add, Update, and Delete operations as well as lazy data loading with sorting and filtering.
+
+For the example above, the generated TypeScript objects can be imported into the React view and the component configured like so:
+
+[tsx]
+<AutoCrud service={EmployeeService} model={EmployeeModel} />
+
+Here’s what the rendered component looks like:
+
+[auto-crud-basic.tsx]
+// tag::snippet[]
+import { AutoCrud } from '@vaadin/hilla-react-crud';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  return <AutoCrud service={EmployeeService} model={EmployeeModel} />;
+}
+// end::snippet[]
+
+As you can see in the previous example, Auto CRUD renders a grid with columns for all of the Employee entity’s properties, next to a form with fields for editing those properties. Selecting an entity in the grid populates the form with data from that entity. The new button allows one to create a new entity. When submitting the form, the data is submitted to the save method of the configured CrudService, and the row in the grid is updated. When an existing entity is selected, the form also shows a Delete button. Clicking on it, the button calls the delete method of the configured CrudService, clears the form and removes the row in the grid.
+
+Auto CRUD supports working with plain, non-JPA classes. This can be useful, for example, if you want to use the Data Transfer Object (DTO) pattern. See the Working with Plain Java Classes section.
+
+Component Composition
+
+Auto CRUD is a composition of the following components:
+
+- Auto Grid
+- Auto Form
+
+Each of the these components offers some customization options, which are described in the following sections.
+
+Customizing the Grid
+
+As you may have noticed in the previous example, the Auto CRUD component by default rendered the grid with all the properties of the entity, with default filtering and sorting options. The underlying Auto Grid offers a number of properties that allows you to customize the grid and its columns:
+
+- visibleColumns: An array of strings that specifies the names and also the order of appearance for the properties to be displayed as columns in the grid.
+- columnOptions: An object that specifies the options for each column.
+- customColumns: An array of <GridColumn /> components that specifies the custom columns to be added to the grid.
+- noHeaderFilters: Auto Grid has column-based filtering enabled by default. You can disable the built-in column filters by setting the noHeaderFilters flag.
+- Grid Props: Since the Auto CRUD component is composed of the Auto Grid component, and it’s internally using the Grid component, you can use all the properties of the Grid component to customize the grid. The way to pass the properties to the Auto CRUD component is by using the gridProps property.
+
+You can customize the grid by providing any of these options to the gridProps property. The following example shows how to provide the visibleColumns property to the gridProps to set the visibility and order of the columns. Additionally, it shows how to provide the columnOptions property to the gridProps to change the default header title of firstName column, and to provide a custom renderer for the active column.
+
+[auto-crud-customized-grid.tsx]
+import { AutoCrud } from '@vaadin/hilla-react-crud';
+import type Employee from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  // tag::snippet[]
+  function ActiveRenderer({ item }: { item: Employee }) {
+    const { active } = item;
+    const color = active ? 'green' : 'red';
+    return <span style={{ fontWeight: 'bold', color }}>{active ? 'Yes' : 'No'}</span>;
+  }
+
+  return (
+    <AutoCrud
+      service={EmployeeService}
+      model={EmployeeModel}
+      gridProps={{
+        visibleColumns: ['firstName', 'lastName', 'active', 'version'],
+        columnOptions: {
+          firstName: { header: 'Name' },
+          active: { renderer: ActiveRenderer },
+        },
+      }}
+    />
+  );
+  // end::snippet[]
+}
+
+Caution: Don’t Expose Sensitive Data on Client-Side
+
+When using Auto CRUD, it’s important to check that you don’t expose sensitive data to the client-side. For example, if you have a password property in your entity, hiding it using the visibleColumns property won’t prevent the data from being sent to the client-side. Make sure your service implementation doesn’t expose sensitive data to the client-side. You could do this by using a @JsonIgnore annotation on the property.
+
+For more detailed examples of customizing the underlying grid, please refer to the Auto Grid component documentation.
+
+Customizing the Form
+
+As you may have seen in the previous examples, Auto CRUD component renders by default a form with input components for all properties of the Employee entity along with a Save button that associates with the respective save method of the provided CrudService<Employee, Long>. It also includes a Discard button — which is hidden initially — that calls the form binder’s reset operation, which is only visible when there are changes. It renders a Delete button when a row is selected in the Grid, and the Form is in edit mode.
+
+The underlying Auto Form offers a number of properties that allows you to customize the form and its fields:
+
+- visibleFields: Auto Form component renders by default fields for all data properties in a Form Layout, except for the fields annotated by @Id and @Version. Using visibleFields, you can choose which fields to render in the form and in what order.
+- fieldOptions: This is an object that specifies the options for each field.
+- colspan: In case you want to render the form in a two or more column layout, you can set the colspan property for each field through fieldOption props to make it span over more than one column.
+- formLayoutProps: This is an object that specifies the options for the Form Layout.
+- layoutRenderer: This is a function that takes the AutoFormLayoutRendererProps as a parameter and returns any React element. The AutoFormLayoutRendererProps contains a read-only list of bound fields called children, and the form binder instance called form. You can use this function to achieve any custom layout, and also to have more control over binding and validations.
+
+You can customize the form rendered by Auto CRUD by providing any of these options the formProps property. The example below shows how to provide the visibleFields property to the formProps to set the visibility and the order of the fields. Additionally, it shows how to provide the fieldOptions property to the formProps to change the default label of firstName field, and to render a Text Area for the description field:
+
+[auto-crud-customized-form.tsx]
+import { AutoCrud } from '@vaadin/hilla-react-crud';
+import { TextArea } from '@vaadin/react-components/TextArea';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoCrud
+      service={EmployeeService}
+      model={EmployeeModel}
+      formProps={{
+        visibleFields: ['firstName', 'lastName', 'active', 'version', 'description'],
+        fieldOptions: {
+          firstName: { label: 'Name' },
+          description: {
+            renderer: ({ field }) => <TextArea {...field} label="Full description" />,
+          },
+        },
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+Caution: Don’t Expose Sensitive Data on Client-Side
+
+When using Auto CRUD, it’s important to check that you don’t expose sensitive data to the client-side. For example, if you have a password property in your entity, hiding it using visibleFields does not prevent the data from being sent to the client-side. Make sure your service implementation doesn’t expose sensitive data to the client-side. You could do this by using a @JsonIgnore annotation on the property.
+
+For more detailed examples of customizing the underlying form, please refer to the Auto Form component documentation.
+
+Working with Plain Java Classes
+
+Auto CRUD supports working with plain, non-JPA Java classes. This can be useful, for example, if you want to use the Data Transfer Object (DTO) pattern to decouple your domain from your presentation logic, or you want to avoid serializing your JPA entities to the client due to performance concerns.
+
+Implementing a Custom Service
+
+To use plain Java classes, you need to provide a custom implementation of the CrudService<T> interface, as the CrudRepositoryService<T> base class only works with JPA entities. The following methods have to be implemented:
+
+- List<T> list(Pageable pageable, Filter filter): Returns a list of paginated, sorted and filtered items.
+- T save(T value): Either creates a new item or updates an existing one, depending on whether the item has an ID or not. Returns the saved item.
+- void delete(ID id): Deletes the item with the given ID.
+
+The following example shows a basic implementation of a custom CrudService that wraps a JPA repository. The service only exposes DTO instances to the client and maps between the DTO instances and JPA entities, internally.
+
+[ProductDtoCrudService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.CrudService;
+import com.vaadin.hilla.crud.filter.Filter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+@BrowserCallable
+@AnonymousAllowed
+public class ProductDtoCrudService implements CrudService<ProductDto, Long> {
+    private final ProductRepository productRepository;
+
+    public ProductDtoCrudService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    @Override
+    @NonNull
+    public List<@NonNull ProductDto> list(Pageable pageable,
+            @Nullable Filter filter) {
+        // Basic list implementation that only covers pagination,
+        // but not sorting or filtering
+        Page<Product> products = productRepository.findAll(pageable);
+        return products.stream().map(ProductDto::fromEntity).toList();
+    }
+
+    @Override
+    public @Nullable ProductDto save(ProductDto value) {
+        Product product = value.id() != null && value.id() > 0
+                ? productRepository.getReferenceById(value.id())
+                : new Product();
+        product.setName(value.name());
+        product.setCategory(value.category());
+        product.setPrice(value.price());
+
+        return ProductDto.fromEntity(productRepository.save(product));
+    }
+
+    @Override
+    public void delete(Long id) {
+        productRepository.deleteById(id);
+    }
+}
+
+[ProductDto.java]
+package com.vaadin.demo.fusion.crud;
+
+public record ProductDto(Long id, String name, String category, double price) {
+    public static ProductDto fromEntity(Product product) {
+        return new ProductDto(product.getId(), product.getName(),
+                product.getCategory(), product.getPrice());
+    }
+}
+
+[Product.java]
+package com.vaadin.demo.fusion.crud;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+import java.time.LocalDate;
+
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String category;
+    private double price;
+    private LocalDate dateAdded;
+    @OneToOne
+    private Supplier supplier;
+
+    // getters and setters omitted for brevity
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public LocalDate getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(LocalDate dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+}
+
+[ProductRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface ProductRepository extends JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product> {
+}
+
+The example above only has a very basic implementation of the list method. It doesn’t support sorting and filtering. For a proper implementation of that method, see the corresponding section in the Auto Grid documentation. It shows how to implement a ListService, in which the list method has the same signature as for CrudService.

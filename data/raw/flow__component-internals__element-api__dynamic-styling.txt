@@ -1,0 +1,74 @@
+Dynamic Styling Using the Element API
+
+Style elements dynamically with class names and inline styles.
+
+You can use the Element API to style elements using dynamic class names or inline styles. The API includes two methods that facilitate styling:
+
+- Element.getClassList(): gets the set of CSS class names used for the element
+- Element.getStyle(): gets the style instance to manage element inline styles
+
+Modifying CSS Classes on an Element
+
+Use the Element.getClassList() method to get a collection of CSS class names used for the element. The returned set can be modified by adding or removing class names.
+
+Example 1. CSS style rules
+
+[CSS]
+.blue {
+  background: blue;
+  color: white;
+}
+
+Example 2. Using the getClassList() method to dynamically modify the class names of an element
+
+[Java]
+button.setText("Change to blue");
+button.addEventListener("click", e -> button.getClassList().add("blue"));
+
+Example 3. Using the getClassList() method to add and remove classes
+
+[Java]
+element.getClassList().add("error");
+element.getClassList().add("critical");
+element.getClassList().remove("primary");
+
+// returns "error critical".
+element.getProperty("className"); 1
+
+1. The element.getProperty("className") method gets a set of all classes as a concatenated string.
+
+You can’t modify classList or className properties directly using the setProperty() methods.
+
+You can set and get an element’s class attribute using:
+
+- element.setAttribute("class", "foo bar"): this clears any previously set classList property.
+- element.getAttribute('class'): this returns the contents of the classList property as a single concatenated string.
+
+Using the Style Object
+
+You can set and remove inline styles for an element using the Style object returned by the Element.getStyle() method. Style property names can be formatted in camel case (for example, backgroundColor) or kebab case (for example, background-color).
+
+Example 4. Using the getStyle() method for dynamic inline styling
+
+[Java]
+Element input = ElementFactory.createInput();
+button.setText("Change to the entered value");
+button.addEventListener("click",
+    e -> button.getStyle().set("background",
+            input.getProperty("value")));
+
+Example 5. Setting and removing style objects using the getStyle() method
+
+[Java]
+element.getStyle().set("color", "red");
+//camelCase
+element.getStyle().set("fontWeight", "bold");
+//kebab-case
+element.getStyle().set("font-weight", "bold");
+
+//camelCase
+element.getStyle().remove("backgroundColor");
+//kebab-case
+element.getStyle().remove("background-color");
+
+element.getStyle().has("cursor");

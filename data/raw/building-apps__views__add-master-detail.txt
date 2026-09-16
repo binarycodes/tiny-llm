@@ -1,0 +1,307 @@
+Add a Master-Detail View
+
+Learn how to build a master-detail view.
+
+This guide teaches you how to build a rudimentary master-detail view in Vaadin. It uses the Master-Detail Layout component to arrange the two areas and to handle responsive behavior, and a signal to hold the selection so the detail updates reactively. It focuses on the UI pattern only: it does not define data models, persistence, or form/grid configuration.
+
+Copy-Paste into Your Project
+
+If you want to quickly try out a master-detail view, you can copy-paste the following class into your Vaadin project:
+
+[MasterDetailView.java]
+package com.vaadin.demo.buildingapps.masterdetail;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("building-apps/master-detail")
+public class MasterDetailView extends MasterDetailLayout {
+
+    // The selected item's id; null means nothing is selected.
+    private final ValueSignal<Integer> selectedId = new ValueSignal<>(null);
+
+    MasterDetailView() {
+        setSizeFull();
+
+        setMaster(createMaster());
+
+        // Shown in the detail area when nothing is selected.
+        setDetailPlaceholder(new Paragraph("No detail selected"));
+
+        // Derive the detail from the selection. This effect re-runs whenever
+        // selectedId changes: it shows the detail for the selected item, or
+        // clears it - revealing the placeholder - when there's no selection.
+        Paragraph detail = new Paragraph();
+        Signal.effect(this, () -> {
+            Integer id = selectedId.get();
+            if (id != null) {
+                detail.setText("Detail: " + id);
+                setDetail(detail);
+            } else {
+                setDetail(null);
+            }
+        });
+
+        // In overlay mode, clear the selection when the user dismisses the
+        // detail by clicking outside it or pressing Escape.
+        addBackdropClickListener(event -> selectedId.set(null));
+        addDetailEscapePressListener(event -> selectedId.set(null));
+    }
+
+    private Component createMaster() {
+        // In a real application, this would be a Grid. Selecting an item would
+        // set selectedId; clearing the selection would set it to null.
+        return new VerticalLayout(
+                new Button("Detail 1", e -> selectedId.set(1)),
+                new Button("Detail 2", e -> selectedId.set(2)),
+                new Button("Detail 3", e -> selectedId.set(3)),
+                new Button("Master only", e -> selectedId.set(null)));
+    }
+}
+
+For more detailed instructions on how to build a master-detail view from scratch, continue reading below. The guide uses the same code as in the copy-paste example, but breaks it down into smaller parts with explanations.
+
+What is a Master-Detail View?
+
+In a master-detail view, the user selects an item from a list (the master), and the details of the selected item are shown in another area (the detail). When no item is selected, the detail area is either hidden or shows a placeholder message.
+
+In the following mock-up, the master is a list of employees, and the detail shows information about the selected employee to the right of the list:
+
+[image: A mock-up of a master-detail view showing a list of employees on the left and details of the selected employee on the right]
+
+Master-detail views can look different depending on the application. In the following mock-up, the master is a list of offices, and the detail shows information about the selected office below the list:
+
+[image: A mock-up of a master-detail view showing a list of offices on the top and details of the selected office below the list]
+
+The example code in this guide does not look like the mock-ups above. It uses simple components and focuses only on the UI pattern. Substitute your own components where indicated.
+
+Extending Master-Detail Layout
+
+The Master-Detail Layout component arranges the master and detail areas, and switches the detail to an overlay when there isn’t enough room to show both side by side. Because it handles this responsive behavior for you, you don’t need to manage a separate layout or decide when to hide the detail.
+
+The view extends MasterDetailLayout directly, so the view is the layout:
+
+[Java]
+@Route("building-apps/master-detail")
+public class MasterDetailView extends MasterDetailLayout {
+
+    MasterDetailView() {
+        setSizeFull();
+        // ...
+    }
+}
+
+With the layout in place, the next step is to create the master component, hold the selection, and show the detail.
+
+Creating the Master Component
+
+To keep this example simple, the master component is a list of buttons. Each button represents a user selection; clicking one stores that item’s ID in the selection signal, and the "Master only" button clears it:
+
+[MasterDetailView.java]
+package com.vaadin.demo.buildingapps.masterdetail;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("building-apps/master-detail")
+public class MasterDetailView extends MasterDetailLayout {
+
+    // The selected item's id; null means nothing is selected.
+    private final ValueSignal<Integer> selectedId = new ValueSignal<>(null);
+
+    MasterDetailView() {
+        setSizeFull();
+
+        setMaster(createMaster());
+
+        // Shown in the detail area when nothing is selected.
+        setDetailPlaceholder(new Paragraph("No detail selected"));
+
+        // Derive the detail from the selection. This effect re-runs whenever
+        // selectedId changes: it shows the detail for the selected item, or
+        // clears it - revealing the placeholder - when there's no selection.
+        Paragraph detail = new Paragraph();
+        Signal.effect(this, () -> {
+            Integer id = selectedId.get();
+            if (id != null) {
+                detail.setText("Detail: " + id);
+                setDetail(detail);
+            } else {
+                setDetail(null);
+            }
+        });
+
+        // In overlay mode, clear the selection when the user dismisses the
+        // detail by clicking outside it or pressing Escape.
+        addBackdropClickListener(event -> selectedId.set(null));
+        addDetailEscapePressListener(event -> selectedId.set(null));
+    }
+
+    private Component createMaster() {
+        // In a real application, this would be a Grid. Selecting an item would
+        // set selectedId; clearing the selection would set it to null.
+        return new VerticalLayout(
+                new Button("Detail 1", e -> selectedId.set(1)),
+                new Button("Detail 2", e -> selectedId.set(2)),
+                new Button("Detail 3", e -> selectedId.set(3)),
+                new Button("Master only", e -> selectedId.set(null)));
+    }
+}
+
+In a real application, the master component would be a Grid with data loaded from a database. Selecting a row would set the selection, and the Grid would also reflect the current selection. Adding such a Grid is covered in the Add a Grid guide.
+
+Holding the Selection in a Signal
+
+Rather than tracking the selection with a mutable field and manually updating the detail whenever it changes, store it in a signal. The signal is the single source of truth for what’s selected; everything that depends on the selection - the detail, the placeholder, and, in a real application, the highlighted row in the master - derives from it.
+
+Here, the selection is the selected item’s ID. A null value means nothing is selected:
+
+[MasterDetailView.java]
+package com.vaadin.demo.buildingapps.masterdetail;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("building-apps/master-detail")
+public class MasterDetailView extends MasterDetailLayout {
+
+    // The selected item's id; null means nothing is selected.
+    private final ValueSignal<Integer> selectedId = new ValueSignal<>(null);
+
+    MasterDetailView() {
+        setSizeFull();
+
+        setMaster(createMaster());
+
+        // Shown in the detail area when nothing is selected.
+        setDetailPlaceholder(new Paragraph("No detail selected"));
+
+        // Derive the detail from the selection. This effect re-runs whenever
+        // selectedId changes: it shows the detail for the selected item, or
+        // clears it - revealing the placeholder - when there's no selection.
+        Paragraph detail = new Paragraph();
+        Signal.effect(this, () -> {
+            Integer id = selectedId.get();
+            if (id != null) {
+                detail.setText("Detail: " + id);
+                setDetail(detail);
+            } else {
+                setDetail(null);
+            }
+        });
+
+        // In overlay mode, clear the selection when the user dismisses the
+        // detail by clicking outside it or pressing Escape.
+        addBackdropClickListener(event -> selectedId.set(null));
+        addDetailEscapePressListener(event -> selectedId.set(null));
+    }
+
+    private Component createMaster() {
+        // In a real application, this would be a Grid. Selecting an item would
+        // set selectedId; clearing the selection would set it to null.
+        return new VerticalLayout(
+                new Button("Detail 1", e -> selectedId.set(1)),
+                new Button("Detail 2", e -> selectedId.set(2)),
+                new Button("Detail 3", e -> selectedId.set(3)),
+                new Button("Master only", e -> selectedId.set(null)));
+    }
+}
+
+In a real application, you might store the selected item itself instead of its ID.
+
+Showing the Detail Reactively
+
+With the selection in a signal, the detail area follows automatically. Set the master, provide a placeholder for the empty state, and use a signal effect to keep the detail in sync with the selection:
+
+[MasterDetailView.java]
+package com.vaadin.demo.buildingapps.masterdetail;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("building-apps/master-detail")
+public class MasterDetailView extends MasterDetailLayout {
+
+    // The selected item's id; null means nothing is selected.
+    private final ValueSignal<Integer> selectedId = new ValueSignal<>(null);
+
+    MasterDetailView() {
+        setSizeFull();
+
+        setMaster(createMaster());
+
+        // Shown in the detail area when nothing is selected.
+        setDetailPlaceholder(new Paragraph("No detail selected"));
+
+        // Derive the detail from the selection. This effect re-runs whenever
+        // selectedId changes: it shows the detail for the selected item, or
+        // clears it - revealing the placeholder - when there's no selection.
+        Paragraph detail = new Paragraph();
+        Signal.effect(this, () -> {
+            Integer id = selectedId.get();
+            if (id != null) {
+                detail.setText("Detail: " + id);
+                setDetail(detail);
+            } else {
+                setDetail(null);
+            }
+        });
+
+        // In overlay mode, clear the selection when the user dismisses the
+        // detail by clicking outside it or pressing Escape.
+        addBackdropClickListener(event -> selectedId.set(null));
+        addDetailEscapePressListener(event -> selectedId.set(null));
+    }
+
+    private Component createMaster() {
+        // In a real application, this would be a Grid. Selecting an item would
+        // set selectedId; clearing the selection would set it to null.
+        return new VerticalLayout(
+                new Button("Detail 1", e -> selectedId.set(1)),
+                new Button("Detail 2", e -> selectedId.set(2)),
+                new Button("Detail 3", e -> selectedId.set(3)),
+                new Button("Master only", e -> selectedId.set(null)));
+    }
+}
+
+Here’s how the pieces fit together:
+
+- setDetailPlaceholder() sets the component to show when no detail is set. The layout displays it whenever the detail area is empty, and hides it once a detail is set.
+- The Signal.effect() runs once immediately and then again every time selectedId changes. When an ID is selected, it populates the detail and calls setDetail(); when the selection is cleared, setDetail(null) empties the detail area, and the placeholder is shown again.
+- In a real application, the detail component would be a form. How to build one is covered in the Add a Form guide.
+
+The addBackdropClickListener() and addDetailEscapePressListener() calls clear the selection when the user dismisses the detail. These events fire when the detail is shown as an overlay - that is, when the layout is too narrow to show both areas side by side. Because the detail is derived from selectedId, clearing the signal is all that’s needed to close it.
+
+Representing Selection in the URL
+
+The signal keeps the selection in memory, which is enough for many views. It isn’t preserved across a page reload, though, and it can’t be shared as a link. If you need the selected item to be bookmarkable or to survive a refresh, represent it in the URL.
+
+To do this, keep the selection signal as the source of truth and synchronize it with a route parameter or query parameter: initialize the signal from the URL when the view is entered, and navigate to a new URL when the signal changes. The detail area still follows the signal reactively; only the source that drives the signal changes.
+
+Note: The current route and query parameters are available as a read-only signal through UI.getCurrentOrThrow().routerStateSignal(), so the URL can drive the selection reactively; you write changes back by navigating. The Route Parameters, Route Templates, and Query Parameters guides show the patterns for each.
+
+With the master, the selection signal, and the reactive detail in place, the master-detail view is complete. The next step is to integrate it into your application and enhance it with real data and more complex UI components as needed.

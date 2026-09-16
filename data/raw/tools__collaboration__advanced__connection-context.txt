@@ -1,0 +1,509 @@
+Connection Context
+
+Users are connected to a topic by connections that can become active or inactive. Activation of the connections is handled by a connection context. By default, ComponentConnectionContext activates the connections when at least one of the connected UI components are attached to the UI. It deactivates the connections when the UI components are detached. You may want to have different behavior, though, for specific cases.
+
+In addition to managing connection state, a context also handles synchronization of data changing events delivered to application code.
+
+You can create your own connection context by implementing the ConnectionContext interface, or by using one of the provided implementations. A SystemConnectionContext is currently available, in addition to the ComponentConnectionContext, which is the default.
+
+You can then pass the context to the collaboration manager’s constructor, or to openTopicConnection() as follows:
+
+[ConnectionContextExample.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.ComponentConnectionContext;
+import com.vaadin.collaborationengine.ConnectionContext;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.PresenceManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.TopicConnection;
+import com.vaadin.collaborationengine.TopicConnectionRegistration;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
+
+import org.springframework.scheduling.annotation.Async;
+
+public class ConnectionContextExample extends VerticalLayout {
+
+    private UserInfo localUser = new UserInfo("userId");
+    private String topicId = "mytopic";
+    private MessageManager messageManager;
+    private PresenceManager presenceManager;
+    private TopicConnectionRegistration registration;
+    private SerializableFunction<TopicConnection, Registration> connectionActivationCallback = connection -> {
+        // Do something when the connection is active.
+        return () -> {
+            // cleanup
+        };
+    };
+
+    public void instantiateWithConnectionContext(
+            ConnectionContext connectionContext) {
+        // Use to create a message manager
+        messageManager = new MessageManager(connectionContext, localUser,
+                topicId, CollaborationEngine::getInstance);
+
+        // Use to open a topic connection
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                connectionContext, topicId, localUser,
+                connectionActivationCallback);
+    }
+
+    public void instantiateWithComponent() {
+        // The ComponentConnectionContext is implicitly created
+        // when passing a component (this) as the first argument.
+        messageManager = new MessageManager(this, localUser, topicId);
+        presenceManager = new PresenceManager(this, localUser, topicId);
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                this, topicId, localUser, connectionActivationCallback);
+    }
+
+    public void instantiateWithComponentContext() {
+        ComponentConnectionContext context = new ComponentConnectionContext(
+                this);
+
+        // In this case the CollaborationEngine instance
+        // also needs to be supplied.
+        messageManager = new MessageManager(context, localUser, topicId,
+                CollaborationEngine::getInstance);
+
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                context, topicId, localUser, connectionActivationCallback);
+    }
+
+    @Async
+    public void runAsynchronously(CollaborationEngine collaborationEngine) { 1
+        UserInfo systemUser = new UserInfo("system user");
+
+        ConnectionContext context = collaborationEngine.getSystemContext(); 2
+
+        MessageManager messageManager = new MessageManager(context, systemUser,
+                topicId, () -> collaborationEngine); 3
+
+        messageManager.submit("The system is shutting down")
+                .whenComplete((v, t) -> messageManager.close()); 4
+
+    }
+
+    public SystemConnectionContext getSystemConnectionContext(
+            CollaborationEngine collaborationEngine) {
+
+        SystemConnectionContext context = collaborationEngine
+                .getSystemContext();
+        return context;
+    }
+
+    public void close() {
+        messageManager.close();
+        presenceManager.close();
+        registration.remove();
+    }
+}
+
+Component Connection Context
+
+ComponentConnectionContext implements a connection context based on the attached state of a set of component instances. It activates the topic connection whenever the target component is attached. It deactivates it when the component is detached. All attached components must belong to the same UI instance. This UI instance is used to dispatch actions with its access() method.
+
+ComponentConnectionContext is used internally by all high-level components (e.g., CollaborationAvatarGroup), and by shorthand methods and constructors that take a component instance instead of the context.
+
+The following example illustrates how to create a Collaboration Manager and how to open a connection to a topic inside a component. In this case, the component (i.e., this) is passed as the first parameter. Internally, a ComponentConnectionContext is created in each call. The connection becomes active when the component is attached and is deactivated when it’s detached.
+
+[ConnectionContextExample.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.ComponentConnectionContext;
+import com.vaadin.collaborationengine.ConnectionContext;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.PresenceManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.TopicConnection;
+import com.vaadin.collaborationengine.TopicConnectionRegistration;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
+
+import org.springframework.scheduling.annotation.Async;
+
+public class ConnectionContextExample extends VerticalLayout {
+
+    private UserInfo localUser = new UserInfo("userId");
+    private String topicId = "mytopic";
+    private MessageManager messageManager;
+    private PresenceManager presenceManager;
+    private TopicConnectionRegistration registration;
+    private SerializableFunction<TopicConnection, Registration> connectionActivationCallback = connection -> {
+        // Do something when the connection is active.
+        return () -> {
+            // cleanup
+        };
+    };
+
+    public void instantiateWithConnectionContext(
+            ConnectionContext connectionContext) {
+        // Use to create a message manager
+        messageManager = new MessageManager(connectionContext, localUser,
+                topicId, CollaborationEngine::getInstance);
+
+        // Use to open a topic connection
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                connectionContext, topicId, localUser,
+                connectionActivationCallback);
+    }
+
+    public void instantiateWithComponent() {
+        // The ComponentConnectionContext is implicitly created
+        // when passing a component (this) as the first argument.
+        messageManager = new MessageManager(this, localUser, topicId);
+        presenceManager = new PresenceManager(this, localUser, topicId);
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                this, topicId, localUser, connectionActivationCallback);
+    }
+
+    public void instantiateWithComponentContext() {
+        ComponentConnectionContext context = new ComponentConnectionContext(
+                this);
+
+        // In this case the CollaborationEngine instance
+        // also needs to be supplied.
+        messageManager = new MessageManager(context, localUser, topicId,
+                CollaborationEngine::getInstance);
+
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                context, topicId, localUser, connectionActivationCallback);
+    }
+
+    @Async
+    public void runAsynchronously(CollaborationEngine collaborationEngine) { 1
+        UserInfo systemUser = new UserInfo("system user");
+
+        ConnectionContext context = collaborationEngine.getSystemContext(); 2
+
+        MessageManager messageManager = new MessageManager(context, systemUser,
+                topicId, () -> collaborationEngine); 3
+
+        messageManager.submit("The system is shutting down")
+                .whenComplete((v, t) -> messageManager.close()); 4
+
+    }
+
+    public SystemConnectionContext getSystemConnectionContext(
+            CollaborationEngine collaborationEngine) {
+
+        SystemConnectionContext context = collaborationEngine
+                .getSystemContext();
+        return context;
+    }
+
+    public void close() {
+        messageManager.close();
+        presenceManager.close();
+        registration.remove();
+    }
+}
+
+You can also pass it to the collaboration manager’s constructor, or to openTopicConnection() as follows:
+
+[ConnectionContextExample.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.ComponentConnectionContext;
+import com.vaadin.collaborationengine.ConnectionContext;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.PresenceManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.TopicConnection;
+import com.vaadin.collaborationengine.TopicConnectionRegistration;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
+
+import org.springframework.scheduling.annotation.Async;
+
+public class ConnectionContextExample extends VerticalLayout {
+
+    private UserInfo localUser = new UserInfo("userId");
+    private String topicId = "mytopic";
+    private MessageManager messageManager;
+    private PresenceManager presenceManager;
+    private TopicConnectionRegistration registration;
+    private SerializableFunction<TopicConnection, Registration> connectionActivationCallback = connection -> {
+        // Do something when the connection is active.
+        return () -> {
+            // cleanup
+        };
+    };
+
+    public void instantiateWithConnectionContext(
+            ConnectionContext connectionContext) {
+        // Use to create a message manager
+        messageManager = new MessageManager(connectionContext, localUser,
+                topicId, CollaborationEngine::getInstance);
+
+        // Use to open a topic connection
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                connectionContext, topicId, localUser,
+                connectionActivationCallback);
+    }
+
+    public void instantiateWithComponent() {
+        // The ComponentConnectionContext is implicitly created
+        // when passing a component (this) as the first argument.
+        messageManager = new MessageManager(this, localUser, topicId);
+        presenceManager = new PresenceManager(this, localUser, topicId);
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                this, topicId, localUser, connectionActivationCallback);
+    }
+
+    public void instantiateWithComponentContext() {
+        ComponentConnectionContext context = new ComponentConnectionContext(
+                this);
+
+        // In this case the CollaborationEngine instance
+        // also needs to be supplied.
+        messageManager = new MessageManager(context, localUser, topicId,
+                CollaborationEngine::getInstance);
+
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                context, topicId, localUser, connectionActivationCallback);
+    }
+
+    @Async
+    public void runAsynchronously(CollaborationEngine collaborationEngine) { 1
+        UserInfo systemUser = new UserInfo("system user");
+
+        ConnectionContext context = collaborationEngine.getSystemContext(); 2
+
+        MessageManager messageManager = new MessageManager(context, systemUser,
+                topicId, () -> collaborationEngine); 3
+
+        messageManager.submit("The system is shutting down")
+                .whenComplete((v, t) -> messageManager.close()); 4
+
+    }
+
+    public SystemConnectionContext getSystemConnectionContext(
+            CollaborationEngine collaborationEngine) {
+
+        SystemConnectionContext context = collaborationEngine
+                .getSystemContext();
+        return context;
+    }
+
+    public void close() {
+        messageManager.close();
+        presenceManager.close();
+        registration.remove();
+    }
+}
+
+System Connection Context
+
+SystemConnectionContext is a connection context that’s always active. This context is intended to be used in situations that aren��’t directly associated with a UI, such as from a background thread or when integrating with external services.
+
+You can acquire an instance with SystemConnectionContext.getInstance() after a VaadinService is initialized. In other situations, you can use CollaborationEngine.getSystemContext() or create a new context instance using the constructor.
+
+[ConnectionContextExample.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.ComponentConnectionContext;
+import com.vaadin.collaborationengine.ConnectionContext;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.PresenceManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.TopicConnection;
+import com.vaadin.collaborationengine.TopicConnectionRegistration;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
+
+import org.springframework.scheduling.annotation.Async;
+
+public class ConnectionContextExample extends VerticalLayout {
+
+    private UserInfo localUser = new UserInfo("userId");
+    private String topicId = "mytopic";
+    private MessageManager messageManager;
+    private PresenceManager presenceManager;
+    private TopicConnectionRegistration registration;
+    private SerializableFunction<TopicConnection, Registration> connectionActivationCallback = connection -> {
+        // Do something when the connection is active.
+        return () -> {
+            // cleanup
+        };
+    };
+
+    public void instantiateWithConnectionContext(
+            ConnectionContext connectionContext) {
+        // Use to create a message manager
+        messageManager = new MessageManager(connectionContext, localUser,
+                topicId, CollaborationEngine::getInstance);
+
+        // Use to open a topic connection
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                connectionContext, topicId, localUser,
+                connectionActivationCallback);
+    }
+
+    public void instantiateWithComponent() {
+        // The ComponentConnectionContext is implicitly created
+        // when passing a component (this) as the first argument.
+        messageManager = new MessageManager(this, localUser, topicId);
+        presenceManager = new PresenceManager(this, localUser, topicId);
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                this, topicId, localUser, connectionActivationCallback);
+    }
+
+    public void instantiateWithComponentContext() {
+        ComponentConnectionContext context = new ComponentConnectionContext(
+                this);
+
+        // In this case the CollaborationEngine instance
+        // also needs to be supplied.
+        messageManager = new MessageManager(context, localUser, topicId,
+                CollaborationEngine::getInstance);
+
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                context, topicId, localUser, connectionActivationCallback);
+    }
+
+    @Async
+    public void runAsynchronously(CollaborationEngine collaborationEngine) { 1
+        UserInfo systemUser = new UserInfo("system user");
+
+        ConnectionContext context = collaborationEngine.getSystemContext(); 2
+
+        MessageManager messageManager = new MessageManager(context, systemUser,
+                topicId, () -> collaborationEngine); 3
+
+        messageManager.submit("The system is shutting down")
+                .whenComplete((v, t) -> messageManager.close()); 4
+
+    }
+
+    public SystemConnectionContext getSystemConnectionContext(
+            CollaborationEngine collaborationEngine) {
+
+        SystemConnectionContext context = collaborationEngine
+                .getSystemContext();
+        return context;
+    }
+
+    public void close() {
+        messageManager.close();
+        presenceManager.close();
+        registration.remove();
+    }
+}
+
+In the following example, an asynchronous job uses a SystemConnectionContext to send a system message:
+
+[ConnectionContextExample.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.ComponentConnectionContext;
+import com.vaadin.collaborationengine.ConnectionContext;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.PresenceManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.TopicConnection;
+import com.vaadin.collaborationengine.TopicConnectionRegistration;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
+
+import org.springframework.scheduling.annotation.Async;
+
+public class ConnectionContextExample extends VerticalLayout {
+
+    private UserInfo localUser = new UserInfo("userId");
+    private String topicId = "mytopic";
+    private MessageManager messageManager;
+    private PresenceManager presenceManager;
+    private TopicConnectionRegistration registration;
+    private SerializableFunction<TopicConnection, Registration> connectionActivationCallback = connection -> {
+        // Do something when the connection is active.
+        return () -> {
+            // cleanup
+        };
+    };
+
+    public void instantiateWithConnectionContext(
+            ConnectionContext connectionContext) {
+        // Use to create a message manager
+        messageManager = new MessageManager(connectionContext, localUser,
+                topicId, CollaborationEngine::getInstance);
+
+        // Use to open a topic connection
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                connectionContext, topicId, localUser,
+                connectionActivationCallback);
+    }
+
+    public void instantiateWithComponent() {
+        // The ComponentConnectionContext is implicitly created
+        // when passing a component (this) as the first argument.
+        messageManager = new MessageManager(this, localUser, topicId);
+        presenceManager = new PresenceManager(this, localUser, topicId);
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                this, topicId, localUser, connectionActivationCallback);
+    }
+
+    public void instantiateWithComponentContext() {
+        ComponentConnectionContext context = new ComponentConnectionContext(
+                this);
+
+        // In this case the CollaborationEngine instance
+        // also needs to be supplied.
+        messageManager = new MessageManager(context, localUser, topicId,
+                CollaborationEngine::getInstance);
+
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                context, topicId, localUser, connectionActivationCallback);
+    }
+
+    @Async
+    public void runAsynchronously(CollaborationEngine collaborationEngine) { 1
+        UserInfo systemUser = new UserInfo("system user");
+
+        ConnectionContext context = collaborationEngine.getSystemContext(); 2
+
+        MessageManager messageManager = new MessageManager(context, systemUser,
+                topicId, () -> collaborationEngine); 3
+
+        messageManager.submit("The system is shutting down")
+                .whenComplete((v, t) -> messageManager.close()); 4
+
+    }
+
+    public SystemConnectionContext getSystemConnectionContext(
+            CollaborationEngine collaborationEngine) {
+
+        SystemConnectionContext context = collaborationEngine
+                .getSystemContext();
+        return context;
+    }
+
+    public void close() {
+        messageManager.close();
+        presenceManager.close();
+        registration.remove();
+    }
+}
+
+1. The asynchronous function uses Spring’s @Async annotation. It needs to receive the CollaborationEngine as a parameter because CollaborationEngine.getInstance() would throw an exception when running in a background thread. For example, the following would fail:
+   [Java]
+   collaborationEngine = CollaborationEngine.getInstance(); // Throws an exception
+2. The SystemConnectionContext is acquired through CollaborationEngine.getSystemContext().
+3. It’s then used to create a MessageManager that’s activated immediately.
+4. The message is sent and the MessageManager is closed immediately.

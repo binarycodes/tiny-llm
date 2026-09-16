@@ -1,0 +1,29 @@
+SSO Kit
+
+Integrate Vaadin applications with third-party identity providers, and allow your users to benefit from single sign-on capabilities.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use SSO Kit in your project.
+
+- Start Trial
+- See Pricing
+
+SSO Kit provides all of the configuration needed to add single sign-on capabilities to your Vaadin applications, based on OpenID Connect. However, it depends on Spring Boot and Spring Security.
+
+The following identity providers are supported:
+
+- Okta
+- Keycloak
+- Azure Active Directory (Microsoft Entra ID)
+
+SSO Kit needs at least one OpenID Connect client configured on an instance of these providers.
+
+Topics
+
+Getting Started
+    Step-by-step guide on how to use SSO Kit in a Vaadin Flow application.
+Theming
+    How to customize the login screen of SSO Kit authentication providers.
+Integrations
+    How to use SSO Kit with vendor-specific tutorials.

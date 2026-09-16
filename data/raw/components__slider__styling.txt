@@ -1,0 +1,177 @@
+Slider Styling
+
+Styling API reference for the Slider component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-slider-bubble-arrow-size | Lumo, Aura
+--vaadin-slider-bubble-background | Lumo, Aura
+--vaadin-slider-bubble-border-color | Lumo, Aura
+--vaadin-slider-bubble-border-radius | Lumo, Aura
+--vaadin-slider-bubble-border-width | Lumo, Aura
+--vaadin-slider-bubble-font-size | Lumo, Aura
+--vaadin-slider-bubble-font-weight | Lumo, Aura
+--vaadin-slider-bubble-line-height | Lumo, Aura
+--vaadin-slider-bubble-offset | Lumo, Aura
+--vaadin-slider-bubble-padding | Lumo, Aura
+--vaadin-slider-bubble-shadow | Lumo, Aura
+--vaadin-slider-bubble-text-color | Lumo, Aura
+--vaadin-slider-fill-background | Lumo, Aura
+--vaadin-slider-thumb-height | Lumo, Aura
+--vaadin-slider-thumb-width | Lumo, Aura
+--vaadin-slider-track-background | Lumo, Aura
+--vaadin-slider-track-border-radius | Lumo, Aura
+--vaadin-slider-track-height | Lumo, Aura
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Slider
+
+Root element
+    vaadin-slider
+
+States
+
+Focused
+    vaadin-slider[focused]
+Keyboard focused
+    vaadin-slider[focus-ring]
+Disabled
+    vaadin-slider[disabled]
+Read-only
+    vaadin-slider[readonly]
+Active
+    vaadin-slider[active]
+Required
+    vaadin-slider[required]
+Min/max labels visible
+    vaadin-slider[min-max-visible]
+
+Parts
+
+Track
+    vaadin-slider::part(track)
+Track fill
+    vaadin-slider::part(track-fill)
+Thumb
+    vaadin-slider::part(thumb)
+Min/max label container
+    vaadin-slider::part(marks)
+Min label
+    vaadin-slider::part(min)
+Max label
+    vaadin-slider::part(max)
+Label
+    vaadin-slider::part(label)
+Helper text
+    vaadin-slider::part(helper-text)
+Error message
+    vaadin-slider::part(error-message)
+Required indicator
+    vaadin-slider::part(required-indicator)
+
+Range Slider
+
+Root element
+    vaadin-range-slider
+
+States
+
+Focused
+    vaadin-range-slider[focused]
+Keyboard focused
+    vaadin-range-slider[focus-ring]
+Disabled
+    vaadin-range-slider[disabled]
+Read-only
+    vaadin-range-slider[readonly]
+Start thumb active
+    vaadin-range-slider[start-active]
+End thumb active
+    vaadin-range-slider[end-active]
+Start thumb focused
+    vaadin-range-slider[start-focused]
+End thumb focused
+    vaadin-range-slider[end-focused]
+Required
+    vaadin-range-slider[required]
+Min/max labels visible
+    vaadin-range-slider[min-max-visible]
+
+Parts
+
+Track
+    vaadin-range-slider::part(track)
+Track fill
+    vaadin-range-slider::part(track-fill)
+Both thumbs
+    vaadin-range-slider::part(thumb)
+Start thumb
+    vaadin-range-slider::part(thumb-start)
+End thumb
+    vaadin-range-slider::part(thumb-end)
+Min/max label container
+    vaadin-range-slider::part(marks)
+Min label
+    vaadin-range-slider::part(min)
+Max label
+    vaadin-range-slider::part(max)
+Label
+    vaadin-range-slider::part(label)
+Helper text
+    vaadin-range-slider::part(helper-text)
+Error message
+    vaadin-range-slider::part(error-message)
+Required indicator
+    vaadin-range-slider::part(required-indicator)
+
+Value Bubble
+
+Slider and Range Slider use a vaadin-slider-bubble component with the following shadow DOM parts:
+
+Overlay
+    vaadin-slider-bubble::part(overlay)
+Content
+    vaadin-slider-bubble::part(content)
+Arrow
+    vaadin-slider-bubble::part(arrow)

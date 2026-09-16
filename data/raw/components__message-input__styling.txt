@@ -1,0 +1,99 @@
+Message Input Styling
+
+Styling API reference for the Message Input component.
+
+Style Variants
+
+Message Input supports the following style variants:
+
+Variant | Description | Supported by
+icon-button | Renders the send button with an icon only | Aura
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Field Surface
+
+Common Properties
+
+Property | Supported by
+--vaadin-input-field-background | Aura, Lumo
+--vaadin-input-field-border-color | Aura, Lumo
+--vaadin-input-field-border-radius | Aura, Lumo
+--vaadin-input-field-border-width | Aura, Lumo
+--vaadin-input-field-bottom-end-radius | Aura, Lumo
+--vaadin-input-field-bottom-start-radius | Aura, Lumo
+--vaadin-input-field-container-gap | Aura
+--vaadin-input-field-height | Lumo
+--vaadin-input-field-padding | Aura
+--vaadin-input-field-placeholder-color | Aura, Lumo
+--vaadin-input-field-top-start-radius | Aura, Lumo
+--vaadin-input-field-top-end-radius | Aura, Lumo
+--vaadin-input-field-value-color | Aura, Lumo
+--vaadin-input-field-value-font-size | Aura, Lumo
+--vaadin-input-field-value-font-weight | Aura, Lumo
+--vaadin-input-field-value-line-height | Aura, Lumo
+
+Field States
+
+Property | Supported by
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+--vaadin-input-field-disabled-background | Aura, Lumo
+--vaadin-input-field-disabled-text-color | Aura
+--vaadin-input-field-disabled-value-color | Lumo
+--vaadin-input-field-hover-highlight | Lumo
+--vaadin-input-field-hover-highlight-opacity | Lumo
+--vaadin-input-field-invalid-background | Lumo
+--vaadin-input-field-invalid-hover-highlight | Lumo
+--vaadin-input-field-readonly-border | Lumo
+
+Tip: Send Button Properties
+
+The send button appearance can be adjusted using the Button style properties.
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-message-input
+Disabled
+    vaadin-message-input[disabled]
+
+Field
+
+Input field wrapper
+    vaadin-message-input > vaadin-text-area
+Input field
+    vaadin-message-input > vaadin-text-area::part(input-field)
+Hovered input field
+    vaadin-message-input > vaadin-text-area:hover
+Focused input field
+    vaadin-message-input > vaadin-text-area[focused]
+Non-empty input field
+    vaadin-message-input > vaadin-text-area[has-value]
+
+Button
+
+Send button
+    vaadin-message-input-button**
+Send button text
+    vaadin-message-input-button::part(label)
+Hovered button
+    vaadin-message-input-button:hover
+Focused button
+    vaadin-message-input-button[focused]
+Button for non-empty field
+    vaadin-text-area[has-value] ~ vaadin-message-input-button

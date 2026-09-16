@@ -1,0 +1,24 @@
+Browser APIs
+
+Server-side Java APIs for accessing browser and web-platform features.
+
+Modern browsers expose a wide range of web-platform capabilities through JavaScript APIs. Vaadin wraps many of these as server-side Java APIs, so you can use features such as the clipboard, geolocation, browser history, fullscreen mode, screen orientation, wake lock, and web share directly from your Flow application without writing client-side code.
+
+Clipboard
+    Using the Clipboard API to copy text, HTML, and images to the user's clipboard, read clipboard content, and handle paste events from the server.
+Fullscreen
+    Using the Fullscreen API to enter, exit, and observe fullscreen mode from the server side.
+Screen Orientation
+    Reading device orientation and locking the screen from the server.
+Geolocation
+    Using the Geolocation API to access device location from the server.
+History
+    Using the History API to access and modify the browser history from the server side.
+Page Visibility
+    Reacting to browser tab visibility and focus changes from the server.
+Wake Lock
+    Using the Wake Lock API to keep the device screen on from the server.
+Web Share
+    Invoking the browser's native share sheet from the server side.
+Web Storage
+    Using Web Storage API to access browser storage from the server.

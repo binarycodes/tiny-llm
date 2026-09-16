@@ -1,0 +1,277 @@
+Dialog Styling
+
+Styling API reference for the Dialog component.
+
+Style Variants
+
+The following variants are supported:
+
+Variant | Description | Supported by
+no-padding | Used to remove the content area’s built-in padding | Aura, Lumo
+
+[Flow: DialogNoPadding.java]
+package com.vaadin.demo.component.dialog;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.dialog.DialogVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("dialog-no-padding")
+public class DialogNoPadding extends Div {
+
+    public DialogNoPadding() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Filter reports by users:");
+
+        dialog.add(createDialogContent(dialog));
+        dialog.getFooter().add(createFilterButton(dialog));
+
+        // tag::snippet[]
+        dialog.addThemeVariants(DialogVariant.NO_PADDING);
+        // end::snippet[]
+
+        Button button = new Button("Show dialog", e -> dialog.open());
+
+        add(dialog, button);
+    }
+
+    private static Grid<Person> createDialogContent(Dialog dialog) {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.setItems(DataService.getPeople(50));
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.addColumn(Person::getFullName).setHeader("Name");
+
+        grid.getStyle().set("width", "500px").set("max-width", "100%")
+                .set("border-radius", "0");
+
+        return grid;
+    }
+
+    private static Button createFilterButton(Dialog dialog) {
+        Button filterButton = new Button("Filter", e -> dialog.close());
+        filterButton.addThemeVariants(ButtonVariant.PRIMARY);
+
+        return filterButton;
+    }
+
+}
+
+[React: dialog-no-padding.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Dialog } from '@vaadin/react-components/Dialog.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridSelectionColumn } from '@vaadin/react-components/GridSelectionColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example(): React.JSX.Element {
+  const dialogOpened = useSignal(false);
+  const people = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 50 }).then((result) => {
+      people.value = result.people;
+    });
+  }, []);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Dialog
+        theme="no-padding"
+        header-title="Filter reports by users:"
+        opened={dialogOpened.value}
+        onClosed={() => {
+          dialogOpened.value = false;
+        }}
+        footer={
+          <Button
+            theme="primary"
+            onClick={() => {
+              dialogOpened.value = false;
+            }}
+          >
+            Filter
+          </Button>
+        }
+      >
+        <Grid items={people.value} style={{ width: '500px', maxWidth: '100%', borderRadius: '0' }}>
+          <GridSelectionColumn />
+          <GridColumn header="Name">
+            {({ item }) => (
+              <>
+                {item.firstName} {item.lastName}
+              </>
+            )}
+          </GridColumn>
+        </Grid>
+      </Dialog>
+
+      {/* end::snippet[] */}
+      <Button
+        onClick={() => {
+          dialogOpened.value = true;
+        }}
+      >
+        Show dialog
+      </Button>
+    </>
+  );
+}
+
+[Lit: dialog-no-padding.ts]
+import '@vaadin/button';
+import '@vaadin/dialog';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-selection-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { dialogFooterRenderer, dialogRenderer } from '@vaadin/dialog/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('dialog-no-padding')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private dialogOpened = false;
+
+  @state()
+  private people: Person[] | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 50 });
+    this.people = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-dialog
+        theme="no-padding"
+        header-title="Filter reports by users:"
+        .opened="${this.dialogOpened}"
+        @closed="${() => {
+          this.dialogOpened = false;
+        }}"
+        ${dialogRenderer(
+          () => html`
+            <vaadin-grid
+              .items="${this.people}"
+              style="width: 500px; max-width: 100%; border-radius: 0;"
+            >
+              <vaadin-grid-selection-column></vaadin-grid-selection-column>
+              <vaadin-grid-column
+                header="Name"
+                ${columnBodyRenderer<Person>(
+                  (item) => html`${item.firstName} ${item.lastName}`,
+                  []
+                )}
+              ></vaadin-grid-column>
+            </vaadin-grid>
+          `,
+          this.people
+        )}
+        ${dialogFooterRenderer(
+          () => html`
+            <vaadin-button theme="primary" @click="${this.close}">Filter</vaadin-button>
+          `,
+          []
+        )}
+      ></vaadin-dialog>
+      <!-- end::snippet[] -->
+      <vaadin-button @click="${this.open}">Show dialog</vaadin-button>
+    `;
+  }
+
+  private open() {
+    this.dialogOpened = true;
+  }
+
+  private close() {
+    this.dialogOpened = false;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-dialog-background | Aura
+--vaadin-dialog-border-color | Aura
+--vaadin-dialog-border-radius | Aura
+--vaadin-dialog-border-width | Aura
+--vaadin-dialog-max-width | Aura
+--vaadin-dialog-min-width | Aura
+--vaadin-dialog-overflow-indicator-color | Aura
+--vaadin-dialog-overflow-indicator-height | Aura
+--vaadin-dialog-padding | Aura
+--vaadin-dialog-shadow | Aura
+--vaadin-dialog-title-color | Aura
+--vaadin-dialog-title-font-size | Aura
+--vaadin-dialog-title-font-weight | Aura
+--vaadin-dialog-title-line-height | Aura
+--vaadin-overlay-backdrop-background | Aura
+--vaadin-overlay-viewport-inset | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-dialog
+
+States
+
+Non-modal
+    vaadin-dialog[modeless]
+Dialog with header
+    vaadin-dialog[has-header]
+Dialog with footer
+    vaadin-dialog[has-footer]
+Resizable
+    vaadin-dialog[resizable]
+Draggable
+    vaadin-dialog[draggable]
+
+Parts
+
+Modality curtain (backdrop)
+    vaadin-dialog::part(backdrop)
+Dialog surface
+    vaadin-dialog::part(overlay)
+Header
+    vaadin-dialog::part(header)
+Title wrapper
+    vaadin-dialog::part(title)
+Title element
+    vaadin-dialog > [slot="title"]
+Header custom content wrapper
+    vaadin-dialog::part(header-content)
+Content area
+    vaadin-dialog::part(content)
+Footer
+    vaadin-dialog::part(footer)

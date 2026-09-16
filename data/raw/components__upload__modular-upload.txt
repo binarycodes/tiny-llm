@@ -1,0 +1,492 @@
+Modular Upload
+
+Build modular file upload experiences with independent components and flexible layouts.
+
+The standard Upload component bundles a button, drop zone, file list, and upload management into a single component. UploadManager decouples these concerns into independent, composable pieces. Use it when you need to customize the upload layout, place the file list in a different location, omit UI components you don’t need, or integrate upload functionality into a custom component such as a chat input, form field, or toolbar.
+
+UploadManager
+    Non-visual. Handles file validation, upload queue management, and server communication. The three UI components below connect to it.
+UploadButton
+    A button that opens the file picker dialog. Automatically disables when the maximum file count is reached.
+UploadDropZone
+    A drag-and-drop target area that can wrap other content.
+UploadFileList
+    Displays files with progress indicators, status messages, and action buttons (retry, abort, remove).
+
+Each component can be placed anywhere in your layout, independently of one another. Multiple components of the same type can also connect to a single manager — for example, two separate upload buttons in different parts of the UI. They all link to the same UploadManager instance, which coordinates their behavior.
+
+Basic Usage
+
+Create an UploadManager instance and pass it to the UI components. The components automatically synchronize with the manager’s state.
+
+[Flow: UploadManagerBasic.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.upload.UploadButton;
+import com.vaadin.flow.component.upload.UploadFileList;
+import com.vaadin.flow.component.upload.UploadManager;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-manager-basic")
+public class UploadManagerBasic extends Div {
+
+    public UploadManagerBasic() {
+        // tag::snippet[]
+        // Create the upload handler
+        var handler = UploadHandler.inMemory((metadata, data) -> {
+            // Process the uploaded file
+            String fileName = metadata.fileName();
+            String mimeType = metadata.contentType();
+            // ...
+        });
+
+        // Create the manager with constraints
+        var manager = new UploadManager(this, handler);
+        manager.setMaxFiles(5);
+        manager.setMaxFileSize(10L * 1024 * 1024); // 10 MB
+        manager.setAcceptedMimeTypes("image/*", "application/pdf");
+
+        // Create the UI components
+        var uploadButton = new UploadButton("Select Files", manager);
+
+        var fileList = new UploadFileList(manager);
+        fileList.setWidthFull();
+
+        // Layout the components
+        var layout = new VerticalLayout(uploadButton, fileList);
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        // end::snippet[]
+
+        add(layout);
+    }
+
+}
+
+[React: upload-manager-basic.tsx]
+import React from 'react';
+import { UploadButton } from '@vaadin/react-components/UploadButton.js';
+import { UploadFileList } from '@vaadin/react-components/UploadFileList.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { UploadManager } from '@vaadin/upload/vaadin-upload-manager.js';
+
+function Example() {
+  // tag::snippet[]
+  // Create the upload manager
+  const manager = React.useMemo(
+    () =>
+      new UploadManager({
+        target: '/api/fileupload',
+        maxFiles: 5,
+        maxFileSize: 10 * 1024 * 1024, // 10 MB
+        accept: 'image/*,application/pdf',
+      }),
+    []
+  );
+
+  return (
+    <VerticalLayout theme="spacing">
+      <UploadButton manager={manager}>Select Files</UploadButton>
+      <UploadFileList manager={manager} style={{ width: '100%' }} />
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-manager-basic.ts]
+import '@vaadin/upload/vaadin-upload-button.js';
+import '@vaadin/upload/vaadin-upload-file-list.js';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { UploadManager } from '@vaadin/upload/vaadin-upload-manager.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-manager-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private readonly manager = new UploadManager({
+    target: '/api/fileupload',
+    maxFiles: 5,
+    maxFileSize: 10 * 1024 * 1024, // 10 MB
+    accept: 'image/*,application/pdf',
+  });
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-upload-button .manager="${this.manager}"> Select Files </vaadin-upload-button>
+        <vaadin-upload-file-list
+          .manager="${this.manager}"
+          style="width: 100%"
+        ></vaadin-upload-file-list>
+      </vaadin-vertical-layout>
+    `;
+  }
+  // end::snippet[]
+}
+
+The UploadManager is created with an upload handler that processes the files. The UploadButton and UploadFileList components are linked to the manager and can be placed anywhere in the layout.
+
+Owner Component Lifecycle
+
+The UploadManager requires an owner component, typically the view or layout containing the upload UI. The manager’s lifecycle is tied to the owner’s lifecycle:
+
+- When the owner is detached from the UI or disabled, uploads stop working
+- Events fired by the manager use the owner as their source component
+
+[Java]
+// The view itself is typically used as the owner
+public class MyView extends VerticalLayout {
+    public MyView() {
+        var manager = new UploadManager(this, handler);
+        // ...
+    }
+}
+
+This design ensures that the upload infrastructure is automatically cleaned up when the view is removed, preventing resource leaks.
+
+Using a Drop Zone
+
+The UploadDropZone component provides drag-and-drop functionality. It can wrap other content, allowing users to drop files onto a larger area.
+
+[Flow: UploadManagerDropZone.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.upload.UploadButton;
+import com.vaadin.flow.component.upload.UploadDropZone;
+import com.vaadin.flow.component.upload.UploadFileList;
+import com.vaadin.flow.component.upload.UploadManager;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-manager-drop-zone")
+public class UploadManagerDropZone extends Div {
+
+    public UploadManagerDropZone() {
+        // tag::snippet[]
+        // Create the upload handler
+        var handler = UploadHandler.inMemory((metadata, data) -> {
+            // Process the uploaded file
+        });
+
+        // Create the manager
+        var manager = new UploadManager(this, handler);
+        manager.setMaxFiles(10);
+
+        // Create the upload button
+        var uploadButton = new UploadButton("Browse", manager);
+
+        // Create drop zone content
+        var icon = VaadinIcon.UPLOAD.create();
+        var label = new Span("Drop files here or");
+        var dropContent = new HorizontalLayout(icon, label, uploadButton);
+        dropContent.setAlignItems(FlexComponent.Alignment.CENTER);
+        dropContent
+                .setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        dropContent.setSpacing(true);
+
+        // Create the drop zone with the content inside
+        var dropZone = new UploadDropZone(dropContent, manager);
+        dropZone.setWidthFull();
+        dropZone.getStyle().set("border",
+                "1px dashed var(--vaadin-border-color-secondary)");
+        dropZone.getStyle().set("border-radius", "var(--vaadin-radius-l)");
+        dropZone.getStyle().set("padding", "var(--vaadin-padding-l)");
+        dropZone.getStyle().set("box-sizing", "border-box");
+
+        // Create the file list
+        var fileList = new UploadFileList(manager);
+        fileList.setWidthFull();
+
+        // Layout the components
+        var layout = new VerticalLayout(dropZone, fileList);
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        // end::snippet[]
+
+        add(layout);
+    }
+
+}
+
+[React: upload-manager-drop-zone.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { UploadButton } from '@vaadin/react-components/UploadButton.js';
+import { UploadDropZone } from '@vaadin/react-components/UploadDropZone.js';
+import { UploadFileList } from '@vaadin/react-components/UploadFileList.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { UploadManager } from '@vaadin/upload/vaadin-upload-manager.js';
+
+function Example() {
+  // tag::snippet[]
+  // Create the upload manager
+  const manager = React.useMemo(
+    () =>
+      new UploadManager({
+        target: '/api/fileupload',
+        maxFiles: 10,
+      }),
+    []
+  );
+
+  return (
+    <VerticalLayout theme="spacing" style={{ width: '100%' }}>
+      <UploadDropZone
+        manager={manager}
+        style={{
+          border: '1px dashed var(--vaadin-border-color-secondary)',
+          borderRadius: 'var(--vaadin-radius-l)',
+          padding: 'var(--vaadin-padding-l)',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <HorizontalLayout
+          theme="spacing"
+          style={{ alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Icon icon="vaadin:upload" />
+          <span>Drop files here or</span>
+          <UploadButton manager={manager}>Browse</UploadButton>
+        </HorizontalLayout>
+      </UploadDropZone>
+      <UploadFileList manager={manager} style={{ width: '100%' }} />
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-manager-drop-zone.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/upload/vaadin-upload-button.js';
+import '@vaadin/upload/vaadin-upload-drop-zone.js';
+import '@vaadin/upload/vaadin-upload-file-list.js';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { UploadManager } from '@vaadin/upload/vaadin-upload-manager.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-manager-drop-zone')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private readonly manager = new UploadManager({
+    target: '/api/fileupload',
+    maxFiles: 10,
+  });
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing" style="width: 100%">
+        <vaadin-upload-drop-zone
+          .manager="${this.manager}"
+          style="border: 1px dashed var(--vaadin-border-color-secondary); border-radius: var(--vaadin-radius-l); padding: var(--vaadin-padding-l); width: 100%; box-sizing: border-box"
+        >
+          <vaadin-horizontal-layout
+            theme="spacing"
+            style="align-items: center; justify-content: center"
+          >
+            <vaadin-icon icon="vaadin:upload"></vaadin-icon>
+            <span>Drop files here or</span>
+            <vaadin-upload-button .manager="${this.manager}">Browse</vaadin-upload-button>
+          </vaadin-horizontal-layout>
+        </vaadin-upload-drop-zone>
+        <vaadin-upload-file-list
+          .manager="${this.manager}"
+          style="width: 100%"
+        ></vaadin-upload-file-list>
+      </vaadin-vertical-layout>
+    `;
+  }
+  // end::snippet[]
+}
+
+The drop zone applies a dragover attribute when files are dragged over it, which can be styled using CSS.
+
+Thumbnails
+
+The UploadFileList supports a thumbnails theme variant that displays uploaded files as a compact grid instead of a vertical list. Image files are shown with a thumbnail preview, while other file types display a file icon.
+
+[Flow: UploadManagerThumbnails.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.upload.UploadButton;
+import com.vaadin.flow.component.upload.UploadFileList;
+import com.vaadin.flow.component.upload.UploadFileListVariant;
+import com.vaadin.flow.component.upload.UploadManager;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-manager-thumbnails")
+public class UploadManagerThumbnails extends Div {
+
+    public UploadManagerThumbnails() {
+        // tag::snippet[]
+        var handler = UploadHandler.inMemory((metadata, data) -> {
+            // Process the uploaded file
+        });
+
+        var manager = new UploadManager(this, handler);
+
+        var uploadButton = new UploadButton("Select Files", manager);
+
+        var fileList = new UploadFileList(manager);
+        fileList.setWidthFull();
+        fileList.addThemeVariants(UploadFileListVariant.THUMBNAILS);
+
+        var layout = new VerticalLayout(uploadButton, fileList);
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        // end::snippet[]
+
+        add(layout);
+    }
+
+}
+
+[React: upload-manager-thumbnails.tsx]
+import React from 'react';
+import { UploadButton } from '@vaadin/react-components/UploadButton.js';
+import { UploadFileList } from '@vaadin/react-components/UploadFileList.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { UploadManager } from '@vaadin/upload/vaadin-upload-manager.js';
+
+function Example() {
+  // tag::snippet[]
+  const manager = React.useMemo(
+    () =>
+      new UploadManager({
+        target: '/api/fileupload',
+      }),
+    []
+  );
+
+  return (
+    <VerticalLayout theme="spacing">
+      <UploadButton manager={manager}>Select Files</UploadButton>
+      <UploadFileList manager={manager} theme="thumbnails" style={{ width: '100%' }} />
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-manager-thumbnails.ts]
+import '@vaadin/upload/vaadin-upload-button.js';
+import '@vaadin/upload/vaadin-upload-file-list.js';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { UploadManager } from '@vaadin/upload/vaadin-upload-manager.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-manager-thumbnails')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private readonly manager = new UploadManager({
+    target: '/api/fileupload',
+  });
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-upload-button .manager="${this.manager}"> Select Files </vaadin-upload-button>
+        <vaadin-upload-file-list
+          .manager="${this.manager}"
+          theme="thumbnails"
+          style="width: 100%"
+        ></vaadin-upload-file-list>
+      </vaadin-vertical-layout>
+    `;
+  }
+  // end::snippet[]
+}
+
+Configuration
+
+The UploadManager accepts an upload handler for processing files, and shares most of its configuration API with the standard Upload component — including upload restrictions (file count, size, and format), auto-upload, and event listeners.
+
+The following sections describe where UploadManager differs from Upload.
+
+File Type Restrictions
+
+Unlike Upload, which uses a single setAcceptedFileTypes() method for both MIME types and extensions as a client-side hint, UploadManager provides two separate methods:
+
+[Java]
+// Accept by MIME type (wildcards supported)
+manager.setAcceptedMimeTypes("image/*", "application/pdf");
+
+// Accept by file extension (must start with a dot)
+manager.setAcceptedFileExtensions(".pdf", ".docx", ".xlsx");
+
+When both are configured, a file must match at least one MIME type and at least one file extension. These restrictions are enforced both on the client side (to filter the file picker) and on the server side (to reject non-matching uploads). This is an improvement over Upload, which only validates file types on the client.
+
+Event Differences
+
+The FileRejectedEvent in UploadManager carries a typed FileRejectionReason enum (TOO_MANY_FILES, FILE_TOO_LARGE, INCORRECT_FILE_TYPE) instead of a raw error string, making it easier to handle specific rejection causes programmatically.
+
+Upload progress events aren’t available as component event listeners. Use TransferProgressListener on the upload handler instead.
+
+Disabling Uploads
+
+Warning: Disabling UI components (UploadButton, UploadDropZone) only affects the user interface. A malicious client can still initiate uploads by sending requests directly to the server. To securely prevent uploads, you must disable the UploadManager itself.
+
+Use setEnabled() on the manager to securely control whether uploads are allowed. Disabling the manager prevents the server from accepting upload requests, regardless of the state of UI components. You can also disable individual UI components for visual feedback, but this should always be combined with disabling the manager for security.
+
+Internationalization
+
+The UploadFileList component supports internationalization (i18n) for its labels and messages:
+
+[Java]
+var i18n = new UploadFileListI18N()
+    .setFile(new UploadFileListI18N.File()
+        .setRetry("Try again")
+        .setStart("Upload")
+        .setRemove("Delete"))
+    .setError(new UploadFileListI18N.Error()
+        .setTooManyFiles("Too many files")
+        .setFileIsTooBig("File is too large")
+        .setIncorrectFileType("Invalid file type"));
+
+fileList.setI18n(i18n);
+
+Related Components
+
+Upload
+The default Upload component with built-in drop zone, button, and file list.
+Progress Bar
+Component for showing task completion progress.

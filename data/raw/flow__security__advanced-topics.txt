@@ -1,0 +1,20 @@
+Advanced Security Topics
+
+Documentation of advanced security topics.
+
+Security Architecture
+    An introduction to Vaadin Flow's security architecture and how it works in practice.
+Security Practices at Vaadin
+    Provides an overview of the steps Vaadin takes to ensure an application remains secure.
+Common Vulnerabilities
+    Descriptions of common vulnerabilities such as SQL injections, cross-site request forgeries, cross-site scripting.
+Frequently Reported Issues
+    Lists perceived issues reported by users as vulnerabilities.
+Securing Plain Java Applications
+    Details and examples on using the built-in security helpers in a Java application.
+Navigation Access Control
+    Explains navigation access control and how it can be customized.
+Storing Sensitive Data
+    Advice on storing sensitive data in Spring Boot applications.
+Content Security Policy
+    How to enable strict Content Security Policy.

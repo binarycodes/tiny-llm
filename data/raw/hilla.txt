@@ -1,0 +1,10 @@
+Hilla Reference
+
+Learn how to use Hilla, a full-stack web framework that seamlessly integrates a Spring Boot backend and a React frontend.
+
+FAQ
+    Frequently asked questions about the Hilla framework.
+Guides
+Reference
+Lit
+    Documentation how to use the Hilla framework together with Lit.

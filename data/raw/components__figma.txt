@@ -1,0 +1,35 @@
+Figma Libraries
+
+A list of official Vaadin Figma libraries.
+
+Designers can create pixel-perfect UI designs and prototypes, that are easy for developers to implement, using the popular design tool Figma and the official Vaadin Figma libraries. The components in the libraries use the default Lumo styling, and you can adapt them to suit your branding and vision.
+
+Libraries
+
+Foundation & Components
+
+The main library includes typography, color, and other visual styles, and configurable components that cover the same components which are available for developers.
+
+View in Figma Community
+
+Charts
+
+Configurable charts which correspond to the chart types that are available in the official Vaadin Charts component.
+
+View in Figma Community
+
+Icons
+
+The components in this library are interchangeable with the icons that are bundled in the main library.
+
+View in Figma Community
+
+Figma Community
+
+You can follow Vaadin in the Figma community as well as duplicate, like, and comment the libraries.
+
+Vaadin in Figma Community
+
+How to Use
+
+If you are unfamiliar with Figma libraries, you can start by reading Figma’s official guide to libraries.

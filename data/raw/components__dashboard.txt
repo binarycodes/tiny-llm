@@ -1,0 +1,4290 @@
+Dashboard
+
+A component for building static dashboard layouts and dynamic, user-configurable dashboards.
+
+A component for building static dashboard layouts and dynamic, user-configurable dashboards.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Dashboard in your project.
+
+- Start Free Trial
+- See Pricing
+
+[Flow: DashboardBasic.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.dashboard.DashboardWidget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("dashboard-basic")
+public class DashboardBasic extends Div {
+
+    public DashboardBasic() {
+        // tag::snippet[]
+        Dashboard dashboard = new Dashboard();
+        dashboard.setMinimumColumnWidth("150px");
+        dashboard.setMaximumColumnCount(3);
+
+        DashboardWidget visitors = new DashboardWidget("Visitors");
+        visitors.setContent(MockWidgets.createVisitorsWidget());
+        dashboard.add(visitors);
+
+        DashboardWidget downloads = new DashboardWidget("Downloads");
+        downloads.setContent(MockWidgets.createDownloadsWidget());
+        dashboard.add(downloads);
+
+        DashboardWidget conversions = new DashboardWidget("Conversions");
+        conversions.setContent(MockWidgets.createConversionsWidget());
+        dashboard.add(conversions);
+
+        DashboardWidget visitorsByCountry = new DashboardWidget(
+                "Visitors by country");
+        visitorsByCountry
+                .setContent(MockWidgets.createVisitorsByCountryWidget());
+        visitorsByCountry.setRowspan(2);
+        dashboard.add(visitorsByCountry);
+
+        DashboardWidget browsers = new DashboardWidget("Browsers");
+        browsers.setContent(MockWidgets.createBrowsersWidget());
+        dashboard.add(browsers);
+
+        DashboardWidget trafficSources = new DashboardWidget("Traffic sources");
+        trafficSources.setContent(MockWidgets.createTrafficSourcesWidget());
+        dashboard.add(trafficSources);
+
+        DashboardWidget visitorsPerMonth = new DashboardWidget(
+                "Visitors per month");
+        visitorsPerMonth.setContent(MockWidgets.createVisitorsPerMonthWidget());
+        visitorsPerMonth.setColspan(2);
+        dashboard.add(visitorsPerMonth);
+
+        add(dashboard);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: MockWidgets.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.Configuration;
+import com.vaadin.flow.component.charts.model.ListSeries;
+import com.vaadin.flow.component.charts.model.XAxis;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+
+import java.util.List;
+
+public class MockWidgets {
+
+    record KpiData(String value, String trend, boolean trendUp) {
+    }
+
+    record CountryData(String flag, String name, int visitors) {
+    }
+
+    record ShareData(String name, String share) {
+    }
+
+    private static final List<CountryData> COUNTRY_DATA = List.of(
+            new CountryData("\uD83C\uDDFA\uD83C\uDDF8", "United States", 12847),
+            new CountryData("\uD83C\uDDEC\uD83C\uDDE7", "United Kingdom", 6211),
+            new CountryData("\uD83C\uDDE9\uD83C\uDDEA", "Germany", 4105),
+            new CountryData("\uD83C\uDDEB\uD83C\uDDF7", "France", 3542),
+            new CountryData("\uD83C\uDDEF\uD83C\uDDF5", "Japan", 2891),
+            new CountryData("\uD83C\uDDE7\uD83C\uDDF7", "Brazil", 1764));
+
+    private static final List<ShareData> BROWSER_DATA = List.of(
+            new ShareData("Chrome", "64%"), new ShareData("Firefox", "18%"),
+            new ShareData("Safari", "12%"), new ShareData("Edge", "4%"),
+            new ShareData("Other", "2%"));
+
+    private static final List<ShareData> TRAFFIC_DATA = List.of(
+            new ShareData("Organic", "43%"), new ShareData("Direct", "27%"),
+            new ShareData("Social", "18%"), new ShareData("Referral", "12%"));
+
+    public static Component createVisitorsWidget() {
+        return createKpiWidget(new KpiData("54,238", "+12.3%", true));
+    }
+
+    public static Component createDownloadsWidget() {
+        return createKpiWidget(new KpiData("11,842", "-3.8%", false));
+    }
+
+    public static Component createConversionsWidget() {
+        return createKpiWidget(new KpiData("1,025", "+8.1%", true));
+    }
+
+    public static Component createVisitorsByCountryWidget() {
+        Div list = new Div();
+        list.addClassName("dashboard-country-list-widget");
+
+        int totalVisitors = COUNTRY_DATA.stream()
+                .mapToInt(CountryData::visitors).sum();
+
+        for (CountryData country : COUNTRY_DATA) {
+            Div row = new Div();
+            row.addClassName("country-row");
+
+            Div header = new Div();
+            header.addClassName("country-header");
+
+            Span name = new Span(country.flag() + " " + country.name());
+            name.addClassName("country-name");
+            Span count = new Span(String.format("%,d", country.visitors()));
+            count.addClassName("country-count");
+            header.add(name, count);
+
+            ProgressBar bar = new ProgressBar(0, 1,
+                    (double) country.visitors() / totalVisitors);
+
+            row.add(header, bar);
+            list.add(row);
+        }
+
+        return list;
+    }
+
+    public static Component createBrowsersWidget() {
+        return createShareList(BROWSER_DATA);
+    }
+
+    public static Component createTrafficSourcesWidget() {
+        return createShareList(TRAFFIC_DATA);
+    }
+
+    public static Component createVisitorsPerMonthWidget() {
+        Chart chart = new Chart(ChartType.LINE);
+
+        Configuration conf = chart.getConfiguration();
+        conf.setTitle((String) null);
+        conf.getLegend().setEnabled(false);
+        conf.getyAxis().setTitle((String) null);
+        conf.getTooltip().setValueSuffix(" visitors");
+        conf.getChart().setStyledMode(true);
+
+        XAxis xAxis = new XAxis();
+        xAxis.setCategories("Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                "Oct", "Nov", "Dec", "Jan", "Feb");
+        conf.addxAxis(xAxis);
+
+        conf.addSeries(new ListSeries("Visitors", 39210, 42500, 45890, 48120,
+                51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238));
+
+        return chart;
+    }
+
+    private static Component createKpiWidget(KpiData data) {
+        Div container = new Div();
+        container.addClassName("dashboard-kpi-widget");
+
+        Span valueSpan = new Span(data.value());
+        valueSpan.addClassName("kpi-value");
+
+        Div footer = new Div();
+        footer.addClassName("kpi-footer");
+
+        Span trendSpan = new Span(data.trend());
+        trendSpan.addClassName(
+                data.trendUp() ? "kpi-trend-up" : "kpi-trend-down");
+
+        Span label = new Span("vs last month");
+
+        footer.add(trendSpan, label);
+        container.add(valueSpan, footer);
+
+        return container;
+    }
+
+    private static Component createShareList(List<ShareData> items) {
+        Div list = new Div();
+        list.addClassName("dashboard-share-list-widget");
+
+        for (ShareData item : items) {
+            Div row = new Div();
+            row.addClassName("share-row");
+
+            Span name = new Span(item.name());
+            Span share = new Span(item.share());
+            share.addClassName("share-value");
+
+            row.add(name, share);
+            list.add(row);
+        }
+
+        return list;
+    }
+}
+
+[Flow: MockWidgets.java]
+
+[React: dashboard-basic.tsx]
+import { DashboardLayout, DashboardWidget } from '@vaadin/react-components-pro';
+import {
+  BrowsersWidget,
+  ConversionsWidget,
+  DownloadsWidget,
+  TrafficSourcesWidget,
+  VisitorsByCountryWidget,
+  VisitorsPerMonthWidget,
+  VisitorsWidget,
+} from './mock-widgets';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DashboardLayout
+      style={{
+        '--vaadin-dashboard-col-min-width': '150px',
+        '--vaadin-dashboard-col-max-count': '3',
+      }}
+    >
+      <DashboardWidget widgetTitle="Visitors">
+        <VisitorsWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Downloads">
+        <DownloadsWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Conversions">
+        <ConversionsWidget />
+      </DashboardWidget>
+      <DashboardWidget
+        widgetTitle="Visitors by country"
+        style={{ '--vaadin-dashboard-widget-rowspan': '2' }}
+      >
+        <VisitorsByCountryWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Browsers">
+        <BrowsersWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Traffic sources">
+        <TrafficSourcesWidget />
+      </DashboardWidget>
+      <DashboardWidget
+        widgetTitle="Visitors per month"
+        style={{ '--vaadin-dashboard-widget-colspan': '2' }}
+      >
+        <VisitorsPerMonthWidget />
+      </DashboardWidget>
+    </DashboardLayout>
+    // end::snippet[]
+  );
+}
+
+[React: mock-widgets.tsx]
+import React from 'react';
+import { ProgressBar } from '@vaadin/react-components/ProgressBar.js';
+import { Chart } from '@vaadin/react-components-pro/Chart.js';
+import { ChartSeries } from '@vaadin/react-components-pro/ChartSeries.js';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: 64 },
+  { name: 'Firefox', share: 18 },
+  { name: 'Safari', share: 12 },
+  { name: 'Edge', share: 4 },
+  { name: 'Other', share: 2 },
+];
+
+const trafficData = [
+  { name: 'Organic', share: 43 },
+  { name: 'Direct', share: 27 },
+  { name: 'Social', share: 18 },
+  { name: 'Referral', share: 12 },
+];
+
+function KpiWidget({ value, trend, trendUp }: { value: string; trend: string; trendUp: boolean }) {
+  return (
+    <div className="dashboard-kpi-widget">
+      <span className="kpi-value">{value}</span>
+      <div className="kpi-footer">
+        <span className={trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}>{trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  );
+}
+
+export function VisitorsWidget() {
+  return <KpiWidget value="54,238" trend="+12.3%" trendUp />;
+}
+
+export function DownloadsWidget() {
+  return <KpiWidget value="11,842" trend="-3.8%" trendUp={false} />;
+}
+
+export function ConversionsWidget() {
+  return <KpiWidget value="1,025" trend="+8.1%" trendUp />;
+}
+
+export function VisitorsByCountryWidget() {
+  return (
+    <div className="dashboard-country-list-widget">
+      {countryData.map(({ flag, name, visitors }) => (
+        <div key={name} className="country-row">
+          <div className="country-header">
+            <span className="country-name">
+              {flag} {name}
+            </span>
+            <span className="country-count">{visitors.toLocaleString()}</span>
+          </div>
+          <ProgressBar value={visitors / totalVisitors} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BrowsersWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {browserData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TrafficSourcesWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {trafficData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VisitorsPerMonthWidget() {
+  return (
+    <Chart
+      type="line"
+      categories={'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}
+      noLegend
+      additionalOptions={{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}
+    >
+      <ChartSeries
+        title="Visitors"
+        values={[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}
+      />
+    </Chart>
+  );
+}
+
+[React: mock-widgets.tsx]
+
+[Lit: dashboard-basic.ts]
+import '@vaadin/dashboard/vaadin-dashboard-layout.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import {
+  renderBrowsersWidget,
+  renderConversionsWidget,
+  renderDownloadsWidget,
+  renderTrafficSourcesWidget,
+  renderVisitorsByCountryWidget,
+  renderVisitorsPerMonthWidget,
+  renderVisitorsWidget,
+} from './mock-widgets';
+
+@customElement('dashboard-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-dashboard-layout
+        style="--vaadin-dashboard-col-min-width: 150px; --vaadin-dashboard-col-max-count: 3"
+      >
+        <vaadin-dashboard-widget widget-title="Visitors">
+          ${renderVisitorsWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Downloads">
+          ${renderDownloadsWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Conversions">
+          ${renderConversionsWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget
+          widget-title="Visitors by country"
+          style="--vaadin-dashboard-widget-rowspan: 2;"
+        >
+          ${renderVisitorsByCountryWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Browsers">
+          ${renderBrowsersWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Traffic sources">
+          ${renderTrafficSourcesWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget
+          widget-title="Visitors per month"
+          style="--vaadin-dashboard-widget-colspan: 2;"
+        >
+          ${renderVisitorsPerMonthWidget()}
+        </vaadin-dashboard-widget>
+      </vaadin-dashboard-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: mock-widgets.ts]
+import '@vaadin/charts';
+import '@vaadin/progress-bar';
+import { html } from 'lit';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: '64%' },
+  { name: 'Firefox', share: '18%' },
+  { name: 'Safari', share: '12%' },
+  { name: 'Edge', share: '4%' },
+  { name: 'Other', share: '2%' },
+];
+
+const trafficData = [
+  { name: 'Organic', share: '43%' },
+  { name: 'Direct', share: '27%' },
+  { name: 'Social', share: '18%' },
+  { name: 'Referral', share: '12%' },
+];
+
+function renderKpiWidget(value: string, trend: string, trendUp: boolean) {
+  return html`
+    <div class="dashboard-kpi-widget">
+      <span class="kpi-value">${value}</span>
+      <div class="kpi-footer">
+        <span class="${trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}">${trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  `;
+}
+
+export function renderVisitorsWidget() {
+  return renderKpiWidget('54,238', '+12.3%', true);
+}
+
+export function renderDownloadsWidget() {
+  return renderKpiWidget('11,842', '-3.8%', false);
+}
+
+export function renderConversionsWidget() {
+  return renderKpiWidget('1,025', '+8.1%', true);
+}
+
+export function renderVisitorsByCountryWidget() {
+  return html`
+    <div class="dashboard-country-list-widget">
+      ${countryData.map(
+        ({ flag, name, visitors }) => html`
+          <div class="country-row">
+            <div class="country-header">
+              <span class="country-name">${flag} ${name}</span>
+              <span class="country-count">${visitors.toLocaleString()}</span>
+            </div>
+            <vaadin-progress-bar .value="${visitors / totalVisitors}"></vaadin-progress-bar>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+function renderShareList(items: Array<{ name: string; share: string }>) {
+  return html`
+    <div class="dashboard-share-list-widget">
+      ${items.map(
+        ({ name, share }) => html`
+          <div class="share-row">
+            <span>${name}</span>
+            <span class="share-value">${share}</span>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+export function renderBrowsersWidget() {
+  return renderShareList(browserData);
+}
+
+export function renderTrafficSourcesWidget() {
+  return renderShareList(trafficData);
+}
+
+export function renderVisitorsPerMonthWidget() {
+  return html`
+    <vaadin-chart
+      type="line"
+      no-legend
+      .categories="${'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}"
+      .additionalOptions="${{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}"
+    >
+      <vaadin-chart-series
+        title="Visitors"
+        .values="${[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}"
+      ></vaadin-chart-series>
+    </vaadin-chart>
+  `;
+}
+
+[Lit: mock-widgets.ts]
+
+Key Features
+
+Static & Dynamic Dashboards
+    Static: You define a dashboard and its widgets declaratively or imperatively. The React and Web Components for this are <DashboardLayout> & <DashboardWidget> and <vaadin-dashboard-layout> & <vaadin-dashboard-widget> respectively.
+
+    Dynamic: You define the data and Dashboard generates widgets using a renderer. Dynamic dashboards support edit mode that allows the end user to move, resize, and remove widgets. The React and Web Components for this are <Dashboard> and <vaadin-dashboard>, respectively.
+
+    In Flow, the Dashboard and DashboardWidget classes are used for both approaches.
+Widgets, Columns & Rows
+    Widgets are placed in columns and rows automatically, in the order supplied, based on the dashboard’s width and the column configuration. As the dashboard’s width changes, the number of columns is automatically adjusted based on their configured minimum and maximum width, and the widget positions are adjusted so.
+
+    You can’t place a widget in a specific column or row.
+Scrolling
+    Dashboard scrolls vertically if the contents overflow its defined height. Individual widgets don’t scroll (see Widget Content Sizing).
+
+Configuration
+
+The following configuration options are available for the Dashboard component.
+
+Columns & Rows
+
+Column width can vary between a minimum and maximum size. The default maximum width is 1fr, which allows the columns to expand to fill any available space. If a fixed length value is provided, empty space is reserved at the end of rows once the columns reach their maximum width.
+
+By default there is no limit on the number of columns, but one can be provided if needed.
+
+The height of each dashboard row is determined by the tallest widget in that row, whose height in turn is determined by its contents. A minimum row height determines the height of empty rows, such as when a widget’s row span is stretched into an unoccupied row. The minimum height can be configured.
+
+[Flow: Java]
+dashboard.setMinimumColumnWidth("150px");
+dashboard.setMaximumColumnWidth("300px");
+dashboard.setMaximumColumnCount(4);
+dashboard.setMinimumRowHeight("100px");
+
+[Flow: Java]
+
+[React: tsx]
+<DashboardLayout style={{
+    '--vaadin-dashboard-col-min-width': '150px',
+    '--vaadin-dashboard-col-max-width': '300px',
+    '--vaadin-dashboard-col-max-count': '4',
+    '--vaadin-dashboard-row-min-height': '100px'
+}}>
+...
+</DashboardLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-dashboard-layout style="--vaadin-dashboard-col-min-width: 150px; --vaadin-dashboard-col-max-width: 300px; --vaadin-dashboard-col-max-count: 4; --vaadin-dashboard-row-min-height: 100px">
+...
+</vaadin-dashboard-layout>
+
+[Lit: HTML]
+
+Fixed Row Height
+
+Alternatively, you can pin all rows to a fixed height. This overrides the minimum row height and prevents rows from expanding to fit their tallest widget.
+
+[Flow: Java]
+dashboard.setRowHeight("200px");
+
+[Flow: Java]
+
+[React: tsx]
+<DashboardLayout style={{
+    '--vaadin-dashboard-row-height': '200px'
+}}>
+...
+</DashboardLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-dashboard-layout style="--vaadin-dashboard-row-height: 200px">
+...
+</vaadin-dashboard-layout>
+
+[Lit: HTML]
+
+Whitespace
+
+The horizontal and vertical spacing between widgets, and the padding along the dashboard’s edges, can be configured.
+
+[Flow: Java]
+dashboard.setGap("10px");
+dashboard.setPadding("20px");
+
+[Flow: Java]
+
+[React: tsx]
+<DashboardLayout style={{
+    '--vaadin-dashboard-gap': '10px',
+    '--vaadin-dashboard-padding': '20px',
+}}>
+...
+</DashboardLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-dashboard-layout style="--vaadin-dashboard-gap: 10px; --vaadin-dashboard-padding: 20px">
+...
+</vaadin-dashboard-layout>
+
+[Lit: HTML]
+
+Dense Layout
+
+This mode uses the dense packing algorithm in the CSS grid layout model. It attempts to fill in empty slots in the layout by placing smaller widgets in them. This can affect the order of the widgets. It should be used with caution in user-configurable dashboards, as the automatic reordering of widgets may be confusing during editing.
+
+[Flow: Java]
+dashboard.setDenseLayout(true);
+
+[Flow: Java]
+
+[React: tsx]
+<DashboardLayout denseLayout>
+...
+</DashboardLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-dashboard-layout dense-layout>
+...
+</vaadin-dashboard-layout>
+
+[Lit: HTML]
+
+[dashboard-dense-layout.ts]
+import '@vaadin/checkbox';
+import '@vaadin/dashboard/vaadin-dashboard-layout.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('dashboard-dense-layout')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private denseLayout = false;
+
+  protected override render() {
+    return html`
+      <vaadin-checkbox
+        label="Use dense layout"
+        @change="${() => {
+          this.denseLayout = !this.denseLayout;
+        }}"
+      ></vaadin-checkbox>
+      <vaadin-dashboard-layout
+        .denseLayout="${this.denseLayout}"
+        style="--vaadin-dashboard-col-min-width: 0; --vaadin-dashboard-col-max-count: 3; --vaadin-dashboard-row-min-height: 50px;"
+      >
+        <vaadin-dashboard-widget
+          widget-title="Wide widget 1"
+          style="--vaadin-dashboard-widget-colspan: 2"
+        >
+          <div class="dashboard-widget-content small"></div>
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget
+          widget-title="Wide widget 2"
+          style="--vaadin-dashboard-widget-colspan: 2"
+        >
+          <div class="dashboard-widget-content small"></div>
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Small widget 1">
+          <div class="dashboard-widget-content small"></div>
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Small widget 2">
+          <div class="dashboard-widget-content small"></div>
+        </vaadin-dashboard-widget>
+      </vaadin-dashboard-layout>
+    `;
+  }
+}
+
+[dashboard-dense-layout.ts]
+
+Widgets
+
+Widgets consist of a content area and a header containing the widget’s title and a slot for more elements.
+
+[Flow: DashboardWidgetContents.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.dashboard.DashboardWidget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.router.Route;
+
+@Route("dashboard-widget-contents")
+public class DashboardWidgetContents extends Div {
+
+    public DashboardWidgetContents() {
+        // tag::snippet[]
+        DashboardWidget widget = new DashboardWidget("Widget title");
+        widget.setContent(new Span("Widget content"));
+        widget.setHeaderContent(new Span("Additional header content"));
+        // end::snippet[]
+
+        add(widget);
+    }
+
+}
+
+[React: dashboard-widget-contents.tsx]
+import { DashboardWidget } from '@vaadin/react-components-pro';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DashboardWidget widgetTitle="Widget title">
+      <span>Widget content</span>
+      <span slot="header-content">Additional header content</span>
+    </DashboardWidget>
+    // end::snippet[]
+  );
+}
+
+[Lit: dashboard-widget-contents.ts]
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('dashboard-widget-contents')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-dashboard-widget widget-title="Widget title">
+        <span>Widget content</span>
+        <span slot="header-content">Additional header content</span>
+      </vaadin-dashboard-widget>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+You can set the column span and row span to make a widget take up more than one column or row in the dashboard’s layout. The actual number of columns a widget spans is limited by the current number of columns in the dashboard, however.
+
+Widget Content Sizing
+
+The height of a widget’s contents define its default height. The height can grow because of row span or other taller widgets on the same dashboard row. If the height of the widget is constrained (e.g., by an explicitly set height), the contents of the card can overflow. You may need to incorporate a scrollable area (e.g., with Scroller) to accommodate a height smaller than the contents you place in a widget.
+
+The width of a widget is determined by the current column width and the widget’s column span.
+
+Contents that should cover the entire widget area should therefore be configured with 100% width and height, as well as a minimum height corresponding to its desired default height.
+
+Static Dashboards
+
+Static dashboards are populated declaratively (in React and Lit) / imperatively (in Flow), like normal layouts. They are a good choice for hard-coded dashboards.
+
+Flow | Dashboard
+React | <DashboardLayout>
+Lit Web Component | <vaadin-dashboard-layout>
+
+[Flow: DashboardBasic.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.dashboard.DashboardWidget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("dashboard-basic")
+public class DashboardBasic extends Div {
+
+    public DashboardBasic() {
+        // tag::snippet[]
+        Dashboard dashboard = new Dashboard();
+        dashboard.setMinimumColumnWidth("150px");
+        dashboard.setMaximumColumnCount(3);
+
+        DashboardWidget visitors = new DashboardWidget("Visitors");
+        visitors.setContent(MockWidgets.createVisitorsWidget());
+        dashboard.add(visitors);
+
+        DashboardWidget downloads = new DashboardWidget("Downloads");
+        downloads.setContent(MockWidgets.createDownloadsWidget());
+        dashboard.add(downloads);
+
+        DashboardWidget conversions = new DashboardWidget("Conversions");
+        conversions.setContent(MockWidgets.createConversionsWidget());
+        dashboard.add(conversions);
+
+        DashboardWidget visitorsByCountry = new DashboardWidget(
+                "Visitors by country");
+        visitorsByCountry
+                .setContent(MockWidgets.createVisitorsByCountryWidget());
+        visitorsByCountry.setRowspan(2);
+        dashboard.add(visitorsByCountry);
+
+        DashboardWidget browsers = new DashboardWidget("Browsers");
+        browsers.setContent(MockWidgets.createBrowsersWidget());
+        dashboard.add(browsers);
+
+        DashboardWidget trafficSources = new DashboardWidget("Traffic sources");
+        trafficSources.setContent(MockWidgets.createTrafficSourcesWidget());
+        dashboard.add(trafficSources);
+
+        DashboardWidget visitorsPerMonth = new DashboardWidget(
+                "Visitors per month");
+        visitorsPerMonth.setContent(MockWidgets.createVisitorsPerMonthWidget());
+        visitorsPerMonth.setColspan(2);
+        dashboard.add(visitorsPerMonth);
+
+        add(dashboard);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: MockWidgets.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.Configuration;
+import com.vaadin.flow.component.charts.model.ListSeries;
+import com.vaadin.flow.component.charts.model.XAxis;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+
+import java.util.List;
+
+public class MockWidgets {
+
+    record KpiData(String value, String trend, boolean trendUp) {
+    }
+
+    record CountryData(String flag, String name, int visitors) {
+    }
+
+    record ShareData(String name, String share) {
+    }
+
+    private static final List<CountryData> COUNTRY_DATA = List.of(
+            new CountryData("\uD83C\uDDFA\uD83C\uDDF8", "United States", 12847),
+            new CountryData("\uD83C\uDDEC\uD83C\uDDE7", "United Kingdom", 6211),
+            new CountryData("\uD83C\uDDE9\uD83C\uDDEA", "Germany", 4105),
+            new CountryData("\uD83C\uDDEB\uD83C\uDDF7", "France", 3542),
+            new CountryData("\uD83C\uDDEF\uD83C\uDDF5", "Japan", 2891),
+            new CountryData("\uD83C\uDDE7\uD83C\uDDF7", "Brazil", 1764));
+
+    private static final List<ShareData> BROWSER_DATA = List.of(
+            new ShareData("Chrome", "64%"), new ShareData("Firefox", "18%"),
+            new ShareData("Safari", "12%"), new ShareData("Edge", "4%"),
+            new ShareData("Other", "2%"));
+
+    private static final List<ShareData> TRAFFIC_DATA = List.of(
+            new ShareData("Organic", "43%"), new ShareData("Direct", "27%"),
+            new ShareData("Social", "18%"), new ShareData("Referral", "12%"));
+
+    public static Component createVisitorsWidget() {
+        return createKpiWidget(new KpiData("54,238", "+12.3%", true));
+    }
+
+    public static Component createDownloadsWidget() {
+        return createKpiWidget(new KpiData("11,842", "-3.8%", false));
+    }
+
+    public static Component createConversionsWidget() {
+        return createKpiWidget(new KpiData("1,025", "+8.1%", true));
+    }
+
+    public static Component createVisitorsByCountryWidget() {
+        Div list = new Div();
+        list.addClassName("dashboard-country-list-widget");
+
+        int totalVisitors = COUNTRY_DATA.stream()
+                .mapToInt(CountryData::visitors).sum();
+
+        for (CountryData country : COUNTRY_DATA) {
+            Div row = new Div();
+            row.addClassName("country-row");
+
+            Div header = new Div();
+            header.addClassName("country-header");
+
+            Span name = new Span(country.flag() + " " + country.name());
+            name.addClassName("country-name");
+            Span count = new Span(String.format("%,d", country.visitors()));
+            count.addClassName("country-count");
+            header.add(name, count);
+
+            ProgressBar bar = new ProgressBar(0, 1,
+                    (double) country.visitors() / totalVisitors);
+
+            row.add(header, bar);
+            list.add(row);
+        }
+
+        return list;
+    }
+
+    public static Component createBrowsersWidget() {
+        return createShareList(BROWSER_DATA);
+    }
+
+    public static Component createTrafficSourcesWidget() {
+        return createShareList(TRAFFIC_DATA);
+    }
+
+    public static Component createVisitorsPerMonthWidget() {
+        Chart chart = new Chart(ChartType.LINE);
+
+        Configuration conf = chart.getConfiguration();
+        conf.setTitle((String) null);
+        conf.getLegend().setEnabled(false);
+        conf.getyAxis().setTitle((String) null);
+        conf.getTooltip().setValueSuffix(" visitors");
+        conf.getChart().setStyledMode(true);
+
+        XAxis xAxis = new XAxis();
+        xAxis.setCategories("Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                "Oct", "Nov", "Dec", "Jan", "Feb");
+        conf.addxAxis(xAxis);
+
+        conf.addSeries(new ListSeries("Visitors", 39210, 42500, 45890, 48120,
+                51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238));
+
+        return chart;
+    }
+
+    private static Component createKpiWidget(KpiData data) {
+        Div container = new Div();
+        container.addClassName("dashboard-kpi-widget");
+
+        Span valueSpan = new Span(data.value());
+        valueSpan.addClassName("kpi-value");
+
+        Div footer = new Div();
+        footer.addClassName("kpi-footer");
+
+        Span trendSpan = new Span(data.trend());
+        trendSpan.addClassName(
+                data.trendUp() ? "kpi-trend-up" : "kpi-trend-down");
+
+        Span label = new Span("vs last month");
+
+        footer.add(trendSpan, label);
+        container.add(valueSpan, footer);
+
+        return container;
+    }
+
+    private static Component createShareList(List<ShareData> items) {
+        Div list = new Div();
+        list.addClassName("dashboard-share-list-widget");
+
+        for (ShareData item : items) {
+            Div row = new Div();
+            row.addClassName("share-row");
+
+            Span name = new Span(item.name());
+            Span share = new Span(item.share());
+            share.addClassName("share-value");
+
+            row.add(name, share);
+            list.add(row);
+        }
+
+        return list;
+    }
+}
+
+[Flow: MockWidgets.java]
+
+[React: dashboard-basic.tsx]
+import { DashboardLayout, DashboardWidget } from '@vaadin/react-components-pro';
+import {
+  BrowsersWidget,
+  ConversionsWidget,
+  DownloadsWidget,
+  TrafficSourcesWidget,
+  VisitorsByCountryWidget,
+  VisitorsPerMonthWidget,
+  VisitorsWidget,
+} from './mock-widgets';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DashboardLayout
+      style={{
+        '--vaadin-dashboard-col-min-width': '150px',
+        '--vaadin-dashboard-col-max-count': '3',
+      }}
+    >
+      <DashboardWidget widgetTitle="Visitors">
+        <VisitorsWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Downloads">
+        <DownloadsWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Conversions">
+        <ConversionsWidget />
+      </DashboardWidget>
+      <DashboardWidget
+        widgetTitle="Visitors by country"
+        style={{ '--vaadin-dashboard-widget-rowspan': '2' }}
+      >
+        <VisitorsByCountryWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Browsers">
+        <BrowsersWidget />
+      </DashboardWidget>
+      <DashboardWidget widgetTitle="Traffic sources">
+        <TrafficSourcesWidget />
+      </DashboardWidget>
+      <DashboardWidget
+        widgetTitle="Visitors per month"
+        style={{ '--vaadin-dashboard-widget-colspan': '2' }}
+      >
+        <VisitorsPerMonthWidget />
+      </DashboardWidget>
+    </DashboardLayout>
+    // end::snippet[]
+  );
+}
+
+[React: mock-widgets.tsx]
+import React from 'react';
+import { ProgressBar } from '@vaadin/react-components/ProgressBar.js';
+import { Chart } from '@vaadin/react-components-pro/Chart.js';
+import { ChartSeries } from '@vaadin/react-components-pro/ChartSeries.js';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: 64 },
+  { name: 'Firefox', share: 18 },
+  { name: 'Safari', share: 12 },
+  { name: 'Edge', share: 4 },
+  { name: 'Other', share: 2 },
+];
+
+const trafficData = [
+  { name: 'Organic', share: 43 },
+  { name: 'Direct', share: 27 },
+  { name: 'Social', share: 18 },
+  { name: 'Referral', share: 12 },
+];
+
+function KpiWidget({ value, trend, trendUp }: { value: string; trend: string; trendUp: boolean }) {
+  return (
+    <div className="dashboard-kpi-widget">
+      <span className="kpi-value">{value}</span>
+      <div className="kpi-footer">
+        <span className={trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}>{trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  );
+}
+
+export function VisitorsWidget() {
+  return <KpiWidget value="54,238" trend="+12.3%" trendUp />;
+}
+
+export function DownloadsWidget() {
+  return <KpiWidget value="11,842" trend="-3.8%" trendUp={false} />;
+}
+
+export function ConversionsWidget() {
+  return <KpiWidget value="1,025" trend="+8.1%" trendUp />;
+}
+
+export function VisitorsByCountryWidget() {
+  return (
+    <div className="dashboard-country-list-widget">
+      {countryData.map(({ flag, name, visitors }) => (
+        <div key={name} className="country-row">
+          <div className="country-header">
+            <span className="country-name">
+              {flag} {name}
+            </span>
+            <span className="country-count">{visitors.toLocaleString()}</span>
+          </div>
+          <ProgressBar value={visitors / totalVisitors} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BrowsersWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {browserData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TrafficSourcesWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {trafficData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VisitorsPerMonthWidget() {
+  return (
+    <Chart
+      type="line"
+      categories={'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}
+      noLegend
+      additionalOptions={{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}
+    >
+      <ChartSeries
+        title="Visitors"
+        values={[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}
+      />
+    </Chart>
+  );
+}
+
+[React: mock-widgets.tsx]
+
+[Lit: dashboard-basic.ts]
+import '@vaadin/dashboard/vaadin-dashboard-layout.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import {
+  renderBrowsersWidget,
+  renderConversionsWidget,
+  renderDownloadsWidget,
+  renderTrafficSourcesWidget,
+  renderVisitorsByCountryWidget,
+  renderVisitorsPerMonthWidget,
+  renderVisitorsWidget,
+} from './mock-widgets';
+
+@customElement('dashboard-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-dashboard-layout
+        style="--vaadin-dashboard-col-min-width: 150px; --vaadin-dashboard-col-max-count: 3"
+      >
+        <vaadin-dashboard-widget widget-title="Visitors">
+          ${renderVisitorsWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Downloads">
+          ${renderDownloadsWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Conversions">
+          ${renderConversionsWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget
+          widget-title="Visitors by country"
+          style="--vaadin-dashboard-widget-rowspan: 2;"
+        >
+          ${renderVisitorsByCountryWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Browsers">
+          ${renderBrowsersWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget widget-title="Traffic sources">
+          ${renderTrafficSourcesWidget()}
+        </vaadin-dashboard-widget>
+        <vaadin-dashboard-widget
+          widget-title="Visitors per month"
+          style="--vaadin-dashboard-widget-colspan: 2;"
+        >
+          ${renderVisitorsPerMonthWidget()}
+        </vaadin-dashboard-widget>
+      </vaadin-dashboard-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: mock-widgets.ts]
+import '@vaadin/charts';
+import '@vaadin/progress-bar';
+import { html } from 'lit';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: '64%' },
+  { name: 'Firefox', share: '18%' },
+  { name: 'Safari', share: '12%' },
+  { name: 'Edge', share: '4%' },
+  { name: 'Other', share: '2%' },
+];
+
+const trafficData = [
+  { name: 'Organic', share: '43%' },
+  { name: 'Direct', share: '27%' },
+  { name: 'Social', share: '18%' },
+  { name: 'Referral', share: '12%' },
+];
+
+function renderKpiWidget(value: string, trend: string, trendUp: boolean) {
+  return html`
+    <div class="dashboard-kpi-widget">
+      <span class="kpi-value">${value}</span>
+      <div class="kpi-footer">
+        <span class="${trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}">${trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  `;
+}
+
+export function renderVisitorsWidget() {
+  return renderKpiWidget('54,238', '+12.3%', true);
+}
+
+export function renderDownloadsWidget() {
+  return renderKpiWidget('11,842', '-3.8%', false);
+}
+
+export function renderConversionsWidget() {
+  return renderKpiWidget('1,025', '+8.1%', true);
+}
+
+export function renderVisitorsByCountryWidget() {
+  return html`
+    <div class="dashboard-country-list-widget">
+      ${countryData.map(
+        ({ flag, name, visitors }) => html`
+          <div class="country-row">
+            <div class="country-header">
+              <span class="country-name">${flag} ${name}</span>
+              <span class="country-count">${visitors.toLocaleString()}</span>
+            </div>
+            <vaadin-progress-bar .value="${visitors / totalVisitors}"></vaadin-progress-bar>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+function renderShareList(items: Array<{ name: string; share: string }>) {
+  return html`
+    <div class="dashboard-share-list-widget">
+      ${items.map(
+        ({ name, share }) => html`
+          <div class="share-row">
+            <span>${name}</span>
+            <span class="share-value">${share}</span>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+export function renderBrowsersWidget() {
+  return renderShareList(browserData);
+}
+
+export function renderTrafficSourcesWidget() {
+  return renderShareList(trafficData);
+}
+
+export function renderVisitorsPerMonthWidget() {
+  return html`
+    <vaadin-chart
+      type="line"
+      no-legend
+      .categories="${'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}"
+      .additionalOptions="${{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}"
+    >
+      <vaadin-chart-series
+        title="Visitors"
+        .values="${[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}"
+      ></vaadin-chart-series>
+    </vaadin-chart>
+  `;
+}
+
+[Lit: mock-widgets.ts]
+
+Dynamic, Editable Dashboards
+
+Dynamic dashboards offer end users the possibility to edit the layout. Dynamic dashboards are populated through a data-binding API coupled with a widget renderer function. This makes the layout configuration easy to persist and load from storage, such as a database.
+
+Flow | Dashboard
+React | <Dashboard>
+Lit Web Component | <vaadin-dashboard>
+
+[Flow: DashboardEditable.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.dashboard.DashboardWidget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("dashboard-editable")
+public class DashboardEditable extends Div {
+
+    private final DashboardStorage dashboardStorage;
+    private Dashboard dashboard;
+
+    // tag::snippet[]
+    // NOTE: This example uses the additional classes WidgetConfig and
+    // DashboardStorage, which you can find by switching to the respective file
+    // tab.
+
+    // Since the default DashboardWidget class doesn't allow setting custom
+    // data, we create a custom class that extends DashboardWidget, and add a
+    // field for storing the widget type.
+    public static class CustomWidget extends DashboardWidget {
+        private final WidgetConfig.WidgetType type;
+
+        public CustomWidget(WidgetConfig.WidgetType type, String title) {
+            super(title);
+            this.type = type;
+        }
+
+        public WidgetConfig.WidgetType getType() {
+            return type;
+        }
+    }
+
+    // This is the default configuration for the dashboard. Note that the order
+    // of the widgets in the list determines the order in which they are
+    // displayed in the dashboard.
+    private final List<WidgetConfig> defaultConfig = List.of(
+            new WidgetConfig(WidgetConfig.WidgetType.VISITORS, 1, 1),
+            new WidgetConfig(WidgetConfig.WidgetType.DOWNLOADS, 1, 1),
+            new WidgetConfig(WidgetConfig.WidgetType.CONVERSIONS, 1, 1),
+            new WidgetConfig(WidgetConfig.WidgetType.VISITORS_BY_COUNTRY, 1, 2),
+            new WidgetConfig(WidgetConfig.WidgetType.BROWSER_DISTRIBUTION, 1,
+                    1),
+            new WidgetConfig(WidgetConfig.WidgetType.TRAFFIC_SOURCES, 1, 1),
+            new WidgetConfig(WidgetConfig.WidgetType.VISITORS_PER_MONTH, 2, 1));
+
+    public DashboardEditable(DashboardStorage dashboardStorage) {
+        this.dashboardStorage = dashboardStorage;
+
+        createToolbar();
+        createDashboard();
+    }
+
+    private void createDashboard() {
+        // Create dashboard and load initial configuration
+        dashboard = new Dashboard();
+        loadConfiguration();
+
+        dashboard.setMinimumColumnWidth("150px");
+        dashboard.setMaximumColumnCount(3);
+        add(dashboard);
+    }
+
+    private void createToolbar() {
+        MenuBar toolbar = new MenuBar();
+
+        MenuItem edit = toolbar.addItem("Edit");
+        edit.addThemeNames("primary");
+        edit.addClickListener(event -> {
+            if (dashboard.isEditable()) {
+                dashboard.setEditable(false);
+                edit.setText("Edit");
+            } else {
+                dashboard.setEditable(true);
+                edit.setText("Apply");
+            }
+        });
+
+        MenuItem save = toolbar.addItem("Save");
+        save.addClickListener(event -> saveConfiguration());
+
+        MenuItem load = toolbar.addItem("Load");
+        load.addClickListener(event -> loadConfiguration());
+
+        MenuItem addWidget = toolbar.addItem("Add widget");
+        for (WidgetConfig.WidgetType widgetType : WidgetConfig.WidgetType
+                .values()) {
+            addWidget.getSubMenu().addItem(widgetType.getLabel(),
+                    event -> addWidget(widgetType));
+        }
+
+        MenuItem restore = toolbar.addItem("Restore default");
+        restore.addThemeNames("error");
+        restore.addClickListener(event -> restoreDefault());
+
+        add(toolbar);
+    }
+
+    private void saveConfiguration() {
+        // To save the dashboard configuration, we iterate over the current
+        // widgets in the dashboard and map them into configuration objects.
+        List<WidgetConfig> dashboardConfig = dashboard.getWidgets().stream()
+                .map(widget -> {
+                    // Cast to our custom widget class and extract type,
+                    // colspan, and rowspan
+                    CustomWidget customWidget = (CustomWidget) widget;
+                    return new WidgetConfig(customWidget.getType(),
+                            widget.getColspan(), widget.getRowspan());
+                }).toList();
+
+        // Then save the configuration to the database or other storage
+        // In this example, we just store it in a session-scoped bean
+        dashboardStorage.save(dashboardConfig);
+    }
+
+    private void loadConfiguration() {
+        // Load the dashboard configuration from database or other storage
+        // In this example, we just load it from a session-scoped bean
+        // If no configuration is found, use the default configuration
+        List<WidgetConfig> dashboardConfig = dashboardStorage.load();
+        if (dashboardConfig == null) {
+            dashboardConfig = defaultConfig;
+        }
+
+        applyConfiguration(dashboardConfig);
+    }
+
+    private void applyConfiguration(List<WidgetConfig> dashboardConfig) {
+        // To apply a dashboard configuration, we first clear the dashboard and
+        // then create widgets based on the configuration
+        dashboard.removeAll();
+        for (WidgetConfig config : dashboardConfig) {
+            CustomWidget widget = createWidget(config);
+            dashboard.add(widget);
+        }
+    }
+
+    private CustomWidget createWidget(WidgetConfig config) {
+        // Create a widget with the appropriate content based on the type
+        CustomWidget widget = new CustomWidget(config.getType(),
+                config.getType().getLabel());
+        widget.setContent(switch (config.getType()) {
+        case VISITORS -> MockWidgets.createVisitorsWidget();
+        case DOWNLOADS -> MockWidgets.createDownloadsWidget();
+        case CONVERSIONS -> MockWidgets.createConversionsWidget();
+        case VISITORS_BY_COUNTRY -> MockWidgets.createVisitorsByCountryWidget();
+        case BROWSER_DISTRIBUTION -> MockWidgets.createBrowsersWidget();
+        case TRAFFIC_SOURCES -> MockWidgets.createTrafficSourcesWidget();
+        case VISITORS_PER_MONTH -> MockWidgets.createVisitorsPerMonthWidget();
+        });
+        widget.setColspan(config.getColspan());
+        widget.setRowspan(config.getRowspan());
+
+        return widget;
+    }
+
+    private void addWidget(WidgetConfig.WidgetType widgetType) {
+        // For adding a new widget, we retrieve the default configuration for
+        // the widget type and create a widget based on that configuration
+        WidgetConfig defaultWidgetConfig = defaultConfig.stream()
+                .filter(widgetConfig -> widgetConfig.getType() == widgetType)
+                .findFirst().orElseThrow();
+        CustomWidget widget = createWidget(defaultWidgetConfig);
+
+        dashboard.add(widget);
+    }
+
+    private void restoreDefault() {
+        // To restore defaults, we just apply the default configuration
+        applyConfiguration(defaultConfig);
+    }
+    // end::snippet[]
+
+}
+
+[Flow: WidgetConfig.java]
+package com.vaadin.demo.component.dashboard;
+
+import org.jspecify.annotations.NonNull;
+
+// tag::snippet[]
+// To save and load the dashboard configuration we need a class for storing
+// the configuration of individual widgets. In this example we'll use a class that
+// holds the widget type, colspan, and rowspan.
+public class WidgetConfig {
+    public enum WidgetType {
+        VISITORS("Visitors"),
+        DOWNLOADS("Downloads"),
+        CONVERSIONS("Conversions"),
+        VISITORS_BY_COUNTRY("Visitors by country"),
+        BROWSER_DISTRIBUTION("Browser distribution"),
+        TRAFFIC_SOURCES("Traffic sources"),
+        VISITORS_PER_MONTH("Visitors per month");
+
+        private final String label;
+
+        WidgetType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    private WidgetType type;
+    private int colspan;
+    private int rowspan;
+
+    public WidgetConfig() {
+    }
+
+    public WidgetConfig(WidgetType type, int colspan, int rowspan) {
+        this.type = type;
+        this.colspan = colspan;
+        this.rowspan = rowspan;
+    }
+
+    @NonNull
+    public WidgetType getType() {
+        return type;
+    }
+
+    public void setType(WidgetType type) {
+        this.type = type;
+    }
+
+    @NonNull
+    public int getColspan() {
+        return colspan;
+    }
+
+    public void setColspan(int colspan) {
+        this.colspan = colspan;
+    }
+
+    @NonNull
+    public int getRowspan() {
+        return rowspan;
+    }
+
+    public void setRowspan(int rowspan) {
+        this.rowspan = rowspan;
+    }
+}
+// end::snippet[]
+
+[Flow: DashboardStorage.java]
+package com.vaadin.demo.component.dashboard;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
+
+import java.util.List;
+
+// tag::snippet[]
+@SessionScope
+@Component
+public class DashboardStorage {
+    private List<WidgetConfig> config;
+
+    public List<WidgetConfig> load() {
+        return config;
+    }
+
+    public void save(List<WidgetConfig> config) {
+        this.config = config;
+    }
+}
+// end::snippet[]
+
+[Flow: MockWidgets.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.Configuration;
+import com.vaadin.flow.component.charts.model.ListSeries;
+import com.vaadin.flow.component.charts.model.XAxis;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+
+import java.util.List;
+
+public class MockWidgets {
+
+    record KpiData(String value, String trend, boolean trendUp) {
+    }
+
+    record CountryData(String flag, String name, int visitors) {
+    }
+
+    record ShareData(String name, String share) {
+    }
+
+    private static final List<CountryData> COUNTRY_DATA = List.of(
+            new CountryData("\uD83C\uDDFA\uD83C\uDDF8", "United States", 12847),
+            new CountryData("\uD83C\uDDEC\uD83C\uDDE7", "United Kingdom", 6211),
+            new CountryData("\uD83C\uDDE9\uD83C\uDDEA", "Germany", 4105),
+            new CountryData("\uD83C\uDDEB\uD83C\uDDF7", "France", 3542),
+            new CountryData("\uD83C\uDDEF\uD83C\uDDF5", "Japan", 2891),
+            new CountryData("\uD83C\uDDE7\uD83C\uDDF7", "Brazil", 1764));
+
+    private static final List<ShareData> BROWSER_DATA = List.of(
+            new ShareData("Chrome", "64%"), new ShareData("Firefox", "18%"),
+            new ShareData("Safari", "12%"), new ShareData("Edge", "4%"),
+            new ShareData("Other", "2%"));
+
+    private static final List<ShareData> TRAFFIC_DATA = List.of(
+            new ShareData("Organic", "43%"), new ShareData("Direct", "27%"),
+            new ShareData("Social", "18%"), new ShareData("Referral", "12%"));
+
+    public static Component createVisitorsWidget() {
+        return createKpiWidget(new KpiData("54,238", "+12.3%", true));
+    }
+
+    public static Component createDownloadsWidget() {
+        return createKpiWidget(new KpiData("11,842", "-3.8%", false));
+    }
+
+    public static Component createConversionsWidget() {
+        return createKpiWidget(new KpiData("1,025", "+8.1%", true));
+    }
+
+    public static Component createVisitorsByCountryWidget() {
+        Div list = new Div();
+        list.addClassName("dashboard-country-list-widget");
+
+        int totalVisitors = COUNTRY_DATA.stream()
+                .mapToInt(CountryData::visitors).sum();
+
+        for (CountryData country : COUNTRY_DATA) {
+            Div row = new Div();
+            row.addClassName("country-row");
+
+            Div header = new Div();
+            header.addClassName("country-header");
+
+            Span name = new Span(country.flag() + " " + country.name());
+            name.addClassName("country-name");
+            Span count = new Span(String.format("%,d", country.visitors()));
+            count.addClassName("country-count");
+            header.add(name, count);
+
+            ProgressBar bar = new ProgressBar(0, 1,
+                    (double) country.visitors() / totalVisitors);
+
+            row.add(header, bar);
+            list.add(row);
+        }
+
+        return list;
+    }
+
+    public static Component createBrowsersWidget() {
+        return createShareList(BROWSER_DATA);
+    }
+
+    public static Component createTrafficSourcesWidget() {
+        return createShareList(TRAFFIC_DATA);
+    }
+
+    public static Component createVisitorsPerMonthWidget() {
+        Chart chart = new Chart(ChartType.LINE);
+
+        Configuration conf = chart.getConfiguration();
+        conf.setTitle((String) null);
+        conf.getLegend().setEnabled(false);
+        conf.getyAxis().setTitle((String) null);
+        conf.getTooltip().setValueSuffix(" visitors");
+        conf.getChart().setStyledMode(true);
+
+        XAxis xAxis = new XAxis();
+        xAxis.setCategories("Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                "Oct", "Nov", "Dec", "Jan", "Feb");
+        conf.addxAxis(xAxis);
+
+        conf.addSeries(new ListSeries("Visitors", 39210, 42500, 45890, 48120,
+                51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238));
+
+        return chart;
+    }
+
+    private static Component createKpiWidget(KpiData data) {
+        Div container = new Div();
+        container.addClassName("dashboard-kpi-widget");
+
+        Span valueSpan = new Span(data.value());
+        valueSpan.addClassName("kpi-value");
+
+        Div footer = new Div();
+        footer.addClassName("kpi-footer");
+
+        Span trendSpan = new Span(data.trend());
+        trendSpan.addClassName(
+                data.trendUp() ? "kpi-trend-up" : "kpi-trend-down");
+
+        Span label = new Span("vs last month");
+
+        footer.add(trendSpan, label);
+        container.add(valueSpan, footer);
+
+        return container;
+    }
+
+    private static Component createShareList(List<ShareData> items) {
+        Div list = new Div();
+        list.addClassName("dashboard-share-list-widget");
+
+        for (ShareData item : items) {
+            Div row = new Div();
+            row.addClassName("share-row");
+
+            Span name = new Span(item.name());
+            Span share = new Span(item.share());
+            share.addClassName("share-value");
+
+            row.add(name, share);
+            list.add(row);
+        }
+
+        return list;
+    }
+}
+
+[Flow: MockWidgets.java]
+
+[React: dashboard-editable.tsx]
+import React, { useCallback, useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components';
+import {
+  Dashboard,
+  type DashboardReactRendererProps,
+  DashboardWidget,
+} from '@vaadin/react-components-pro';
+import type WidgetConfig from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig';
+import WidgetType from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig/WidgetType';
+import { DashboardService } from 'Frontend/generated/endpoints';
+import {
+  BrowsersWidget,
+  ConversionsWidget,
+  DownloadsWidget,
+  TrafficSourcesWidget,
+  VisitorsByCountryWidget,
+  VisitorsPerMonthWidget,
+  VisitorsWidget,
+} from './mock-widgets';
+
+// tag::snippet[]
+// NOTE: This example uses the additional classes WidgetConfig and DashboardService,
+// which you can find by switching to the respective file tab.
+
+// This is the default configuration for the dashboard. Note that the order
+// of the widgets in the array determines the order in which they are
+// displayed in the dashboard.
+const defaultConfig: WidgetConfig[] = [
+  { type: WidgetType.VISITORS, colspan: 1, rowspan: 1 },
+  { type: WidgetType.DOWNLOADS, colspan: 1, rowspan: 1 },
+  { type: WidgetType.CONVERSIONS, colspan: 1, rowspan: 1 },
+  { type: WidgetType.VISITORS_BY_COUNTRY, colspan: 1, rowspan: 2 },
+  { type: WidgetType.BROWSER_DISTRIBUTION, colspan: 1, rowspan: 1 },
+  { type: WidgetType.TRAFFIC_SOURCES, colspan: 1, rowspan: 1 },
+  { type: WidgetType.VISITORS_PER_MONTH, colspan: 2, rowspan: 1 },
+];
+
+// Define a mapping from widget types to human-readable titles
+const widgetTitles: Record<WidgetType, string> = {
+  [WidgetType.VISITORS]: 'Visitors',
+  [WidgetType.DOWNLOADS]: 'Downloads',
+  [WidgetType.CONVERSIONS]: 'Conversions',
+  [WidgetType.VISITORS_BY_COUNTRY]: 'Visitors by country',
+  [WidgetType.BROWSER_DISTRIBUTION]: 'Browsers',
+  [WidgetType.TRAFFIC_SOURCES]: 'Traffic sources',
+  [WidgetType.VISITORS_PER_MONTH]: 'Visitors per month',
+};
+
+// Helper type to allow defining a custom action for a menu item
+type CustomMenuItem = MenuBarItem & {
+  action?(): unknown;
+};
+
+function Example() {
+  const widgets = useSignal<WidgetConfig[]>([]);
+  const editable = useSignal<boolean>(false);
+
+  function toggleEditing() {
+    editable.value = !editable.value;
+  }
+
+  function save() {
+    // To save the dashboard configuration, we can just take the current
+    // widget items array and pass it to a server-side service for
+    // persisting it.
+    DashboardService.saveDashboard(widgets.value);
+  }
+
+  async function load() {
+    // To load the dashboard configuration, we just load it from a server-side
+    // service. If there is no configuration saved, we use a copy of the default
+    // configuration.
+    let config = await DashboardService.loadDashboard();
+    config ??= [...defaultConfig];
+    widgets.value = config;
+  }
+
+  function addWidget(type: WidgetType) {
+    // For adding a new widget, we retrieve the default configuration for the
+    // widget type and add a copy of that to the widgets array.
+    const defaultWidgetConfig = defaultConfig.find((widget) => widget.type === type);
+    if (!defaultWidgetConfig) {
+      return;
+    }
+    widgets.value = [...widgets.value, { ...defaultWidgetConfig }];
+  }
+
+  function restore() {
+    // To restore defaults, we just set a copy of the default configuration
+    widgets.value = [...defaultConfig];
+  }
+
+  // Render function should be memoized to avoid unnecessary re-renders
+  const renderWidget = useCallback(({ item }: DashboardReactRendererProps<WidgetConfig>) => {
+    // This function is used to render the actual widgets into the dashboard.
+    // It is called by Dashboard once for each config in the widgets array
+    // and should return a React element. Note that the colspan and rowspan
+    // from the widget config are automatically applied by Dashboard.
+    const title = widgetTitles[item.type];
+    switch (item.type) {
+      case WidgetType.VISITORS:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <VisitorsWidget />
+          </DashboardWidget>
+        );
+      case WidgetType.DOWNLOADS:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <DownloadsWidget />
+          </DashboardWidget>
+        );
+      case WidgetType.CONVERSIONS:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <ConversionsWidget />
+          </DashboardWidget>
+        );
+      case WidgetType.VISITORS_BY_COUNTRY:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <VisitorsByCountryWidget />
+          </DashboardWidget>
+        );
+      case WidgetType.BROWSER_DISTRIBUTION:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <BrowsersWidget />
+          </DashboardWidget>
+        );
+      case WidgetType.TRAFFIC_SOURCES:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <TrafficSourcesWidget />
+          </DashboardWidget>
+        );
+      case WidgetType.VISITORS_PER_MONTH:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <VisitorsPerMonthWidget />
+          </DashboardWidget>
+        );
+      default:
+        return (
+          <DashboardWidget widgetTitle={title}>
+            <div className="dashboard-widget-content" />
+          </DashboardWidget>
+        );
+    }
+  }, []);
+
+  // Load the initial configuration of the dashboard
+  useEffect(() => {
+    load();
+  }, []);
+
+  const menuItems: CustomMenuItem[] = [
+    {
+      text: editable.value ? 'Apply' : 'Edit',
+      action: toggleEditing,
+      theme: 'primary',
+    },
+    {
+      text: 'Save',
+      action: save,
+    },
+    {
+      text: 'Load',
+      action: load,
+    },
+    {
+      text: 'Add widget',
+      children: Object.values(WidgetType).map((type) => ({
+        text: widgetTitles[type as WidgetType],
+        action: () => addWidget(type as WidgetType),
+      })),
+    },
+    {
+      text: 'Restore default',
+      action: restore,
+      theme: 'error',
+    },
+  ];
+
+  return (
+    <>
+      <MenuBar
+        theme="dropdown-indicators"
+        items={menuItems}
+        onItemSelected={(e) => (e.detail.value as CustomMenuItem).action?.()}
+      />
+      <Dashboard
+        style={{
+          '--vaadin-dashboard-col-min-width': '150px',
+          '--vaadin-dashboard-col-max-count': '3',
+        }}
+        editable={editable.value}
+        items={widgets.value}
+        onDashboardItemMoved={(e) => {
+          // Store updated widgets after user has modified them
+          widgets.value = e.detail.items as WidgetConfig[];
+        }}
+        onDashboardItemResized={(e) => {
+          widgets.value = e.detail.items as WidgetConfig[];
+        }}
+        onDashboardItemRemoved={(e) => {
+          widgets.value = e.detail.items as WidgetConfig[];
+        }}
+      >
+        {renderWidget}
+      </Dashboard>
+    </>
+  );
+}
+
+// end::snippet[]
+
+[React: WidgetConfig.java]
+package com.vaadin.demo.component.dashboard;
+
+import org.jspecify.annotations.NonNull;
+
+// tag::snippet[]
+// To save and load the dashboard configuration we need a class for storing
+// the configuration of individual widgets. In this example we'll use a class that
+// holds the widget type, colspan, and rowspan.
+public class WidgetConfig {
+    public enum WidgetType {
+        VISITORS("Visitors"),
+        DOWNLOADS("Downloads"),
+        CONVERSIONS("Conversions"),
+        VISITORS_BY_COUNTRY("Visitors by country"),
+        BROWSER_DISTRIBUTION("Browser distribution"),
+        TRAFFIC_SOURCES("Traffic sources"),
+        VISITORS_PER_MONTH("Visitors per month");
+
+        private final String label;
+
+        WidgetType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    private WidgetType type;
+    private int colspan;
+    private int rowspan;
+
+    public WidgetConfig() {
+    }
+
+    public WidgetConfig(WidgetType type, int colspan, int rowspan) {
+        this.type = type;
+        this.colspan = colspan;
+        this.rowspan = rowspan;
+    }
+
+    @NonNull
+    public WidgetType getType() {
+        return type;
+    }
+
+    public void setType(WidgetType type) {
+        this.type = type;
+    }
+
+    @NonNull
+    public int getColspan() {
+        return colspan;
+    }
+
+    public void setColspan(int colspan) {
+        this.colspan = colspan;
+    }
+
+    @NonNull
+    public int getRowspan() {
+        return rowspan;
+    }
+
+    public void setRowspan(int rowspan) {
+        this.rowspan = rowspan;
+    }
+}
+// end::snippet[]
+
+[React: DashboardService.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
+
+import java.util.List;
+
+// tag::snippet[]
+// This is a simple browser-callable server that allows saving and loading a
+// dashboard configuration. For this example, we just store the configuration
+// in a session-scoped bean. In practice, you'd want to store the configuration
+// in a database or some other persistent storage along with the user ID.
+@BrowserCallable
+public class DashboardService {
+    private final DashboardStorage dashboardStorage;
+
+    public DashboardService(DashboardStorage dashboardStorage) {
+        this.dashboardStorage = dashboardStorage;
+    }
+
+    public void saveDashboard(@NonNull List<@NonNull WidgetConfig> config) {
+        dashboardStorage.save(config);
+    }
+
+    public List<@NonNull WidgetConfig> loadDashboard() {
+        return dashboardStorage.load();
+    }
+}
+// end::snippet[]
+
+[React: mock-widgets.tsx]
+import React from 'react';
+import { ProgressBar } from '@vaadin/react-components/ProgressBar.js';
+import { Chart } from '@vaadin/react-components-pro/Chart.js';
+import { ChartSeries } from '@vaadin/react-components-pro/ChartSeries.js';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: 64 },
+  { name: 'Firefox', share: 18 },
+  { name: 'Safari', share: 12 },
+  { name: 'Edge', share: 4 },
+  { name: 'Other', share: 2 },
+];
+
+const trafficData = [
+  { name: 'Organic', share: 43 },
+  { name: 'Direct', share: 27 },
+  { name: 'Social', share: 18 },
+  { name: 'Referral', share: 12 },
+];
+
+function KpiWidget({ value, trend, trendUp }: { value: string; trend: string; trendUp: boolean }) {
+  return (
+    <div className="dashboard-kpi-widget">
+      <span className="kpi-value">{value}</span>
+      <div className="kpi-footer">
+        <span className={trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}>{trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  );
+}
+
+export function VisitorsWidget() {
+  return <KpiWidget value="54,238" trend="+12.3%" trendUp />;
+}
+
+export function DownloadsWidget() {
+  return <KpiWidget value="11,842" trend="-3.8%" trendUp={false} />;
+}
+
+export function ConversionsWidget() {
+  return <KpiWidget value="1,025" trend="+8.1%" trendUp />;
+}
+
+export function VisitorsByCountryWidget() {
+  return (
+    <div className="dashboard-country-list-widget">
+      {countryData.map(({ flag, name, visitors }) => (
+        <div key={name} className="country-row">
+          <div className="country-header">
+            <span className="country-name">
+              {flag} {name}
+            </span>
+            <span className="country-count">{visitors.toLocaleString()}</span>
+          </div>
+          <ProgressBar value={visitors / totalVisitors} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BrowsersWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {browserData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TrafficSourcesWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {trafficData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VisitorsPerMonthWidget() {
+  return (
+    <Chart
+      type="line"
+      categories={'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}
+      noLegend
+      additionalOptions={{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}
+    >
+      <ChartSeries
+        title="Visitors"
+        values={[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}
+      />
+    </Chart>
+  );
+}
+
+[React: mock-widgets.tsx]
+
+[Lit: dashboard-editable.ts]
+import '@vaadin/menu-bar';
+import '@vaadin/dashboard/vaadin-dashboard.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement, render } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type {
+  Dashboard,
+  DashboardItemMovedEvent,
+  DashboardItemRemovedEvent,
+  DashboardItemResizedEvent,
+} from '@vaadin/dashboard';
+import type { MenuBarItem, MenuBarItemSelectedEvent } from '@vaadin/menu-bar';
+import { applyTheme } from 'Frontend/demo/theme';
+import type WidgetConfig from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig';
+import WidgetType from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig/WidgetType';
+import { DashboardService } from 'Frontend/generated/endpoints';
+import {
+  renderBrowsersWidget,
+  renderConversionsWidget,
+  renderDownloadsWidget,
+  renderTrafficSourcesWidget,
+  renderVisitorsByCountryWidget,
+  renderVisitorsPerMonthWidget,
+  renderVisitorsWidget,
+} from './mock-widgets';
+
+// tag::snippet[]
+// NOTE: This example uses the additional classes WidgetConfig and DashboardService,
+// which you can find by switching to the respective file tab.
+
+// This is the default configuration for the dashboard. Note that the order
+// of the widgets in the array determines the order in which they are
+// displayed in the dashboard.
+const defaultConfig: WidgetConfig[] = [
+  { type: WidgetType.VISITORS, colspan: 1, rowspan: 1 },
+  { type: WidgetType.DOWNLOADS, colspan: 1, rowspan: 1 },
+  { type: WidgetType.CONVERSIONS, colspan: 1, rowspan: 1 },
+  { type: WidgetType.VISITORS_BY_COUNTRY, colspan: 1, rowspan: 2 },
+  { type: WidgetType.BROWSER_DISTRIBUTION, colspan: 1, rowspan: 1 },
+  { type: WidgetType.TRAFFIC_SOURCES, colspan: 1, rowspan: 1 },
+  { type: WidgetType.VISITORS_PER_MONTH, colspan: 2, rowspan: 1 },
+];
+
+// Define a mapping from widget types to human-readable titles
+const widgetTitles: Record<WidgetType, string> = {
+  [WidgetType.VISITORS]: 'Visitors',
+  [WidgetType.DOWNLOADS]: 'Downloads',
+  [WidgetType.CONVERSIONS]: 'Conversions',
+  [WidgetType.VISITORS_BY_COUNTRY]: 'Visitors by country',
+  [WidgetType.BROWSER_DISTRIBUTION]: 'Browsers',
+  [WidgetType.TRAFFIC_SOURCES]: 'Traffic sources',
+  [WidgetType.VISITORS_PER_MONTH]: 'Visitors per month',
+};
+
+// Helper type to allow defining a custom action for a menu item
+type CustomMenuItem = MenuBarItem & {
+  action?(): unknown;
+};
+
+@customElement('dashboard-editable')
+export class Example extends LitElement {
+  @state()
+  widgets: WidgetConfig[] = [];
+
+  @state()
+  editable = false;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  firstUpdated() {
+    // Load the initial configuration of the dashboard
+    this.load();
+  }
+
+  toggleEditing() {
+    this.editable = !this.editable;
+  }
+
+  async load() {
+    // To load the dashboard configuration, we just load it from a server-side
+    // service. If there is no configuration saved, we use a copy of the default
+    // configuration.
+    const config = await DashboardService.loadDashboard();
+    this.widgets = config ?? [...defaultConfig];
+  }
+
+  save() {
+    // To save the dashboard configuration, we can just take the current
+    // widget items array and pass it to a server-side service for
+    // persisting it.
+    DashboardService.saveDashboard(this.widgets);
+  }
+
+  addWidget(type: WidgetType) {
+    // For adding a new widget, we retrieve the default configuration for the
+    // widget type and add a copy of that to the widgets array.
+    const defaultWidgetConfig = defaultConfig.find((widget) => widget.type === type);
+    if (defaultWidgetConfig) {
+      this.widgets = [...this.widgets, { ...defaultWidgetConfig }];
+    }
+  }
+
+  restore() {
+    // To restore defaults, we just set a copy of the default configuration
+    this.widgets = [...defaultConfig];
+  }
+
+  render() {
+    return html` ${this.renderMenu()} ${this.renderDashboard()} `;
+  }
+
+  renderMenu() {
+    const menuItems = [
+      {
+        text: this.editable ? 'Apply' : 'Edit',
+        action: this.toggleEditing.bind(this),
+        theme: 'primary',
+      },
+      {
+        text: 'Save',
+        action: this.save.bind(this),
+      },
+      {
+        text: 'Load',
+        action: this.load.bind(this),
+      },
+      {
+        text: 'Add widget',
+        children: Object.values(WidgetType).map((type) => ({
+          text: widgetTitles[type],
+          action: () => this.addWidget(type),
+        })),
+      },
+      {
+        text: 'Restore default',
+        action: this.restore.bind(this),
+        theme: 'error',
+      },
+    ];
+
+    return html`
+      <vaadin-menu-bar
+        .items="${menuItems}"
+        @item-selected="${(e: MenuBarItemSelectedEvent) => {
+          const item = e.detail.value as CustomMenuItem;
+          item.action?.();
+        }}"
+        theme="dropdown-indicators"
+      ></vaadin-menu-bar>
+    `;
+  }
+
+  renderDashboard() {
+    return html`
+      <vaadin-dashboard
+        style="--vaadin-dashboard-col-min-width: 150px; --vaadin-dashboard-col-max-count: 3;"
+        .editable="${this.editable}"
+        .items="${this.widgets}"
+        .renderer="${this.renderWidget}"
+        @dashboard-item-moved="${(e: DashboardItemMovedEvent<WidgetConfig>) => {
+          // Store updated widgets after user has modified them
+          this.widgets = e.detail.items as WidgetConfig[];
+        }}"
+        @dashboard-item-resized="${(e: DashboardItemResizedEvent<WidgetConfig>) => {
+          this.widgets = e.detail.items as WidgetConfig[];
+        }}"
+        @dashboard-item-removed="${(e: DashboardItemRemovedEvent<WidgetConfig>) => {
+          this.widgets = e.detail.items as WidgetConfig[];
+        }}"
+      ></vaadin-dashboard>
+    `;
+  }
+
+  renderWidget(root: HTMLElement, _dashboard: Dashboard, { item }: { item: WidgetConfig }) {
+    // This method is used to render the actual widgets into the dashboard.
+    // It is called by vaadin-dashboard once for each config in the widgets
+    // array and should render content into the provided root element. Note
+    // that the colspan and rowspan from the widget config are
+    // automatically applied by vaadin-dashboard.
+    const renderers: Record<WidgetType, () => ReturnType<typeof html>> = {
+      [WidgetType.VISITORS]: renderVisitorsWidget,
+      [WidgetType.DOWNLOADS]: renderDownloadsWidget,
+      [WidgetType.CONVERSIONS]: renderConversionsWidget,
+      [WidgetType.VISITORS_BY_COUNTRY]: renderVisitorsByCountryWidget,
+      [WidgetType.BROWSER_DISTRIBUTION]: renderBrowsersWidget,
+      [WidgetType.TRAFFIC_SOURCES]: renderTrafficSourcesWidget,
+      [WidgetType.VISITORS_PER_MONTH]: renderVisitorsPerMonthWidget,
+    };
+    render(
+      html`
+        <vaadin-dashboard-widget .widgetTitle="${widgetTitles[item.type]}">
+          ${renderers[item.type]()}
+        </vaadin-dashboard-widget>
+      `,
+      root
+    );
+  }
+}
+
+// end::snippet[]
+
+[Lit: WidgetConfig.java]
+package com.vaadin.demo.component.dashboard;
+
+import org.jspecify.annotations.NonNull;
+
+// tag::snippet[]
+// To save and load the dashboard configuration we need a class for storing
+// the configuration of individual widgets. In this example we'll use a class that
+// holds the widget type, colspan, and rowspan.
+public class WidgetConfig {
+    public enum WidgetType {
+        VISITORS("Visitors"),
+        DOWNLOADS("Downloads"),
+        CONVERSIONS("Conversions"),
+        VISITORS_BY_COUNTRY("Visitors by country"),
+        BROWSER_DISTRIBUTION("Browser distribution"),
+        TRAFFIC_SOURCES("Traffic sources"),
+        VISITORS_PER_MONTH("Visitors per month");
+
+        private final String label;
+
+        WidgetType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    private WidgetType type;
+    private int colspan;
+    private int rowspan;
+
+    public WidgetConfig() {
+    }
+
+    public WidgetConfig(WidgetType type, int colspan, int rowspan) {
+        this.type = type;
+        this.colspan = colspan;
+        this.rowspan = rowspan;
+    }
+
+    @NonNull
+    public WidgetType getType() {
+        return type;
+    }
+
+    public void setType(WidgetType type) {
+        this.type = type;
+    }
+
+    @NonNull
+    public int getColspan() {
+        return colspan;
+    }
+
+    public void setColspan(int colspan) {
+        this.colspan = colspan;
+    }
+
+    @NonNull
+    public int getRowspan() {
+        return rowspan;
+    }
+
+    public void setRowspan(int rowspan) {
+        this.rowspan = rowspan;
+    }
+}
+// end::snippet[]
+
+[Lit: DashboardService.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
+
+import java.util.List;
+
+// tag::snippet[]
+// This is a simple browser-callable server that allows saving and loading a
+// dashboard configuration. For this example, we just store the configuration
+// in a session-scoped bean. In practice, you'd want to store the configuration
+// in a database or some other persistent storage along with the user ID.
+@BrowserCallable
+public class DashboardService {
+    private final DashboardStorage dashboardStorage;
+
+    public DashboardService(DashboardStorage dashboardStorage) {
+        this.dashboardStorage = dashboardStorage;
+    }
+
+    public void saveDashboard(@NonNull List<@NonNull WidgetConfig> config) {
+        dashboardStorage.save(config);
+    }
+
+    public List<@NonNull WidgetConfig> loadDashboard() {
+        return dashboardStorage.load();
+    }
+}
+// end::snippet[]
+
+[Lit: mock-widgets.ts]
+import '@vaadin/charts';
+import '@vaadin/progress-bar';
+import { html } from 'lit';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: '64%' },
+  { name: 'Firefox', share: '18%' },
+  { name: 'Safari', share: '12%' },
+  { name: 'Edge', share: '4%' },
+  { name: 'Other', share: '2%' },
+];
+
+const trafficData = [
+  { name: 'Organic', share: '43%' },
+  { name: 'Direct', share: '27%' },
+  { name: 'Social', share: '18%' },
+  { name: 'Referral', share: '12%' },
+];
+
+function renderKpiWidget(value: string, trend: string, trendUp: boolean) {
+  return html`
+    <div class="dashboard-kpi-widget">
+      <span class="kpi-value">${value}</span>
+      <div class="kpi-footer">
+        <span class="${trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}">${trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  `;
+}
+
+export function renderVisitorsWidget() {
+  return renderKpiWidget('54,238', '+12.3%', true);
+}
+
+export function renderDownloadsWidget() {
+  return renderKpiWidget('11,842', '-3.8%', false);
+}
+
+export function renderConversionsWidget() {
+  return renderKpiWidget('1,025', '+8.1%', true);
+}
+
+export function renderVisitorsByCountryWidget() {
+  return html`
+    <div class="dashboard-country-list-widget">
+      ${countryData.map(
+        ({ flag, name, visitors }) => html`
+          <div class="country-row">
+            <div class="country-header">
+              <span class="country-name">${flag} ${name}</span>
+              <span class="country-count">${visitors.toLocaleString()}</span>
+            </div>
+            <vaadin-progress-bar .value="${visitors / totalVisitors}"></vaadin-progress-bar>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+function renderShareList(items: Array<{ name: string; share: string }>) {
+  return html`
+    <div class="dashboard-share-list-widget">
+      ${items.map(
+        ({ name, share }) => html`
+          <div class="share-row">
+            <span>${name}</span>
+            <span class="share-value">${share}</span>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+export function renderBrowsersWidget() {
+  return renderShareList(browserData);
+}
+
+export function renderTrafficSourcesWidget() {
+  return renderShareList(trafficData);
+}
+
+export function renderVisitorsPerMonthWidget() {
+  return html`
+    <vaadin-chart
+      type="line"
+      no-legend
+      .categories="${'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}"
+      .additionalOptions="${{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}"
+    >
+      <vaadin-chart-series
+        title="Visitors"
+        .values="${[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}"
+      ></vaadin-chart-series>
+    </vaadin-chart>
+  `;
+}
+
+[Lit: mock-widgets.ts]
+
+Editing
+
+You can make dynamic dashboards editable by turning on editing mode, as seen in the sample above.
+
+Note: Editing mode should be temporary.
+
+The end user turns on editing mode when they want to edit the dashboard’s contents and turns it off when they finish editing. When turned off, you typically want to persist the dashboard configuration to a storage. While in editing mode, the widget contents are visible but not interactable.
+
+The following operations are available in editing mode.
+
+Widget Selection by Keyboard
+
+In editing mode, widgets can be selected by keyboard by moving focus to the desired widget using the Tab key and pressing Space or Enter. Once selected, arrow keys can be used to move and resize widgets, and to engage the accessible move and resize modes.
+
+Widget selection is not required for editing by pointer device.
+
+Moving Widgets
+
+In editing mode, widgets can be moved around by:
+
+- drag & drop;
+- arrow keys, once the widget has been selected;
+- an accessible move-mode engaged by clicking the drag-handle in the widget’s top left corner. Move-mode is disengaged by clicking the apply-button in the widget’s center, or by pressing Esc.
+
+Widgets can only be moved backwards and forwards. Moving a widget past the start or end of a row moves it to the preceding or following row.
+
+Resizing Widgets
+
+In editing mode, widgets can be resized by increasing and decreasing their column span and row span by:
+
+- dragging from the drag-handle in the widget’s bottom right corner;
+- Shift + arrow keys, once the widget has been selected;
+- an accessible resize-mode engaged by clicking the resize-handle. Resize-mode is disengaged by clicking the apply-button in the widget’s center, or by pressing Esc.
+
+Removing Widgets
+
+In editing mode, widgets can be removed by clicking the Remove button in the widget’s top right corner.
+
+By default, there is no confirmation step when removing a widget. You can implement a remove handler to prevent automatic removal, for example to show a confirmation dialog before actually removing the widget:
+
+[Flow: DashboardItemRemoval.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.html.Div;
+
+public class DashboardItemRemoval extends Div {
+
+    public DashboardItemRemoval() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setItemRemoveHandler(removeEvent -> {
+            ConfirmDialog dialog = new ConfirmDialog();
+            dialog.setHeader("Confirm removal");
+            dialog.setText("Are you sure you want to remove this item?");
+            dialog.setCancelable(true);
+            dialog.addConfirmListener(e -> removeEvent.removeItem());
+            dialog.open();
+        });
+        add(dashboard);
+    }
+}
+
+[React: dashboard-item-removal.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ConfirmDialog } from '@vaadin/react-components/ConfirmDialog.js';
+import type { DashboardItem, DashboardItemBeforeRemoveEvent } from '@vaadin/react-components-pro';
+import { Dashboard } from '@vaadin/react-components-pro';
+
+export function Example() {
+  const items = useSignal<DashboardItem[]>([
+    /* Item definitions */
+  ]);
+
+  const itemToRemove = useSignal<DashboardItem | null>(null);
+
+  function handleItemBeforeRemove(event: DashboardItemBeforeRemoveEvent<DashboardItem>) {
+    event.preventDefault();
+    itemToRemove.value = event.detail.item;
+  }
+
+  function handleRemoveConfirm() {
+    items.value = items.value.filter((item) => item !== itemToRemove.value);
+    itemToRemove.value = null;
+  }
+
+  function handleRemoveCancel() {
+    itemToRemove.value = null;
+  }
+
+  return (
+    <>
+      <Dashboard
+        items={items.value}
+        onDashboardItemBeforeRemove={handleItemBeforeRemove}
+      ></Dashboard>
+      <ConfirmDialog
+        header="Confirm removal"
+        cancelButtonVisible
+        onConfirm={handleRemoveConfirm}
+        onCancel={handleRemoveCancel}
+        opened={itemToRemove.value !== null}
+      >
+        Are you sure you want to remove this item?
+      </ConfirmDialog>
+    </>
+  );
+}
+
+[Lit: dashboard-item-removal.ts]
+import '@vaadin/dashboard/vaadin-dashboard-layout.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement } from 'lit';
+import { state } from 'lit/decorators.js';
+import type { DashboardItem, DashboardItemBeforeRemoveEvent } from '@vaadin/dashboard';
+
+export class Example extends LitElement {
+  @state()
+  items: DashboardItem[] = [
+    /* Item definitions */
+  ];
+
+  @state()
+  itemToRemove: DashboardItem | null = null;
+
+  private handleItemBeforeRemove(event: DashboardItemBeforeRemoveEvent<DashboardItem>) {
+    event.preventDefault();
+    this.itemToRemove = event.detail.item;
+  }
+
+  private handleRemoveConfirm() {
+    this.items = this.items.filter((item) => item !== this.itemToRemove);
+    this.itemToRemove = null;
+  }
+
+  private handleRemoveCancel() {
+    this.itemToRemove = null;
+  }
+
+  render() {
+    return html`
+      <vaadin-dashboard
+        .items="${this.items}"
+        @dashboard-item-before-remove="${this.handleItemBeforeRemove}"
+      >
+      </vaadin-dashboard>
+      <vaadin-confirm-dialog
+        header="Confirm removal"
+        cancel-button-visible
+        @confirm="${this.handleRemoveConfirm}"
+        @cancel="${this.handleRemoveCancel}"
+        .opened="${this.itemToRemove !== null}"
+      >
+        Are you sure you want to remove this item?
+      </vaadin-confirm-dialog>
+    `;
+  }
+}
+
+Adding Widgets
+
+Dashboard has no built-in mechanism for adding new widgets. You can implement this using an external widget selector, such as a Select drop-down, that adds the corresponding item to the dashboard.
+
+Screen Reader Announcements
+
+Although widget selection is announced via a widget’s title, and the various buttons all have accessible names, the component doesn’t announce changes to a widget’s position and size out of the box. These can be provided by listening to related events emitted by the component and updating custom live regions with appropriate announcements.
+
+[Flow: DashboardAnnouncements.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.dashboard.DashboardWidget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.router.Route;
+
+@Route("dashboard-announcements")
+public class DashboardAnnouncements extends Div {
+
+    public DashboardAnnouncements() {
+        add(new Paragraph("Live announcement:"));
+
+        Dashboard dashboard = new Dashboard();
+        dashboard.setEditable(true);
+        dashboard.setMinimumColumnWidth("150px");
+        dashboard.setMaximumColumnCount(3);
+
+        DashboardWidget visitors = new DashboardWidget("Visitors");
+        visitors.setContent(MockWidgets.createVisitorsWidget());
+        dashboard.add(visitors);
+
+        DashboardWidget downloads = new DashboardWidget("Downloads");
+        downloads.setContent(MockWidgets.createDownloadsWidget());
+        dashboard.add(downloads);
+
+        DashboardWidget conversions = new DashboardWidget("Conversions");
+        conversions.setContent(MockWidgets.createConversionsWidget());
+        dashboard.add(conversions);
+
+        DashboardWidget visitorsByCountry = new DashboardWidget(
+                "Visitors by country");
+        visitorsByCountry
+                .setContent(MockWidgets.createVisitorsByCountryWidget());
+        visitorsByCountry.setRowspan(2);
+        dashboard.add(visitorsByCountry);
+
+        DashboardWidget browsers = new DashboardWidget("Browsers");
+        browsers.setContent(MockWidgets.createBrowsersWidget());
+        dashboard.add(browsers);
+
+        DashboardWidget trafficSources = new DashboardWidget("Traffic sources");
+        trafficSources.setContent(MockWidgets.createTrafficSourcesWidget());
+        dashboard.add(trafficSources);
+
+        DashboardWidget visitorsPerMonth = new DashboardWidget(
+                "Visitors per month");
+        visitorsPerMonth.setContent(MockWidgets.createVisitorsPerMonthWidget());
+        visitorsPerMonth.setColspan(2);
+        dashboard.add(visitorsPerMonth);
+
+        // tag::snippet[]
+        // Live region for screen reader announcements. Changing its text
+        // content will result in a new announcement. This element is only
+        // visible for demonstration purposes. In your application you should
+        // visually hide it using CSS by applying a corresponding class name,
+        // like "screen-reader-only", as shown in the attached CSS example file:
+        // liveRegion.addClassName("screen-reader-only");
+        Div liveRegion = new Div();
+        liveRegion.getElement().setAttribute("aria-live", "polite");
+        add(liveRegion);
+
+        // This event is fired when the user starts or stops editing a widget
+        dashboard.addItemSelectedChangedListener(event -> {
+            String title = ((DashboardWidget) event.getItem()).getTitle();
+            String selected = event.isSelected() ? "selected" : "deselected";
+
+            liveRegion.setText("Widget " + title + " " + selected);
+        });
+
+        // This event is fired when the user enters or exits move mode
+        dashboard.addItemMoveModeChangedListener(event -> {
+            if (event.isMoveMode()) {
+                liveRegion.setText("Entered move mode");
+            } else {
+                liveRegion.setText("Exited move mode");
+            }
+        });
+
+        // This event is fired when the user enters or exits resize mode
+        dashboard.addItemResizeModeChangedListener(event -> {
+            if (event.isResizeMode()) {
+                liveRegion.setText("Entered resize mode");
+            } else {
+                liveRegion.setText("Exited resize mode");
+            }
+        });
+
+        // This event is fired when the user moves a widget
+        dashboard.addItemMovedListener(event -> {
+            int position = event.getItems().indexOf(event.getItem()) + 1;
+            int total = event.getItems().size();
+            String title = ((DashboardWidget) event.getItem()).getTitle();
+
+            liveRegion.setText("Moved widget " + title + " to position "
+                    + position + " of " + total);
+        });
+
+        // This event is fired when the user resizes a widget
+        dashboard.addItemResizedListener(event -> {
+            int colspan = event.getItem().getColspan();
+            int rowspan = event.getItem().getRowspan();
+            String title = event.getItem().getTitle();
+
+            liveRegion.setText("Resized widget " + title + " to " + colspan
+                    + " columns, " + rowspan + " rows");
+        });
+
+        // This event is fired when the user removes a widget
+        dashboard.addItemRemovedListener(event -> {
+            String title = ((DashboardWidget) event.getItem()).getTitle();
+
+            liveRegion.setText("Removed widget " + title);
+        });
+        // end::snippet[]
+
+        add(dashboard);
+    }
+
+}
+
+[Flow: MockWidgets.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.Configuration;
+import com.vaadin.flow.component.charts.model.ListSeries;
+import com.vaadin.flow.component.charts.model.XAxis;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+
+import java.util.List;
+
+public class MockWidgets {
+
+    record KpiData(String value, String trend, boolean trendUp) {
+    }
+
+    record CountryData(String flag, String name, int visitors) {
+    }
+
+    record ShareData(String name, String share) {
+    }
+
+    private static final List<CountryData> COUNTRY_DATA = List.of(
+            new CountryData("\uD83C\uDDFA\uD83C\uDDF8", "United States", 12847),
+            new CountryData("\uD83C\uDDEC\uD83C\uDDE7", "United Kingdom", 6211),
+            new CountryData("\uD83C\uDDE9\uD83C\uDDEA", "Germany", 4105),
+            new CountryData("\uD83C\uDDEB\uD83C\uDDF7", "France", 3542),
+            new CountryData("\uD83C\uDDEF\uD83C\uDDF5", "Japan", 2891),
+            new CountryData("\uD83C\uDDE7\uD83C\uDDF7", "Brazil", 1764));
+
+    private static final List<ShareData> BROWSER_DATA = List.of(
+            new ShareData("Chrome", "64%"), new ShareData("Firefox", "18%"),
+            new ShareData("Safari", "12%"), new ShareData("Edge", "4%"),
+            new ShareData("Other", "2%"));
+
+    private static final List<ShareData> TRAFFIC_DATA = List.of(
+            new ShareData("Organic", "43%"), new ShareData("Direct", "27%"),
+            new ShareData("Social", "18%"), new ShareData("Referral", "12%"));
+
+    public static Component createVisitorsWidget() {
+        return createKpiWidget(new KpiData("54,238", "+12.3%", true));
+    }
+
+    public static Component createDownloadsWidget() {
+        return createKpiWidget(new KpiData("11,842", "-3.8%", false));
+    }
+
+    public static Component createConversionsWidget() {
+        return createKpiWidget(new KpiData("1,025", "+8.1%", true));
+    }
+
+    public static Component createVisitorsByCountryWidget() {
+        Div list = new Div();
+        list.addClassName("dashboard-country-list-widget");
+
+        int totalVisitors = COUNTRY_DATA.stream()
+                .mapToInt(CountryData::visitors).sum();
+
+        for (CountryData country : COUNTRY_DATA) {
+            Div row = new Div();
+            row.addClassName("country-row");
+
+            Div header = new Div();
+            header.addClassName("country-header");
+
+            Span name = new Span(country.flag() + " " + country.name());
+            name.addClassName("country-name");
+            Span count = new Span(String.format("%,d", country.visitors()));
+            count.addClassName("country-count");
+            header.add(name, count);
+
+            ProgressBar bar = new ProgressBar(0, 1,
+                    (double) country.visitors() / totalVisitors);
+
+            row.add(header, bar);
+            list.add(row);
+        }
+
+        return list;
+    }
+
+    public static Component createBrowsersWidget() {
+        return createShareList(BROWSER_DATA);
+    }
+
+    public static Component createTrafficSourcesWidget() {
+        return createShareList(TRAFFIC_DATA);
+    }
+
+    public static Component createVisitorsPerMonthWidget() {
+        Chart chart = new Chart(ChartType.LINE);
+
+        Configuration conf = chart.getConfiguration();
+        conf.setTitle((String) null);
+        conf.getLegend().setEnabled(false);
+        conf.getyAxis().setTitle((String) null);
+        conf.getTooltip().setValueSuffix(" visitors");
+        conf.getChart().setStyledMode(true);
+
+        XAxis xAxis = new XAxis();
+        xAxis.setCategories("Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                "Oct", "Nov", "Dec", "Jan", "Feb");
+        conf.addxAxis(xAxis);
+
+        conf.addSeries(new ListSeries("Visitors", 39210, 42500, 45890, 48120,
+                51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238));
+
+        return chart;
+    }
+
+    private static Component createKpiWidget(KpiData data) {
+        Div container = new Div();
+        container.addClassName("dashboard-kpi-widget");
+
+        Span valueSpan = new Span(data.value());
+        valueSpan.addClassName("kpi-value");
+
+        Div footer = new Div();
+        footer.addClassName("kpi-footer");
+
+        Span trendSpan = new Span(data.trend());
+        trendSpan.addClassName(
+                data.trendUp() ? "kpi-trend-up" : "kpi-trend-down");
+
+        Span label = new Span("vs last month");
+
+        footer.add(trendSpan, label);
+        container.add(valueSpan, footer);
+
+        return container;
+    }
+
+    private static Component createShareList(List<ShareData> items) {
+        Div list = new Div();
+        list.addClassName("dashboard-share-list-widget");
+
+        for (ShareData item : items) {
+            Div row = new Div();
+            row.addClassName("share-row");
+
+            Span name = new Span(item.name());
+            Span share = new Span(item.share());
+            share.addClassName("share-value");
+
+            row.add(name, share);
+            list.add(row);
+        }
+
+        return list;
+    }
+}
+
+[Flow: MockWidgets.java]
+
+[Flow: screen-reader-only.css]
+.screen-reader-only {
+  border-width: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[Flow: screen-reader-only.css]
+
+[React: dashboard-announcements.tsx]
+import React, { useCallback } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Dashboard,
+  type DashboardItemMovedEvent,
+  type DashboardItemMoveModeChangedEvent,
+  type DashboardItemRemovedEvent,
+  type DashboardItemResizedEvent,
+  type DashboardItemResizeModeChangedEvent,
+  type DashboardItemSelectedChangedEvent,
+  type DashboardReactRendererProps,
+  DashboardWidget,
+} from '@vaadin/react-components-pro';
+import type WidgetConfig from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig';
+import WidgetType from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig/WidgetType';
+import {
+  BrowsersWidget,
+  ConversionsWidget,
+  DownloadsWidget,
+  TrafficSourcesWidget,
+  VisitorsByCountryWidget,
+  VisitorsPerMonthWidget,
+  VisitorsWidget,
+} from './mock-widgets';
+
+const widgetTitles: Record<WidgetType, string> = {
+  [WidgetType.VISITORS]: 'Visitors',
+  [WidgetType.DOWNLOADS]: 'Downloads',
+  [WidgetType.CONVERSIONS]: 'Conversions',
+  [WidgetType.VISITORS_BY_COUNTRY]: 'Visitors by country',
+  [WidgetType.BROWSER_DISTRIBUTION]: 'Browsers',
+  [WidgetType.TRAFFIC_SOURCES]: 'Traffic sources',
+  [WidgetType.VISITORS_PER_MONTH]: 'Visitors per month',
+};
+
+const widgetComponents: Record<WidgetType, React.FC> = {
+  [WidgetType.VISITORS]: VisitorsWidget,
+  [WidgetType.DOWNLOADS]: DownloadsWidget,
+  [WidgetType.CONVERSIONS]: ConversionsWidget,
+  [WidgetType.VISITORS_BY_COUNTRY]: VisitorsByCountryWidget,
+  [WidgetType.BROWSER_DISTRIBUTION]: BrowsersWidget,
+  [WidgetType.TRAFFIC_SOURCES]: TrafficSourcesWidget,
+  [WidgetType.VISITORS_PER_MONTH]: VisitorsPerMonthWidget,
+};
+
+function Example() {
+  const widgets = useSignal<WidgetConfig[]>([
+    { type: WidgetType.VISITORS, colspan: 1, rowspan: 1 },
+    { type: WidgetType.DOWNLOADS, colspan: 1, rowspan: 1 },
+    { type: WidgetType.CONVERSIONS, colspan: 1, rowspan: 1 },
+    { type: WidgetType.VISITORS_BY_COUNTRY, colspan: 1, rowspan: 2 },
+    { type: WidgetType.BROWSER_DISTRIBUTION, colspan: 1, rowspan: 1 },
+    { type: WidgetType.TRAFFIC_SOURCES, colspan: 1, rowspan: 1 },
+    { type: WidgetType.VISITORS_PER_MONTH, colspan: 2, rowspan: 1 },
+  ]);
+  const renderWidget = useCallback(({ item }: DashboardReactRendererProps<WidgetConfig>) => {
+    const Content = widgetComponents[item.type];
+    return (
+      <DashboardWidget widgetTitle={widgetTitles[item.type]}>
+        <Content />
+      </DashboardWidget>
+    );
+  }, []);
+
+  // tag::snippet[]
+  const announcement = useSignal('');
+
+  function handleSelectedChange(e: DashboardItemSelectedChangedEvent<WidgetConfig>) {
+    // This event is fired when the user starts or stops editing a widget
+
+    const title = widgetTitles[(e.detail.item as WidgetConfig).type];
+    const selected = e.detail.value ? 'selected' : 'deselected';
+
+    announcement.value = `Widget ${title} ${selected}`;
+  }
+
+  function handleMoveModeChange(e: DashboardItemMoveModeChangedEvent<WidgetConfig>) {
+    // This event is fired when the user enters or exits move mode
+    if (e.detail.value) {
+      announcement.value = 'Entered move mode';
+    } else {
+      announcement.value = 'Exited move mode';
+    }
+  }
+
+  function handleResizeModeChange(e: DashboardItemResizeModeChangedEvent<WidgetConfig>) {
+    // This event is fired when the user enters or exits resize mode
+    if (e.detail.value) {
+      announcement.value = 'Entered resize mode';
+    } else {
+      announcement.value = 'Exited resize mode';
+    }
+  }
+
+  function handleMove(e: DashboardItemMovedEvent<WidgetConfig>) {
+    // This event is fired when the user moves a widget
+    const position = e.detail.items.findIndex((widget) => widget === e.detail.item) + 1;
+    const total = e.detail.items.length;
+
+    const title = widgetTitles[(e.detail.item as WidgetConfig).type];
+
+    announcement.value = `Moved widget ${title} to position ${position} of ${total}`;
+
+    // Store updated widgets after user has modified them
+    widgets.value = e.detail.items as WidgetConfig[];
+  }
+
+  function handleResize(e: DashboardItemResizedEvent<WidgetConfig>) {
+    // This event is fired when the user resizes a widget
+    const { colspan } = e.detail.item;
+    const { rowspan } = e.detail.item;
+    const title = widgetTitles[e.detail.item.type];
+
+    announcement.value = `Resized widget ${title} to ${colspan} columns, ${rowspan} rows`;
+
+    // Store updated widgets after user has modified them
+    widgets.value = e.detail.items as WidgetConfig[];
+  }
+
+  function handleRemove(e: DashboardItemRemovedEvent<WidgetConfig>) {
+    // This event is fired when the user removes a widget
+    const title = widgetTitles[(e.detail.item as WidgetConfig).type];
+
+    announcement.value = `Removed widget ${title}`;
+
+    // Store updated widgets after user has modified them
+    widgets.value = e.detail.items as WidgetConfig[];
+  }
+
+  return (
+    <>
+      <p>Live announcement:</p>
+      {/* Live region for screen reader announcements. Changing its text content will result */}
+      {/* in a new announcement. This element is only visible for demonstration purposes. In */}
+      {/* your application you should visually hide it using CSS by applying a corresponding */}
+      {/* class name, like "screen-reader-only", as shown in the attached CSS example file: */}
+      {/* <div className="screen-reader-only" aria-live="polite">{announcement}</div> */}
+      <div aria-live="polite">{announcement}</div>
+      <Dashboard
+        style={{
+          '--vaadin-dashboard-col-min-width': '150px',
+          '--vaadin-dashboard-col-max-count': '3',
+        }}
+        editable
+        items={widgets.value}
+        onDashboardItemSelectedChanged={handleSelectedChange}
+        onDashboardItemMoveModeChanged={handleMoveModeChange}
+        onDashboardItemResizeModeChanged={handleResizeModeChange}
+        onDashboardItemMoved={handleMove}
+        onDashboardItemResized={handleResize}
+        onDashboardItemRemoved={handleRemove}
+      >
+        {renderWidget}
+      </Dashboard>
+    </>
+  );
+  // end::snippet[]
+}
+
+[React: WidgetConfig.java]
+package com.vaadin.demo.component.dashboard;
+
+import org.jspecify.annotations.NonNull;
+
+// tag::snippet[]
+// To save and load the dashboard configuration we need a class for storing
+// the configuration of individual widgets. In this example we'll use a class that
+// holds the widget type, colspan, and rowspan.
+public class WidgetConfig {
+    public enum WidgetType {
+        VISITORS("Visitors"),
+        DOWNLOADS("Downloads"),
+        CONVERSIONS("Conversions"),
+        VISITORS_BY_COUNTRY("Visitors by country"),
+        BROWSER_DISTRIBUTION("Browser distribution"),
+        TRAFFIC_SOURCES("Traffic sources"),
+        VISITORS_PER_MONTH("Visitors per month");
+
+        private final String label;
+
+        WidgetType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    private WidgetType type;
+    private int colspan;
+    private int rowspan;
+
+    public WidgetConfig() {
+    }
+
+    public WidgetConfig(WidgetType type, int colspan, int rowspan) {
+        this.type = type;
+        this.colspan = colspan;
+        this.rowspan = rowspan;
+    }
+
+    @NonNull
+    public WidgetType getType() {
+        return type;
+    }
+
+    public void setType(WidgetType type) {
+        this.type = type;
+    }
+
+    @NonNull
+    public int getColspan() {
+        return colspan;
+    }
+
+    public void setColspan(int colspan) {
+        this.colspan = colspan;
+    }
+
+    @NonNull
+    public int getRowspan() {
+        return rowspan;
+    }
+
+    public void setRowspan(int rowspan) {
+        this.rowspan = rowspan;
+    }
+}
+// end::snippet[]
+
+[React: mock-widgets.tsx]
+import React from 'react';
+import { ProgressBar } from '@vaadin/react-components/ProgressBar.js';
+import { Chart } from '@vaadin/react-components-pro/Chart.js';
+import { ChartSeries } from '@vaadin/react-components-pro/ChartSeries.js';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: 64 },
+  { name: 'Firefox', share: 18 },
+  { name: 'Safari', share: 12 },
+  { name: 'Edge', share: 4 },
+  { name: 'Other', share: 2 },
+];
+
+const trafficData = [
+  { name: 'Organic', share: 43 },
+  { name: 'Direct', share: 27 },
+  { name: 'Social', share: 18 },
+  { name: 'Referral', share: 12 },
+];
+
+function KpiWidget({ value, trend, trendUp }: { value: string; trend: string; trendUp: boolean }) {
+  return (
+    <div className="dashboard-kpi-widget">
+      <span className="kpi-value">{value}</span>
+      <div className="kpi-footer">
+        <span className={trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}>{trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  );
+}
+
+export function VisitorsWidget() {
+  return <KpiWidget value="54,238" trend="+12.3%" trendUp />;
+}
+
+export function DownloadsWidget() {
+  return <KpiWidget value="11,842" trend="-3.8%" trendUp={false} />;
+}
+
+export function ConversionsWidget() {
+  return <KpiWidget value="1,025" trend="+8.1%" trendUp />;
+}
+
+export function VisitorsByCountryWidget() {
+  return (
+    <div className="dashboard-country-list-widget">
+      {countryData.map(({ flag, name, visitors }) => (
+        <div key={name} className="country-row">
+          <div className="country-header">
+            <span className="country-name">
+              {flag} {name}
+            </span>
+            <span className="country-count">{visitors.toLocaleString()}</span>
+          </div>
+          <ProgressBar value={visitors / totalVisitors} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BrowsersWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {browserData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TrafficSourcesWidget() {
+  return (
+    <div className="dashboard-share-list-widget">
+      {trafficData.map(({ name, share }) => (
+        <div key={name} className="share-row">
+          <span>{name}</span>
+          <span className="share-value">{share}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function VisitorsPerMonthWidget() {
+  return (
+    <Chart
+      type="line"
+      categories={'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}
+      noLegend
+      additionalOptions={{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}
+    >
+      <ChartSeries
+        title="Visitors"
+        values={[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}
+      />
+    </Chart>
+  );
+}
+
+[React: mock-widgets.tsx]
+
+[React: screen-reader-only.css]
+.screen-reader-only {
+  border-width: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[React: screen-reader-only.css]
+
+[Lit: dashboard-announcements.ts]
+import '@vaadin/menu-bar';
+import '@vaadin/dashboard/vaadin-dashboard.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement, render } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type {
+  Dashboard,
+  DashboardItemMovedEvent,
+  DashboardItemMoveModeChangedEvent,
+  DashboardItemRemovedEvent,
+  DashboardItemResizedEvent,
+  DashboardItemResizeModeChangedEvent,
+  DashboardItemSelectedChangedEvent,
+} from '@vaadin/dashboard';
+import { applyTheme } from 'Frontend/demo/theme';
+import type WidgetConfig from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig';
+import WidgetType from 'Frontend/generated/com/vaadin/demo/component/dashboard/WidgetConfig/WidgetType';
+import {
+  renderBrowsersWidget,
+  renderConversionsWidget,
+  renderDownloadsWidget,
+  renderTrafficSourcesWidget,
+  renderVisitorsByCountryWidget,
+  renderVisitorsPerMonthWidget,
+  renderVisitorsWidget,
+} from './mock-widgets';
+
+// Define a mapping from widget types to human-readable titles
+const widgetTitles: Record<WidgetType, string> = {
+  [WidgetType.VISITORS]: 'Visitors',
+  [WidgetType.DOWNLOADS]: 'Downloads',
+  [WidgetType.CONVERSIONS]: 'Conversions',
+  [WidgetType.VISITORS_BY_COUNTRY]: 'Visitors by country',
+  [WidgetType.BROWSER_DISTRIBUTION]: 'Browsers',
+  [WidgetType.TRAFFIC_SOURCES]: 'Traffic sources',
+  [WidgetType.VISITORS_PER_MONTH]: 'Visitors per month',
+};
+
+const widgetRenderers: Record<WidgetType, () => ReturnType<typeof html>> = {
+  [WidgetType.VISITORS]: renderVisitorsWidget,
+  [WidgetType.DOWNLOADS]: renderDownloadsWidget,
+  [WidgetType.CONVERSIONS]: renderConversionsWidget,
+  [WidgetType.VISITORS_BY_COUNTRY]: renderVisitorsByCountryWidget,
+  [WidgetType.BROWSER_DISTRIBUTION]: renderBrowsersWidget,
+  [WidgetType.TRAFFIC_SOURCES]: renderTrafficSourcesWidget,
+  [WidgetType.VISITORS_PER_MONTH]: renderVisitorsPerMonthWidget,
+};
+
+@customElement('dashboard-announcements')
+export class Example extends LitElement {
+  @state()
+  widgets: WidgetConfig[] = [
+    { type: WidgetType.VISITORS, colspan: 1, rowspan: 1 },
+    { type: WidgetType.DOWNLOADS, colspan: 1, rowspan: 1 },
+    { type: WidgetType.CONVERSIONS, colspan: 1, rowspan: 1 },
+    { type: WidgetType.VISITORS_BY_COUNTRY, colspan: 1, rowspan: 2 },
+    { type: WidgetType.BROWSER_DISTRIBUTION, colspan: 1, rowspan: 1 },
+    { type: WidgetType.TRAFFIC_SOURCES, colspan: 1, rowspan: 1 },
+    { type: WidgetType.VISITORS_PER_MONTH, colspan: 2, rowspan: 1 },
+  ];
+
+  // tag::snippet[]
+  @state()
+  announcement: string = '';
+
+  // end::snippet[]
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  handleSelectedChange(e: DashboardItemSelectedChangedEvent<WidgetConfig>) {
+    // This event is fired when the user starts or stops editing a widget
+
+    const title = widgetTitles[(e.detail.item as WidgetConfig).type];
+    const selected = e.detail.value ? 'selected' : 'deselected';
+
+    this.announcement = `Widget ${title} ${selected}`;
+  }
+
+  handleMoveModeChange(e: DashboardItemMoveModeChangedEvent<WidgetConfig>) {
+    // This event is fired when the user enters or exits move mode
+    if (e.detail.value) {
+      this.announcement = 'Entered move mode';
+    } else {
+      this.announcement = 'Exited move mode';
+    }
+  }
+
+  handleResizeModeChange(e: DashboardItemResizeModeChangedEvent<WidgetConfig>) {
+    // This event is fired when the user enters or exits resize mode
+    if (e.detail.value) {
+      this.announcement = 'Entered resize mode';
+    } else {
+      this.announcement = 'Exited resize mode';
+    }
+  }
+
+  handleMove(e: DashboardItemMovedEvent<WidgetConfig>) {
+    // This event is fired when the user moves a widget
+    const position = e.detail.items.findIndex((widget) => widget === e.detail.item) + 1;
+    const total = e.detail.items.length;
+
+    const title = widgetTitles[(e.detail.item as WidgetConfig).type];
+    this.announcement = `Moved widget ${title} to position ${position} of ${total}`;
+
+    // Store updated widgets after user has modified them
+    this.widgets = e.detail.items as WidgetConfig[];
+  }
+
+  handleResize(e: DashboardItemResizedEvent<WidgetConfig>) {
+    // This event is fired when the user resizes a widget
+    const { colspan } = e.detail.item;
+    const { rowspan } = e.detail.item;
+    const title = widgetTitles[e.detail.item.type];
+
+    this.announcement = `Resized widget ${title} to ${colspan} columns, ${rowspan} rows`;
+
+    // Store updated widgets after user has modified them
+    this.widgets = e.detail.items as WidgetConfig[];
+  }
+
+  handleRemove(e: DashboardItemRemovedEvent<WidgetConfig>) {
+    // This event is fired when the user removes a widget
+    const title = widgetTitles[(e.detail.item as WidgetConfig).type];
+
+    this.announcement = `Removed widget ${title}`;
+
+    // Store updated widgets after user has modified them
+    this.widgets = e.detail.items as WidgetConfig[];
+  }
+
+  render() {
+    return html`
+      <p>Live announcement:</p>
+      <!--
+      Live region for screen reader announcements. Changing its text content will result
+      in a new announcement. This element is only visible for demonstration purposes. In
+      your application you should visually hide it using CSS by applying a corresponding
+      class name, like "screen-reader-only", as shown in the attached CSS example file:
+      <div className="screen-reader-only" aria-live="polite">{announcement}</div>
+      -->
+      <div aria-live="polite">${this.announcement}</div>
+      <vaadin-dashboard
+        style="--vaadin-dashboard-col-min-width: 150px; --vaadin-dashboard-col-max-count: 3;"
+        editable
+        .items="${this.widgets}"
+        .renderer="${this.renderWidget}"
+        @dashboard-item-selected-changed="${this.handleSelectedChange}"
+        @dashboard-item-move-mode-changed="${this.handleMoveModeChange}"
+        @dashboard-item-resize-mode-changed="${this.handleResizeModeChange}"
+        @dashboard-item-moved="${this.handleMove}"
+        @dashboard-item-resized="${this.handleResize}"
+        @dashboard-item-removed="${this.handleRemove}"
+      ></vaadin-dashboard>
+    `;
+  }
+
+  // end::snippet[]
+
+  renderWidget(root: HTMLElement, _dashboard: Dashboard, { item }: { item: WidgetConfig }) {
+    render(
+      html`
+        <vaadin-dashboard-widget .widgetTitle="${widgetTitles[item.type]}">
+          ${widgetRenderers[item.type]()}
+        </vaadin-dashboard-widget>
+      `,
+      root
+    );
+  }
+}
+
+[Lit: WidgetConfig.java]
+package com.vaadin.demo.component.dashboard;
+
+import org.jspecify.annotations.NonNull;
+
+// tag::snippet[]
+// To save and load the dashboard configuration we need a class for storing
+// the configuration of individual widgets. In this example we'll use a class that
+// holds the widget type, colspan, and rowspan.
+public class WidgetConfig {
+    public enum WidgetType {
+        VISITORS("Visitors"),
+        DOWNLOADS("Downloads"),
+        CONVERSIONS("Conversions"),
+        VISITORS_BY_COUNTRY("Visitors by country"),
+        BROWSER_DISTRIBUTION("Browser distribution"),
+        TRAFFIC_SOURCES("Traffic sources"),
+        VISITORS_PER_MONTH("Visitors per month");
+
+        private final String label;
+
+        WidgetType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    private WidgetType type;
+    private int colspan;
+    private int rowspan;
+
+    public WidgetConfig() {
+    }
+
+    public WidgetConfig(WidgetType type, int colspan, int rowspan) {
+        this.type = type;
+        this.colspan = colspan;
+        this.rowspan = rowspan;
+    }
+
+    @NonNull
+    public WidgetType getType() {
+        return type;
+    }
+
+    public void setType(WidgetType type) {
+        this.type = type;
+    }
+
+    @NonNull
+    public int getColspan() {
+        return colspan;
+    }
+
+    public void setColspan(int colspan) {
+        this.colspan = colspan;
+    }
+
+    @NonNull
+    public int getRowspan() {
+        return rowspan;
+    }
+
+    public void setRowspan(int rowspan) {
+        this.rowspan = rowspan;
+    }
+}
+// end::snippet[]
+
+[Lit: mock-widgets.ts]
+import '@vaadin/charts';
+import '@vaadin/progress-bar';
+import { html } from 'lit';
+
+const countryData = [
+  { flag: '🇺🇸', name: 'United States', visitors: 12847 },
+  { flag: '🇬🇧', name: 'United Kingdom', visitors: 6211 },
+  { flag: '🇩🇪', name: 'Germany', visitors: 4105 },
+  { flag: '🇫🇷', name: 'France', visitors: 3542 },
+  { flag: '🇯🇵', name: 'Japan', visitors: 2891 },
+  { flag: '🇧🇷', name: 'Brazil', visitors: 1764 },
+];
+
+const totalVisitors = countryData.reduce((sum, c) => sum + c.visitors, 0);
+
+const browserData = [
+  { name: 'Chrome', share: '64%' },
+  { name: 'Firefox', share: '18%' },
+  { name: 'Safari', share: '12%' },
+  { name: 'Edge', share: '4%' },
+  { name: 'Other', share: '2%' },
+];
+
+const trafficData = [
+  { name: 'Organic', share: '43%' },
+  { name: 'Direct', share: '27%' },
+  { name: 'Social', share: '18%' },
+  { name: 'Referral', share: '12%' },
+];
+
+function renderKpiWidget(value: string, trend: string, trendUp: boolean) {
+  return html`
+    <div class="dashboard-kpi-widget">
+      <span class="kpi-value">${value}</span>
+      <div class="kpi-footer">
+        <span class="${trendUp ? 'kpi-trend-up' : 'kpi-trend-down'}">${trend}</span>
+        <span>vs last month</span>
+      </div>
+    </div>
+  `;
+}
+
+export function renderVisitorsWidget() {
+  return renderKpiWidget('54,238', '+12.3%', true);
+}
+
+export function renderDownloadsWidget() {
+  return renderKpiWidget('11,842', '-3.8%', false);
+}
+
+export function renderConversionsWidget() {
+  return renderKpiWidget('1,025', '+8.1%', true);
+}
+
+export function renderVisitorsByCountryWidget() {
+  return html`
+    <div class="dashboard-country-list-widget">
+      ${countryData.map(
+        ({ flag, name, visitors }) => html`
+          <div class="country-row">
+            <div class="country-header">
+              <span class="country-name">${flag} ${name}</span>
+              <span class="country-count">${visitors.toLocaleString()}</span>
+            </div>
+            <vaadin-progress-bar .value="${visitors / totalVisitors}"></vaadin-progress-bar>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+function renderShareList(items: Array<{ name: string; share: string }>) {
+  return html`
+    <div class="dashboard-share-list-widget">
+      ${items.map(
+        ({ name, share }) => html`
+          <div class="share-row">
+            <span>${name}</span>
+            <span class="share-value">${share}</span>
+          </div>
+        `
+      )}
+    </div>
+  `;
+}
+
+export function renderBrowsersWidget() {
+  return renderShareList(browserData);
+}
+
+export function renderTrafficSourcesWidget() {
+  return renderShareList(trafficData);
+}
+
+export function renderVisitorsPerMonthWidget() {
+  return html`
+    <vaadin-chart
+      type="line"
+      no-legend
+      .categories="${'Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb'.split(',')}"
+      .additionalOptions="${{
+        yAxis: { title: { text: null } },
+        tooltip: { valueSuffix: ' visitors' },
+      }}"
+    >
+      <vaadin-chart-series
+        title="Visitors"
+        .values="${[
+          39210, 42500, 45890, 48120, 51340, 49870, 46200, 48750, 50100, 52400, 51030, 54238,
+        ]}"
+      ></vaadin-chart-series>
+    </vaadin-chart>
+  `;
+}
+
+[Lit: mock-widgets.ts]
+
+[Lit: screen-reader-only.css]
+.screen-reader-only {
+  border-width: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[Lit: screen-reader-only.css]
+
+Persisting and Loading Widgets
+
+Dynamic dashboards, with their user-editable capabilities, often require the ability to persist and load customized widget configurations to and from storage, such as a database.
+
+The most straightforward way to persist widget configurations is by defining a custom widget/item type. This type can include custom metadata relevant to the widget content, in addition to the built-in widget/item properties.
+
+Once you’ve defined your custom type, you can establish a mapping between your data model and the widget configuration. This involves:
+
+- Loading: When loading the persisted configuration, map the data from your storage to individual widget/item instances of your custom type. Each record corresponds to a single widget on the dashboard.
+- Saving: When saving the user’s customized dashboard layout, map the current configuration (e.g., column span, row span, type, custom metadata) of your dashboard’s widgets back to your data model format.
+
+This approach allows for flexible persistence of dashboard configurations, enabling users to save and load their customized layouts across sessions.
+
+For a simple example of how to implement this persistence approach, see the Dynamic, Editable Dashboards section above. While the example doesn’t explicitly show how to persist the data, it illustrates the concept of defining a custom type for the dashboard widgets. The specific implementation details depend on your chosen storage mechanism and data model.
+
+Dashboard Sections
+
+Complex dashboards can benefit from being divided into titled sections. Dashboard sections always span the full width of the dashboard, and follow the same column and row configuration as the dashboard itself. They support the same moving and removal operations in editing mode as widgets.
+
+[Flow: DashboardSections.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.dashboard.DashboardSection;
+import com.vaadin.flow.component.dashboard.DashboardWidget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("dashboard-sections")
+public class DashboardSections extends Div {
+
+    public DashboardSections() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setMinimumColumnWidth("150px");
+        dashboard.setMaximumColumnCount(3);
+
+        // tag::snippet[]
+        DashboardSection statsSection = dashboard
+                .addSection("Monthly Funnel Stats");
+
+        DashboardWidget visitors = new DashboardWidget("Visitors");
+        visitors.setContent(MockWidgets.createVisitorsWidget());
+        statsSection.add(visitors);
+
+        DashboardWidget downloads = new DashboardWidget("Downloads");
+        downloads.setContent(MockWidgets.createDownloadsWidget());
+        statsSection.add(downloads);
+
+        DashboardWidget conversions = new DashboardWidget("Conversions");
+        conversions.setContent(MockWidgets.createConversionsWidget());
+        statsSection.add(conversions);
+        // end::snippet[]
+
+        DashboardSection detailsSection = dashboard
+                .addSection("Visitor Details");
+        DashboardWidget visitorsByCountry = new DashboardWidget(
+                "Visitors by country");
+        visitorsByCountry
+                .setContent(MockWidgets.createVisitorsByCountryWidget());
+        visitorsByCountry.setRowspan(2);
+        detailsSection.add(visitorsByCountry);
+
+        DashboardWidget browsers = new DashboardWidget("Browsers");
+        browsers.setContent(MockWidgets.createBrowsersWidget());
+        detailsSection.add(browsers);
+
+        DashboardWidget trafficSources = new DashboardWidget("Traffic sources");
+        trafficSources.setContent(MockWidgets.createTrafficSourcesWidget());
+        detailsSection.add(trafficSources);
+
+        DashboardWidget visitorsPerMonth = new DashboardWidget(
+                "Visitors per month");
+        visitorsPerMonth.setContent(MockWidgets.createVisitorsPerMonthWidget());
+        visitorsPerMonth.setColspan(2);
+        detailsSection.add(visitorsPerMonth);
+
+        add(dashboard);
+    }
+
+}
+
+[React: dashboard-sections.tsx]
+import { DashboardLayout, DashboardSection, DashboardWidget } from '@vaadin/react-components-pro';
+import {
+  BrowsersWidget,
+  ConversionsWidget,
+  DownloadsWidget,
+  TrafficSourcesWidget,
+  VisitorsByCountryWidget,
+  VisitorsPerMonthWidget,
+  VisitorsWidget,
+} from './mock-widgets';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DashboardLayout
+      style={{
+        '--vaadin-dashboard-col-min-width': '150px',
+        '--vaadin-dashboard-col-max-count': '3',
+      }}
+    >
+      <DashboardSection sectionTitle="Monthly Funnel Stats">
+        <DashboardWidget widgetTitle="Visitors">
+          <VisitorsWidget />
+        </DashboardWidget>
+        <DashboardWidget widgetTitle="Downloads">
+          <DownloadsWidget />
+        </DashboardWidget>
+        <DashboardWidget widgetTitle="Conversions">
+          <ConversionsWidget />
+        </DashboardWidget>
+      </DashboardSection>
+      {/* end::snippet[] */}
+
+      <DashboardSection sectionTitle="Visitor Details">
+        <DashboardWidget
+          widgetTitle="Visitors by country"
+          style={{ '--vaadin-dashboard-widget-rowspan': '2' }}
+        >
+          <VisitorsByCountryWidget />
+        </DashboardWidget>
+        <DashboardWidget widgetTitle="Browsers">
+          <BrowsersWidget />
+        </DashboardWidget>
+        <DashboardWidget widgetTitle="Traffic sources">
+          <TrafficSourcesWidget />
+        </DashboardWidget>
+        <DashboardWidget
+          widgetTitle="Visitors per month"
+          style={{ '--vaadin-dashboard-widget-colspan': '2' }}
+        >
+          <VisitorsPerMonthWidget />
+        </DashboardWidget>
+      </DashboardSection>
+      {/* tag::snippet[] */}
+    </DashboardLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: dashboard-sections.ts]
+import '@vaadin/dashboard/vaadin-dashboard-layout.js';
+import '@vaadin/dashboard/vaadin-dashboard-section.js';
+import '@vaadin/dashboard/vaadin-dashboard-widget.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import {
+  renderBrowsersWidget,
+  renderConversionsWidget,
+  renderDownloadsWidget,
+  renderTrafficSourcesWidget,
+  renderVisitorsByCountryWidget,
+  renderVisitorsPerMonthWidget,
+  renderVisitorsWidget,
+} from './mock-widgets';
+
+@customElement('dashboard-sections')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-dashboard-layout
+        style="--vaadin-dashboard-col-min-width: 150px; --vaadin-dashboard-col-max-count: 3"
+      >
+        <vaadin-dashboard-section section-title="Monthly Funnel Stats">
+          <vaadin-dashboard-widget widget-title="Visitors">
+            ${renderVisitorsWidget()}
+          </vaadin-dashboard-widget>
+          <vaadin-dashboard-widget widget-title="Downloads">
+            ${renderDownloadsWidget()}
+          </vaadin-dashboard-widget>
+          <vaadin-dashboard-widget widget-title="Conversions">
+            ${renderConversionsWidget()}
+          </vaadin-dashboard-widget>
+        </vaadin-dashboard-section>
+        <!-- end::snippet[] -->
+
+        <vaadin-dashboard-section section-title="Visitor Details">
+          <vaadin-dashboard-widget
+            widget-title="Visitors by country"
+            style="--vaadin-dashboard-widget-rowspan: 2;"
+          >
+            ${renderVisitorsByCountryWidget()}
+          </vaadin-dashboard-widget>
+          <vaadin-dashboard-widget widget-title="Browsers">
+            ${renderBrowsersWidget()}
+          </vaadin-dashboard-widget>
+          <vaadin-dashboard-widget widget-title="Traffic sources">
+            ${renderTrafficSourcesWidget()}
+          </vaadin-dashboard-widget>
+          <vaadin-dashboard-widget
+            widget-title="Visitors per month"
+            style="--vaadin-dashboard-widget-colspan: 2;"
+          >
+            ${renderVisitorsPerMonthWidget()}
+          </vaadin-dashboard-widget>
+        </vaadin-dashboard-section>
+        <!-- tag::snippet[] -->
+      </vaadin-dashboard-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Accessibility
+
+Dashboard widgets have an ARIA role of article.
+
+Widget and section titles are rendered as headings. Root-level widgets and sections default to heading level 2 (corresponding to an <h2> element), while widgets within sections use one level below that of the section. The root heading level can be customized to match the dashboard’s correct placement in the heading hierarchy:
+
+[Flow]
+dashboard.setRootHeadingLevel(3);
+
+[React]
+<Dashboard rootHeadingLevel={3}>
+
+[Lit]
+<vaadin-dashboard root-heading-level="3">
+
+Internationalization
+
+The following texts in the dashboard can be localized through the internationalization object:
+
+Property | Description
+selectWidget | Widget selection trigger.
+deselectWidget | Widget deselection trigger.
+selectSection | Section selection trigger.
+deselectSection | Section deselection trigger.
+move | Button that engages move-mode.
+moveForward | Move forward button in move-mode.
+moveBackward | Move backward button in move-mode.
+moveApply | Button that disengages move-mode.
+resize | Button that engages resize-mode.
+resizeGrowWidth | Grow width button in resize-mode.
+resizeShrinkWidth | Shrink width button in resize-mode.
+resizeGrowHeight | Grow height button in resize-mode.
+resizeShrinkHeight | Shrink height button in resize-mode.
+resizeApply | Button that disengages resize-mode.
+remove | Remove button.
+
+[Flow: DashboardInternationalisation.java]
+package com.vaadin.demo.component.dashboard;
+
+import com.vaadin.flow.component.dashboard.Dashboard;
+import com.vaadin.flow.component.html.Div;
+
+public class DashboardInternationalisation extends Div {
+    public DashboardInternationalisation() {
+        Dashboard dashboard = new Dashboard();
+        Dashboard.DashboardI18n germanI18n = new Dashboard.DashboardI18n();
+        germanI18n.setSelectSection("Abschnitt auswählen");
+        germanI18n.setSelectWidget("Widget auswählen");
+        germanI18n.setRemove("Entfernen");
+        germanI18n.setResize("Größe ändern");
+        germanI18n.setResizeApply("Größenänderung anwenden");
+        germanI18n.setResizeShrinkWidth("Breite verkleinern");
+        germanI18n.setResizeGrowWidth("Breite vergrößern");
+        germanI18n.setResizeShrinkHeight("Höhe verkleinern");
+        germanI18n.setResizeGrowHeight("Höhe vergrößern");
+        germanI18n.setMove("Verschieben");
+        germanI18n.setMoveApply("Verschieben anwenden");
+        germanI18n.setMoveBackward("Nach hinten verschieben");
+        germanI18n.setMoveForward("Nach vorne verschieben");
+
+        dashboard.setI18n(germanI18n);
+        add(dashboard);
+    }
+}
+
+[React: dashboard-internationalisation.tsx]
+import { Dashboard, type DashboardI18n } from '@vaadin/react-components-pro';
+
+const germanI18n: DashboardI18n = {
+  selectSection: 'Abschnitt auswählen',
+  selectWidget: 'Widget auswählen',
+  remove: 'Entfernen',
+  resize: 'Größe ändern',
+  resizeApply: 'Größenänderung anwenden',
+  resizeShrinkWidth: 'Breite verkleinern',
+  resizeGrowWidth: 'Breite vergrößern',
+  resizeShrinkHeight: 'Höhe verkleinern',
+  resizeGrowHeight: 'Höhe vergrößern',
+  move: 'Verschieben',
+  moveApply: 'Verschieben anwenden',
+  moveBackward: 'Nach hinten verschieben',
+  moveForward: 'Nach vorne verschieben',
+};
+
+function Example() {
+  return <Dashboard i18n={germanI18n}></Dashboard>;
+}
+
+[Lit: dashboard-internationalisation.ts]
+import '@vaadin/dashboard/vaadin-dashboard-layout.js';
+import { html, LitElement } from 'lit';
+import type { DashboardI18n } from '@vaadin/dashboard';
+
+const germanI18n: DashboardI18n = {
+  selectSection: 'Abschnitt auswählen',
+  selectWidget: 'Widget auswählen',
+  remove: 'Entfernen',
+  resize: 'Größe ändern',
+  resizeApply: 'Größenänderung anwenden',
+  resizeShrinkWidth: 'Breite verkleinern',
+  resizeGrowWidth: 'Breite vergrößern',
+  resizeShrinkHeight: 'Höhe verkleinern',
+  resizeGrowHeight: 'Höhe vergrößern',
+  move: 'Verschieben',
+  moveApply: 'Verschieben anwenden',
+  moveBackward: 'Nach hinten verschieben',
+  moveForward: 'Nach vorne verschieben',
+};
+
+export class Example extends LitElement {
+  render() {
+    return html` <vaadin-dashboard-layout .i18n="${germanI18n}"></vaadin-dashboard-layout> `;
+  }
+}
+
+Related Components
+
+Component | Usage Recommendations
+Card | Generic card component that can be used in any layout

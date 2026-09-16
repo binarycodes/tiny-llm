@@ -1,0 +1,268 @@
+Using Quarkus with Vaadin
+
+Using Quarkus with Vaadin to optimize Java for containers in serverless, cloud and Kubernetes environments.
+
+Quarkus is an open source, Kubernetes-native Java framework made for Java virtual machines and native compilation. It optimizes Java specifically for containers, enabling it to become an effective platform for serverless, cloud, and Kubernetes environments.
+
+For more information on Quarkus, see the Quarkus site.
+
+Starting a Project
+
+To start a new project with Quarkus and Vaadin, you can download the Quarkus base starter. It’s a project template with the necessary configuration and dependencies for building an application.
+
+It’s also available with Gradle configuration in the Gradle branch on GitHub.
+
+Existing Projects
+
+To be able to run an existing project with Quarkus, you’ll need to have the vaadin-quarkus and vaadin-jandex Maven dependencies in the project, as well configure the quarkus-maven-plugin.
+
+Below is an example of how that might be done:
+
+[pom.xml]
+<dependencyManagement>
+    <dependencies>
+        <!-- Quarkus Platform BOM to keep the project
+             artifacts in synch with the quarkus.version -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-bom</artifactId>
+            <version>${quarkus.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- Vaadin BOM -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-bom</artifactId>
+            <type>pom</type>
+            <scope>import</scope>
+            <version>${vaadin.version}</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <!-- The Vaadin Quarkus extension -->
+    <dependency>
+        <groupId>com.vaadin</groupId>
+        <artifactId>vaadin-quarkus-extension</artifactId>
+        <version>${vaadin.version}</version>
+    </dependency>
+
+    <!-- The jandex.idx for Vaadin-core annotation indexes
+         automatically included via vaadin-quarkus-extension
+         and is used as an offline reflection library.
+
+         If you want to work with Pro components such GridPro,
+         you can uncomment the following dependency to include the
+         officially provided jandex.idx for them as well: -->
+    <!--
+    <dependency>
+        <groupId>com.vaadin</groupId>
+        <artifactId>vaadin-jandex</artifactId>
+    </dependency>
+    -->
+
+    <!-- Quarkus always pulls in slf4j-jboss-logmanager
+         into target/lib; don't use slf4j-simple -->
+    <dependency>
+        <groupId>org.jboss.slf4j</groupId>
+        <artifactId>slf4j-jboss-logmanager</artifactId>
+        <version>1.1.0.Final</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <!-- For in-depth information on quarkus-maven-plugin
+             see https://quarkus.io/guides/maven-tooling#build-tool-maven -->
+        <plugin>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+            <version>${quarkus.version}</version>
+            <extensions>true</extensions>
+            <executions>
+                <execution>
+                    <goals>
+                        <!-- Builds the Quarkus application -->
+                        <goal>build</goal>
+                        <!-- in these goals the Quarkus application bootstrap
+                             is initialized and re-used in the build goal -->
+                        <goal>generate-code</goal>
+                        <goal>generate-code-tests</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+
+Vaadin CDI Features
+
+Since Quarkus’s dependency injection solution is based on CDI, it’s possible to use all of the CDI features.
+
+See these documentation pages for Vaadin CDI features:
+
+- Vaadin CDI Scopes
+- Observable Vaadin Events
+- Vaadin Service Interfaces as CDI Beans
+- Using CDI Beans
+
+Note: Unused Bean Removal in Quarkus
+
+Quarkus attempts to remove by default all unused beans during the build. However, it can’t detect the programmatic lookup performed by the QuarkusInstantiator class in Vaadin. Therefore, when implementing beans that are not referenced directly by the application code, you might need to add the @Unremovable annotation to the class.
+@VaadinServiceEnabled annotated beans are marked as unremovable by default.
+
+Configure Custom Vaadin Executor
+
+When a Vaadin application starts in a Quarkus environment, the QuarkusVaadinServletService overrides the createDefaultExecutor() method to use CDI capabilities for selecting an appropriate Executor for executing Vaadin’s internal tasks. The selection process follows this order:
+
+1. Look for a custom Executor bean qualified with the @VaadinServiceEnabled annotation
+2. If no custom executor is found, try to use the container’s ManagedExecutor
+3. If neither is available, fall back to Vaadin’s default executor implementation
+
+To avoid ambiguity, the Quarkus extension enforces these rules:
+
+- There can be at most one Executor bean annotated with @VaadinServiceEnabled
+- If multiple Executor beans with @VaadinServiceEnabled annotation are found, the application deployment will fail with an appropriate error message
+
+You can provide your own task executor to customize how Vaadin executes server-side operations. This can be useful for implementing custom threading models, using specific thread pools, or integrating with other execution frameworks. To provide a custom executor, define a CDI bean that implements the Executor interface and annotate it with @VaadinServiceEnabled:
+
+[Java]
+@ApplicationScoped
+public class ExecutorConfiguration {
+
+    @Produces
+    @Singleton
+    @VaadinServiceEnabled
+    public Executor vaadinTaskExecutor() {
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(
+            16, // Core pool size
+            32, // Maximum pool size
+            120, // Keep-alive time
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            r -> {
+                Thread thread = new Thread(r, "CustomVaadinExecutor-" + r.hashCode());
+                thread.setDaemon(true);
+                return thread;
+            });
+        customExecutor.allowCoreThreadTimeOut(true);
+        return customExecutor;
+    }
+}
+
+Server Push
+
+The Vaadin Quarkus extension sets the quarkus.websocket.dispatch-to-worker configuration property to true by default. This routes inbound Server Push websocket frames through the Quarkus worker thread pool instead of the Vert.x event loop.
+
+This default differs from the Quarkus default, which dispatches websocket frames on the event-loop thread. Event-loop dispatch is unsafe for Vaadin: Vaadin acquires the session lock before dispatching a request, and application code is free to block while holding that lock — for example, by making synchronous REST or database calls in a BeforeEnterObserver or AfterNavigationListener. Blocking the event loop in this way can cause the application to hang.
+
+You can override the default by setting the property explicitly in application.properties:
+
+[application.properties]
+quarkus.websocket.dispatch-to-worker=false
+
+Only opt back in to event-loop dispatch if you have a specific performance reason to prefer it, and you can guarantee that no code executed while holding the session lock performs blocking operations.
+
+Vaadin Add-Ons in Quarkus
+
+Any Vaadin add-on used in a Quarkus application should contain a Jandex index. You can generate an index using the jandex-maven-plugin. For more information on this, see the Quarkus documentation on How to Generate a Jandex Index.
+
+If you can’t modify the dependency, you can still have Quarkus index it by adding quarkus.index-dependency entries to your application.properties:
+
+[application.properties]
+quarkus.index-dependency.<name>.group-id=
+quarkus.index-dependency.<name>.artifact-id=
+quarkus.index-dependency.<name>.classifier=(this one is optional)
+
+The <name> string here is used to link the group-id, artifact-id and classifier entries in one logical block. It should be the same for these three entries, and be any string literal.
+
+Development Mode
+
+After doing the Existing Projects, the Quarkus application can be started in development mode using the quarkus:dev goal in Maven:
+
+[terminal]
+mvn quarkus:dev
+
+The application is then available at localhost:8080 in the browser.
+
+Production Mode
+
+The Vaadin Quarkus extension includes an embedded Vaadin plugin for the production build, so the project does not need to configure Maven or Gradle Vaadin plugin. To customize the build you can use all standard Vaadin build configuration properties with the vaadin.build. prefix. These properties correspond 1:1 to the Vaadin Maven Plugin parameters.
+
+[properties]
+vaadin.build.pnpm-enable=true
+vaadin.build.ci-build=true
+vaadin.build.frontend-directory=src/main/frontend
+vaadin.build.optimize-bundle=true
+
+When you’re ready, run the following commands to start the application:
+
+[terminal]
+mvn package
+java -jar target/quarkus-app/quarkus-run.jar
+
+The embedded plugin can be disabled by setting vaadin.build.enabled=false. If disabled, to run a production build, the project needs the configuration of Maven or Gradle Vaadin plugin. See Production build for details about production build, and Maven and Gradle Vaadin plugins documentation for configuration options.
+
+License Validation in Quarkus Builds
+
+If your project uses commercial Vaadin components, the License Checker needs access to the license key during the build. The license key can be provided as a file in the .vaadin directory, a system property, or an environment variable, as described in Validation on CI/CD or Build Server.
+
+With Maven, passing the key as a -D system property works without additional configuration:
+
+[terminal]
+mvn package -Dvaadin.offlineKey=[contents of offlineKey file here]
+
+The Quarkus Gradle plugin, however, runs the build in a forked process (process isolation), so JVM system properties passed via -D on the command line are not automatically visible to the License Checker. The file-based and environment variable approaches work without additional configuration, but if you want to pass the key as a system property, you need to forward it to the forked build process using buildForkOptions in your build.gradle.kts:
+
+[kotlin]
+quarkus {
+    buildForkOptions {
+        System.getProperty("vaadin.offlineKey")?.let { key ->
+            systemProperty("vaadin.offlineKey", key)
+        }
+    }
+}
+
+Then pass the key on the command line:
+
+[terminal]
+./gradlew build -Dvaadin.offlineKey=[contents of offlineKey file here]
+
+Live Reload
+
+Live reload functionality is supported for changes in either Java or frontend files.
+
+When running in development mode (i.e., quarkus:dev), changes in Java or frontend files compile after saving. They’ll appear in the browser page after it’s refreshed. For frontend changes, though, the browser page is reloaded automatically.
+
+For Java changes, a manual refresh is required. Furthermore, Java hot reload may sometimes break frontend live reload. If this happens, the server needs to be restarted.
+
+Integrating Vaadin with Existing Quarkus Application
+
+One of the things to consider when integrating Vaadin with an existing Quarkus application is that the application may already have set up routes that may effectively "shadow" the Vaadin UI. A typical scenario for adding Vaadin to an existing Quarkus application is providing some sort of administration dashboard functionality that sits under a sub-root path (e.g., /admin). Using the documented way of setting a @Route at the view level won’t solve the issue:
+
+[Java]
+// This won't solve the issue
+@Route("/admin")
+public class MainView extends VerticalLayout {
+
+The problem is that, by default, Vaadin’s Quarkus extension would spin a QuarkusVaadinServlet instance that expects every call to the root (i.e., /) of your Quarkus application to go through it. If there is even a single @Path("/") annotation anywhere in the application’s code, it may effectively "shadow" the access to the servlet.
+
+To solve this problem, you’ll need to either remove the @Path("/") annotations if possible — it may not be possible if they already serve the index page of your site — or create a custom instance of QuarkusVaadinServlet that would take place instead of the default one:
+
+[Java]
+@WebServlet(urlPatterns = "/admin/*", name = "AdminServlet", asyncSupported = true)
+public class AdminServlet extends QuarkusVaadinServlet {
+
+Notice how the servlet listens to incoming requests matching the /admin/* mapping and no longer the root. In this case, you’ll also need to adjust Vaadin’s @Route annotations, accordingly. For example, @Route("/admin") would now turn into @Route(""). Otherwise, your view would expect to be called with /admin/admin, which is likely not what you want.
+
+Limitations
+
+The Vaadin Quarkus plugin doesn’t support Hilla because Hilla requires the use of Spring. Adding the Quarkus Spring extensions doesn’t allow Hilla to work correctly. The extensions don’t provide a complete Spring implementation. This is explained in the Important Technical Note paragraph of the Quarkus Spring DI documentation.
+
+Known Issues
+
+Quarkus Bill-of-Materials (BOM) may pin libraries to a version that conflicts with Vaadin. This can result in runtime errors or test failures during development because of changes in method signatures.
+
+If you encounter such errors, try swapping the order of the BOMs in the dependency management section of the project’s pom.xml file so that the Vaadin BOM is located immediately above the Quarkus BOM. This ensures that Vaadin’s dependency versions take precedence.

@@ -1,0 +1,257 @@
+Modifying Bootstrap Page at Runtime
+
+Customizing an application shell (a.k.a., bootstrap page) to improve page loading speed.
+
+The application shell model aims to make websites faster by loading the important parts of web pages first to improve the user experience. The key to this is to deliver the minimum HTML, CSS and JavaScript required to display the user interface on the first visit, and to cache it for use on subsequent visits.
+
+The Application Shell in Vaadin Flow is also known as the Bootstrap Page, or index.html.
+
+Modifying the Application Shell
+
+The developer has full control of the contents of index.html. You can modify it in various ways.
+
+On the client side, you can edit frontend/index.html when the content is static, for instance the <viewport> tag. On the server side, you can make changes that require dynamic server content, or when Java syntax is preferred. An example of would be making the application installable by enabling the @PWA built-in feature.
+
+You can implement AppShellConfigurator for cases covered by the AppShellSettings API, or by annotations. And you can configure an IndexHtmlRequestListener for advanced cases to modify the document structure.
+
+Application Shell Template
+
+The Vaadin servlet uses the frontend/index.html file as a template to generate the bootstrap page response. The servlet processes the template and injects the following information:
+
+- <base href='./relative/to/root'>: Vaadin calculates the relative path from the current request path to the root path of the application. This is required for relative links in view templates to work correctly.
+- Bundled script: Vaadin automatically adds the bundled and optimized script generated from the frontend/index.ts file. It uses a pre-configured Vite instance that’s included with vaadin-maven-plugin as a module bundler. Therefore, the frontend/index.html template doesn’t need to include explicitly the index.ts script — or the index.js script.
+
+Tip: The frontend directory path can be changed with the frontendDirectory parameter of vaadin-maven-plugin, which the prepare-frontend and build-frontend goals use. The build records the path so that the application can read it at runtime from the vaadin.frontend.folder property. See Plugin Configuration Options for details.
+
+Default Template & Entry Point
+
+If the index.html or index.ts files in the frontend folder are missing, vaadin-maven-plugin generates a default corresponding file in the target folder. In that case, the application uses only server-side routing. You can take control of these files by moving them into the frontend folder. By default, these files look similar to the following:
+
+[Default index.html]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body, #outlet {
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+    }
+  </style>
+  <!-- index.ts is included here automatically (either by the dev server or during the build) -->
+</head>
+<body>
+  <!-- vaadin-router in index.ts needs an outlet for displaying the views -->
+  <div id="outlet"></div>
+</body>
+</html>
+
+[Default index.ts]
+// import Vaadin client-router to handle client-side and server-side navigation
+import { Router } from '@vaadin/router';
+
+// import Flow module to enable navigation to Vaadin server-side views
+import { Flow } from '@vaadin/flow-frontend';
+
+const {serverSideRoutes} = new Flow({
+  imports: () => import('../target/frontend/generated-flow-imports')
+});
+
+const routes = [
+  // for client-side, place routes below
+
+  // for server-side, the next magic line sends all unmatched routes:
+  ...serverSideRoutes // IMPORTANT: this must be the last entry in the array
+];
+
+// The Vaadin router needs an outlet in the index.html page to display views
+export const router = new Router(document.querySelector('#outlet'));
+router.setRoutes(routes);
+
+This is the best place to customize the application shell, for example to put an analytics tag in the page.
+
+[index.html]
+...
+<head>
+  <title>My App</title>
+</head>
+<body>
+  ...
+  <!-- Google Analytics -->
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-XXXXX-Y', 'auto');
+    ga('send', 'my-app-bootstrap');
+  </script>
+</body>
+
+Customizing Application Shell at Runtime
+
+You may use a few methods to customize an application shell at runtime. They’re described in the following sub-sections.
+
+AppShellConfigurator Interface
+
+In Java code, when adding dynamic content during the bootstrap process, use the AppShellConfigurator marker interface, rather than editing the index.html file.
+
+There must be a single application shell for the entire Vaadin application, so that no more than one class can implement AppShellConfigurator. In a multi-module application, the class implementing AppShellConfigurator can’t be in the dependent JAR file of the JAR or WAR file which starts the application.
+
+Note: AppShellConfigurator replaces the obsolete PageConfigurator interface.
+
+AppShellConfigurator.configurePage() Method
+
+Override configurePage() to add content to the index.html template by calling the following AppShellSettings methods:
+
+- AppShellSettings.setViewport() to set the viewport value. This replaces the viewport present in the index.html template.
+- AppShellSettings.setPageTitle() to set the initial page title. This replaces the template title tag.
+- AppShellSettings.setBodySize() to configure the body width and height values.
+- AppShellSettings.addMetaTag() to append meta tags to the head.
+- AppShellSettings.addInlineFromFile() to include content from resource files.
+- AppShellSettings.addInlineWithContents() to add arbitrary content.
+- AppShellSettings.addLink() to add links to the head.
+- AppShellSettings.addFavIcon() to configure the favicon.
+
+[Java]
+public class AppShell implements AppShellConfigurator {
+
+  @Override
+  public void configurePage(AppShellSettings settings) {
+    settings.setViewport("width=device-width, initial-scale=1");
+    settings.setPageTitle("A Cool Vaadin App");
+    settings.setBodySize("100vw", "100vh");
+    settings.addMetaTag("author", "bunny");
+    settings.addFavIcon("icon", "icons/icon-192.png", "192x192");
+    settings.addLink("shortcut icon", "icons/favicon.ico");
+
+    settings.addInlineFromFile(
+            TargetElement.BODY,
+            Position.APPEND,
+            "custom.html",
+            Wrapping.AUTOMATIC);
+    settings.addInlineWithContents(Position.PREPEND,
+            "console.log(\"foo\");", Wrapping.JAVASCRIPT);
+  }
+}
+
+[ServiceListener.java]
+package com.vaadin.demo.flow.advanced.bootstrap;
+
+import com.vaadin.flow.component.PushConfiguration;
+import com.vaadin.flow.component.ReconnectDialogConfiguration;
+import com.vaadin.flow.component.page.LoadingIndicatorConfiguration;
+import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinServiceInitListener;
+import com.vaadin.flow.shared.communication.PushMode;
+
+public class ServiceListener implements VaadinServiceInitListener {
+
+    @Override
+    public void serviceInit(ServiceInitEvent event) {
+        event.getSource().addUIInitListener(uiInitEvent -> {
+            LoadingIndicatorConfiguration indicator = uiInitEvent.getUI()
+                    .getLoadingIndicatorConfiguration();
+            indicator.setApplyDefaultTheme(false);
+            indicator.setSecondDelay(700000);
+
+            PushConfiguration push = uiInitEvent.getUI().getPushConfiguration();
+            push.setPushMode(PushMode.AUTOMATIC);
+
+            ReconnectDialogConfiguration dialog = uiInitEvent.getUI()
+                    .getReconnectDialogConfiguration();
+            dialog.setDialogText("reconnecting...");
+        });
+    }
+}
+
+Java Annotations
+
+Vaadin provides a set of annotations to modify the application shell.
+
+- @Viewport to set the viewport value.
+- @PageTitle to set the initial page title.
+- @BodySize to configure the body size.
+- @Meta to append meta tags to the head.
+- @Inline to include content from resource files in the index.html.
+- @PWA to define application PWA properties.
+- @Push to configure server push.
+
+[Java]
+@Viewport("width=device-width, initial-scale=1")
+@PageTitle("A Cool Vaadin App")
+@BodySize(height = "100vh", width = "100vw")
+@Meta(name = "author", content = "bunny")
+@Inline(wrapping = Wrapping.AUTOMATIC,
+        position = Position.APPEND,
+        target = TargetElement.BODY,
+        value = "custom.html")
+@PWA(name = "Cool Vaadin App", shortName = "my-app")
+@Push(value = PushMode.MANUAL, transport = Transport.WEBSOCKET)
+public class AppShell implements AppShellConfigurator {
+}
+
+Modifications in AppShellConfigurator.configurePage() have priority over the equivalent annotations. Annotations don’t cover all of the cases that can be achieved when overriding the AppShellConfigurator.configurePage() method.
+
+Forcing a Page Reload After an Invalid Server Response
+
+If the XHR response can’t be parsed as JSON, Vaadin looks for a “Vaadin-Refresh” string anywhere inside the response text. If it’s present, Vaadin reloads the page instead of showing an error message. Usually such responses are served by some 3rd party servers and then you need to add the refresh token as a meta tag to the HTML page served by it.
+
+Sample HTML response with the meta tag
+
+[XML]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="refresh" content="Vaadin-Refresh">
+  <title>Vaadin App</title>
+</head>
+<body>
+  <h1>Invalid server response</h1>
+</body>
+</html>
+
+But sometimes due to proxy or firewall timeout, a new session is served for the client, without the client being aware of that. In such cases you need to add the refresh token in Vaadin bootstrap page.
+
+[Java]
+public class AppShell implements AppShellConfigurator {
+
+  @Override
+  public void configurePage(AppShellSettings settings) {
+    settings.addMetaTag("refresh", "Vaadin-Refresh");
+  }
+}
+
+IndexHtmlRequestListener Interface
+
+For advanced cases not covered in the previous section, content can be modified via an IndexHtmlRequestListener.
+
+An implementation of the listener should be added with a ServiceInitEvent when a VaadinService is initialized. See the ServiceInitListener tutorial for details of using Vaadin ServiceInitListeners.
+
+The following example changes the body class, dynamically:
+
+[Java]
+public class MyIndexHtmlRequestListener implements
+        IndexHtmlRequestListener {
+
+    @Override
+    public void modifyIndexHtmlResponse(
+            IndexHtmlResponse indexHtmlResponse) {
+
+        Document document = indexHtmlResponse.getDocument();
+        Element body = document.body();
+        body.classNames(computeBodyClassNames());
+    }
+
+    private Set<String> computeBodyClassNames() {
+        // Introduce some logic to dynamically change the body class
+        return Collections.singleton("my-className");
+    }
+}
+
+This can also be achieved using a servlet container deployment property with the name useDeprecatedV14Bootstrapping. Note that this option, however, is only supported if webpack is used as the frontend build tool and not if the application uses Vite — which is the default. You can enable webpack by using its associated feature flag. Learn more about how to enable it on the Hot Deploy & Live Reload documentation page.

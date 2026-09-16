@@ -1,0 +1,3 @@
+/docs/latest/getting-started/quick-start	redirected outside docs: https://vaadin.com/quickstart
+/docs/latest/styling/advanced/shadow-dom-styling	404
+/docs/latest/styling/application-theme	404

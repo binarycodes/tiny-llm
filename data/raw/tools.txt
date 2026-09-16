@@ -1,0 +1,69 @@
+Tools
+
+Speed up development with official Vaadin tools.
+
+Development Tools
+
+Copilot
+
+Edit your application directly in the browser yourself or ask the AI copilot to do it for you, and see the changes applied right there in the browser.
+
+See Copilot
+
+Acceleration Kits
+
+AppSec Kit
+
+Identify and manage security vulnerabilities in third-party dependencies.
+
+See AppSec Kit
+
+Azure Cloud Kit
+
+Create scalable, highly-available, easily upgradable Vaadin applications, and deploy them to Azure Cloud.
+
+Azure Cloud Kit Overview
+
+Collaboration Kit Flow
+
+The simplest way to build real-time collaboration into web applications.
+
+See Collaboration Kit
+
+Kubernetes Kit
+
+Deploy your Vaadin application to Kubernetes, enabling scalability, high availability, and rolling updates.
+
+See Kubernetes Kit
+
+Observability Kit
+
+Get insights into Flow applications at runtime and in production by monitoring application health, detecting unhandled errors and performance issues, and observing user behavior.
+
+See Observability Kit
+
+SSO Kit
+
+Integrate your Vaadin application with third-party identity providers, and give users single sign-on capabilities.
+
+See SSO Kit
+
+Swing Kit
+
+Swing Kit is designed to render Vaadin views inside Swing applications. You can gradually modernize your existing Swing application using Vaadin, upgrading the application view-by-view.
+
+See Swing Kit
+
+Other Tools
+
+Multiplatform Runtime Flow
+
+Run applications and components written with Vaadin 7/8 inside a Vaadin 10+ Flow application.
+
+See Multiplatform Runtime
+
+Designer
+
+Create UIs visually by dragging and dropping components on a canvas.
+
+See Designer

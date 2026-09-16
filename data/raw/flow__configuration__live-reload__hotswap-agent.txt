@@ -1,0 +1,98 @@
+Hot Deploy & Live Reload
+
+Hotswapping Java changes in a running JVM with JetBrains Runtime and HotswapAgent.
+
+- Overview
+- Spring Boot
+- JRebel
+- HotswapAgent
+- Jetty
+- TomEE
+
+JetBrains Runtime offers hotswapping of any type of Java changes into a running JVM through the debug connection, typically established by the IDE, to the running JVM. With other JDKs there’s limited support for only some types of Java changes.
+
+In addition to getting the Java changes into the running JVM, most frameworks have some global data that needs to be updated when a class changes — or some caches that need to be cleared for the new class to take effect. HotswapAgent is a collection of plugins for various frameworks, which offers these kinds of global updates and cache clearing when needed.
+
+Using Vaadin Copilot & Vaadin IDE Plugin
+
+If you are using IntelliJ and the Vaadin plugin, you can launch your application using the 'Debug using HotswapAgent' option without any additional configuration.
+
+When running your application using Debug using HotswapAgent, the Vaadin plugin checks if you’re using the proper JDK, if HotswapAgent is available, and applies additional required JVM arguments.
+
+If you’re using VS Code and Vaadin Copilot, you can configure everything automatically from the Copilot Development Workflow guide. Follow the instruction to install the proper JDK, install the HotswapAgent library, and prepare the run configuration.
+
+Manual Installation
+
+Setting up hotswapping manually, consists of three steps:
+
+- Install JetBrains Runtime;
+- Download HotswapAgent and install it into JetBrains Runtime; and
+- Run the application using JetBrains Runtime with additional parameters.
+
+JetBrains Runtime
+
+You can download the latest version from the JetBrains GitHub release page. Be sure to select the correct architecture. Use JetBrains Runtime to execute your application, not necessarily your IDE.
+
+HotswapAgent
+
+You can download HotswapAgent from the HotswapAgent GitHub release page. You’ll need version 1.4.2 or later.
+
+Download the JAR file and place it inside the JetBrains Runtime installation directory as lib/hotswap/hotswap-agent.jar. Use this exact file name for JetBrains Runtime. You’ll need to create the hotswap folder.
+
+If you want to know more about the features of HotswapAgent, the documentation in the HotswapAgent webpage is a good resource.
+
+Running the Application
+
+To enable hotswapping when launching your application, pass -XX:+AllowEnhancedClassRedefinition -XX:HotswapAgent=fatjar as JVM arguments — not program arguments.
+
+If you have a Spring Boot application, you launch it by running the main() method of your application class. After you’ve launched it once, you’ll have a run configuration available. You can edit that run configuration in your IDE so that you can select the proper JDK and give the necessary parameters.
+
+To do that in IntelliJ IDEA, select Run › Edit configurations…​. With your application run configuration chosen, you can select the JDK to use in the first drop-down. If JetBrains Runtime isn’t shown, you can select it through Select alternative JRE…​.
+
+In the same dialog, click Modify options › Add VM options to see the field where you can add the -XX:+AllowEnhancedClassRedefinition -XX:HotswapAgent=fatjar JVM arguments.
+
+If you have another type of application, you’ll need to pass the JVM options in the appropriate way.
+
+Testing
+
+With the settings in place, when you start the application in debug mode, you’ll see the following type of log output:
+
+HOTSWAP AGENT: 10:19:01.802 INFO (org.hotswap.agent.HotswapAgent) - Loading Hotswap agent {1.4.2-SNAPSHOT} - unlimited runtime class redefinition.
+HOTSWAP AGENT: 10:19:02.065 INFO (org.hotswap.agent.config.PluginRegistry) - Discovered plugins: [JdkPlugin, ClassInitPlugin, AnonymousClassPatch, WatchResources, Hotswapper, Hibernate, Hibernate3JPA, Hibernate3, Spring, Jersey1, Jersey2, Jetty, Tomcat, ZK, Logback, Log4j2, MyFaces, Mojarra, Omnifaces, ELResolver, WildFlyELResolver, OsgiEquinox, Owb, OwbJakarta, Proxy, WebObjects, Weld, WeldJakarta, JBossModules, ResteasyRegistry, Deltaspike, GlassFish, Weblogic, Vaadin, Wicket, CxfJAXRS, FreeMarker, Undertow, MyBatis, IBatis, JacksonPlugin, Idea]
+
+This indicates that HotswapAgent is loaded. When you navigate now to a view in your application, open the corresponding Java file in your project and make some changes. Remember to compile and not only save the class if using IntelliJ IDEA. When you make changes, your view is reloaded in the browser and the changes are shown.
+
+Caution: Use "debug" — Not spring-boot:run
+
+Don’t start the application in “run” mode. The debug connection to the JVM running the application is needed for hotswapping to work.
+
+Don’t launch the Maven spring-boot:run target. That’ll fork another JVM process. The debug connection is established only to the Maven process and not the actual application. Therefore, hotswapping won’t work.
+
+Efficiency
+
+By default, any change in the Java code causes the application to reload in the browser. This is convenient when you make changes to the initial layout, constructors, post construct methods or similar. However, if you’re modifying the logic inside a listener, there’s no need to do a page reload for the change to take effect.
+
+When using the Vaadin IntelliJ plugin, the Java file is compiled automatically on save. Otherwise, you might want to set IntelliJ to build the project when you save. You can do that through Settings › Build, Execution, Deployment › Compiler ��› Build project automatically.
+
+You’ll also need to ensure that the build takes place when the application is running in debug mode. This is done through Advanced Settings › Allow auto-make to start even if developed application is currently running. Finally, through Settings › Build, Execution, Deployment › Debugger › HotSwap, Reload classes after compilation should be set to Always.
+
+Additional Considerations
+
+You should disable other reloading or hotswapping solutions. For example, disable the automatic restart in the Jetty Maven plugin if you’re using it. Omit or set <scanIntervalSeconds> to a value of 0 or less.
+
+The live reload “quiet time” — which is in milliseconds since the last Java change before refreshing the browser — can be adjusted with the parameter vaadin.liveReloadQuietTime in the hotswap-agent.properties file. The default is 1000 ms. Increase this value if you notice the browser refreshing before modified Java files have been compiled fully.
+
+You should configure the Vaadin Hotswap plugin to watch only for application classes by setting the vaadin.watched-packages property in the hotswap-agent.properties file. This improves performance, and prevents unnecessary reloads by limiting the plugin’s monitoring to relevant packages. The value given should be a comma-separated list of Java package names (e.g., com.example.ui,com.example.endpoints).
+
+Changes to some parts of the Java code, such as application startup listeners or annotations on the application shell class — for example @Push, @PWA, and other AppShellConfigurator annotations — won’t have any effect until the server is restarted and the startup logic runs again. For these, you need to restart the server.
+
+If you’re using the @PreserveOnRefresh annotation, the same view instance is reused when the browser is reloaded. That means changes aren’t necessarily visible until the view is opened in another browser tab.
+
+When hotswapping is used with Spring Boot applications, sometimes UI updates may not render and show the old content even after hot reload. It can be caused by embedded Tomcat server caching resources. As a workaround, reduce the cache time-to-live for static resources or disable the cache entirely while developing. Add one of the following to your application.properties:
+
+# change from 5 seconds (default) to 1 second
+server.tomcat.resource.cache-ttl=1000
+# disable caching entirely
+server.tomcat.resource.allow-caching=false
+
+You can limit these settings to a development profile by placing them into application-dev.properties and running with --spring.profiles.active=dev.

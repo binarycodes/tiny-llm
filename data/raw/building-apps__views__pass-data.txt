@@ -1,0 +1,27 @@
+Pass Data to a View
+
+Learn how to pass data between the views of a Vaadin application.
+
+The recommended way to pass data between views in a Vaadin application is through URL parameters. This approach enables deep linking, allowing users to navigate directly to a specific page or piece of content using a URL. With deep linking, users can bookmark key sections for quick access, share links with colleagues, and seamlessly navigate back using the browser’s history and back button.
+
+Types of URL Parameters
+
+Vaadin supports two types of URL parameters:
+
+- Route parameters — Part of the URL path, used to identify a specific view or content, such as a particular entity or tab.
+- Query parameters — Key-value pairs appended to the URL, ideal for storing UI state, like a grid’s sort order or a search field’s value.
+
+Tip: Use route parameters when navigation depends on the structure of the URL, such as /customer/123 to view customer details.
+
+Tip: Use query parameters for storing state that affects a view’s behavior, such as /orders?sort=date&filter=shipped.
+
+Guides
+
+The following guides explore different ways to pass data between views:
+
+Route Parameters
+    Learn how to use route parameters in Vaadin.
+Route Templates
+    Learn how to use route templates in Vaadin.
+Query Parameters
+    Learn how to manage state with query parameters in Vaadin.

@@ -1,0 +1,450 @@
+Role-Based Access Control for Views
+
+How to restrict access for selected Hilla views based on roles defined for the logged-in user.
+
+It’s possible to restrict access for selected Hilla views, based on roles defined for the logged-in user. This article explains how to do this.
+
+To follow the examples here, you’ll need a Hilla application with authentication enabled. The Authentication With Spring Security page will help you to get started.
+
+Define Roles with Spring Security
+
+Roles are a set of string attributes representing the authorities that are assigned to a user. In Spring Security, the user details used for authentication also specify roles.
+
+Typically, roles are defined in authority strings prefixed with ROLE_. After successful authentication, these are accessible via the GrantedAuthority objects returned by Authentication.getAuthorities(). See the Authentication With Spring Security page for examples of configuration.
+
+Using Roles in TypeScript
+
+A convenient way to use roles for access control in TypeScript views is to add a Hilla endpoint that gets user information, including roles, from Java during authentication. To do this, first define a bean representing information about the user:
+
+[UserInfo.java]
+package com.vaadin.demo.fusion.security.authentication;
+
+import jakarta.annotation.Nonnull;
+
+import java.util.Collection;
+import java.util.Collections;
+
+/**
+ * User information used in client-side authentication and authorization. To be
+ * saved in browsers’ LocalStorage for offline support.
+ */
+public class UserInfo {
+
+    @Nonnull
+    private String name;
+    @Nonnull
+    private Collection<String> authorities;
+
+    public UserInfo(String name, Collection<String> authorities) {
+        this.name = name;
+        this.authorities = Collections.unmodifiableCollection(authorities);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Collection<String> getAuthorities() {
+        return authorities;
+    }
+
+}
+
+Next, add the endpoint to get a UserInfo containing authorities for the logged-in user on the client side:
+
+[UserInfoService.java]
+package com.vaadin.demo.fusion.security.authentication;
+
+import com.vaadin.hilla.BrowserCallable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+
+/**
+ * Provides information about the current user.
+ */
+@BrowserCallable
+public class UserInfoService {
+
+    @PermitAll
+    @Nonnull
+    public UserInfo getUserInfo() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+
+        final List<String> authorities = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).toList();
+
+        return new UserInfo(auth.getName(), authorities);
+    }
+
+}
+
+Then, change the authentication implementation in TypeScript to get the user information from the endpoint. Change the auth.ts defined in Authentication With Spring Security as follows:
+
+[auth.ts]
+// Uses the Vaadin provided login an logout helper methods
+import {
+  login as loginImpl,
+  type LoginOptions,
+  type LoginResult,
+  logout as logoutImpl,
+  type LogoutOptions,
+} from '@vaadin/hilla-frontend';
+import type UserInfo from 'Frontend/generated/com/vaadin/demo/fusion/security/authentication/UserInfo';
+import { UserInfoService } from 'Frontend/generated/endpoints';
+
+interface Authentication {
+  user: UserInfo;
+  timestamp: number;
+}
+
+let authentication: Authentication | undefined;
+
+const AUTHENTICATION_KEY = 'authentication';
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+/**
+ * Forces the session to expire and removes user information stored in
+ * `localStorage`.
+ */
+export function setSessionExpired() {
+  authentication = undefined;
+
+  // Delete the authentication from the local storage
+  localStorage.removeItem(AUTHENTICATION_KEY);
+}
+
+// Get authentication from local storage
+const storedAuthenticationJson = localStorage.getItem(AUTHENTICATION_KEY);
+if (storedAuthenticationJson !== null) {
+  const storedAuthentication = JSON.parse(storedAuthenticationJson) as Authentication;
+  // Check that the stored timestamp is not older than 30 days
+  const hasRecentAuthenticationTimestamp =
+    new Date().getTime() - storedAuthentication.timestamp < THIRTY_DAYS_MS;
+  if (hasRecentAuthenticationTimestamp) {
+    // Use loaded authentication
+    authentication = storedAuthentication;
+  } else {
+    // Delete expired stored authentication
+    setSessionExpired();
+  }
+}
+
+/**
+ * Login wrapper method that retrieves user information.
+ *
+ * Uses `localStorage` for offline support.
+ */
+export async function login(
+  username: string,
+  password: string,
+  options: LoginOptions = {}
+): Promise<LoginResult> {
+  return await loginImpl(username, password, {
+    ...options,
+    async onSuccess() {
+      // Get user info from endpoint
+      const user = await UserInfoService.getUserInfo();
+      authentication = {
+        user,
+        timestamp: new Date().getTime(),
+      };
+
+      // Save the authentication to local storage
+      localStorage.setItem(AUTHENTICATION_KEY, JSON.stringify(authentication));
+    },
+  });
+}
+
+/**
+ * Login wrapper method that retrieves user information.
+ *
+ * Uses `localStorage` for offline support.
+ */
+export async function logout(options: LogoutOptions = {}) {
+  return await logoutImpl({
+    ...options,
+    onSuccess() {
+      setSessionExpired();
+    },
+  });
+}
+
+/**
+ * Checks if the user is logged in.
+ */
+export function isLoggedIn() {
+  return !!authentication;
+}
+
+/**
+ * Checks if the user has the role.
+ */
+export function isUserInRole(role: string) {
+  if (!authentication) {
+    return false;
+  }
+
+  return authentication.user.authorities.includes(`ROLE_${role}`);
+}
+
+Add an isUserInRole() helper, which enables role-based access control checks for the UI.
+
+[auth.ts]
+// Uses the Vaadin provided login an logout helper methods
+import {
+  login as loginImpl,
+  type LoginOptions,
+  type LoginResult,
+  logout as logoutImpl,
+  type LogoutOptions,
+} from '@vaadin/hilla-frontend';
+import type UserInfo from 'Frontend/generated/com/vaadin/demo/fusion/security/authentication/UserInfo';
+import { UserInfoService } from 'Frontend/generated/endpoints';
+
+interface Authentication {
+  user: UserInfo;
+  timestamp: number;
+}
+
+let authentication: Authentication | undefined;
+
+const AUTHENTICATION_KEY = 'authentication';
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+/**
+ * Forces the session to expire and removes user information stored in
+ * `localStorage`.
+ */
+export function setSessionExpired() {
+  authentication = undefined;
+
+  // Delete the authentication from the local storage
+  localStorage.removeItem(AUTHENTICATION_KEY);
+}
+
+// Get authentication from local storage
+const storedAuthenticationJson = localStorage.getItem(AUTHENTICATION_KEY);
+if (storedAuthenticationJson !== null) {
+  const storedAuthentication = JSON.parse(storedAuthenticationJson) as Authentication;
+  // Check that the stored timestamp is not older than 30 days
+  const hasRecentAuthenticationTimestamp =
+    new Date().getTime() - storedAuthentication.timestamp < THIRTY_DAYS_MS;
+  if (hasRecentAuthenticationTimestamp) {
+    // Use loaded authentication
+    authentication = storedAuthentication;
+  } else {
+    // Delete expired stored authentication
+    setSessionExpired();
+  }
+}
+
+/**
+ * Login wrapper method that retrieves user information.
+ *
+ * Uses `localStorage` for offline support.
+ */
+export async function login(
+  username: string,
+  password: string,
+  options: LoginOptions = {}
+): Promise<LoginResult> {
+  return await loginImpl(username, password, {
+    ...options,
+    async onSuccess() {
+      // Get user info from endpoint
+      const user = await UserInfoService.getUserInfo();
+      authentication = {
+        user,
+        timestamp: new Date().getTime(),
+      };
+
+      // Save the authentication to local storage
+      localStorage.setItem(AUTHENTICATION_KEY, JSON.stringify(authentication));
+    },
+  });
+}
+
+/**
+ * Login wrapper method that retrieves user information.
+ *
+ * Uses `localStorage` for offline support.
+ */
+export async function logout(options: LogoutOptions = {}) {
+  return await logoutImpl({
+    ...options,
+    onSuccess() {
+      setSessionExpired();
+    },
+  });
+}
+
+/**
+ * Checks if the user is logged in.
+ */
+export function isLoggedIn() {
+  return !!authentication;
+}
+
+/**
+ * Checks if the user has the role.
+ */
+export function isUserInRole(role: string) {
+  if (!authentication) {
+    return false;
+  }
+
+  return authentication.user.authorities.includes(`ROLE_${role}`);
+}
+
+Routes with Access Control
+
+To enable allowed roles to be specified on the view routes, define an extended type ViewRoute, that has a rolesAllowed string, like so:
+
+[routes.ts]
+import type { Commands, Route } from '@vaadin/router';
+import { isUserInRole } from './auth';
+
+// Enable declaring additional data on the routes
+export type ViewRoute = Route & {
+  title?: string;
+  children?: ViewRoute[];
+  rolesAllowed?: string[];
+};
+
+export function isAuthorizedViewRoute(route: ViewRoute) {
+  if (route.rolesAllowed) {
+    return route.rolesAllowed.find((role) => isUserInRole(role));
+  }
+
+  return true;
+}
+
+export const routes: ViewRoute[] = [
+  {
+    path: 'protected',
+    component: 'protected-view',
+    title: 'Protected',
+    rolesAllowed: ['ADMIN'],
+    action: async (context, commands: Commands) => {
+      const route = context.route as ViewRoute;
+      if (!isAuthorizedViewRoute(route)) {
+        return commands.prevent();
+      }
+      await import('./protected-view');
+      return undefined;
+    },
+  },
+];
+
+Add a method to check access for the given route by iterating rolesAllowed, using isUserInRole(), as follows:
+
+[routes.ts]
+import type { Commands, Route } from '@vaadin/router';
+import { isUserInRole } from './auth';
+
+// Enable declaring additional data on the routes
+export type ViewRoute = Route & {
+  title?: string;
+  children?: ViewRoute[];
+  rolesAllowed?: string[];
+};
+
+export function isAuthorizedViewRoute(route: ViewRoute) {
+  if (route.rolesAllowed) {
+    return route.rolesAllowed.find((role) => isUserInRole(role));
+  }
+
+  return true;
+}
+
+export const routes: ViewRoute[] = [
+  {
+    path: 'protected',
+    component: 'protected-view',
+    title: 'Protected',
+    rolesAllowed: ['ADMIN'],
+    action: async (context, commands: Commands) => {
+      const route = context.route as ViewRoute;
+      if (!isAuthorizedViewRoute(route)) {
+        return commands.prevent();
+      }
+      await import('./protected-view');
+      return undefined;
+    },
+  },
+];
+
+Then use the method added in the route action to redirect on unauthorized access like this:
+
+[routes.ts]
+import type { Commands, Route } from '@vaadin/router';
+import { isUserInRole } from './auth';
+
+// Enable declaring additional data on the routes
+export type ViewRoute = Route & {
+  title?: string;
+  children?: ViewRoute[];
+  rolesAllowed?: string[];
+};
+
+export function isAuthorizedViewRoute(route: ViewRoute) {
+  if (route.rolesAllowed) {
+    return route.rolesAllowed.find((role) => isUserInRole(role));
+  }
+
+  return true;
+}
+
+export const routes: ViewRoute[] = [
+  {
+    path: 'protected',
+    component: 'protected-view',
+    title: 'Protected',
+    rolesAllowed: ['ADMIN'],
+    action: async (context, commands: Commands) => {
+      const route = context.route as ViewRoute;
+      if (!isAuthorizedViewRoute(route)) {
+        return commands.prevent();
+      }
+      await import('./protected-view');
+      return undefined;
+    },
+  },
+];
+
+Hiding Unauthorized Menu Items
+
+Filter the route list using the isAuthorizedViewRoute() helper defined earlier. Then use the filtered list of routes as menu items:
+
+[main-view.ts]
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
+import { Router } from '@vaadin/router';
+import { isAuthorizedViewRoute, routes } from './routes';
+
+export const router = new Router(document.querySelector('#outlet'));
+
+@customElement('main-view')
+export class MainView extends LitElement {
+  protected render() {
+    return html`
+      <nav>
+        ${repeat(
+          this.menuRoutes,
+          (route) => html`<a href="${router.urlForPath(route.path)}">${route.title}</a>`
+        )}
+        ;
+      </nav>
+    `;
+  }
+
+  private get menuRoutes() {
+    return routes.filter((route) => route.title).filter(isAuthorizedViewRoute);
+  }
+
+}

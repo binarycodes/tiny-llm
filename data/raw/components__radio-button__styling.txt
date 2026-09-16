@@ -1,0 +1,239 @@
+Radio Button Styling
+
+Styling API reference for the Radio Button and Radio Button Group components.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+vertical | Vertical layout for radio group items | Lumo
+horizontal | Horizontal layout for radio group items | Aura
+
+Helper Above Field Variant
+
+[Flow: RadioButtonGroupStyles.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-group-styles")
+public class RadioButtonGroupStyles extends HorizontalLayout {
+
+    public RadioButtonGroupStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        RadioButtonGroup<String> field = new RadioButtonGroup<>();
+        field.addThemeVariants(RadioGroupVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setItems("Item 1", "Item 2", "Item 3");
+        // Only for Lumo
+        field.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+
+        add(field);
+    }
+
+}
+
+[React: radio-button-group-styles.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Label" helperText="Helper text" theme="helper-above-field vertical">
+      <RadioButton value="1" label="Item 1" />
+      <RadioButton value="2" label="Item 2" />
+      <RadioButton value="3" label="Item 3" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-group-styles.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-group-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group
+        theme="helper-above-field vertical"
+        label="Label"
+        helper-text="Helper text"
+      >
+        <!-- end::snippet[] -->
+        <vaadin-radio-button value="1" label="Item 1"></vaadin-radio-button>
+        <vaadin-radio-button value="2" label="Item 2"></vaadin-radio-button>
+        <vaadin-radio-button value="3" label="Item 3"></vaadin-radio-button>
+        <!-- tag::snippet[] -->
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Radio Button Properties
+
+Property | Supported By
+--vaadin-radio-button-background | Aura, Lumo
+--vaadin-radio-button-background-hover | Lumo
+--vaadin-radio-button-border-color | Aura
+--vaadin-radio-button-border-width | Aura
+--vaadin-radio-button-disabled-background | Lumo
+--vaadin-radio-button-disabled-dot-color | Lumo
+--vaadin-radio-button-dot-color | Lumo
+--vaadin-radio-button-dot-size | Lumo
+--vaadin-radio-button-gap | Aura
+--vaadin-radio-button-label-color | Aura, Lumo
+--vaadin-radio-button-label-font-size | Aura, Lumo
+--vaadin-radio-button-label-font-weight | Aura
+--vaadin-radio-button-label-line-height | Aura
+--vaadin-radio-button-label-padding | Lumo
+--vaadin-radio-button-marker-color | Aura
+--vaadin-radio-button-marker-size | Aura
+--vaadin-radio-button-size | Aura, Lumo
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Radio Button
+
+Root element
+    vaadin-radio-button
+Focused
+    vaadin-radio-button[focused]
+Keyboard focused
+    vaadin-radio-button[focus-ring]
+Disabled
+    vaadin-radio-button[disabled]
+Hovered
+    vaadin-radio-button:hover
+Pressed
+    vaadin-radio-button[active]
+Selected
+    vaadin-radio-button[checked]
+Indeterminate
+    vaadin-radio-button[indeterminate]
+Radio ring
+    vaadin-radio-button::part(radio)
+Selection dot
+    vaadin-radio-button::part(radio)::after
+Label
+    vaadin-radio-button > label
+
+Radio Button Group
+
+Root element
+    vaadin-radio-group
+
+States
+
+Focused
+    vaadin-radio-group[focused]
+Keyboard focused
+    vaadin-radio-group[focus-ring]
+Disabled
+    vaadin-radio-group[disabled]
+Hovered
+    vaadin-radio-group:hover
+Has selection
+    vaadin-radio-group[has-value]
+
+Parts
+
+Radio button wrapper
+    vaadin-radio-group::part(group-field)
+Radio buttons
+    vaadin-radio-group > vaadin-radio-button
+
+Label
+
+Radio group with label
+    vaadin-radio-group[has-label]
+Label
+    vaadin-radio-group::part(label)
+Label text
+    vaadin-radio-group > label
+Required indicator
+    vaadin-radio-group::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-radio-group[has-helper]
+Helper
+    vaadin-radio-group::part(helper-text)
+Helper text
+    vaadin-radio-group > [slot="helper"]
+Invalid field
+    vaadin-radio-group[invalid]
+Field with error message
+    vaadin-radio-group[has-error-message]
+Error message
+    vaadin-radio-group::part(error-message)
+Error message text
+    vaadin-radio-group > [slot="error-message"]

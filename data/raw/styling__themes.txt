@@ -1,0 +1,148 @@
+Themes & Base Styles
+
+An overview of Vaadin themes and base styles.
+
+By default, Vaadin components are rendered with their minimal base styles. These can be a good starting point for creating a custom theme that should look significantly different than either of the two built-in themes.
+
+[image: Login form using base styles]
+
+Login form using base styles
+
+Important: Avoid Mixing Theme-Specific Style Properties
+
+When customizing themes or creating styles for custom components, don’t mix the use of Aura (i.e., --aura-*) and Lumo-specific (i.e., --lumo-*) style properties.
+
+Default Theme
+
+When no AppShellConfigurator is defined in your application, the Aura theme CSS is automatically loaded as the default theme. In development mode, a log message suggests how to explicitly configure the theme.
+
+To explicitly configure Aura, add the @StyleSheet annotation to your AppShellConfigurator:
+
+[Java]
+@StyleSheet(Aura.STYLESHEET)
+public class Application implements AppShellConfigurator {
+}
+
+Explicit configuration is recommended for production applications so the theme choice is clearly documented in code.
+
+Aura Theme
+
+Aura is the default theme for Vaadin applications, offering a modern and cohesive design for all official components. It works out of the box with built-in variants for common use cases, while also providing high-level CSS custom properties for easy customization. By computing colors, contrast, and surface hierarchy automatically, Aura lets you focus on your application while still achieving consistent, high-quality results.
+
+[image: Login form using the Aura theme]
+
+Login form using the Aura theme
+
+To load the Aura theme in your application, add it with a @StyleSheet annotation on your main application class. The Aura class provides a constant for the path to the Aura stylesheet that can be used with the @StyleSheet annotation.
+
+[Java]
+@StyleSheet(Aura.STYLESHEET)
+@StyleSheet("styles.css")
+public class Application implements AppShellConfigurator {
+ ...
+}
+
+Themes should always be loaded before any other styles in your application.
+
+Aura includes a comprehensive set of style properties (custom CSS properties) that can be used to customize it without writing complicated CSS selectors.
+
+[image: Login form using customized Aura theme]
+
+Login form using a customized Aura theme
+
+[CSS]
+html {
+  --aura-accent-color-light: #009966;
+  --aura-background-color-light: #f3f1f1;
+  --aura-base-font-size: 15;
+  --aura-base-radius: 0;
+  --aura-base-size: 20;
+  --aura-contrast-level: 2;
+  --aura-font-family: var(--aura-font-family-system);
+}
+
+Lumo Theme
+
+Lumo is a theme for Vaadin applications that offers a clean and consistent design for all official components. While Aura is the default theme, Lumo remains a dependable alternative with a strong focus on clarity, accessibility, and predictability. It provides a solid foundation for building applications or creating custom themes on top.
+
+[image: Login form using the Lumo theme]
+
+Login form using the Lumo theme
+
+To load the Lumo theme in your application, add it with a @StyleSheet annotation on your main application class. The Lumo class provides a constant for the path to the Lumo stylesheet that can be used with the @StyleSheet annotation.
+
+[Java]
+@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet("styles.css")
+public class Application implements AppShellConfigurator {
+ ...
+}
+
+Themes should always be loaded before any other styles in your application.
+
+Lumo includes a comprehensive set of style properties (custom CSS properties) that can be used to customize it without writing complicated CSS selectors. See the Lumo style property reference for a complete list.
+
+[image: Login form using customized Lumo theme]
+
+Login form using a customized Lumo theme
+
+[CSS]
+html {
+  --lumo-primary-color: green;
+  --lumo-primary-text-color: green;
+  --lumo-font-family: Verdana;
+  --lumo-font-size-m: 14px;
+  --lumo-border-radius-m: 1em;
+}
+
+The Lumo Utility Classes, when enabled, can be used together with the Lumo theme.
+
+Light & Dark Color Schemes
+
+Both Aura and Lumo support a light and dark color scheme. By default, the light color scheme is used. You can configure a different color scheme for the application by adding the ColorScheme annotation to your main application class.
+
+[Java]
+@ColorScheme(ColorScheme.Value.DARK)
+public class Application implements AppShellConfigurator {
+    ...
+}
+
+The color scheme enum supports the following values:
+
+ColorScheme.Value.LIGHT
+    Always use the light color scheme.
+ColorScheme.Value.DARK
+    Always use the dark color scheme.
+ColorScheme.Value.LIGHT_DARK
+    Use the light or dark color scheme based on the user’s OS or browser settings, with a preference for the light color scheme.
+ColorScheme.Value.DARK_LIGHT
+    Use the dark or light color scheme based on the user’s OS or browser settings, with a preference for the dark color scheme.
+
+The color scheme can be changed dynamically at runtime using the Page.setColorScheme(ColorScheme.Value) method.
+
+[Java]
+UI.getCurrentOrThrow().getPage().setColorScheme(ColorScheme.Value.DARK);
+
+Caution: The dark Theme Name Is Not a Second Mechanism
+
+Adding a dark theme name, as in ui.getElement().getThemeList().add("dark"), looks like an alternative but isn’t one. getThemeList() is the generic theme name API that every component has, and it’s the right tool for variants such as small or contrast. It only happens to match Lumo’s own [theme~="dark"] selector.
+
+It writes the attribute on the <body> element, since that’s the element a UI is. Under Lumo that leaves the <html> element light behind whatever the body doesn’t cover, and under Aura it has no effect at all. Neither case logs anything or throws, so the page stays light with no indication of why.
+
+In tests, assert on Page.getColorScheme() rather than on the theme attribute. The attribute is only a plain dark for ColorScheme.Value.DARK. The system preference values write light-dark or dark-light, which no [theme~="dark"] selector matches. .Avoid Using The theme="dark" Attribute Globally
+
+Avoid using ui.getElement().getThemeList().add("dark") to switch to the dark color scheme globally.
+
+getThemeList() is the generic theme name API that every component has, and it’s the right tool for variants such as small or contrast.
+
+When using the ColorScheme.Value.DARK value specifically, Vaadin adds the theme="dark" attribute on the <html> element for backwards compatibility. You should not rely on it going forward.
+
+In tests, assert on Page.getColorScheme() rather than on the theme attribute.
+
+Note: Testing Color Schemes with Browser DevTools
+
+You can emulate the user color scheme preference in browser developer tools:
+
+- In Chrome, the Styles panel has a dropdown button with a paintbrush icon.
+- In Firefox, the Styles panel has buttons with sun and moon icons.
+- In Safari, the Elements panel has a dropdown button with a concentric circles icon.

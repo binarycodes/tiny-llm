@@ -1,0 +1,193 @@
+Grid Filtering with Signals
+
+Use signals to implement reactive client-side filtering for a in-memory data grid, where the displayed items update automatically as filter criteria change.
+
+This guide shows how to implement reactive client-side filtering for a data grid using signals. The grid automatically updates whenever users change any filter criteria - category, search term, or stock status, without manual coordination between components.
+
+The Use Case
+
+Data grids often need multiple filters that work together. For example, a product grid where users can filter by category, search by name or ID, and toggle to show only in-stock items. Each filter should immediately update the visible results, and all filters should work together seamlessly.
+
+Signals simplify this by making the filtered dataset reactive. When a user changes any filter, a computed signal automatically recalculates the filtered results and updates the grid.
+
+The Solution
+
+[GridFilteringExample.java]
+package com.vaadin.demo.flow.signals.usecase;
+
+import com.vaadin.flow.router.Route;
+import java.util.List;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+import java.util.Objects;
+
+@Route("grid-filtering-with-signals")
+public class GridFilteringExample extends VerticalLayout {
+
+    public GridFilteringExample() {
+        // Create signals for filter inputs
+        ValueSignal<String> categoryFilterSignal = new ValueSignal<>("All");
+        ValueSignal<String> searchTermSignal = new ValueSignal<>("");
+        ValueSignal<Boolean> inStockOnlySignal = new ValueSignal<>(false);
+
+        // Load all products
+        List<Product> allProducts = loadProducts();
+
+        // Computed signal for filtered products
+        Signal<List<Product>> filteredProductsSignal = Signal.computed(() -> {
+            String category = categoryFilterSignal.get();
+            String searchTerm = searchTermSignal.get().toLowerCase();
+            boolean inStockOnly = inStockOnlySignal.get();
+
+            return allProducts.stream()
+                    .filter(p -> category.equals("All")
+                            || p.category().equals(category))
+                    .filter(p -> searchTerm.isEmpty()
+                            || p.name().toLowerCase().contains(searchTerm)
+                            || p.id().toLowerCase().contains(searchTerm))
+                    .filter(p -> !inStockOnly || p.stock() > 0).toList();
+        });
+
+        // Filter UI components
+        ComboBox<String> categoryFilter = new ComboBox<>("Category", List.of(
+                "All", "Electronics", "Clothing", "Books", "Home & Garden"));
+        categoryFilter.bindValue(categoryFilterSignal,
+                categoryFilterSignal::set);
+
+        TextField searchField = new TextField("Search");
+        searchField.setPlaceholder("Search by name or ID");
+        searchField.bindValue(searchTermSignal, searchTermSignal::set);
+
+        Checkbox inStockCheckbox = new Checkbox("Show in-stock items only");
+        inStockCheckbox.bindValue(inStockOnlySignal, inStockOnlySignal::set);
+
+        // Data grid
+        Grid<Product> productGrid = new Grid<>(Product.class);
+        productGrid.setColumns("id", "name", "category", "price", "stock");
+        Signal.effect(productGrid, () -> {
+            productGrid.setItems(Objects.requireNonNullElseGet(
+                    filteredProductsSignal.get(), List::of));
+        });
+
+        add(categoryFilter, searchField, inStockCheckbox, productGrid);
+    }
+
+    private List<Product> loadProducts() {
+        // Returns sample product data
+        return List.of(new Product("P001", "Laptop", "Electronics", 999.99, 15),
+                new Product("P002", "T-Shirt", "Clothing", 19.99, 50),
+                new Product("P003", "Java Programming Book", "Books", 49.99, 0),
+                new Product("P004", "Garden Hose", "Home & Garden", 29.99, 30),
+                new Product("P005", "Wireless Mouse", "Electronics", 25.99, 0),
+                new Product("P006", "Jeans", "Clothing", 59.99, 20),
+                new Product("P007", "Fiction Novel", "Books", 14.99, 100),
+                new Product("P008", "Plant Pot", "Home & Garden", 12.99, 45),
+                new Product("P009", "Keyboard", "Electronics", 79.99, 8),
+                new Product("P010", "Winter Jacket", "Clothing", 129.99, 5));
+    }
+
+    // Product data model
+    public record Product(String id, String name, String category, double price,
+            int stock) {
+    }
+}
+
+How It Works
+
+Signals for Filter State
+
+Create ValueSignal instances for each filter input:
+
+[Java]
+ValueSignal<String> categoryFilterSignal = new ValueSignal<>("All");
+ValueSignal<String> searchTermSignal = new ValueSignal<>("");
+ValueSignal<Boolean> inStockOnlySignal = new ValueSignal<>(false);
+
+These signals track the current state of each filter. When any filter changes, its signal updates automatically, triggering dependent computations.
+
+Two-Way Binding with Filter Components
+
+Connect signals to filter components using bindValue():
+
+[Java]
+categoryFilter.bindValue(categoryFilterSignal, categoryFilterSignal::set);
+searchField.bindValue(searchTermSignal, searchTermSignal::set);
+inStockCheckbox.bindValue(inStockOnlySignal, inStockOnlySignal::set);
+
+This creates bidirectional connections:
+
+- When users interact with the components, the write callback (signal::set) updates the signal
+- When code updates the signals, the framework reads via signal.get() and updates the components
+
+See Two-Way Signal Mapping for more details about bidirectional bindings.
+
+Computed Signal for Filtered Data
+
+Create a computed signal that derives the filtered dataset from all filter signals:
+
+[Java]
+Signal<List<Product>> filteredProductsSignal = Signal.computed(() -> {
+    String category = categoryFilterSignal.get();
+    String searchTerm = searchTermSignal.get().toLowerCase();
+    boolean inStockOnly = inStockOnlySignal.get();
+
+    return allProducts.stream()
+        .filter(p -> category.equals("All")
+            || p.category().equals(category))
+        .filter(p -> searchTerm.isEmpty()
+            || p.name().toLowerCase().contains(searchTerm)
+            || p.id().toLowerCase().contains(searchTerm))
+        .filter(p -> !inStockOnly || p.stock() > 0)
+        .toList();
+});
+
+This computed signal automatically recalculates whenever any of the three filter signals change. The filtering logic is centralized in one place, making it easy to understand and maintain. The signal reads all three filter values using get() and applies them sequentially using stream operations.
+
+Binding the Grid to Filtered Data
+
+Connect the grid to the computed signal using Signal.effect():
+
+[Java]
+Grid<Product> productGrid = new Grid<>(Product.class);
+productGrid.setColumns("id", "name", "category", "price", "stock");
+Signal.effect(productGrid, () -> {
+    productGrid.setItems(Objects.requireNonNullElseGet(
+        filteredProductsSignal.get(), List::of));
+});
+
+The Signal.effect() method creates a component effect that runs whenever any signal accessed within it changes. The effect automatically tracks that it reads filteredProductsSignal.get() and reruns whenever the filtered products change. This establishes a reactive connection—whenever the computed signal recalculates (because any filter changed), the effect runs and updates the grid with the new filtered results.
+
+Key Patterns
+
+Signals for filter state
+    Use ValueSignal to track each independent filter criterion. This makes the filter state explicit and reactive.
+Two-way binding with bindValue()
+    Connect filter components to signals using the pattern component.bindValue(signal, signal::set). The first parameter is the signal (read using signal.get()), and the second is the write callback that is supposed to update the signal when the user changes the component, this callback can have a conditional logic that write the value if it’s valid, or does nothing otherwise.
+Computed signals for derived data
+    Create a computed signal that reads all filter signals using signal.get() and produces the filtered dataset. This centralizes filtering logic and makes dependencies clear.
+Component effects for grid updates
+    Use Signal.effect() to connect the grid to the filtered data signal. The effect automatically tracks signal access via signal.get() and reruns whenever those signals change, updating the grid’s items.
+
+When to Use This Pattern
+
+This pattern is ideal when:
+
+- You have multiple filters that need to work together
+- Filtering logic is moderately complex or involves multiple conditions
+- You want client-side filtering for responsive interaction
+- The dataset is small enough to filter in memory (typically under 10,000 items)
+
+For larger datasets, consider server-side filtering with lazy loading. For single, simple filters, a direct event listener approach might be sufficient.
+
+Related Topics
+
+- Local Signals - Understanding ValueSignal and two-way binding
+- Effects and Computed Signals - Creating derived values
+- Component Bindings - Binding signals to component properties
+- Grid - Reference documentation for Grid component

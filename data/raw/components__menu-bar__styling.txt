@@ -1,0 +1,574 @@
+Menu Bar Styling
+
+Styling API reference for the Menu Bar component.
+
+Style Variants
+
+The following variants are supported by the Menu Bar:
+
+Variant | Description | Supported by
+primary | Corresponds to the primary button variant. Recommended for drop-down buttons use case | Aura, Lumo
+tertiary | Corresponds to the tertiary button variant, omitting the background color | Aura, Lumo
+tertiary-inline | Corresponds to the tertiary inline button variant | Lumo
+small | Reduces the size of menu bar buttons | Aura, Lumo
+large | Increases the size of menu bar buttons | Aura, Lumo
+contrast | Recommended as an additional color option | Lumo
+icon | Recommended for icon only menu bar buttons | Lumo
+dropdown-indicators | Used to visually indicate buttons with sub-menu | Lumo
+end-aligned | Used to align buttons to the end of the menu bar | Aura, Lumo
+filled | Uses a solid background color for hovered and active menu items | Aura
+
+[Flow: MenuBarStyles.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-styles")
+public class MenuBarStyles extends HorizontalLayout {
+    public MenuBarStyles() {
+        setSpacing(true);
+
+        // tag::snippet[]
+        MenuBar menuWithDefaultTheme = new MenuBar();
+        addItem(menuWithDefaultTheme, "Default");
+
+        MenuBar menuWithTertiaryTheme = new MenuBar();
+        menuWithTertiaryTheme.addThemeVariants(MenuBarVariant.TERTIARY);
+        addItem(menuWithTertiaryTheme, "Tertiary");
+
+        MenuBar menuWithPrimaryTheme = new MenuBar();
+        menuWithPrimaryTheme.addThemeVariants(MenuBarVariant.PRIMARY);
+        addItem(menuWithPrimaryTheme, "Primary");
+
+        MenuBar menuWithSmallTheme = new MenuBar();
+        menuWithSmallTheme.addThemeVariants(MenuBarVariant.SMALL);
+        addItem(menuWithSmallTheme, "Small");
+        // end::snippet[]
+
+        setInlineBlock(menuWithDefaultTheme);
+        setInlineBlock(menuWithTertiaryTheme);
+        setInlineBlock(menuWithPrimaryTheme);
+        setInlineBlock(menuWithSmallTheme);
+
+        add(menuWithDefaultTheme, menuWithTertiaryTheme, menuWithPrimaryTheme,
+                menuWithSmallTheme);
+    }
+
+    private void addItem(MenuBar menuItem, String label) {
+        menuItem.addItem(label).getSubMenu().addItem("Item");
+    }
+
+    private void setInlineBlock(MenuBar menuBar) {
+        menuBar.getStyle().set("display", "inline-block");
+    }
+
+}
+
+[React: menu-bar-styles.tsx]
+import React from 'react';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { MenuBar } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <MenuBar items={[{ text: 'Default', children: [{ text: 'Item' }] }]} />
+      <MenuBar theme="tertiary" items={[{ text: 'Tertiary', children: [{ text: 'Item' }] }]} />
+      <MenuBar theme="primary" items={[{ text: 'Primary', children: [{ text: 'Item' }] }]} />
+      <MenuBar theme="small" items={[{ text: 'Small', children: [{ text: 'Item' }] }]} />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: menu-bar-styles.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-menu-bar
+          .items="${[{ text: 'Default', children: [{ text: 'Item' }] }]}"
+        ></vaadin-menu-bar>
+        <vaadin-menu-bar
+          theme="tertiary"
+          .items="${[{ text: 'Tertiary', children: [{ text: 'Item' }] }]}"
+        ></vaadin-menu-bar>
+        <vaadin-menu-bar
+          theme="primary"
+          .items="${[{ text: 'Primary', children: [{ text: 'Item' }] }]}"
+        ></vaadin-menu-bar>
+        <vaadin-menu-bar
+          theme="small"
+          .items="${[{ text: 'Small', children: [{ text: 'Item' }] }]}"
+        ></vaadin-menu-bar>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Tip: Customize Default Menu Button Styles
+
+The standard Menu Button styles can be adjusted using the Button style properties. These variants should be used only to differentiate special instances of the component.
+
+Alignment
+
+Top-level items are aligned by default to the start of the Menu Bar. Use instead the end-aligned theme variant to align them to the end.
+
+[Flow: MenuBarRightAligned.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-right-aligned")
+public class MenuBarRightAligned extends Div {
+
+    public MenuBarRightAligned() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.ALIGN_END);
+        // end::snippet[]
+
+        menuBar.addItem("View");
+        menuBar.addItem("Edit");
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        shareSubMenu.addItem("By email");
+        shareSubMenu.addItem("Get Link");
+
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-right-aligned.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [{ text: 'By email' }, { text: 'Get link' }],
+    },
+  ];
+
+  return (
+    // tag::snippet[]
+    <MenuBar theme="end-aligned" items={items} />
+    // end::snippet[]
+  );
+}
+
+[Lit: menu-bar-right-aligned.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-right-aligned')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [{ text: 'By email' }, { text: 'Get link' }],
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-menu-bar theme="end-aligned" .items="${this.items}"></vaadin-menu-bar>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Drop-down Indicators
+
+Menu buttons with sub-menu can be visually identified from items that trigger an action immediately using dropdown-indicators theme variant. This is only relevant for Lumo theme, Aura provides dropdown indicators by default.
+
+[Flow: MenuBarDropDownIndicators.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-drop-down-indicators")
+public class MenuBarDropDownIndicators extends Div {
+
+    public MenuBarDropDownIndicators() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        // Only for Lumo
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
+        // end::snippet[]
+
+        menuBar.addItem("View");
+        menuBar.addItem("Edit");
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        MenuItem onSocialMedia = shareSubMenu.addItem("On social media");
+        SubMenu socialMediaSubMenu = onSocialMedia.getSubMenu();
+        socialMediaSubMenu.addItem("Facebook");
+        socialMediaSubMenu.addItem("Twitter");
+        socialMediaSubMenu.addItem("Instagram");
+        shareSubMenu.addItem("By email");
+        shareSubMenu.addItem("Get Link");
+
+        MenuItem move = menuBar.addItem("Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder");
+        moveSubMenu.addItem("To trash");
+
+        menuBar.addItem("Duplicate");
+
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-drop-down-indicators.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  // tag::snippet[]
+  return <MenuBar items={items} theme="dropdown-indicators" />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-drop-down-indicators.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-drop-down-indicators')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-menu-bar .items="${this.items}" theme="dropdown-indicators"></vaadin-menu-bar>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Styling Menu Items
+
+Individual menu items can be styled by applying custom class names to them, and writing CSS style blocks targeting those class names. Notice that root-level menu items in the Menu Bar are wrapped in vaadin-menu-bar-button elements, which inherit the class names from the items within them.
+
+[Flow: MenuBarClassName.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-class-name")
+public class MenuBarClassName extends Div {
+
+    public MenuBarClassName() {
+        MenuBar menuBar = new MenuBar();
+
+        // tag::snippet[]
+        MenuItem view = menuBar.addItem("View");
+        view.addClassNames("custom");
+
+        MenuItem edit = menuBar.addItem("Edit");
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+
+        shareSubMenu.addItem("By email").addClassNames("custom");
+        shareSubMenu.addItem("Get Link");
+        // end::snippet[]
+
+        add(menuBar);
+    }
+
+}
+
+[Flow: menu-bar-class-name.css]
+/* Use vaadin-menu-bar-button to style root menu items */
+/* Use vaadin-menu-bar-item to style sub-menu items */
+vaadin-menu-bar-button.custom,
+vaadin-menu-bar-item.custom {
+   color: green;
+}
+
+[Flow: menu-bar-class-name.css]
+
+[React: menu-bar-class-name.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { text: 'View', className: 'custom' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [{ text: 'By email', className: 'custom' }, { text: 'Get link' }],
+    },
+  ];
+
+  return <MenuBar items={items} />;
+  // end::snippet[]
+}
+
+[React: menu-bar-class-name.css]
+/* Use vaadin-menu-bar-button to style root menu items */
+/* Use vaadin-menu-bar-item to style sub-menu items */
+vaadin-menu-bar-button.custom,
+vaadin-menu-bar-item.custom {
+   color: green;
+}
+
+[React: menu-bar-class-name.css]
+
+[Lit: menu-bar-class-name.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-class-name')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [
+    { text: 'View', className: 'custom' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [{ text: 'By email', className: 'custom' }, { text: 'Get link' }],
+    },
+  ];
+
+  protected override render() {
+    return html`<vaadin-menu-bar .items="${this.items}"></vaadin-menu-bar>`;
+  }
+  // end::snippet[]
+}
+
+[Lit: menu-bar-class-name.css]
+/* Use vaadin-menu-bar-button to style root menu items */
+/* Use vaadin-menu-bar-item to style sub-menu items */
+vaadin-menu-bar-button.custom,
+vaadin-menu-bar-item.custom {
+   color: green;
+}
+
+[Lit: menu-bar-class-name.css]
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Overlay
+
+Property | Supported by
+--vaadin-item-overlay-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+
+Overlay Items
+
+Property | Supported by
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-menu-bar
+
+States
+
+Disabled
+    vaadin-menu-bar[disabled]
+Single button visible
+    vaadin-menu-bar[has-single-button]
+
+Buttons
+
+Button element
+    vaadin-menu-bar-button
+Button text
+    vaadin-menu-bar-button::part(label)
+Hovered button
+    vaadin-menu-bar-button:hover
+Focused button
+    vaadin-menu-bar-button[focused]
+Disabled button
+    vaadin-menu-bar-button[disabled]
+Button with a menu
+    vaadin-menu-bar-button[aria-haspopup]
+Button with opened menu
+    vaadin-menu-bar-button[expanded]
+Overflow button
+    vaadin-menu-bar-button[slot="overflow"]
+Overflow button icon
+    vaadin-menu-bar-button[slot="overflow"] > [aria-hidden]
+Button rich content wrapper
+    vaadin-menu-bar-button > vaadin-menu-bar-item
+Button icon
+    vaadin-menu-bar-button > vaadin-menu-bar-item > vaadin-icon
+
+Sub-Menu
+
+Sub-menu element
+    vaadin-menu-bar-submenu
+Sub-menu background
+    vaadin-menu-bar-submenu::part(overlay)
+Sub-menu content wrapper
+    vaadin-menu-submenu::part(content)
+Nested sub-menu
+    vaadin-menu-bar-submenu[modeless]
+
+Items
+
+Item element
+    vaadin-menu-bar-item
+Item content wrapper
+    vaadin-menu-bar-item::part(content)
+Checked item indicator
+    vaadin-menu-bar-item[menu-item-checked]::part(checkmark)
+Checked item indicator icon
+    vaadin-menu-bar-item[menu-item-checked]::part(checkmark)::before
+Submenu indicator icon
+    vaadin-menu-bar-item::after
+Separator element
+    vaadin-menu-bar-submenu [role="separator"]
+
+Item States
+
+Hovered item
+    vaadin-menu-bar-item:hover
+Focused item
+    vaadin-menu-bar-item[focused]
+Disabled item
+    vaadin-menu-bar-item[disabled]
+Item with a nested sub-menu
+    vaadin-menu-bar-item[aria-haspopup]
+Item with expanded sub-menu
+    vaadin-menu-bar-item[expanded]
+Checked item
+    vaadin-menu-bar-item[menu-item-checked]

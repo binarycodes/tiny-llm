@@ -1,0 +1,577 @@
+Authentication with Spring Security
+
+How to configure authentication with Spring Security.
+
+Authentication may be configured to use Spring Security. Since the downloaded application is a Spring Boot project, the easiest way to enable authentication is by adding Spring Security.
+
+Dependencies
+
+Using Spring Security requires some dependencies. Add the following to your project Maven file:
+
+[pom.xml]
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+After doing this, the application is protected with a default Spring login view. By default, it has a single user (i.e., 'user') and a random password. When you add logging.level.org.springframework.security = DEBUG to the application.properties file, the username and password are shown in the console when the application starts.
+
+Server Configuration
+
+To implement your own security configuration, create a new configuration class that uses the VaadinSecurityConfigurer class. Then annotate it to enable security.
+
+VaadinSecurityConfigurer is a helper which provides default bean implementations for SecurityFilterChain and WebSecurityCustomizer. It takes care of the basic configuration for requests, so that you can concentrate on your application-specific configuration.
+
+[SecurityConfig.java]
+@EnableWebSecurity
+@Configuration
+public class SecurityConfig {
+
+  @Bean
+  SecurityFilterChain securityFilterChain(HttpSecurity http, RouteUtil routeUtil) throws Exception {
+    http.with(VaadinSecurityConfigurer.vaadin(), configurer -> {
+      // use a custom login view and redirect to root on logout
+      configurer.loginView("/login", "/");
+    });
+    return http.build();
+  }
+
+  @Bean
+  public UserDetailsManager userDetailsService() {
+    // Configure users and roles in memory
+    return new InMemoryUserDetailsManager(
+      // the {noop} prefix tells Spring that the password is not encoded
+      User.withUsername("user").password("{noop}user").roles("USER").build(),
+      User.withUsername("admin").password("{noop}admin").roles("ADMIN", "USER").build()
+    );
+  }
+}
+
+Warning: Never Hard-Coded Credentials
+
+You should never hard-code credentials in an application. The Security documentation has examples of setting up LDAP or SQL-based user management.
+
+Public Views & Resources
+
+Public views need to be added to the configuration in securityFilterChain. Here’s an example of this:
+
+[SecurityConfig.java]
+  @Bean
+  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(registry -> {
+        registry.requestMatchers("/public-view").permitAll(); // custom matcher
+    });
+    http.with(VaadinSecurityConfigurer.vaadin(), configurer -> { ... });
+    return http.build();
+  }
+
+Public resources can be added to the configuration in securityFilterChain like so:
+
+[SecurityConfig.java]
+package com.vaadin.demo.fusion.security.authentication;
+
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.UserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+/**
+ * An example code for demoing the Spring Security configuration, shouldn't
+ * affect the doc application itself.
+ */
+// @EnableWebSecurity
+// @Configuration
+public class SecurityConfigDemo {
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+        http.authorizeHttpRequests(
+                auth -> auth.requestMatchers("/images/**").permitAll());
+        http.with(VaadinSecurityConfigurer.vaadin(),
+                configurer -> configurer.loginView("/login"));
+        return http.build();
+    }
+
+    @Bean
+    public UserDetailsManager userDetailsService() {
+        // Configure users and roles in memory
+        return new InMemoryUserDetailsManager(
+                // the {noop} prefix tells Spring that the password is not
+                // encoded
+                User.withUsername("user").password("{noop}password")
+                        .roles("USER").build());
+    }
+}
+
+Implement Client-Side Security
+
+The implementation of client-side security in React is greatly simplified by the react-auth package. It can use any @BrowserCallable service that provides user authentication information, like the one in this example:
+
+[UserInfoService.java]
+package com.vaadin.demo.fusion.security.authentication;
+
+import com.vaadin.hilla.BrowserCallable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+
+/**
+ * Provides information about the current user.
+ */
+@BrowserCallable
+public class UserInfoService {
+
+    @PermitAll
+    @Nonnull
+    public UserInfo getUserInfo() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+
+        final List<String> authorities = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).toList();
+
+        return new UserInfo(auth.getName(), authorities);
+    }
+
+}
+
+[UserInfo.java]
+package com.vaadin.demo.fusion.security.authentication;
+
+import jakarta.annotation.Nonnull;
+
+import java.util.Collection;
+import java.util.Collections;
+
+/**
+ * User information used in client-side authentication and authorization. To be
+ * saved in browsers’ LocalStorage for offline support.
+ */
+public class UserInfo {
+
+    @Nonnull
+    private String name;
+    @Nonnull
+    private Collection<String> authorities;
+
+    public UserInfo(String name, Collection<String> authorities) {
+        this.name = name;
+        this.authorities = Collections.unmodifiableCollection(authorities);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Collection<String> getAuthorities() {
+        return authorities;
+    }
+
+}
+
+You can instruct Hilla to use this service as the source for authentication information. The service is expected to return no user if not authenticated, or an object providing information about the current user.
+
+The easiest way to configure authentication to use this service is to create an auth.ts file:
+
+[frontend/auth.ts]
+import { configureAuth } from '@vaadin/hilla-react-auth';
+import { UserInfoService } from 'Frontend/generated/endpoints';
+
+// Configure auth to use `UserInfoService.getUserInfo`
+const auth = configureAuth(UserInfoService.getUserInfo);
+
+// Export auth provider and useAuth hook, which are automatically
+// typed to the result of `UserInfoService.getUserInfo`
+export const useAuth = auth.useAuth;
+export const AuthProvider = auth.AuthProvider;
+
+[frontend/auth.ts]
+
+The exported AuthProvider must wrap the root component of your application to be able to apply security to it:
+
+frontend/index.tsx
+
+[index.tsx]
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router';
+import { AuthProvider } from './auth';
+import router from './routes';
+
+function App() {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+}
+
+createRoot(document.getElementById('outlet')!).render(createElement(App));
+
+The useAuth hook provides four items: state, which contains the authentication state that allows access to the user object and other information like authentication status (i.e., loading, errors); login and logout, which are functions used to perform the corresponding actions; and hasAccess, which is another function used to verify if the current user has access to a path.
+
+Login View
+
+Use the <LoginOverlay> component to create the following login view, so that the autocomplete and password features of the browser are used:
+
+[frontend/views/LoginView.tsx]
+import React from 'react';
+import type { ViewConfig } from '@vaadin/hilla-file-router/types.js';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+import { useAuth } from './auth';
+
+export const config: ViewConfig = {
+  menu: { exclude: true },
+};
+
+export default function LoginView() {
+  const { login } = useAuth();
+  const hasError = useSignal(false);
+
+  return (
+    <LoginOverlay
+      opened
+      error={hasError.value}
+      noForgotPassword
+      onErrorChanged={(event) => {
+        hasError.value = event.detail.value;
+      }}
+      onLogin={async ({ detail: { username, password } }) => {
+        const { error } = await login(username, password);
+        hasError.value = Boolean(error);
+      }}
+    />
+  );
+}
+
+Protect Hilla Views
+
+After the login view is defined, you should define a route for it in the routes.tsx file. You can wrap the routes definition with the protectRoutes function that will filter out views having authentication requirements not fulfilled by the current authentication state.
+
+[frontend/routes.tsx]
+import { createBrowserRouter, type RouteObject } from 'react-router';
+import { protectRoutes } from '@vaadin/hilla-react-auth';
+import AboutView from './AboutView';
+import LoginView from './LoginView';
+import MainLayout from './MainLayout';
+
+export const routes: RouteObject[] = protectRoutes([
+  {
+    element: <MainLayout />,
+    handle: { title: 'Main' },
+    children: [
+      { path: '/', element: <AboutView />, handle: { title: 'About', requiresLogin: true } },
+    ],
+  },
+  { path: '/login', element: <LoginView /> },
+]);
+
+export default createBrowserRouter(routes);
+
+Role-based Protection
+
+Hilla supports role-based security by default, provided that the user object returned by your service has a roles property. This returns an array or collection of strings. In that case, you can configure a route to allow access to one or more specific roles:
+
+[frontend/routes.tsx]
+{
+  path: '/',
+  element: <AdminView />,
+  handle: { title: 'Administration Page', rolesAllowed: ['ADMIN'] },
+}
+
+If roles are exposed differently in your user object, you can still tell Hilla how to find them by amending your authentication configuration on the client. In the UserInfo example provided before, the roles are returned by getAuthorities, so the auth.ts file should be modified as such:
+
+[frontend/auth.ts]
+import { configureAuth } from '@vaadin/hilla-react-auth';
+import { UserInfoService } from 'Frontend/generated/endpoints';
+
+// Configure auth to use `UserInfoService.getUserInfo` and map to custom roles
+const auth = configureAuth(UserInfoService.getUserInfo, {
+  getRoles: (userInfo) => userInfo.authorities.map((v) => v ?? ''),
+});
+
+// Export auth provider and useAuth hook, which are automatically
+// typed to the result of `UserInfoService.getUserInfo`
+export const useAuth = auth.useAuth;
+export const AuthProvider = auth.AuthProvider;
+
+The getRoles function is still expected to return an array of strings. As a result, you might need to map your roles to strings.
+
+Configuration Helper Alternatives
+
+VaadinSecurityConfigurer configures HTTP security to bypass framework internal resources. If you prefer to make your own configuration, instead of using the helper, the matcher for these resources can be retrieved with VaadinSecurityConfigurer.getDefaultHttpSecurityPermitMatcher().
+
+For example, if you want to allow public access to certain views and require authentication for all other requests, you can configure it as follows:
+
+[SecurityConfig.java]
+@Bean
+SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(registry ->
+        registry.requestMatchers(
+           VaadinSecurityConfigurer.getDefaultHttpSecurityPermitMatcher()
+        ).permitAll()
+        .requestMatchers("/public-view").permitAll() // custom matcher
+        .anyRequest().authenticated()
+    );
+    ...
+    return http.build();
+}
+
+Similarly, the matcher for static resources to be ignored is available as VaadinSecurityConfigurer.getDefaultWebSecurityIgnoreMatcher():
+
+[SecurityConfig.java]
+@Bean
+SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(registry ->
+        registry.requestMatchers(
+           VaadinSecurityConfigurer.getDefaultWebSecurityIgnoreMatcher()
+        ).permitAll()
+        .requestMatchers("static/**").permitAll() // custom matcher
+        .anyRequest().authenticated()
+    );
+    ...
+    return http.build();
+}
+
+Implement Stateful Authentication
+
+Vaadin applications that have both Hilla and Flow views, can be configured to use stateful authentication. This requires some basic steps for Hilla and steps for Flow. An example project that demonstrates the stateful authentication for the hybrid case can be found in GitHub.
+
+For this example, you’d add Spring Security dependency and then set up Security Configuration.
+
+Next, you’d implement Implement Client-Side Security, including user information endpoint, useAuth and AuthProvider objects and their use. Also, implement Login View.
+
+The browser page needs to be reloaded after login and, if you want to exclude the LoginView from the automatically generated menu, you need to set:
+
+[LoginView.tsx]
+export const config: ViewConfig = {
+    menu: { exclude: true}
+}
+
+The next step is to protect the views with login and roles. Add the annotations to the server-side views, as described in Annotating View Classes. Add the ViewConfig object to the client-side views, as shown below:
+
+[HillaView.tsx]
+export const config: ViewConfig = {
+    loginRequired: true,
+    rolesAllowed: ['ROLE_USER'],
+};
+
+Use createMenuItems function to create a main layout, that filters out protected views and shows the only allowed views for an authenticated user.
+
+[frontend/views/@layout.tsx]
+import { createMenuItems } from '@vaadin/hilla-file-router/runtime.js';
+import { AppLayout, SideNav } from '@vaadin/react-components';
+import { Outlet, useLocation, useNavigate } from 'react-router';
+
+// inside layout component:
+const navigate = useNavigate();
+const location = useLocation();
+// ...
+<AppLayout>
+    // ...
+    // SideNav Vaadin component inside <AppLayout>
+    <SideNav
+        onNavigate={({ path }) => navigate(path!)}
+        location={location}>
+        {
+            createMenuItems().map(({ to, title }) => (
+                <SideNavItem path={to} key={to}>{title}</SideNavItem>
+            ))
+        }
+    </SideNav>
+</AppLayout>
+
+As an alternative, add the menu items manually and specify the access options:
+
+[frontend/MainLayout.tsx]
+import { Suspense } from 'react';
+import { NavLink, Outlet } from 'react-router';
+import { AppLayout } from '@vaadin/react-components/AppLayout.js';
+import { Button } from '@vaadin/react-components/Button.js';
+import { DrawerToggle } from '@vaadin/react-components/DrawerToggle.js';
+import { useAuth } from './auth';
+import { useRouteMetadata } from './routing';
+
+const navLinkClasses = ({ isActive }: any) =>
+  `block rounded-m p-s ${isActive ? 'bg-primary-10 text-primary' : 'text-body'}`;
+
+export default function MainLayout() {
+  const currentTitle = useRouteMetadata()?.title ?? 'My App';
+  const { state, logout } = useAuth();
+
+  return (
+    <AppLayout primarySection="drawer">
+      <div slot="drawer" className="flex flex-col justify-between h-full p-m">
+        <header className="flex flex-col gap-m">
+          <h1 className="text-l m-0">My App</h1>
+          <nav>
+            {state.user ? (
+              <NavLink className={navLinkClasses} to="/">
+                Hello World
+              </NavLink>
+            ) : null}
+            {state.user ? (
+              <NavLink className={navLinkClasses} to="/about">
+                About
+              </NavLink>
+            ) : null}
+          </nav>
+        </header>
+        <footer className="flex flex-col gap-s">
+          {state.user ? (
+            <>
+              <div className="flex items-center gap-s">{state.user.name}</div>
+              <Button onClick={async () => logout()}>Sign out</Button>
+            </>
+          ) : (
+            <a href="/login">Sign in</a>
+          )}
+        </footer>
+      </div>
+
+      <DrawerToggle slot="navbar" aria-label="Menu toggle"></DrawerToggle>
+      <h2 slot="navbar" className="text-l m-0">
+        {currentTitle}
+      </h2>
+
+      <Suspense>
+        <Outlet />
+      </Suspense>
+    </AppLayout>
+  );
+}
+
+[frontend/MainLayout.tsx]
+
+Then you can add a custom configuration for routes — this is optional. Routes configuration is usually present in routes.tsx file, which is generated by Vaadin. This should be enough for common cases:
+
+[Frontend/generated/routes.tsx]
+import { RouterConfigurationBuilder } from '@vaadin/hilla-file-router/runtime.js';
+import Flow from 'Frontend/generated/flow/Flow';
+import fileRoutes from 'Frontend/generated/file-routes.js';
+
+export const { router, routes } = new RouterConfigurationBuilder()
+    .withFileRoutes(fileRoutes)
+    .withFallback(Flow)
+    .protect()
+    .build();
+
+Note that the client-side views are protected by default with a protect() function. If a custom routing is desired, the generated file Frontend/generated/routes.tsx should be copied to Frontend/routes.tsx and modified.
+
+For example, you may want to change the login URL:
+
+[Frontend/generated/routes.tsx]
+new RouterConfigurationBuilder().protect('/custom-login-url')
+
+Add specific React route objects with withReactRoutes function:
+
+[Frontend/generated/routes.tsx]
+new RouterConfigurationBuilder().withReactRoutes(
+    [
+      {
+        element: <MainLayout />,
+        handle: { title: 'Main' },
+        children: [
+            { path: '/hilla', element: <HillaView />, handle: { title: 'Hilla' } }
+        ],
+      },
+      { path: '/login', element: <Login />, handle: { title: 'Login' } }
+    ]
+)
+
+Disable server-side views or add a fallback component with a withFallback function. For example, 404 page that will be shown if no client-side view is found for a given URL.
+
+[Frontend/generated/routes.tsx]
+    new RouterConfigurationBuilder().withFallback(PageNotFoundReactComponent)
+
+Appendix: Production Data Sources
+
+The example given here of managing users in memory is valid for test applications. However, Spring Security offers other implementations for production scenarios.
+
+SQL Authentication
+
+The following example demonstrates how to access an SQL database with tables for users and authorities.
+
+[VaadinSecurityConfigurer: SecurityConfig.java]
+@EnableWebSecurity
+@Configuration
+public class SecurityConfig {
+  //...
+
+  @Bean
+  UserDetailsService userDetailsService(DataSource dataSource) {
+      // Configure users and roles in a JDBC database
+      JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+      jdbcUserDetailsManager.setUsersByUsernameQuery(
+              "SELECT username, password, enabled FROM users WHERE username=?");
+      jdbcUserDetailsManager.setAuthoritiesByUsernameQuery(
+              "SELECT username, authority FROM authorities WHERE username=?");
+      return jdbcUserDetailsManager;
+  }
+
+  @Bean
+  PasswordEncoder passwordEncoder() {
+      return new BCryptPasswordEncoder();
+  }
+}
+
+[VaadinSecurityConfigurer: SecurityConfig.java]
+
+LDAP Authentication
+
+This next example shows how to configure authentication by using an LDAP repository:
+
+[VaadinSecurityConfigurer: SecurityConfig.java]
+@EnableWebSecurity
+@Configuration
+public class SecurityConfig {
+  //...
+
+    @Bean
+    public EmbeddedLdapServerContextSourceFactoryBean contextSourceFactoryBean() { 1
+        return EmbeddedLdapServerContextSourceFactoryBean.fromEmbeddedLdapServer();
+    }
+
+    @Bean
+    AuthenticationManager authenticationManager(BaseLdapPathContextSource contextSource, LdapAuthoritiesPopulator authorities) {
+        LdapPasswordComparisonAuthenticationManagerFactory factory = new LdapPasswordComparisonAuthenticationManagerFactory(
+                contextSource, NoOpPasswordEncoder.getInstance());
+        factory.setUserDnPatterns("uid={0},ou=people");
+        factory.setUserSearchBase("ou=people");
+        factory.setPasswordAttribute("userPassword");
+        factory.setLdapAuthoritiesPopulator(authorities);
+        return factory.createAuthenticationManager();
+    }
+
+    @Bean
+    LdapAuthoritiesPopulator authorities(BaseLdapPathContextSource contextSource) {
+        String groupSearchBase = "ou=groups";
+        DefaultLdapAuthoritiesPopulator authorities =
+                new DefaultLdapAuthoritiesPopulator(contextSource, groupSearchBase);
+        authorities.setGroupSearchFilter("member={0}");
+        return authorities;
+    }
+}
+
+[VaadinSecurityConfigurer: SecurityConfig.java]
+
+1. VaadinSecurityConfigurer example here configure embedded UnboundID LDAP server. You can also configure LDAP ContextSource to connect to other LDAP server.
+
+Remember to add the corresponding LDAP client dependency to the project:
+
+[pom.xml]
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-ldap</artifactId>
+    <version>5.2.0.RELEASE</version>
+</dependency>

@@ -1,0 +1,29 @@
+Spring Events
+
+List of events published to the Spring context.
+
+The Spring integration publishes events to the application context. You don’t need to register a listener. It’s sufficient to handle these events using only the @EventListener annotation.
+
+Events published to the Spring application context include:
+
+ServiceInitEvent
+    See VaadinServiceInitListener for details.
+
+The example here uses the @EventListener annotation to listen to the ServiceInitEvent event:
+
+[Java]
+@SpringComponent
+public class BootstrapCustomizer {
+
+    @EventListener
+    private void onServiceInit(ServiceInitEvent serviceInitEvent) {
+        serviceInitEvent.addIndexHtmlRequestListener(
+                this::modifyBootstrapPage);
+    }
+
+    private void modifyBootstrapPage(
+            IndexHtmlResponse response) {
+        response.getDocument().body().append(
+                "<p>By Spring EventListener</p>");
+    }
+}

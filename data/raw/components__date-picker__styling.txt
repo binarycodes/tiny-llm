@@ -1,0 +1,373 @@
+Date Picker Styling
+
+Styling API reference for the Date Picker component.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+align-left | Aligns the text to the left side of the field (default) | Aura, Lumo
+align-center | Centers the text within the field | Aura, Lumo
+align-right | Aligns the text to the right side of the field. Recommended for numerical values when presented in vertical groups. | Aura, Lumo
+align-start | Aligns the text to the start side of the field, taking into account the current text direction (left for LTR, right for RTL) | Aura
+align-end | Aligns the text to the end side of the field, taking into account the current text direction (right for LTR, left for RTL) | Aura
+small | Renders a more compact field | Aura, Lumo
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+
+[Flow: DatePickerStyles.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePickerVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+
+@Route("date-picker-styles")
+public class DatePickerStyles extends HorizontalLayout {
+
+    public DatePickerStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        DatePicker field = new DatePicker();
+        field.addThemeVariants(DatePickerVariant.SMALL,
+                DatePickerVariant.ALIGN_RIGHT, DatePickerVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setValue(LocalDate.of(2020, 6, 12));
+
+        add(field);
+    }
+
+}
+
+[React: date-picker-styles.tsx]
+import React from 'react';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DatePicker
+      theme="align-right small helper-above-field"
+      label="Label"
+      helperText="Helper text"
+      value="2020-06-12"
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-styles.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker
+        theme="align-right small helper-above-field"
+        label="Label"
+        helper-text="Helper text"
+        value="2020-06-12"
+      ></vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Field Surface
+
+Common Properties
+
+Property | Supported by
+--vaadin-input-field-background | Aura, Lumo
+--vaadin-input-field-border-color | Aura, Lumo
+--vaadin-input-field-border-radius | Aura, Lumo
+--vaadin-input-field-border-width | Aura, Lumo
+--vaadin-input-field-bottom-end-radius | Aura, Lumo
+--vaadin-input-field-bottom-start-radius | Aura, Lumo
+--vaadin-input-field-container-gap | Aura
+--vaadin-input-field-height | Lumo
+--vaadin-input-field-padding | Aura
+--vaadin-input-field-placeholder-color | Aura, Lumo
+--vaadin-input-field-top-start-radius | Aura, Lumo
+--vaadin-input-field-top-end-radius | Aura, Lumo
+--vaadin-input-field-value-color | Aura, Lumo
+--vaadin-input-field-value-font-size | Aura, Lumo
+--vaadin-input-field-value-font-weight | Aura, Lumo
+--vaadin-input-field-value-line-height | Aura, Lumo
+
+Field States
+
+Property | Supported by
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+--vaadin-input-field-disabled-background | Aura, Lumo
+--vaadin-input-field-disabled-text-color | Aura
+--vaadin-input-field-disabled-value-color | Lumo
+--vaadin-input-field-hover-highlight | Lumo
+--vaadin-input-field-hover-highlight-opacity | Lumo
+--vaadin-input-field-invalid-background | Lumo
+--vaadin-input-field-invalid-hover-highlight | Lumo
+--vaadin-input-field-readonly-border | Lumo
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+Field Buttons
+
+Property | Supported by
+--vaadin-clickable-cursor | Aura
+--vaadin-disabled-cursor | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-input-field-button-text-color | Aura
+--vaadin-input-field-icon-size | Lumo
+--vaadin-input-field-icon-color | Lumo
+
+Overlay
+
+Property | Supported by
+--vaadin-date-picker-overlay-max-height | Aura
+--vaadin-date-picker-overlay-width | Aura
+--vaadin-date-picker-toolbar-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+
+Years
+
+Property | Supported by
+--vaadin-date-picker-year-scroller-width | Aura
+--vaadin-date-picker-year-scroller-background | Aura
+--vaadin-date-picker-year-scroller-border-color | Aura
+--vaadin-date-picker-year-scroller-current-year-color | Aura
+
+Months
+
+Property | Supported by
+--vaadin-date-picker-month-padding | Aura
+--vaadin-date-picker-month-header-color | Aura
+--vaadin-date-picker-month-header-font-size | Aura
+--vaadin-date-picker-month-header-font-weight | Aura
+--vaadin-date-picker-week-number-color | Aura
+--vaadin-date-picker-week-number-font-size | Aura
+--vaadin-date-picker-week-divider-color | Aura
+--vaadin-date-picker-weekday-color | Aura
+--vaadin-date-picker-weekday-font-size | Aura
+--vaadin-date-picker-weekday-font-weight | Aura
+--vaadin-date-picker-date-width | Aura
+--vaadin-date-picker-date-height | Aura
+--vaadin-date-picker-date-border-radius | Aura
+--vaadin-date-picker-date-today-color | Aura
+--vaadin-date-picker-date-selected-color | Aura
+--vaadin-date-picker-date-selected-background | Aura
+--vaadin-date-picker-date-disabled-color | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-date-picker
+
+States
+
+Required
+    vaadin-date-picker[required]
+Focused
+    vaadin-date-picker[focused]
+Keyboard focused
+    vaadin-date-picker[focus-ring]
+Read-only
+    vaadin-date-picker[readonly]
+Disabled
+    vaadin-date-picker[disabled]
+Not empty
+    vaadin-date-picker[has-value]
+With open overlay
+    vaadin-date-picker[opened]
+With week numbers visible
+    vaadin-date-picker[week-numbers]
+Hovered
+    vaadin-date-picker:hover
+
+Field
+
+Field surface (background, border)
+    vaadin-date-picker::part(input-field)
+Native input element
+    vaadin-date-picker > input
+Input field with placeholder shown
+    vaadin-date-picker > input:placeholder-shown
+Clear and Toggle buttons
+    vaadin-date-picker::part(field-button)
+Toggle Button
+    vaadin-date-picker::part(toggle-button)
+Toggle Button icon
+    vaadin-date-picker::part(toggle-button)::before
+Clear button
+    vaadin-date-picker::part(clear-button)
+Clear button icon
+    vaadin-date-picker::part(clear-button)::before
+Prefix element
+    vaadin-date-picker > [slot="prefix"]
+
+Label
+
+Field with label
+    vaadin-date-picker[has-label]
+Label
+    vaadin-date-picker::part(label)
+Label text
+    vaadin-date-picker > label
+Required indicator
+    vaadin-date-picker::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-date-picker[has-helper]
+Helper
+    vaadin-date-picker::part(helper-text)
+Helper text
+    vaadin-date-picker > [slot="helper"]
+Invalid field
+    vaadin-date-picker[invalid]
+Field with error message
+    vaadin-date-picker[has-error-message]
+Error message
+    vaadin-date-picker::part(error-message)
+Error message text
+    vaadin-date-picker > [slot="error-message"]
+
+Overlay
+
+Modality curtain (backdrop)
+    vaadin-date-picker::part(backdrop)
+Overlay background
+    vaadin-date-picker::part(overlay)
+Overlay content wrapper
+    vaadin-date-picker-overlay-content
+Overlay toolbar
+    vaadin-date-picker-overlay-content::part(toolbar)
+Desktop (large viewport) mode
+    vaadin-date-picker-overlay-content[desktop]
+Fullscreen (small viewport) mode
+    vaadin-date-picker-overlay-content[fullscreen]
+Years toggle button
+    vaadin-date-picker-overlay-content::part(years-toggle-button)
+All overlay buttons
+    vaadin-date-picker-overlay-content > vaadin-button
+Today button
+    vaadin-date-picker-overlay-content [slot="today-button"]
+Cancel button
+    vaadin-date-picker-overlay-content [slot="cancel-button"]
+
+Years
+
+Years visible
+    vaadin-date-picker-overlay-content[years-visible]
+Year scroller
+    vaadin-date-picker-year-scroller
+Year element
+    vaadin-date-picker-year
+Year number
+    vaadin-date-picker-year::part(year-number)
+Year separator
+    vaadin-date-picker-year::part(year-separator)
+Year separator symbol
+    vaadin-date-picker-year::part(year-separator)::after
+
+Month Calendar
+
+Calendar element
+    vaadin-month-calendar
+Week numbers enabled
+    vaadin-month-calendar[show-week-numbers]
+Month header
+    vaadin-month-calendar::part(month-header)
+Weekdays row
+    vaadin-month-calendar::part(weekdays)
+Weekday
+    vaadin-month-calendar::part(weekday)
+Week number
+    vaadin-month-calendar::part(week-number)
+
+Date Cells
+
+Date
+    vaadin-month-calendar::part(date)
+Disabled date
+    vaadin-month-calendar::part(disabled date)
+Focused date
+    vaadin-month-calendar::part(focused date)
+Selected date
+    vaadin-month-calendar::part(selected date)
+Today’s date
+    vaadin-month-calendar::part(today date)
+Past date
+    vaadin-month-calendar::part(past date)
+Future date
+    vaadin-month-calendar::part(future date)
+Focused date
+    vaadin-month-calendar::part(date focused)
+Hovered date
+    vaadin-month-calendar::part(date):hover

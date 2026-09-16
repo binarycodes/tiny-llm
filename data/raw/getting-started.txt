@@ -1,0 +1,16 @@
+Welcome to the Getting Started Guide!
+
+Get started building applications with Vaadin.
+
+This guide will help you set up your environment, create your first Vaadin project, and take you through the essential steps of developing, running, and building your application.
+
+Quick Start
+    Hit the ground running with Vaadin by creating a simple web application from scratch in this quick tutorial using only Java.
+Dev Environment
+    Get the most out of Vaadin by setting up your development environment with the right tools and configurations.
+Starters
+    Learn about different ways to start a Vaadin project.
+Tutorial
+    A comprehensive step-by-step tutorial to get started with Vaadin and learn best practices along the way.
+Next Steps
+    Add features to your Vaadin project to turn it into a full-featured application.

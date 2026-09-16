@@ -1,0 +1,16 @@
+Views & Navigation
+
+Learn how to build views and navigate between them in Vaadin applications.
+
+Add a View
+    Learn how to add a view to a Vaadin application.
+Navigate to a View
+    Learn how to navigate between the views of a Vaadin application.
+Pass Data to a View
+    Learn how to pass data between the views of a Vaadin application.
+Add a Router Layout
+    Learn how to add a router layout to a Vaadin application.
+Add a Navigation Menu
+    Learn how to add a navigation menu to a router layout.
+Add a Master-Detail View
+    Learn how to build a master-detail view.

@@ -1,0 +1,69 @@
+List Box Styling
+
+Styling API reference for the List Box component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-divider-color | Aura
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-item-checkmark-display | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-item-text-align | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-list-box
+
+List Box
+
+Multi-select
+    vaadin-list-box[multiple]
+Hovered
+    vaadin-list-box:hover
+Item layout / scroller
+    vaadin-list-box::part(items)
+
+Items
+
+Item element
+    vaadin-item
+Label (plaintext content)
+    vaadin-item > span
+Selection indicator
+    vaadin-item::part(checkmark)
+Selection indicator icon
+    vaadin-item::part(checkmark)::before
+Divider
+    vaadin-list-box > hr
+
+Item States
+
+Selected item
+    vaadin-item[selected]
+Content wrapper
+    vaadin-item::part(content)
+Focused
+    vaadin-item[focused]
+Keyboard focused
+    vaadin-item[focus-ring]
+Hovered
+    vaadin-item:hover
+Pressed
+    vaadin-item[active]
+Disabled
+    vaadin-item[disabled]

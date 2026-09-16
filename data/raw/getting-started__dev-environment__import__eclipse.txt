@@ -1,0 +1,13 @@
+Import into Eclipse IDE
+
+Learn how to import a Vaadin project into Eclipse IDE using the built-in Maven project import feature.
+
+To import a Vaadin project into Eclipse IDE, click File › Import in the menu. Then, in the Import dialog, select Maven › Existing Maven Projects and click Next.
+
+[image: Import dialog in Eclipse IDE]
+
+Then click Browse and find the project directory.
+
+[image: Import Maven projects dialog in Eclipse IDE]
+
+Make sure all the projects are selected and click Finish. Your project is now imported.

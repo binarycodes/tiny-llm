@@ -1,0 +1,90 @@
+Accessing Authentication Data
+
+Accessing authentication data such as username and roles on the server side, as well as transferring the data to the client.
+
+Although authorization is defined at endpoint level (as described in the Security page), you may need to know specific authentication parameters, either in endpoint Java code or client-side code.
+
+Accessing authentication data such as username and roles on the server side, as well as transferring the data to the client, is explained here.
+
+Server Side Access
+
+Security Principal
+
+Hilla authenticates each server request and, if authentication is successful, associates the request with a Java security principal. You can get the authenticated user as a UserPrincipal from the current request. You can retrieve the current request using VaadinRequest.getCurrent(). Calling getUserPrincipal() for the request returns the authenticated user, or null if the request isn’t authenticated.
+
+[EchoEndpoint.java]
+@Endpoint
+public class EchoEndpoint {
+    @PermitAll
+    public String saySomething(String message) {
+        return VaadinRequest.getCurrent().getUserPrincipal().getName() + " says: " + message;
+    }
+}
+
+[frontend/index.ts]
+import { EchoEndpoint } from 'Frontend/generated/EchoEndpoint';
+
+EchoEndpoint
+    .saySomething("It's snowing in Turku")
+    .then(response => console.log(response));
+
+Client Side Authentication
+
+Checking the Username
+
+In TypeScript, there is no direct way to check whether the user is authenticated. However, you can expose a server-side endpoint that checks user privileges and returns the status.
+
+The next example returns the username if the user is logged in; otherwise it returns the word anonymousUser:
+
+[Java]
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+@Endpoint
+public class MyAppEndpoint {
+
+    @AnonymousAllowed
+    public String checkUser() {
+        Authentication auth =
+            SecurityContextHolder.getContext().getAuthentication();
+        return auth == null ? null : auth.getName();
+    }
+}
+
+[TypeScript]
+import { MyAppEndpoint } from 'Frontend/generated/MyAppEndpoint';
+
+const username = await MyAppEndpoint.checkUser();
+
+if ('anonymousUser' === username) {
+   console.log('You are an anonymous user');
+} else {
+   console.log('Your username is: ' + username);
+}
+
+Checking Roles
+
+A developer might want to check whether the user can access certain services, so that the appropriate options are enabled in the application menu.
+
+The following example exposes a method that checks whether a user is an admin user.
+
+[Java]
+@Endpoint
+public class MyAppEndpoint {
+
+    @RolesAllowed("ROLE_ADMIN")
+    public boolean isAdmin() {
+        return true;
+    }
+}
+
+[TypeScript]
+import { MyAppEndpoint } from 'Frontend/generated/MyAppEndpoint';
+
+const isAdmin = await MyAppEndpoint.isAdmin().catch(() => false);
+
+if (isAdmin) {
+   console.log('You are an admin user');
+} else {
+   console.log('Sorry, you are not an admin user');
+}

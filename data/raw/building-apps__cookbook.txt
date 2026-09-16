@@ -1,0 +1,11 @@
+Vaadin Cookbook
+
+Code snippets for common tasks
+
+Important: Some solutions in this cookbook may not follow the latest best practices.
+
+The Vaadin Cookbook is a collection of solutions for common challenges in business web application development with Vaadin.
+
+Solutions are implemented using Java, TypeScript, or a combination of both, depending on what’s most suitable. The emphasis is on solving the problem, rather than the implementation details.
+
+Open Cookbook

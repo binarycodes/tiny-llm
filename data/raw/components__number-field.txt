@@ -1,0 +1,895 @@
+Number Field
+
+Number Field is an input field that accepts only numeric input.
+
+Number Field is an input field that accepts only numeric input. The input can be a decimal or an integer. There is also a big decimal for Flow.
+
+You can specify a unit as a prefix, or a suffix for the field.
+
+[Flow: NumberFieldBasic.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-basic")
+public class NumberFieldBasic extends FormLayout {
+
+    public NumberFieldBasic() {
+        setAutoResponsive(true);
+        setAutoRows(true);
+
+        // tag::snippet[]
+        NumberField dollarField = new NumberField();
+        dollarField.setLabel("Balance");
+        dollarField.setValue(200.0);
+        Div dollarPrefix = new Div();
+        dollarPrefix.setText("$");
+        dollarField.setPrefixComponent(dollarPrefix);
+
+        NumberField euroField = new NumberField();
+        euroField.setLabel("Balance");
+        euroField.setValue(200.0);
+        Div euroSuffix = new Div();
+        euroSuffix.setText("€");
+        euroField.setSuffixComponent(euroSuffix);
+
+        add(dollarField, euroField);
+        // end::snippet[]
+    }
+
+}
+
+[React: number-field-basic.tsx]
+import React from 'react';
+import { FormLayout, NumberField } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <FormLayout autoResponsive autoRows>
+      {/* tag::snippet[] */}
+      <NumberField label="Balance" value="200">
+        <div slot="prefix">$</div>
+      </NumberField>
+
+      <NumberField label="Balance" value="200">
+        <div slot="suffix">€</div>
+      </NumberField>
+      {/* end::snippet[] */}
+    </FormLayout>
+  );
+}
+
+[Lit: number-field-basic.ts]
+import '@vaadin/form-layout';
+import '@vaadin/number-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout auto-responsive auto-rows>
+        <!-- tag::snippet[] -->
+        <vaadin-number-field label="Balance" value="200">
+          <div slot="prefix">$</div>
+        </vaadin-number-field>
+
+        <vaadin-number-field label="Balance" value="200">
+          <div slot="suffix">€</div>
+        </vaadin-number-field>
+        <!-- end::snippet[] -->
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+Step Buttons
+
+Step buttons allow the user to make small adjustments, quickly.
+
+[Flow: NumberFieldStepButtons.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-step-buttons")
+public class NumberFieldStepButtons extends FormLayout {
+
+    public NumberFieldStepButtons() {
+        setAutoResponsive(true);
+        setLabelsAside(true);
+
+        // tag::snippet[]
+        IntegerField adultsField = new IntegerField();
+        adultsField.setValue(2);
+        adultsField.setStepButtonsVisible(true);
+        adultsField.setMin(0);
+        adultsField.setMax(9);
+        // end::snippet[]
+        addFormItem(adultsField, "Adults");
+
+        IntegerField childrenField = new IntegerField();
+        childrenField.setValue(2);
+        childrenField.setStepButtonsVisible(true);
+        childrenField.setMin(0);
+        childrenField.setMax(9);
+
+        Div children = new Div("Children");
+        Div childrenExplainer = new Div();
+        childrenExplainer.setText("Age 2-12");
+        childrenExplainer.getStyle().set("font-size", "0.75em");
+        childrenExplainer.getStyle().set("position", "absolute");
+
+        addFormItem(childrenField, new Div(children, childrenExplainer));
+
+        IntegerField infantsField = new IntegerField();
+        infantsField.setValue(1);
+        infantsField.setStepButtonsVisible(true);
+        infantsField.setMin(0);
+        infantsField.setMax(9);
+        addFormItem(infantsField, "Infants");
+    }
+
+}
+
+[React: number-field-step-buttons.tsx]
+import React from 'react';
+import { FormItem } from '@vaadin/react-components/FormItem.js';
+import { FormLayout } from '@vaadin/react-components/FormLayout.js';
+import { IntegerField } from '@vaadin/react-components/IntegerField';
+
+export default reactExample(() => (
+  <FormLayout autoResponsive labelsAside>
+    <FormItem>
+      <label slot="label">Adults</label>
+
+      {/* tag::snippet[] */}
+      <IntegerField value="2" stepButtonsVisible min={0} max={9} />
+      {/* end::snippet[] */}
+    </FormItem>
+
+    <FormItem>
+      <label slot="label">
+        <div>Children</div>
+        <div style={{ fontSize: '0.75em', position: 'absolute' }}>Age 2-12</div>
+      </label>
+
+      <IntegerField value="2" stepButtonsVisible min={0} max={9} />
+    </FormItem>
+
+    <FormItem>
+      <label slot="label">Infants</label>
+      <IntegerField value="1" stepButtonsVisible min={0} max={9} />
+    </FormItem>
+  </FormLayout>
+));
+
+[Lit: number-field-step-buttons.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-item.js';
+import '@vaadin/integer-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-step-buttons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout auto-responsive labels-aside>
+        <vaadin-form-item>
+          <label slot="label">Adults</label>
+          <!-- tag::snippet[] -->
+          <vaadin-integer-field
+            value="2"
+            step-buttons-visible
+            min="0"
+            max="9"
+          ></vaadin-integer-field>
+          <!-- end::snippet[] -->
+        </vaadin-form-item>
+
+        <vaadin-form-item>
+          <label slot="label">
+            <div>Children</div>
+            <div style="font-size: 0.75em; position: absolute">Age 2-12</div>
+          </label>
+          <vaadin-integer-field
+            value="2"
+            step-buttons-visible
+            min="0"
+            max="9"
+          ></vaadin-integer-field>
+        </vaadin-form-item>
+
+        <vaadin-form-item>
+          <label slot="label">Infants</label>
+          <vaadin-integer-field
+            value="1"
+            step-buttons-visible
+            min="0"
+            max="9"
+          ></vaadin-integer-field>
+        </vaadin-form-item>
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+Validation
+
+Number Field provides a validation mechanism based on constraints. Constraints allow you to define criteria that the value must meet to be considered valid. Validation occurs typically when the user initiates a value change, for example by entering input and pressing Enter. If the value is invalid, the field is highlighted in red, and an error message appears underneath the input.
+
+Below is a list of supported constraints with more detailed information:
+
+Bad input refers to any input that cannot be parsed into a value of the field type. When an unparsable value is entered, the field resets the value to empty and becomes invalid. This constraint is non-configurable and enabled by default.
+
+Required fields are marked with an indicator next to the label, and become invalid if their value is first entered and then cleared.
+
+An instruction text at the top of the form explaining the required indicator is recommended. The indicator itself can be customized with the --vaadin-input-field-required-indicator style property.
+
+The valid input range of a Number Field can be restricted by defining min and max values. Helper text can be used to inform the user about the accepted range.
+
+Refer to the Step section for more details and an example.
+
+A separate single-character, regular expression can be used to restrict the characters that can be entered into the field. Characters that don’t match the expression are rejected. However, values set programmatically are not subject to this restriction, even if they contain disallowed characters.
+
+The following example demonstrates how to create a quantity field using a combination of these constraints:
+
+[Flow: NumberFieldValidation.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.IntegerField.IntegerFieldI18n;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-validation")
+public class NumberFieldValidation extends Div {
+
+    public NumberFieldValidation() {
+        // tag::snippet[]
+        IntegerField integerField = new IntegerField();
+        integerField.setLabel("Quantity");
+        integerField.setHelperText("Max 10 items");
+        integerField.setRequiredIndicatorVisible(true);
+        integerField.setMin(1);
+        integerField.setMax(10);
+        integerField.setValue(2);
+        integerField.setStepButtonsVisible(true);
+
+        integerField.setI18n(new IntegerFieldI18n()
+                .setRequiredErrorMessage("Field is required")
+                .setBadInputErrorMessage("Invalid number format")
+                .setMinErrorMessage("Quantity must be at least 1")
+                .setMaxErrorMessage("Maximum 10 items available"));
+
+        add(integerField);
+        // end::snippet[]
+    }
+
+}
+
+[React: number-field-validation.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { IntegerField, type IntegerFieldElement } from '@vaadin/react-components/IntegerField';
+
+function Example() {
+  const value = useSignal('2');
+  const errorMessage = useSignal('');
+
+  return (
+    // tag::snippet[]
+    <IntegerField
+      label="Quantity"
+      helperText="Max 10 items"
+      required
+      min={1}
+      max={10}
+      value={value.value}
+      stepButtonsVisible
+      errorMessage={errorMessage.value}
+      onValueChanged={(event) => {
+        value.value = event.detail.value;
+      }}
+      onValidated={(event) => {
+        const field = event.target as IntegerFieldElement;
+        const { validity } = field.inputElement as HTMLInputElement;
+        if (validity.badInput) {
+          errorMessage.value = 'Invalid number format';
+        } else if (validity.valueMissing) {
+          errorMessage.value = 'Field is required';
+        } else if (validity.rangeUnderflow) {
+          errorMessage.value = `Quantity must be at least ${field.min}`;
+        } else if (validity.rangeOverflow) {
+          errorMessage.value = `Maximum ${field.max} items available`;
+        } else {
+          errorMessage.value = '';
+        }
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: number-field-validation.ts]
+import '@vaadin/integer-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { IntegerField, IntegerFieldValidatedEvent } from '@vaadin/integer-field';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private errorMessage = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-integer-field
+        label="Quantity"
+        helper-text="Max 10 items"
+        required
+        min="1"
+        max="10"
+        value="2"
+        step-buttons-visible
+        .errorMessage="${this.errorMessage}"
+        @validated="${(event: IntegerFieldValidatedEvent) => {
+          const field = event.target as IntegerField;
+          const { validity } = field.inputElement as HTMLInputElement;
+          if (validity.badInput) {
+            this.errorMessage = 'Invalid number format';
+          } else if (validity.valueMissing) {
+            this.errorMessage = 'Field is required';
+          } else if (validity.rangeUnderflow) {
+            this.errorMessage = `Quantity must be at least ${field.min}`;
+          } else if (validity.rangeOverflow) {
+            this.errorMessage = `Maximum ${field.max} items available`;
+          } else {
+            this.errorMessage = '';
+          }
+        }}"
+      ></vaadin-integer-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+It’s important to ensure an appropriate error message is configured for each constraint violation to provide users with clear feedback.
+
+Note: Data Binding & Custom Validation
+
+Flow and Hilla offer an advanced API called Binder that allows you to bind data and add custom validation rules for multiple fields, creating forms. You can learn more about Binder from the corresponding Flow and Hilla articles.
+
+Step
+
+The step value of a Number Field defines the numeric intervals that are allowed.
+
+It specifies the amount by which the value increases or decreases when using the Up or Down arrow keys, or the step buttons.
+
+It also invalidates the field if the value entered doesn’t align with the specified step.
+
+[Flow: NumberFieldStep.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.NumberField.NumberFieldI18n;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-step")
+public class NumberFieldStep extends Div {
+
+    public NumberFieldStep() {
+        // tag::snippet[]
+        NumberField numberField = new NumberField();
+        numberField.setLabel("Duration (hours)");
+        numberField.setStep(0.5);
+        numberField.setValue(12.5);
+        numberField.setStepButtonsVisible(true);
+        numberField.setI18n(new NumberFieldI18n()
+                .setBadInputErrorMessage("Invalid number format")
+                .setStepErrorMessage("Duration must be a multiple of 0.5"));
+        add(numberField);
+        // end::snippet[]
+    }
+
+}
+
+[React: number-field-step.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { NumberField, type NumberFieldElement } from '@vaadin/react-components/NumberField.js';
+
+function Example() {
+  const value = useSignal('12.5');
+  const errorMessage = useSignal('');
+
+  return (
+    // tag::snippet[]
+    <NumberField
+      label="Duration (hours)"
+      step={0.5}
+      value={value.value}
+      stepButtonsVisible
+      errorMessage={errorMessage.value}
+      onValueChanged={(event) => {
+        value.value = event.detail.value;
+      }}
+      onValidated={(event) => {
+        const field = event.target as NumberFieldElement;
+        const { validity } = field.inputElement as HTMLInputElement;
+        if (validity.badInput) {
+          errorMessage.value = 'Invalid number format';
+        } else if (validity.stepMismatch) {
+          errorMessage.value = `Must be a multiple of ${field.step}`;
+        } else {
+          errorMessage.value = '';
+        }
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: number-field-step.ts]
+import '@vaadin/number-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { NumberField, NumberFieldValidatedEvent } from '@vaadin/number-field';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-step')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private errorMessage = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-number-field
+        label="Duration (hours)"
+        step="0.5"
+        value="12.5"
+        step-buttons-visible
+        .errorMessage="${this.errorMessage}"
+        @validated="${(event: NumberFieldValidatedEvent) => {
+          const field = event.target as NumberField;
+          const { validity } = field.inputElement as HTMLInputElement;
+          if (validity.badInput) {
+            this.errorMessage = 'Invalid number format';
+          } else if (validity.stepMismatch) {
+            this.errorMessage = `Duration must be a multiple of ${field.step}`;
+          } else {
+            this.errorMessage = '';
+          }
+        }}"
+      ></vaadin-number-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Number Type Variants
+
+Integer Field
+
+To allow only integers to be entered, you can use the Integer Field like so:
+
+[Flow: NumberFieldInteger.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-integer")
+public class NumberFieldInteger extends FormLayout {
+
+    public NumberFieldInteger() {
+        setAutoResponsive(true);
+        setAutoRows(true);
+
+        // tag::snippet[]
+        IntegerField xField = new IntegerField();
+        xField.setLabel("X");
+        xField.setValue(-1284);
+
+        IntegerField yField = new IntegerField();
+        yField.setLabel("Y");
+        yField.setValue(3910);
+
+        add(xField, yField);
+        // end::snippet[]
+    }
+
+}
+
+[React: number-field-integer.tsx]
+import React from 'react';
+import { FormLayout, IntegerField } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <FormLayout autoResponsive autoRows>
+      {/* tag::snippet[] */}
+      <IntegerField label="X" value="-1284" />
+
+      <IntegerField label="Y" value="3910" />
+      {/* end::snippet[] */}
+    </FormLayout>
+  );
+}
+
+[Lit: number-field-integer.ts]
+import '@vaadin/form-layout';
+import '@vaadin/integer-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-integer')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout auto-responsive auto-rows>
+        <!-- tag::snippet[] -->
+        <vaadin-integer-field label="X" value="-1284"></vaadin-integer-field>
+
+        <vaadin-integer-field label="Y" value="3910"></vaadin-integer-field>
+        <!-- end::snippet[] -->
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+BigDecimal Field (Flow)
+
+Flow developers who need to support the BigDecimal type can use BigDecimal Field:
+
+[Flow: NumberFieldBigDecimal.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.BigDecimalField;
+import com.vaadin.flow.router.Route;
+
+import java.math.BigDecimal;
+
+@Route("number-field-big-decimal")
+public class NumberFieldBigDecimal extends Div {
+
+    public NumberFieldBigDecimal() {
+        // tag::snippet[]
+        BigDecimalField bigDecimalField = new BigDecimalField();
+        bigDecimalField.setLabel("Result");
+        bigDecimalField.setWidth("240px");
+        bigDecimalField.setValue(new BigDecimal("948205817.472950487"));
+        add(bigDecimalField);
+        // end::snippet[]
+    }
+
+}
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+The placeholder is text that’s displayed when the field is empty. Its primary purpose is to provide a short input hint (e.g., the expected format) in situations where a Helper cannot be used.
+
+Placeholders should not be used as a replacement for a visible label. They can be mistaken for a manually entered value. See Label for alternatives to the built-in field label.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+The clear button — which is displayed when the field is not empty — clears the field’s current value. Although the button itself is not keyboard focusable, the clear action can be taken with the Esc key, when the field has focus. The clear button can be especially useful in search and filter fields, where users often need to clear the value. They’re less useful, however, in regular forms.
+
+Prefix and suffix elements — rendered at either end of the field — can be used to display units, icons, and similar visual cues to the field’s purpose or format.
+
+Prefix and suffix elements typically don’t work well with assistive technologies like screen readers. Therefore, the information communicated by them should also be conveyed through other means, such as in a Label, a Helper, or through ARIA attributes on the field itself.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-number-field accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-number-field accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: NumberFieldBasicFeatures.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-basic-features")
+public class NumberFieldBasicFeatures extends HorizontalLayout {
+
+    public NumberFieldBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        NumberField field = new NumberField();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setPlaceholder("Placeholder");
+        field.setTooltipText("Tooltip text");
+        field.setClearButtonVisible(true);
+        field.setPrefixComponent(new Span("$"));
+        field.setSuffixComponent(VaadinIcon.DOLLAR.create());
+        // end::snippet[]
+
+        add(field);
+    }
+
+}
+
+[React: number-field-basic-features.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { NumberField } from '@vaadin/react-components/NumberField.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <NumberField
+      label="Label"
+      helperText="Helper text"
+      placeholder="Placeholder"
+      clearButtonVisible
+    >
+      <Tooltip slot="tooltip" text="Tooltip text" />
+
+      <div slot="prefix">$</div>
+
+      <Icon slot="suffix" icon="vaadin:dollar" />
+    </NumberField>
+    // end::snippet[]
+  );
+}
+
+[Lit: number-field-basic-features.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/number-field';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-number-field
+        label="Label"
+        helper-text="Helper text"
+        placeholder="Placeholder"
+        clear-button-visible
+      >
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <span slot="prefix">$</span>
+        <vaadin-icon slot="suffix" icon="vaadin:dollar"></vaadin-icon>
+      </vaadin-number-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Read-Only & Disabled
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers. They can display tooltips. Their values can be selected and copied.
+
+Fields that are currently unavailable should be disabled. The reduced contrast of disabled fields makes them inappropriate for displaying information. They can’t be focused or display tooltips. They’re invisible to screen readers, and their values cannot be selected and copied.
+
+Disabled fields can be useful in situations where they can become enabled based on some user action. Consider hiding fields entirely if there’s nothing the user can do to make them editable.
+
+[Flow: NumberFieldReadonlyAndDisabled.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.router.Route;
+
+@Route("number-field-readonly-and-disabled")
+public class NumberFieldReadonlyAndDisabled extends FormLayout {
+
+    public NumberFieldReadonlyAndDisabled() {
+        setAutoResponsive(true);
+        setAutoRows(true);
+
+        // tag::snippet[]
+        NumberField readonlyField = new NumberField();
+        readonlyField.setReadOnly(true);
+        readonlyField.setLabel("Read-only");
+        readonlyField.setValue(200.0);
+
+        NumberField disabledField = new NumberField();
+        disabledField.setEnabled(false);
+        disabledField.setLabel("Disabled");
+        // end::snippet[]
+        add(readonlyField, disabledField);
+    }
+
+}
+
+[React: number-field-readonly-and-disabled.tsx]
+import React from 'react';
+import { FormLayout, NumberField } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <FormLayout autoResponsive autoRows>
+      {/* tag::snippet[] */}
+      <NumberField readonly label="Read-only" value="200" />
+
+      <NumberField disabled label="Disabled" />
+      {/* end::snippet[] */}
+    </FormLayout>
+  );
+}
+
+[Lit: number-field-readonly-and-disabled.ts]
+import '@vaadin/form-layout';
+import '@vaadin/number-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('number-field-readonly-and-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout auto-responsive auto-rows>
+        <!-- tag::snippet[] -->
+        <vaadin-number-field readonly label="Read-only" value="200"></vaadin-number-field>
+
+        <vaadin-number-field disabled label="Disabled"></vaadin-number-field>
+        <!-- end::snippet[] -->
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+Value Change Modes Flow
+
+With the Flow Java API, you can define when client-side value changes are synchronized to the server. The ValueChangeMode enum provides the following modes:
+
+Mode | Synchronization timing | Custom timeout interval
+EAGER | Synchronizes the value whenever it changes on the client side, for example on each keystroke. | No
+LAZY | Synchronizes the value after a defined interval has passed without further changes. If another change occurs before the interval ends, the timeout is restarted. | Yes
+TIMEOUT | Synchronizes the value at defined intervals while the value continues to change. | Yes
+ON_CHANGE (default) | Synchronizes the value on the change event, when the component value is committed. | No
+
+For the modes that support a custom timeout interval, you can change the interval with the setValueChangeTimeout() method. The default interval is 400 milliseconds.
+
+[Flow: NumberFieldValueChangeMode.java]
+package com.vaadin.demo.component.numberfield;
+
+import com.vaadin.demo.DemoExporter;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+import static com.vaadin.demo.component.Constants.valueChangeModes;
+
+@Route("number-field-value-change-mode")
+public class NumberFieldValueChangeMode extends VerticalLayout {
+
+    public NumberFieldValueChangeMode() {
+        setPadding(false);
+        // tag::snippet[]
+        var numberField = new NumberField("Number Field");
+        var modeSelector = new Select<>("Value Change Mode", valueChangeModes);
+        modeSelector.setValue(numberField.getValueChangeMode());
+        modeSelector.addValueChangeListener(e -> {
+            numberField.clear();
+            numberField.setValueChangeMode(e.getValue());
+        });
+        var serverSideContent = new Span();
+        numberField.addValueChangeListener(e -> serverSideContent
+                .setText(e.getValue() == null ? "" : e.getValue().toString()));
+        // end::snippet[]
+
+        modeSelector.setItemLabelGenerator(ValueChangeMode::name);
+
+        var horizontalLayout = new HorizontalLayout(numberField, modeSelector);
+        horizontalLayout.setAlignItems(Alignment.BASELINE);
+
+        var serverSideLayout = new HorizontalLayout(new Span("Server side:"),
+                serverSideContent);
+
+        add(horizontalLayout, serverSideLayout);
+    }
+
+    public static class Exporter
+}
+
+Best Practices
+
+Number Field should be used for actual number values, such as counts and measures — values that may be part of a calculation. Don’t use it for other digit-based values, such as telephone, credit card, and social security numbers. These values can have leading zeros and be greater than Number Field’s maximum supported value.
+
+When applicable, set the most common choice as the default value. For example, airline, bus, train and other travel companies typically set the default number of passengers to 1.

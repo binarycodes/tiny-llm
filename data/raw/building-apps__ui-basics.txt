@@ -1,0 +1,22 @@
+UI Basics
+
+Learn how to compose, arrange, and style UI components in your Vaadin application.
+
+Compose with Components
+    Learn how to decompose user interfaces into a tree of components and how those components communicate.
+Arrange with Layouts
+    Learn how to arrange components horizontally, vertically, and in form grids using Vaadin's built-in layout components.
+Write HTML
+    Learn how to create HTML structure in Java using Vaadin's built-in HTML element classes.
+Add Images and Icons
+    Learn how to display images and use icons in your Vaadin application.
+Add Dialogs and Popovers
+    Learn how to use Confirm Dialog, Dialog, and Popover to present information and collect input in overlays.
+Show a Notification
+    Learn how to show notifications to inform users about events, completed actions, and errors.
+Add Styling
+    Learn how to style components using theme variants, inline styles, and CSS class names — starting from pure Java.
+Add Keyboard Shortcuts
+    Learn how to add keyboard shortcuts to buttons and input fields in your Vaadin application.
+Add Drag and Drop
+    Learn how to make components draggable and droppable in your Vaadin application.

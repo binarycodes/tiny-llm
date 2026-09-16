@@ -1,0 +1,74 @@
+Feature Flags
+
+How to test experimental features or switch temporarily back to legacy and deprecated features.
+
+Feature Flags allow you to * Enable and test experimental features; * Enable legacy features or switch back to legacy behavior; * Enable opt-in features that don’t have other APIs.
+
+The following list contains all of the experimental and legacy features. They’re also listed in the com.vaadin.experimental.FeatureFlags (Javadoc) class.
+
+Experimental Feature Flags
+
+accessibleDisabledButtons
+    Make disabled buttons focusable and hoverable.
+accessibleDisabledMenuItems
+    Make disabled Context Menu and Menu Bar sub-menu items focusable and hoverable.
+collaborationEngineBackend
+    Collaboration Kit backend for clustering support
+copilotExperimentalFeatures
+    Experimental Vaadin Copilot features.
+tailwindCss
+    Enables experimental Tailwind CSS support.
+defaultAutoResponsiveFormLayout
+    Form Layout auto-responsive mode enabled by default
+layoutComponentImprovements
+    Experimental HorizontalLayout and VerticalLayout improvements.
+aiComponents
+    Enables AI components such as AIOrchestrator.
+breadcrumbsComponent
+    Enables the Breadcrumbs component.
+
+Legacy Feature Flags
+
+themeComponentStyles
+    Enables loading shadow DOM component styles from the frontend/themes/<themename>/components folder as in previous Vaadin versions.
+
+Hilla Feature Flags
+
+fullstackSignals
+    Enables Hilla Full-stack Signals
+
+Managing Feature Flags
+
+Feature flags can be managed in different ways: by using Vaadin Copilot; by editing the feature flags properties file; or by setting Java system properties. Each of these methods is described in the sub-sections that follow. As you read, keep in mind that system properties always have the highest priority. Since they’re not written into the feature flags properties file, they’re valid only for a single execution.
+
+Vaadin Copilot
+
+It’s easy to manage feature flags using Vaadin Copilot. When running your browser in development mode, click the Vaadin Copilot activation button in your application. It’s located at bottom right corner.
+
+Next, open the Feature Flags panel in right drawer, and then click the toggle buttons to enable or disable features.
+
+When finished, restart the application for your changes to take effect.
+
+Editing the Properties File
+
+As mentioned, you can also manage feature flags by editing the properties file. To do so by this method, edit the src/main/resources/vaadin-featureflags.properties file in your application folder — or create the file if it doesn’t already exist.
+
+When you have that file open, add a line for each feature in the format of com.vaadin.experimental.<FEATURE_NAME>=true. Here’s an example of how this might look:
+
+[vaadin-featureflags.properties]
+com.vaadin.experimental.defaultAutoResponsiveFormLayout=true
+
+To disable a feature, remove the corresponding line or set its value to false.
+
+When you’re finished enabling or disabling feature flags, save the properties file and restart the application.
+
+Setting Java System Properties
+
+The last method for managing feature flags is to set the Java system properties. From the command-line, use the IDE launch configuration or a tool configuration — such as, Spring Boot Maven plugin — to set a system property for each feature flag to be enabled or disabled.
+
+The property name should be in the format, vaadin.<FEATURE_NAME>, like so:
+
+[terminal]
+-Dvaadin.defaultAutoResponsiveFormLayout=true
+
+To temporarily disable a feature, set its property value to false.

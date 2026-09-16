@@ -1,0 +1,379 @@
+Using Gradle in Vaadin Hilla Applications
+
+Building and running Hilla applications with Gradle.
+
+Maven or Gradle can be used to build and publish Vaadin applications that use Hilla. Most visitors to this documentation, though, tend to use Maven. Therefore, most of the examples, settings, and related instructions on the other documentation pages reference Maven. To use Gradle, you may have to make some adjustments.
+
+This particular page, though, describes how to compile, build, and run a Vaadin Hilla application using the Vaadin Gradle plugin — it’s not for Maven developers. When going through the rest of the documentation, you may sometimes want to refer back to this page. For information about the general usage of Gradle, see the Gradle User Manual.
+
+Note: Learn More About Vaadin Applications
+
+This tutorial doesn’t describe Vaadin Hilla application details. It seeks only to explore the Gradle-related parts for brevity. If you’re interested in knowing more about the core concepts of Vaadin applications, see the Getting Started Guide.
+
+Note: Hilla Is Now Part Of The Vaadin
+
+As of Vaadin 24.4, Hilla is integrated into the Vaadin unified platform. It means that any Vaadin application can use Hilla components and features, so for brevity, "Hilla applications" refers to Vaadin applications that use Hilla.
+
+Requirements
+
+This tutorial is meant for developers with a basic understanding of Java, Spring Boot, and Gradle. Although there’s no need to write or analyze JavaScript, HTML, or CSS, understanding their syntax and basic concepts makes it easier to follow.
+
+Using Gradle in a Hilla application does not require any extra settings or setup in your development environment than a standard Hilla project:
+
+- Node 18;
+- JDK 17 or later, for example, Eclipse Temurin JDK;
+- Gradle (optional).
+
+Note: Installing Gradle is optional.
+
+You don’t need to install Gradle on your development machine if you’re using the Gradle-based Hilla starter projects, since they include a Gradle Wrapper script. The script downloads and executes Gradle locally for your project. For more information on using the Gradle Wrapper, see the Official Gradle Documentation. If you prefer to install Gradle directly, you can find the instructions at https://gradle.org/install
+
+You can obtain a Hilla application starter project with Gradle by:
+
+1. Directly download a ZIP file that contains a minimal hello-world Hilla application.
+2. Spring Initializr which enables you to configure a bare-bones Hilla project by adding the Hilla dependency.
+
+Gradle-Based Hilla Project Structure
+
+A bare-minimum Gradle-based Hilla application has the following directory layout:
+
+[project-root]
+gradle/                             (1)
+├── wrapper
+│   ├── gradle-wrapper.jar
+│   └── gradle-wrapper.properties
+src/
+├── main
+│   ├── frontend/
+│   │   ├── themes/
+│   │   └── views/
+│   │   │   └── helloworld/
+│   │   │       └── HelloWorldView.ts
+│   │   └── index.html
+│   │   └── index.ts
+│   │   └── routes.ts
+│   ├── java
+│   └── resources
+└── test/
+gradle.build                        (2)
+gradle.properties                   (3)
+gradlew                             (4)
+gradlew.bat                         (5)
+package.json
+package-lock.json
+tsconfig.json
+types.d.ts
+
+1. The directory that contains the Gradle wrapper files.
+2. The main Gradle build file.
+3. The file that contains properties that are used in the build.gradle file.
+4. The Gradle wrapper script for Unix based operating systems.
+5. The Gradle wrapper script for Microsoft Windows.
+
+Note: Hilla Starter Details May Vary
+
+This tutorial only explores the structure of a minimal Hilla application. If you download a starter project, for example, from the official repository mentioned above in Requirements, it also contains other files and folders such as components, layouts, theming, CSS, etc. Those details are not included in this tutorial as they do not affect executing Gradle tasks and commands.
+
+Items 1, 4, and 5 from the above are not expanded and analyzed in this tutorial because they are standard Gradle Wrapper scripts and related files. If you’re interested in more information about the Gradle Wrapper, see the Official Gradle Documentation.
+
+The gradle.properties File
+
+Having a gradle.properties file is optional for both Gradle and Hilla, but having it can help centralize some configurations and versions in other Gradle-related build files, i.e., the build.gradle or settings.gradle files.
+
+For example, you can set the Hilla version for your project in the gradle.properties file as follows:
+
+[properties]
+vaadinVersion=25.0.0
+
+This property is covered in the following sections.
+
+The build.gradle File
+
+A minimal build.gradle file for a Hilla application looks something like this:
+
+[groovy]
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.0.6'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'com.vaadin' version "$vaadinVersion"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation('com.vaadin:vaadin-spring-boot-starter') {
+        exclude group: 'com.vaadin', module: 'vaadin-dev'
+    }
+    implementation('com.vaadin:hilla-spring-boot-starter')
+	developmentOnly('org.springframework.boot:spring-boot-devtools', 'com.vaadin:vaadin-dev')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "com.vaadin:vaadin-bom:$vaadinVersion"
+    }
+}
+
+Note that the vaadinVersion property from gradle.properties is resolved automatically.
+
+Many useful components and add-ons for Hilla applications are also found in the Vaadin Directory, which is why you often see that repository in Hilla starter projects:
+
+[groovy]
+repositories {
+    mavenCentral()
+    maven {
+        setUrl("https://maven.vaadin.com/vaadin-addons")
+    }
+}
+
+Note: Pre-Release Versions Require pluginManagement Configuration
+
+If you want to try out the Hilla pre-release versions, add the Vaadin Pre-releases repository. See the Trying the pre-release versions section to see how.
+
+Running the Project
+
+Hilla applications rely on Spring Boot for the backend and you can run them like any Spring Boot application. Run the main method of the class annotated with @SpringBootApplication in your preferred IDE, or execute the bootRun task from the official Spring Boot Gradle plugin:
+
+[Windows: terminal]
+gradlew bootRun
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew bootRun
+
+[macOS / Linux: terminal]
+
+You can access the running application at http://localhost:8080.
+
+The Vaadin Gradle plugin has tasks that are executed after the compilation and also during the project run. The following section explores the available tasks and their responsibilities.
+
+Available Hilla Related Tasks in Vaadin Gradle plugin
+
+hillaConfigure
+    This task collects configurations from the project and build file and creates a temporary file in the build directory with the name, hilla-engine-configuration.json. This file is required for the endpoint generation process that comes next. hillaConfigure can be executed independently of the startup process as a standard Gradle task:
+
+[Windows: terminal]
+gradlew hillaConfigure
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew hillaConfigure
+
+[macOS / Linux: terminal]
+
+hillaGenerate
+    This task reads the configuration file created by the configure task, and then parses the classes annotated by @Endpoint to generate an openapi.json file. Then the openapi.json file is loaded and passed to a process that generates or updates the TypeScript stubs for calling backend endpoints. hillaGenerate can be executed independently of the startup process as a standard Gradle task:
+
+[Windows: terminal]
+gradlew hillaGenerate
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew hillaGenerate
+
+[macOS / Linux: terminal]
+
+Note: Vaadin Gradle Plugin Has Other Tasks
+
+Note that there are other tasks provided by the Vaadin Gradle plugin such as vaadinPrepareFrontend and vaadinBuildFrontend, and as they are not Hilla specific tasks that are not covered in this tutorial. For more information, please see Starting a Vaadin Project with Gradle.
+
+Plugin Configuration Options
+
+The following options are provided by the Hilla Gradle plugin and can be used while configuring a Hilla project:
+
+exposedPackagesToParser
+    By default, the classes annotated by @Endpoint in the src of the current Gradle module are parsed by Hilla to generate TypeScript code for calling the endpoints. If you have Hilla Endpoints in a dependency or in another module of a multi-module Gradle project, you need to explicitly expose their package to Hilla. You can achieve this like so:
+
+[Option to be Added to build.gradle]
+hilla {
+    exposedPackagesToParser = ["com.example.application", "org.another.example.foobar"]
+}
+
+Note: Exposing Endpoints from Current Module or Project
+
+If you expose any package from dependencies (or other modules in a multi-module project), you also need to expose the packages of your current module as well. Hilla misses the sources of the current module or project, unless you explicitly expose them.
+
+productionMode
+    By default, the Vaadin Gradle plugin builds the project in production package when run with bootJar or bootBuildImage task. If you plan to build the project for production some other way, configure the build.gradle file as follows:
+
+[Option to be added to the build.gradle]
+vaadin {
+   productionMode = true
+}
+
+You can find more details about production builds in the Going to Production section.
+
+Explicit Endpoint Discovery
+
+During code generation, Hilla discovers browser-callable classes — classes annotated with @BrowserCallable or @Endpoint — automatically. The discovery relies on detecting the Spring Boot application class on the module’s classpath. In some setups, such as multi-module projects where the application class resides in a different module, this auto-detection fails.
+
+In these cases, you can configure endpoint discovery explicitly with the following project properties:
+
+com.vaadin.hilla.mainClass
+    The fully qualified name of the Spring Boot application class to use for discovering browser-callable classes. The plugin also reads the plain mainClass project property as a fallback.
+com.vaadin.hilla.sourceClasses
+    A comma-separated list of fully qualified names of Spring configuration classes that declare the browser-callable beans. The classes are passed to the Spring AOT processor as --spring.main.sources, and are used when no Spring Boot application class is found on the classpath.
+
+Set the properties in the gradle.properties file:
+
+[properties]
+com.vaadin.hilla.mainClass=com.example.application.Application
+
+Alternatively, if there is no Spring Boot application class available, list the Spring configuration classes that declare the browser-callable beans:
+
+[properties]
+com.vaadin.hilla.sourceClasses=com.example.application.ApplicationConfiguration,com.example.module.ModuleConfiguration
+
+You can also pass the properties on the command line:
+
+[Windows: terminal]
+gradlew -Pcom.vaadin.hilla.mainClass=com.example.application.Application hillaGenerate
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew -Pcom.vaadin.hilla.mainClass=com.example.application.Application hillaGenerate
+
+[macOS / Linux: terminal]
+
+Note: When either property is set, Hilla discovers browser-callable classes with the Spring AOT-based finder, and skips the default lookup-based auto-detection.
+
+Going to Production
+
+When doing a production-ready build, the Vaadin Gradle plugin transpiles, bundles, and optimizes all the client-side dependencies for a faster startup and better browser performance.
+
+productionMode can be enabled in three ways:
+
+Run bootJar task:
+
+[Windows: terminal]
+gradlew bootJar
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew bootJar
+
+[macOS / Linux: terminal]
+
+In build.gradle:
+
+[groovy]
+vaadin {
+   productionMode = true
+}
+
+At the command line:
+
+[Windows: terminal]
+gradlew -Pvaadin.productionMode=true build
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew -Pvaadin.productionMode=true build
+
+[macOS / Linux: terminal]
+
+Note: Spring Boot-Specific Configuration
+
+If you are using Vaadin with Spring Boot, the default production packaging is a jar. If you want to package the Spring Boot application as a WAR instead to be deployed on a standalone container, such as tomcat, there are two additional steps:
+
+Add the war plugin to your build.gradle and enable it:
+
+[Plugin to be added to the build.gradle file]
+plugins {
+  //…​ other plugins
+  id 'war'
+}
+
+war {
+  enabled = true
+}
+
+Your application class that is annotated with @SpringBootApplication extends SpringBootServletInitializer and overrides the configure() method:
+
+[Example of Enabling SpringBootServletInitializer]
+@SpringBootApplication
+public class DemoApplication extends SpringBootServletInitializer {
+    @Override
+    protected SpringApplicationBuilder configure(
+	                     SpringApplicationBuilder application) {
+        return application.sources(DemoApplication.class);
+    }
+}
+
+Add the following dependency:
+
+[Dependency to be Added to build.gradle]
+dependencies {
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+}
+
+When running the Gradle command to create the WAR archive, call the war task:
+
+[Windows: terminal]
+gradlew -Pvaadin.productionMode=true war
+
+[Windows: terminal]
+
+[macOS / Linux: terminal]
+./gradlew -Pvaadin.productionMode=true war
+
+[macOS / Linux: terminal]
+
+Trying the Pre-Release Versions
+
+For trying out the Pre-release versions, add the https://maven.vaadin.com/vaadin-prereleases repository and configure it in the following two places:
+
+In the repositories closure of the build.gradle file:
+
+[groovy]
+repositories {
+    mavenCentral()
+    maven {
+        setUrl("https://maven.vaadin.com/vaadin-prereleases")
+    }
+}
+
+In the build.gradle file by changing the way you apply the Hilla Gradle plugin as follows:
+
+[groovy]
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.0.6'
+	id 'io.spring.dependency-management' version '1.1.0'
+	// id 'com.vaadin' version "$vaadinVersion" // should be commented out
+}
+
+apply plugin: 'com.vaadin' // should be added in case of using pre-releases
+
+Add buildscript to the settings.gradle file containing the following:
+
+Note: [filename]The settings.gradle file might not exist in your project
+
+The settings.gradle file is mostly used within multi-module projects, but it’s also useful for other configurations. If you don’t already have it in your project, you can create a plain text file called settings.gradle next to your build.gradle file, which is in the project root folder.
+
+[groovy]
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.vaadin.com/vaadin-prereleases' }
+    }
+    dependencies {
+        classpath "com.vaadin:vaadin-gradle-plugin:$vaadinVersion"
+    }
+}
+
+You can now try out pre-release and snapshot versions of Vaadin and the Vaadin Gradle plugin.
+
+Note: Use Final Releases for Production.
+
+To avoid any inconsistencies, do not use any pre-release versions, especially snapshots in your production environment. Vaadin always recommends using the latest final release versions. Visit the Vaadin release page for the latest versions.

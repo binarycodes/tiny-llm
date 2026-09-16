@@ -1,0 +1,194 @@
+New Relic Integration
+
+Learn how to use New Relic together with Observability Kit.
+
+New Relic is an observability SaaS platform with support for metrics, traces, and logs.
+
+Caution: Large Messages Ignored
+
+New Relic ignores all messages above a certain size. To avoid losing data, messages can be truncated automatically using the property otel.attribute.value.length.limit. See Observability Kit Configuration for instructions on this.
+
+New Relic Account
+
+You can sign up for a New Relic account at https://newrelic.com/signup. You can export up to 100 GB of data per month without a charge.
+
+Observability Kit Configuration
+
+Create a new properties file named, agent.properties. Add the following lines to it:
+
+[agent.properties]
+otel.traces.exporter=otlp
+otel.logs.exporter=otlp
+otel.metrics.exporter=otlp
+otel.exporter.otlp.endpoint=ENDPOINT_URL
+otel.exporter.otlp.headers=Api-Key=LICENSE_KEY
+otel.exporter.otlp.protocol=http/protobuf
+otel.attribute.value.length.limit=4095
+
+You can find the ENDPOINT_URL from the table in the New Relic documentation.
+
+You can find the LICENSE_KEY in your New Relic account settings under API Keys. Be sure to use the license key of type INGEST-LICENSE.
+
+Running the Application
+
+[JAR file: terminal]
+java -javaagent:PATH/TO/observability-kit-agent-VERSION.jar \
+     -Dotel.javaagent.configuration-file=PATH/TO/agent.properties \
+     -jar myapp.jar
+
+[JAR file: terminal]
+
+[Tomcat (Windows): terminal]
+set CATALINA_OPTS=%CATALINA_OPTS% -javaagent:PATH\TO\observability-kit-agent-VERSION.jar
+set OTEL_JAVAAGENT_CONFIGURATION_FILE=PATH\TO\agent.properties
+
+[Tomcat (Windows): terminal]
+
+[Tomcat (macOS/Linux): terminal]
+export CATALINA_OPTS="$CATALINA_OPTS -javaagent:PATH/TO/observability-kit-agent-VERSION.jar"
+export OTEL_JAVAAGENT_CONFIGURATION_FILE=PATH/TO/agent.properties
+
+[Tomcat (macOS/Linux): terminal]
+
+[Jetty: terminal]
+java -javaagent:PATH/TO/observability-kit-agent-VERSION.jar \
+     -Dotel.javaagent.configuration-file=PATH/TO/agent.properties \
+     -jar /PATH/TO/jetty_home/start.jar
+
+[Jetty: terminal]
+
+[Maven (Windows): terminal]
+set MAVEN_OPTS="-javaagent:PATH\TO\observability-kit-agent-VERSION.jar -Dotel.javaagent.configuration-file=PATH\TO\agent.properties"
+
+[Maven (Windows): terminal]
+
+[Maven (macOS/Linux): terminal]
+export MAVEN_OPTS="-javaagent:PATH/TO/observability-kit-agent-VERSION.jar -Dotel.javaagent.configuration-file=PATH/TO/agent.properties"
+
+[Maven (macOS/Linux): terminal]
+
+Note: Replace Placeholder Paths & Version
+
+Remember to correct the path to the agent.properties file, as well as the path and version of the Agent .jar file.
+
+Viewing Data
+
+After using the application for a while — the traces show up with a delay — log in to New Relic.
+
+From the All entities* view, select your service name under Services - OpenTelemetry: vaadin if you didn’t specify one.
+
+Now you get a menu where you can look through the telemetry data from your application.
+
+Viewing Traces
+
+Open the Monitor - Distributed tracing view, which shows application traces showing count, duration, and errors.
+
+See New Relic documentation for the Distributed tracing page for more information on how to use this view.
+
+Viewing Metrics
+
+Open the Data - Metrics explorer view, where you can explore all reported metrics.
+
+See New Relic documentation for the Metrics explorer page for more information on how to use this view.
+
+Viewing Logs
+
+Open the Monitor - Logs view, which shows application logs that link to traces with trace.id.
+
+See New Relic documentation for the Logs page for more information on how to use this view.
+
+Observability Kit Dashboard
+
+You can create a pre-configured dashboard for New Relic that contains several metrics, such as request throughput, error rate, and JVM stats with this generator.
+
+Enter your New Relic account ID below and then click Generate. You can get your account ID from the New Relic URL in the browser.
+
+[dashboard-generator.ts]
+import '@vaadin/button';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import '@vaadin/text-area';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { TextFieldValueChangedEvent } from '@vaadin/text-field';
+import { applyTheme } from 'Frontend/demo/theme';
+import template from './dashboard-template.json';
+
+@customElement('new-relic-dashboard-generator')
+export class DashboardGenerator extends LitElement {
+  static override styles = css`
+    .json-result {
+      width: 100%;
+      height: 200px;
+    }
+  `;
+
+  @state()
+  accountId = '';
+
+  @state()
+  json = '';
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private handleGenerate() {
+    let json = JSON.stringify(template, null, 2);
+    // Replace account ID in template
+    json = json.replace(/"accountId": \d+/g, `"accountId": ${this.accountId}`);
+
+    this.json = json;
+  }
+
+  private handleCopyToClipboard() {
+    navigator.clipboard.writeText(this.json).then(() => {
+      const notification = Notification.show('Copied!', {
+        position: 'middle',
+        duration: 2000,
+      });
+      notification.setAttribute('theme', 'success');
+    });
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-text-field
+        label="Account ID"
+        .value="${this.accountId}"
+        @value-changed="${(event: TextFieldValueChangedEvent) => {
+          this.accountId = event.detail.value;
+        }}"
+      >
+        <vaadin-icon slot="prefix" icon="vaadin:user"></vaadin-icon>
+      </vaadin-text-field>
+      <vaadin-button @click="${this.handleGenerate}" ?disabled="${this.accountId.length === 0}">
+        Generate
+      </vaadin-button>
+      <br />
+      <vaadin-text-area
+        class="json-result"
+        label="Dashboard JSON"
+        theme="monospace"
+        readonly
+        .value="${this.json}"
+      ></vaadin-text-area>
+      <vaadin-button @click="${this.handleCopyToClipboard}" ?disabled="${this.json.length === 0}">
+        Copy
+      </vaadin-button>
+    `;
+  }
+}
+
+[dashboard-generator.ts]
+
+Next, you need to do the following:
+
+- Copy the dashboard JSON from above;
+- Open the New Relic UI in the browser;
+- Open the Dashboards view, and then click on Import dashboard in the top-right; and
+- Paste the JSON that you copied from above, and then click Import dashboard.

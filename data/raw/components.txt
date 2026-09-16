@@ -1,0 +1,417 @@
+Components
+
+A list of available Vaadin components.
+
+Categories & Resources
+
+Data Entry
+
+Text fields, date pickers, combo boxes, and everything you need for forms.
+
+Form input components
+
+Visualization & Interaction
+
+Buttons, tables, menus, charts, etc.
+
+Visualization and interaction components
+
+Layouts
+
+Components for structuring a UI without the need for CSS.
+
+Layout components
+
+Styling
+
+[image: theme editor icon]
+
+The styling of Vaadin components can be customized using style tokens, utility classes and custom CSS.
+
+Read about how to style Vaadin components
+
+Figma Libraries
+
+Design and prototype application UIs in Figma using the official Vaadin Figma libraries.
+
+See Figma Libraries
+
+Accessibility
+
+Designed for compliance with WCAG 2.1 level AA. Check the current status of components and read Vaadin’s accessibility statement.
+
+<<https://vaadin.com/accessibility, Read about Vaadin Accessibility>>
+
+Data Entry
+
+Checkbox
+
+Checkbox is an input field representing a binary choice.
+
+See Checkbox
+
+Combo Box
+
+Combo Box allows the user to choose a value from a filterable list of options presented in an overlay.
+
+See Combo Box
+
+Custom Field
+
+Custom Field is a component for wrapping multiple components as a single field.
+
+See Custom Field
+
+Date Picker
+
+Date Picker is an input field that allows the user to enter a date by typing or by selecting from a calendar overlay.
+
+See Date Picker
+
+Date Time Picker
+
+Date Time Picker is an input field for selecting both a date and a time.
+
+See Date Time Picker
+
+Email Field
+
+Email Field is an extension of Text Field that accepts only email addresses as input.
+
+See Email Field
+
+List Box
+
+List Box allows the user to select one or more values from a scrollable list of items.
+
+See List Box
+
+Number Field
+
+Number Field is an input field that accepts only numeric input.
+
+See Number Field
+
+Message Input
+
+Message Input allows users to author and send messages.
+
+See Message Input
+
+Multi-Select Combo Box
+
+Multi-Select Combo Box allows the user to choose one or more values from a filterable list of options presented in an overlay.
+
+See Multi-Select Combo Box
+
+Password Field
+
+Password Field is an input field for entering passwords.
+
+See Password Field
+
+Radio Button
+
+Radio Button Group allows users to select one value among multiple choices.
+
+See Radio Button
+
+Rich Text Editor
+
+Rich Text Editor allows the user to author text that has rich formatting.
+
+See Rich Text Editor
+
+Select
+
+Select allows users to choose a single value from a list of options presented in an overlay.
+
+See Select
+
+Slider
+
+Slider is an input field that lets users pick a numeric value within a range by dragging a thumb along a track. Use arrow keys for precise adjustments.
+
+See Slider
+
+Text Area
+
+Text Area is an input field component that allows entry of multiple lines of text.
+
+See Text Area
+
+Text Field
+
+Text Field allows users to enter text.
+
+See Text Field
+
+Time Picker
+
+Time Picker is an input field for used entering or selecting a specific time.
+
+See Time Picker
+
+Upload
+
+Upload allows the user to upload files, giving feedback to the user during the upload process.
+
+See Upload
+
+Visualization and Interaction
+
+Auto Grid
+
+Auto Grid is a component for displaying tabular data based on a Java backend service.
+
+See Auto Grid
+
+Accordion
+
+Accordion is a vertically stacked set of expandable panels.
+
+See Accordion
+
+Avatar
+
+Avatar is a graphical representation of an object or entity, for example, a person or an organization.
+
+See Avatar
+
+Badge
+
+Badges are colored text elements containing small bits of information.
+
+See Badge
+
+Breadcrumbs
+
+Breadcrumbs show the user’s location within an application’s hierarchy and provide links back to higher levels.
+
+See Breadcrumbs
+
+Button
+
+The Button component allows users to perform actions. It comes in several different style variants and supports icons as well as text labels.
+
+See Button
+
+Charts
+
+Charts is a feature-rich interactive charting library with a vast number of different chart types from basic plotting to complex financial charting.
+
+See Charts
+
+Card
+
+The Card component is a versatile container for grouping related content and actions, with several customization options for layout and appearance.
+
+See Card
+
+Confirm Dialog
+
+Confirm Dialog is a modal Dialog used to confirm user actions.
+
+See Confirm Dialog
+
+Context Menu
+
+Context Menu is a component that you can attach to any component to display a context menu.
+
+See Context Menu
+
+CRUD
+
+CRUD is a component for managing a dataset. It allows for easy displaying, editing, creating, and deleting of items.
+
+See CRUD
+
+Details
+
+Details is an expandable panel for showing and hiding content from the user, to make the UI less cluttered.
+
+See Details
+
+Dialog
+
+Dialog is a small window that can be used to present information and user interface elements in an overlay.
+
+See Dialog
+
+Grid
+
+Vaadin Grid is a component for displaying tabular data, including various enhancements to grid renderings.
+
+See Grid
+
+Grid Pro
+
+Grid Pro is an extension of the Grid component that provides inline editing with full keyboard navigation.
+
+See Grid Pro
+
+HTML Elements Flow
+
+Vaadin Flow comes with a set of components for standard HTML elements.
+
+See HTML Elements
+
+Icons
+
+Over 600 built-in icons for business applications.
+
+See Icons
+
+Markdown
+
+The Markdown component renders content written in the Markdown syntax as HTML.
+
+See Markdown
+
+Map Flow
+
+Map is a component for displaying geographical maps from various sources.
+
+See Map
+
+Menu Bar
+
+Menu Bar is a horizontal button bar with hierarchical drop-down menus.
+
+See Menu Bar
+
+Message List
+
+Message List allows you to show a list of messages, for example, a chat log.
+
+See Message List
+
+Notification
+
+Notification is used to provide feedback to the user about activities, processes, and events in the application.
+
+See Notification
+
+Popover
+
+A generic overlay whose position is anchored to an element in the UI.
+
+See Popover
+
+Progress Bar
+
+Progress Bar shows the amount of completion of a task or process.
+
+See Progress Bar
+
+Scroller
+
+Scroller is a container component that enables scrollable areas within the UI.
+
+See Scroller
+
+Side Navigation
+
+Side Navigation provides a vertical list of navigation links with support for collapsible, nested sections.
+
+See Side Navigation
+
+Spreadsheet
+
+Vaadin Spreadsheet allows displaying and interacting with the contents of an Excel file.
+
+See Spreadsheet
+
+Tabs
+
+Tabs are used to organize and group content into sections that the user can navigate.
+
+See Tabs
+
+Tooltip
+
+Tooltips are small pop-ups for providing additional information about other UI elements.
+
+See Tooltip
+
+Tree Grid
+
+Tree Grid is a component for displaying hierarchical tabular data grouped into expandable nodes.
+
+See Tree Grid
+
+Virtual List
+
+Virtual List allows you to render a long list of items inside a scrollable container without sacrificing performance.
+
+See Virtual List
+
+Layouts
+
+App Layout
+
+App Layout is a component for the root layout of a Vaadin application. It provides predefined areas for the navigation drawer, the header, and the view’s content.
+
+See App Layout
+
+Dashboard
+
+A component for building static dashboard layouts and dynamic, user-configurable dashboards.
+
+See Dashboard
+
+Form Layout
+
+Form Layout allows you to build responsive forms with multiple columns, and to position input labels above or to the side of the input.
+
+See Form Layout
+
+Horizontal Layout
+
+Horizontal Layout places components side-by-side in a row.
+
+See Horizontal Layout
+
+Login
+
+Login is a component that contains a log-in form. You can use it to authenticate the user with a username and password.
+
+See Login
+
+Master-Detail Layout
+
+Master-Detail Layout is component for building UIs with a horizontally or vertically split pair consisting of a master area and a detail area that can responsively switch to an overlay.
+
+See Master-Detail Layout
+
+Split Layout
+
+Split Layout is a component with two content areas and a draggable split handle between them.
+
+See Split Layout
+
+Vertical Layout
+
+Vertical Layout places components top-to-bottom in a column.
+
+See Vertical Layout
+
+Didn’t Find What You Need?
+
+Browse Vaadin Directory
+
+Vaadin Directory is a place where you can find add-ons built by the community for your applications, such as components and themes, and share your work with other community members.
+
+Vaadin Directory
+
+Create Components in Java
+
+You can create new components by combining and extending existing ones, or by constructing them using the Element Java API in Flow.
+
+Create Components in Java
+
+Integrate Web Components
+
+Learn how you can integrate your own Web Components or other third-party W3C-standard Web Components into Vaadin applications.
+
+Integrate Web Components

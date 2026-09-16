@@ -1,0 +1,349 @@
+Select Styling
+
+Styling API reference for the Select component.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+align-left | Aligns the text to the left side of the field (default) | Aura, Lumo
+align-center | Centers the text within the field | Aura, Lumo
+align-right | Aligns the text to the right side of the field. Recommended for numerical values when presented in vertical groups. | Aura, Lumo
+align-start | Aligns the text to the start side of the field, taking into account the current text direction (left for LTR, right for RTL) | Aura
+align-end | Aligns the text to the end side of the field, taking into account the current text direction (right for LTR, left for RTL) | Aura
+small | Renders a more compact field | Aura, Lumo
+filled | Uses a solid background color for hovered and active items in the overlay | Aura
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+
+[Flow: SelectStyles.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.select.SelectVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("select-styles")
+public class SelectStyles extends HorizontalLayout {
+
+    public SelectStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        Select<String> field = new Select<>();
+        field.addThemeVariants(SelectVariant.SMALL, SelectVariant.ALIGN_RIGHT,
+                SelectVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setItems("Value");
+        field.setItems("Most recent first", "Rating: high to low",
+                "Rating: low to high", "Price: high to low",
+                "Price: low to high");
+        field.setValue("Most recent first");
+
+        add(field);
+    }
+
+}
+
+[React: select-styles.tsx]
+import React from 'react';
+import { Select } from '@vaadin/react-components/Select.js';
+
+function Example() {
+  const items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  return (
+    // tag::snippet[]
+    <Select
+      theme="align-right small helper-above-field"
+      label="Label"
+      helperText="Helper text"
+      items={items}
+      value={items[0].value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: select-styles.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select
+        theme="align-right small helper-above-field"
+        label="Label"
+        helper-text="Helper text"
+        .items="${this.items}"
+        value="${this.items[0].value}"
+      ></vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  @state()
+  private items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Field Surface
+
+Common Properties
+
+Property | Supported by
+--vaadin-input-field-background | Aura, Lumo
+--vaadin-input-field-border-color | Aura, Lumo
+--vaadin-input-field-border-radius | Aura, Lumo
+--vaadin-input-field-border-width | Aura, Lumo
+--vaadin-input-field-bottom-end-radius | Aura, Lumo
+--vaadin-input-field-bottom-start-radius | Aura, Lumo
+--vaadin-input-field-container-gap | Aura
+--vaadin-input-field-height | Lumo
+--vaadin-input-field-padding | Aura
+--vaadin-input-field-placeholder-color | Aura, Lumo
+--vaadin-input-field-top-start-radius | Aura, Lumo
+--vaadin-input-field-top-end-radius | Aura, Lumo
+--vaadin-input-field-value-color | Aura, Lumo
+--vaadin-input-field-value-font-size | Aura, Lumo
+--vaadin-input-field-value-font-weight | Aura, Lumo
+--vaadin-input-field-value-line-height | Aura, Lumo
+
+Field States
+
+Property | Supported by
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+--vaadin-input-field-disabled-background | Aura, Lumo
+--vaadin-input-field-disabled-text-color | Aura
+--vaadin-input-field-disabled-value-color | Lumo
+--vaadin-input-field-hover-highlight | Lumo
+--vaadin-input-field-hover-highlight-opacity | Lumo
+--vaadin-input-field-invalid-background | Lumo
+--vaadin-input-field-invalid-hover-highlight | Lumo
+--vaadin-input-field-readonly-border | Lumo
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+Field Buttons
+
+Property | Supported by
+--vaadin-clickable-cursor | Aura
+--vaadin-disabled-cursor | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-input-field-button-text-color | Aura
+--vaadin-input-field-icon-size | Lumo
+--vaadin-input-field-icon-color | Lumo
+
+Overlay
+
+Property | Supported by
+--vaadin-select-overlay-width | Aura, Lumo
+--vaadin-item-overlay-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+
+Overlay Items
+
+Property | Supported by
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-select
+
+States
+
+Required
+    vaadin-select[required]
+Focused
+    vaadin-select[focused]
+Keyboard focused
+    vaadin-select[focus-ring]
+Read-only
+    vaadin-select[readonly]
+Disabled
+    vaadin-select[disabled]
+Not empty
+    vaadin-select[has-value]
+With open overlay
+    vaadin-select[opened]
+Hovered
+    vaadin-select:hover
+
+Field
+
+Field surface (background, border)
+    vaadin-select::part(input-field)
+Internal button element
+    vaadin-select-value-button
+Selected item element inside field
+    vaadin-select-value-button > vaadin-select-item
+Selected value
+    vaadin-select-value-button > vaadin-select-item::part(content)
+Internal button showing placeholder
+    vaadin-select-value-button[placeholder]
+Toggle Button
+    vaadin-select::part(toggle-button)
+Prefix element
+    vaadin-select > [slot="prefix"]
+
+Label
+
+Field with label
+    vaadin-select[has-label]
+Label
+    vaadin-select::part(label)
+Label text
+    vaadin-select > label
+Required indicator
+    vaadin-select::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-select[has-helper]
+Helper
+    vaadin-select::part(helper-text)
+Helper text
+    vaadin-select > [slot="helper"]
+Invalid field
+    vaadin-select[invalid]
+Field with error message
+    vaadin-select[has-error-message]
+Error message
+    vaadin-select::part(error-message)
+Error message text
+    vaadin-select > [slot="error-message"]
+Overlay background
+    vaadin-select::part(overlay)
+Overlay list box wrapper
+    vaadin-select::part(content)
+
+Items
+
+Item element
+    vaadin-select-item
+Selected item
+    vaadin-select-item[selected]
+Item selection indicator
+    vaadin-select-item::part(checkmark)
+Item selection indicator icon
+    vaadin-select-item::part(checkmark)::before
+Focused item
+    vaadin-select-item[focused]
+Item content wrapper
+    vaadin-select-item::part(content)
+Hovered item
+    vaadin-select-item:hover

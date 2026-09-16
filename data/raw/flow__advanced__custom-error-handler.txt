@@ -1,0 +1,72 @@
+Custom Error Handling
+
+Customizing error views related to navigation between routes.
+
+You can customize the error views related to navigation between different routes. The handling of router exceptions is described on the Router Exception Handling documentation page.
+
+For other unhandled runtime exceptions, an ErrorHandler class can be used to let users know that something went wrong. To do so, first create a custom ErrorHandler class. Then use that class to override the default error handler.
+
+For example, the following CustomErrorHandler class logs the error and displays a notification to the user:
+
+[Java]
+public class CustomErrorHandler implements ErrorHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomErrorHandler.class);
+
+    @Override
+    public void error(ErrorEvent errorEvent) {
+        logger.error("Something wrong happened", errorEvent.getThrowable());
+        if(UI.getCurrent() != null) {
+            UI.getCurrent().access(() -> {
+                Notification.show("An internal error has occurred." +
+                        "Contact support for assistance.");
+            });
+        }
+    }
+}
+
+Next, assign the custom error handler to the current user session like this:
+
+[Java]
+VaadinSession.getCurrent().setErrorHandler(new CustomErrorHandler());
+
+To apply the custom error handler to all user sessions, you can use a SessionInitListener, which receives an event each time a new VaadinSession is initialized. See the Session and UI Listeners documentation page to learn how to create a SessionInitListener.
+
+ErrorEvent has the method getComponent() to get the handled Component, and the getElement() method to get the handled Element when the error is thrown, if available.
+
+For example, the following button-click listener has ErrorEvent getComponent() return the clicked button:
+
+[Java]
+Button button = new Button("Click me", event -> {
+    throw new IllegalArgumentException("No clicking");
+});
+
+Error Parameter Views for Non-Navigation Exceptions
+
+In the DefaultErrorHandler, it’s possible to enable transitioning to an HasErrorParameter<T extends Exception> error view on exceptions. See the Error Resolving page for more information on the HasErrorParameter.
+
+For a customized error handler, the same can be done by using the ErrorHandlerUtil method, handleErrorByRedirectingToErrorView like so:
+
+[Java]
+public class CustomErrorHandler implements ErrorHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomErrorHandler.class);
+
+    @Override
+    public void error(ErrorEvent errorEvent) {
+        boolean redirected = ErrorHandlerUtil
+            .handleErrorByRedirectingToErrorView(errorEvent.getThrowable());
+        if (!redirected) {
+            // We did not have a matching error view, logging and showing notification.
+            logger.error("Something wrong happened", errorEvent.getThrowable());
+            if(UI.getCurrent() != null) {
+                UI.getCurrent().access(() -> {
+                    Notification.show("An internal error has occurred." +
+                            "Contact support for assistance.");
+                });
+            }
+        }
+    }
+}
+
+Calling handleErrorByRedirectingToErrorView shows the error view with the exact matching exception. As a result, for AccountingException, only the exact match MyAccountingException implements HasErrorParameter<AccountingException> is accepted and rendered.

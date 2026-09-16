@@ -1,0 +1,214 @@
+Upload Styling
+
+Styling API reference for the Upload component.
+
+Style Variants
+
+Upload supports the following style variants:
+
+Variant | Description | Supported by
+no-border | Removes border around the upload component | Aura
+thumbnails | Displays file list items as a compact grid with thumbnail previews for images. Apply to UploadFileList. | Aura, Lumo
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Upload Properties
+
+Property | Supported by
+--vaadin-upload-background | Aura
+--vaadin-upload-border-color | Aura
+--vaadin-upload-border-radius | Aura
+--vaadin-upload-border-width | Aura
+--vaadin-upload-drop-label-color | Aura
+--vaadin-upload-drop-label-font-size | Aura
+--vaadin-upload-drop-label-font-weight | Aura
+--vaadin-upload-drop-label-gap | Aura
+--vaadin-upload-drop-label-line-height | Aura
+--vaadin-upload-gap | Aura, Lumo
+--vaadin-upload-padding | Aura
+
+File List Properties
+
+Property | Supported by
+--vaadin-upload-file-list-divider-color | Aura
+--vaadin-upload-file-list-divider-width | Aura
+
+File Properties
+
+Property | Supported by
+--vaadin-upload-file-border-radius | Aura
+--vaadin-upload-file-button-background | Aura
+--vaadin-upload-file-button-border-color | Aura
+--vaadin-upload-file-button-border-radius | Aura
+--vaadin-upload-file-button-border-width | Aura
+--vaadin-upload-file-button-text-color | Aura
+--vaadin-upload-file-button-padding | Aura
+--vaadin-upload-file-done-color | Aura
+--vaadin-upload-file-error-color | Aura
+--vaadin-upload-file-error-font-size | Aura
+--vaadin-upload-file-error-font-weight | Aura
+--vaadin-upload-file-error-line-height | Aura
+--vaadin-upload-file-gap | Aura
+--vaadin-upload-file-name-color | Aura
+--vaadin-upload-file-name-font-size | Aura
+--vaadin-upload-file-name-font-weight | Aura
+--vaadin-upload-file-name-line-height | Aura
+--vaadin-upload-file-padding | Aura
+--vaadin-upload-file-status-color | Aura
+--vaadin-upload-file-status-font-size | Aura
+--vaadin-upload-file-status-font-weight | Aura
+--vaadin-upload-file-status-line-height | Aura
+--vaadin-upload-file-warning-color | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-upload
+
+States
+
+Upload with drop area disabled
+    vaadin-upload[nodrop]
+Upload with file dragged over
+    vaadin-upload[dragover]
+Upload with file dragged over and validated
+    vaadin-upload[dragover-valid]
+
+Button and Drop Label
+
+Button and drop label wrapper
+    vaadin-upload::part(primary-buttons)
+Upload button
+    vaadin-upload > vaadin-button
+Upload button text
+    vaadin-upload > vaadin-button::part(label)
+Hovered button
+    vaadin-upload > vaadin-button:hover
+Focused button
+    vaadin-upload > vaadin-button[focused]
+Disabled button
+    vaadin-upload > vaadin-button[disabled]
+Drop label
+    vaadin-upload::part(drop-label)
+Drop label text
+    vaadin-upload > [slot="drop-label"]
+Drop label icon wrapper
+    vaadin-upload > [slot="drop-label-icon"]
+Drop label icon
+    vaadin-upload > [slot="drop-label-icon"]::before
+
+File List
+
+File list wrapper
+    vaadin-upload-file-list
+File list
+    vaadin-upload-file-list::part(list)
+
+File
+
+File element
+    vaadin-upload-file
+Meta information wrapper
+    vaadin-upload-file::part(meta)
+File name
+    vaadin-upload-file::part(name)
+Status text
+    vaadin-upload-file::part(status)
+Error message
+    vaadin-upload-file::part(error)
+
+File States
+
+Focused file
+    vaadin-upload-file[focused]
+Hovered file
+    vaadin-upload-file:hover
+File uploaded successfully
+    vaadin-upload-file[complete]
+File that failed with an error
+    vaadin-upload-file[error]
+File with upload in progress
+    vaadin-upload-file[uploading]
+File with unknown remaining time estimate
+    vaadin-upload-file[indeterminate]
+Icon: upload completed
+    vaadin-upload-file::part(done-icon)
+Icon: upload failed
+    vaadin-upload-file::part(warning-icon)
+
+File Actions
+
+Actions wrapper
+    vaadin-upload-file::part(commands)
+Start upload button
+    vaadin-upload-file::part(start-button)
+Retry button
+    vaadin-upload-file::part(retry-button)
+Remove button
+    vaadin-upload-file::part(remove-button)
+
+Progress Bar
+
+Progress bar element
+    vaadin-upload-file > vaadin-progress-bar
+Progress bar track
+    vaadin-upload-file > vaadin-progress-bar::part(bar)
+Progress bar indicator
+    vaadin-upload-file > vaadin-progress-bar::part(value)
+Indeterminate progress bar (unknown estimate)
+    vaadin-upload-file > vaadin-progress-bar[indeterminate]
+
+Modular Upload Components
+
+The modular upload components (UploadButton, UploadDropZone, UploadFileList) can be styled independently. The File List and File properties and selectors documented above apply equally to the standalone UploadFileList component.
+
+Upload Button
+
+UploadButton (vaadin-upload-button) is styled the same as a regular Button component. It supports the same style variants, CSS custom properties, and CSS selectors.
+
+Root element
+    vaadin-upload-button
+
+States
+
+Disabled
+    vaadin-upload-button[disabled]
+Focused
+    vaadin-upload-button[focused]
+Keyboard focused
+    vaadin-upload-button[focus-ring]
+Maximum files reached
+    vaadin-upload-button[max-files-reached]
+
+Upload Drop Zone
+
+UploadDropZone (vaadin-upload-drop-zone) is intentionally unstyled. It serves as a functional container that wraps your own content. A semi-transparent overlay is shown during drag-over to indicate the drop target.
+
+Root element
+    vaadin-upload-drop-zone
+
+States
+
+File dragged over
+    vaadin-upload-drop-zone[dragover]
+Disabled
+    vaadin-upload-drop-zone[disabled]
+Maximum files reached
+    vaadin-upload-drop-zone[max-files-reached]
+
+Upload File List
+
+UploadFileList (vaadin-upload-file-list) uses the same vaadin-upload-file child elements as the standard Upload component. The File List Properties, File Properties, File List, File, File States, File Actions, and Progress Bar sections above all apply.
+
+Root element
+    vaadin-upload-file-list

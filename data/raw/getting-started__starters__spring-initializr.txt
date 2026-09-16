@@ -1,0 +1,11 @@
+Spring Initializr
+
+How to create a Vaadin project with Spring Initializr.
+
+If you are familiar with Spring Boot, you can quickly create a new Vaadin project with Spring Initializr:
+
+1. Visit Spring Initializr.
+2. Choose a build tool: Maven (recommended in this documentation) or Gradle.
+3. Select a programming language: Java (assumed in this documentation) or Kotlin.
+4. Add dependencies: include Vaadin and any additional dependencies required for your project.
+5. Generate the project by clicking Generate.

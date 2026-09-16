@@ -1,0 +1,111 @@
+CRUD Styling
+
+Styling API reference for the CRUD component.
+
+Style Variants
+
+CRUD supports the following style variants:
+
+Variant | Description | Supported by
+no-border | Removes border around the CRUD component | Aura, Lumo
+
+In Flow, apply the variant with addThemeVariants(CrudVariant.NO_BORDER).
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-crud-background | Aura
+--vaadin-crud-border-color | Aura
+--vaadin-crud-border-width | Aura
+--vaadin-crud-border-radius | Aura
+--vaadin-crud-toolbar-background | Aura
+--vaadin-crud-toolbar-padding | Aura
+
+The following properties are specific to the editor, when it is positioned aside or at the bottom:
+
+Property | Supported by
+--vaadin-crud-editor-max-height | Aura, Lumo
+--vaadin-crud-editor-max-width | Aura, Lumo
+--vaadin-crud-header-color | Aura
+--vaadin-crud-header-font-size | Aura
+--vaadin-crud-header-font-weight | Aura
+--vaadin-crud-header-line-height | Aura
+--vaadin-crud-header-padding | Aura
+--vaadin-crud-form-padding | Aura
+--vaadin-crud-footer-background | Aura
+--vaadin-crud-footer-gap | Aura
+--vaadin-crud-footer-padding | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-crud
+
+Grid
+
+Grid element
+    vaadin-crud > vaadin-grid
+Grid element, non-Flow
+    vaadin-crud > vaadin-crud-grid
+Edit button in grid
+    vaadin-crud-edit
+Edit button icon
+    vaadin-crud-edit::part(icon)::before
+Toolbar below grid
+    vaadin-crud::part(toolbar)
+
+See Grid selectors for details on styling the grid
+
+Toolbar
+
+Toolbar
+    vaadin-crud::part(toolbar)
+New item button
+    vaadin-crud > vaadin-button[slot="new-button"]
+
+Editor
+
+Editor header
+    vaadin-crud::part(header)
+Editor footer
+    vaadin-crud::part(footer)
+Editor title
+    vaadin-crud > [slot="header"]
+Editor form
+    vaadin-crud-form
+Save button
+    vaadin-crud > vaadin-button[slot="save-button"]
+Cancel button
+    vaadin-crud > vaadin-button[slot="cancel-button"]
+Delete button
+    vaadin-crud > vaadin-button[slot="delete-button"]
+
+Side/Bottom Edit Panel
+
+CRUD with editor on the side
+    vaadin-crud[editor-position="aside"]
+CRUD with editor at the bottom
+    vaadin-crud[editor-position="bottom"]
+Editor panel
+    vaadin-crud::part(editor)
+Editor scroller (content above toolbar)
+    vaadin-crud::part(scroller)
+
+Edit Dialog
+
+Modality curtain (backdrop)
+    vaadin-crud::part(backdrop)
+Dialog surface
+    vaadin-crud::part(overlay)
+Content area
+    vaadin-crud::part(content)

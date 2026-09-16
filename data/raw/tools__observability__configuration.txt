@@ -1,0 +1,260 @@
+Configuring Observability Kit
+
+How to configure Observability Kit and what are its default settings.
+
+Instrumentation can be configured in the agent.properties file that’s used with the Java agent.
+
+Service Configuration
+
+The service attributes are used to differentiate traces from services or applications which might have many instances running simultaneously, such as horizontally scaled services.
+
+The service attributes are as follows:
+
+service.name
+    is an attribute that’s used to distinguish a service by name. The default value is vaadin — the only attribute with a default value. It’s also the only one required.
+service.namespace
+    helps to distinguish a group of services.
+service.instance.id
+    helps to distinguish instances of the same service that exist simultaneously. It must be unique for each instance of the same service.namespace, service.name pair.
+service.version
+    is the semantic versioning string of the service version.
+
+The service.name attribute is configured using the otel.service.name property, either in the agent.properties configuration file as a system property, or as an environment variable.
+
+[Configuration file: properties]
+otel.service.name=myapp
+
+[Configuration file: properties]
+
+[System property: terminal]
+java -Dotel.service.name="myapp" ...
+
+[System property: terminal]
+
+[Environment variable: terminal]
+# Linux / macOS
+export OTEL_SERVICE_NAME="myapp"
+# Windows
+set OTEL_SERVICE_NAME="myapp"
+
+[Environment variable: terminal]
+
+Other service attributes are configured using the otel.resource.attributes property, either in the agent.properties configuration file as a system property, or as en environment variable. Multiple attributes are separated by commas.
+
+[Configuration file: properties]
+otel.resource.attributes=service.namespace=myservices,service.instance.id=myapp-eu
+
+[Configuration file: properties]
+
+[System property: terminal]
+java -Dotel.resource.attributes="service.namespace=myservices,service.instance.id=myapp-eu" ...
+
+[System property: terminal]
+
+[Environment variable: terminal]
+# Linux / macOS
+export OTEL_RESOURCE_ATTRIBUTES="service.namespace=myservices,service.instance.id=myapp-eu"
+# Windows
+set OTEL_RESOURCE_ATTRIBUTES="service.namespace=myservices,service.instance.id=myapp-eu"
+
+[Environment variable: terminal]
+
+For more information about service configuration, see the OpenTelemetry documentation.
+
+Default OpenTelemetry Instrumentation
+
+The custom distribution disables default OpenTelemetry instrumentation for Vaadin and servlets.
+
+The default instrumentation is disabled because logging all requests for a single-page application isn’t helpful — although it does generate plenty of data. It was disabled to have control over which requests generate a trace.
+
+The jetty, servlet, and tomcat instrumentation modules are disabled by default. To enable any of them, add the following line to the agent.properties file:
+
+[properties]
+otel.instrumentation.${instrumentationName}.enabled=true
+
+Frontend Observability Configuration
+
+Frontend observability is enabled by default, with all the client-side instrumentation active. The configuration can be tuned in two ways: statically by editing the agent.properties file, or by providing environment variables or system properties; or dynamically by implementing the ObservabilityClientConfigurer interface, which applies changes at runtime.
+
+With static configuration, the same settings are applied to all UI instances. Changes to the configuration require a server restart.
+
+With dynamic configuration, the instrumentation can be enabled or disabled at runtime, without restarting the server. The configuration can also be tuned for a specific browser tab. Changes are applied when the browser page is reloaded.
+
+Frontend Observability Static Configuration
+
+Static frontend observability configuration can be provided by adding entries to the agent.properties file or with environment variables or system properties, as mentioned earlier.
+
+The following properties can be used to tune frontend instrumentation:
+
+Property Name | Description | Default Value
+otel.instrumentation.vaadin.frontend.enabled | Enables or disables all frontend instrumentation. | true
+otel.instrumentation.vaadin.frontend.document-load | Enables or disables the Document Load instrumentation. | true
+otel.instrumentation.vaadin.frontend.user-interaction | Enables or disables the User Interaction instrumentation. | true
+otel.instrumentation.vaadin.frontend.xml-http-request | Enables or disables the XML HTTP Request instrumentation. | true
+otel.instrumentation.vaadin.frontend.long-task | Enables or disables the Long Task instrumentation. | true
+otel.instrumentation.vaadin.frontend.frontend-error | Enables or disables the Frontend Error instrumentation. | true
+
+For more information about the frontend instrumentation, consult the Observability Kit Reference page.
+
+Frontend Observability Runtime Configuration (Flow)
+
+By default, frontend observability enables all out-of-the-box client-side instrumentation. Observability Kit provides a way to enable, disable and tune the instrumentation at runtime.
+
+This is done by implementing the ObservabilityClientConfigurer interface and applying the desired settings to the ObservabilityClientConfiguration instance provided to the configure method. The configuration is applied during UI initialization: The Configurer logic can access the current VaadinRequest. If a security infrastructure has been configured for a project and the user is logged into the application, the user details can also be accessed. This allows fine-tuning of observability to single-user level.
+
+For example, the following implementation shows how to set up observability based on a mutable configuration tied to the currently logged-in user.
+
+[UserBasedFrontendObservability.java]
+package com.vaadin.demo.observability;
+
+import java.security.Principal;
+
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.observability.ObservabilityClientConfiguration;
+import com.vaadin.observability.ObservabilityClientConfigurer;
+
+public class UserBasedFrontendObservability
+        implements ObservabilityClientConfigurer {
+    @Override
+    public void configure(ObservabilityClientConfiguration config) {
+        var request = VaadinRequest.getCurrent();
+        var userSettings = fetchConfiguration(request.getUserPrincipal());
+
+        config.setEnabled(userSettings.isEnabled());
+        config.setDocumentLoadEnabled(userSettings.isDocumentLoad());
+        config.setUserInteractionEnabled(userSettings.isUserInteraction());
+        config.setLongTaskEnabled(userSettings.isLongTask());
+        config.setXMLHttpRequestEnabled(userSettings.isXmlHttpRequest());
+        config.setFrontendErrorEnabled(userSettings.isFrontendError());
+    }
+
+    private UserObservabilityConfig fetchConfiguration(Principal user) {
+        if (user != null) {
+            // fetch the configuration for the given user from some storage
+            // e.g. in-memory data structure, database table, properties file,
+            // ...
+            UserObservabilityConfig config = new UserObservabilityConfig();
+            config.setXmlHttpRequest(false);
+
+            return config;
+        }
+        // user not logged-in, return null or a default configuration
+        return new UserObservabilityConfig();
+    }
+
+    static class UserObservabilityConfig {
+        private boolean enabled = true;
+        private boolean documentLoad = true;
+
+        private boolean userInteraction = true;
+        private boolean longTask = true;
+        private boolean xmlHttpRequest = true;
+        private boolean frontendError = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isDocumentLoad() {
+            return enabled && documentLoad;
+        }
+
+        public void setDocumentLoad(boolean documentLoad) {
+            this.documentLoad = documentLoad;
+        }
+
+        public boolean isUserInteraction() {
+            return enabled && userInteraction;
+        }
+
+        public void setUserInteraction(boolean userInteraction) {
+            this.userInteraction = userInteraction;
+        }
+
+        public boolean isLongTask() {
+            return enabled && longTask;
+        }
+
+        public void setLongTask(boolean longTask) {
+            this.longTask = longTask;
+        }
+
+        public boolean isXmlHttpRequest() {
+            return enabled && xmlHttpRequest;
+        }
+
+        public void setXmlHttpRequest(boolean xmlHttpRequest) {
+            this.xmlHttpRequest = xmlHttpRequest;
+        }
+
+        public boolean isFrontendError() {
+            return enabled && frontendError;
+        }
+
+        public void setFrontendError(boolean frontendError) {
+            this.frontendError = frontendError;
+        }
+    }
+}
+
+With the above implementation, the configuration can be fetched from a database table. This allows changes to be applied at runtime after a browser page reload.
+
+The Configurer is loaded through the Java ServiceLoader API, by adding the file com.vaadin.observability.ObservabilityClientConfigurer to the src/main/resources/META-INF/services/ directory, with the content being the fully qualified name of the Configurer class. For this example, the file looks like this:
+
+com.vaadin.observability.ObservabilityClientConfigurer
+
+org.example.UserBasedFrontendObservability
+
+For details on observability client settings, consult the Javadocs of the ObservabilityClientConfiguration interface.
+
+Note: Load Configurer in Spring Project
+
+For Spring based projects, the Configurer can be loaded by exposing the implementation as a Spring managed @Bean, without the need to register the class for the ServiceLoader API.
+
+Frontend Observability Configuration (Hilla)
+
+To enable frontend observability, you need to add the @hilla/observability-kit-client package to your package.json file. After that, you can use the init function provided by the package.
+
+The init function requires two parameters: the export method from the ObservabilityEndpoint that comes with the starter artifact; and a list of options.
+
+The options list has the following structure:
+
+[TypeScript]
+export interface TelemetryInitializationOptions {
+  /** Specifies URLs to ignore */
+  ignoredURLs?: readonly string[];
+  /** Disables tracking of internal Vaadin/Hilla URLs */
+  ignoreVaadinURLs?: boolean;
+  /** Frontend-specific `service.instance.id` attribute */
+  instanceId?: string;
+  /** Frontend-specific `service.name` attribute */
+  serviceName?: string;
+  /** Frontend-specific `service.version` attribute */
+  serviceVersion?: string;
+  /** Enables or disables the Document Load instrumentation. */
+  traceDocumentLoad?: boolean;
+  /** Enables or disables the Frontend Error instrumentation. */
+  traceErrors?: boolean;
+  /** Enables or disables the Long Task instrumentation. */
+  traceLongTask?: boolean;
+  /** Enables or disables the User Interaction instrumentation. */
+  traceUserInteraction?: readonly EventName[] | null;
+  /** Enables or disables the XML HTTP Request instrumentation. */
+  traceXmlHTTPRequest?: boolean;
+}
+
+By default, the options are set as follows:
+
+[TypeScript]
+const options = {
+  serviceName: 'hilla',
+  traceDocumentLoad: true,
+  traceErrors: true,
+  traceLongTask: true,
+  traceUserInteraction: ['click'],
+  traceXmlHTTPRequest: true,
+};

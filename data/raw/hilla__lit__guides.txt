@@ -1,0 +1,26 @@
+Hilla Guides
+
+Application Architecture
+    An overview of the structure and architecture of a Hilla application.
+Routing & Navigation
+    Learn all about defining routes and navigating between views.
+Endpoints
+    A server-side Java endpoint is a backend method that's exposed so to call it from client-side TypeScript code.
+Reactive Endpoints
+    Reactive endpoints allow you to stream data to the client without the traditional HTTP request-response pattern.
+Event Handling
+    Handling events in a Hilla application. Declarative event listeners and event objects in TypeScript.
+State Management
+    Managing application state with the MobX state management library in Hilla.
+Client Middleware
+    In Hilla, middleware intercepts the request and response for every call, so it's able to process requests and their responses.
+Forms
+Client-Side Data Caching
+    Understanding when and how to cache client-side data.
+Styling
+    How to add CSS styles to views and Lit components in Hilla applications.
+Security
+    The best practices for securing applications, configuring security, authentication and role-based access control for views.
+Deploying to Production
+Upgrading Early Hilla Versions
+    The steps to upgrade from Hilla 1.x or 2.x to the latest version.

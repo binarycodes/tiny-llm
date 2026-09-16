@@ -1,0 +1,311 @@
+Custom Field Styling
+
+Styling API reference for the Custom Field component.
+
+Style Variants
+
+The following variants are supported:
+
+Variant | Description | Supported by
+helper-above-field | Used to position the helper above the field, and below the label | Aura, Lumo
+small | Used to make label and error message smaller | Aura, Lumo
+whitespace | Adds padding below the label for wrapping components without outer margin | Lumo
+
+[Flow: CustomFieldStyles.java]
+package com.vaadin.demo.component.customfield;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.customfield.CustomFieldVariant;
+
+@Route("custom-field-styles")
+public class CustomFieldStyles extends Div {
+
+    public CustomFieldStyles() {
+        // tag::snippet[]
+        MoneyField moneyField = new MoneyField("Price");
+        moneyField.addThemeVariants(CustomFieldVariant.SMALL,
+                CustomFieldVariant.HELPER_ABOVE);
+        // end::snippet[]
+        moneyField.setHelperText("Helper text");
+        add(moneyField);
+    }
+
+}
+
+[Flow: MoneyField.java]
+package com.vaadin.demo.component.customfield;
+
+import com.vaadin.flow.component.customfield.CustomField;
+import com.vaadin.flow.component.customfield.CustomFieldVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.select.SelectVariant;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
+
+// tag::snippet[]
+public class MoneyField extends CustomField<Money> {
+
+    private TextField amount;
+    private Select<String> currency;
+
+    public MoneyField(String label) {
+        this();
+        setLabel(label);
+    }
+
+    public MoneyField() {
+        amount = new TextField();
+        // Sets title for screen readers
+        amount.setAriaLabel("Amount");
+
+        currency = new Select<>();
+        currency.setItems("AUD", "CAD", "CHF", "EUR", "GBP", "JPY", "USD");
+        currency.setWidth("6em");
+        currency.setAriaLabel("Currency");
+
+        HorizontalLayout layout = new HorizontalLayout(amount, currency);
+        // Adds small amount of space between the components
+        layout.setSpacing("var(--vaadin-gap-s)");
+
+        add(layout);
+    }
+
+    public void addThemeVariants(CustomFieldVariant... variants) {
+        super.addThemeVariants(variants);
+        for (CustomFieldVariant variant : variants) {
+            amount.addThemeVariants(TextFieldVariant.valueOf(variant.name()));
+            currency.addThemeVariants(SelectVariant.valueOf(variant.name()));
+        }
+    }
+
+    @Override
+    protected Money generateModelValue() {
+        return new Money(amount.getValue(), currency.getValue());
+    }
+
+    @Override
+    protected void setPresentationValue(Money money) {
+        amount.setValue(money.getAmount());
+        currency.setValue(money.getCurrency());
+    }
+}
+// end::snippet[]
+
+[Flow: Money.java]
+package com.vaadin.demo.component.customfield;
+
+// tag::snippet[]
+public class Money {
+
+    private String amount;
+    private String currency;
+
+    public Money(String amount, String currency) {
+        this.amount = amount;
+        this.currency = currency;
+    }
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+}
+// end::snippet[]
+
+[React: custom-field-styles.tsx]
+import React from 'react';
+import { CustomField } from '@vaadin/react-components/CustomField.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Select } from '@vaadin/react-components/Select.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <CustomField label="Price" helperText="Helper text" theme="small helper-above-field">
+      <HorizontalLayout style={{ gap: 'var(--vaadin-gap-s)' }}>
+        <TextField accessibleName="Amount" theme="small" />
+        <Select
+          accessibleName="Currency"
+          items={[
+            { label: 'AUD', value: 'aud' },
+            { label: 'CAD', value: 'cad' },
+            { label: 'CHF', value: 'chf' },
+            { label: 'EUR', value: 'eur' },
+            { label: 'GBP', value: 'gbp' },
+            { label: 'JPY', value: 'jpy' },
+            { label: 'USD', value: 'usd' },
+          ]}
+          theme="small"
+          style={{ width: '6em' }}
+        />
+      </HorizontalLayout>
+    </CustomField>
+    // end::snippet[]
+  );
+}
+
+[Lit: custom-field-styles.ts]
+import '@vaadin/custom-field';
+import '@vaadin/horizontal-layout';
+import '@vaadin/select';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('custom-field-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private currencies = [
+    { label: 'AUD', value: 'aud' },
+    { label: 'CAD', value: 'cad' },
+    { label: 'CHF', value: 'chf' },
+    { label: 'EUR', value: 'eur' },
+    { label: 'GBP', value: 'gbp' },
+    { label: 'JPY', value: 'jpy' },
+    { label: 'USD', value: 'usd' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-custom-field label="Price" helper-text="Helper text" theme="small helper-above-field">
+        <vaadin-horizontal-layout style="gap: var(--vaadin-gap-s);">
+          <vaadin-text-field accessible-name="Amount" theme="small"></vaadin-text-field>
+          <vaadin-select
+            accessible-name="Currency"
+            .items="${this.currencies}"
+            theme="small"
+            style="width: 6em;"
+          ></vaadin-select>
+        </vaadin-horizontal-layout>
+      </vaadin-custom-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Custom Field doesn’t propagate its style variant to the individual field components it wraps. Each individual component’s style variant must be set individually.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Field Surface
+
+Property | Supported by
+--vaadin-input-field-container-gap | Aura
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-custom-field
+
+States
+
+Required
+    vaadin-custom-field[required]
+Focused
+    vaadin-custom-field[focused]
+Keyboard focused
+    vaadin-custom-field[focus-ring]
+Read-only
+    vaadin-custom-field[readonly]
+Disabled
+    vaadin-custom-field[disabled]
+Not empty
+    vaadin-custom-field[has-value]
+Hovered
+    vaadin-custom-field:hover
+
+Contents
+
+Field contents
+    vaadin-custom-field > your-element-here
+Field elements wrapper
+    vaadin-custom-field::part(input-fields)
+
+Label
+
+Field with label
+    vaadin-custom-field[has-label]
+Label
+    vaadin-custom-field::part(label)
+Label text
+    vaadin-custom-field > label
+Required indicator
+    vaadin-custom-field::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-custom-field[has-helper]
+Helper
+    vaadin-custom-field::part(helper-text)
+Helper text
+    vaadin-custom-field > [slot="helper"]
+Invalid field
+    vaadin-custom-field[invalid]
+Field with error message
+    vaadin-custom-field[has-error-message]
+Error message
+    vaadin-custom-field::part(error-message)
+Error message text
+    vaadin-custom-field > [slot="error-message"]

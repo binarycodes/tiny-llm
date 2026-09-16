@@ -1,0 +1,470 @@
+Scroller
+
+Scroller is a component container for creating scrollable areas in the UI.
+
+Scroller is a container component that enables scrollable areas within the UI.
+
+[Flow: ScrollerBasic.java]
+package com.vaadin.demo.component.scroller;
+
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.markdown.Markdown;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.router.Route;
+
+@Route("scroller-basic")
+public class ScrollerBasic extends Div {
+
+    private static final String EVENT_DETAILS = """
+            **Date & Time**
+
+            Saturday, July 19, 2025
+            9:00 AM – 5:00 PM (PDT)
+
+            **About This Event**
+
+            Join us for a full day of inspiring talks, hands-on workshops, and networking opportunities with industry leaders. Whether you're a seasoned developer or just starting out, there's something for everyone.
+
+            **Schedule**
+
+            - **9:00 AM** – Registration & Breakfast
+            - **10:00 AM** – Opening Keynote
+            - **11:30 AM** – Breakout Sessions
+            - **1:00 PM** – Lunch & Networking
+            - **2:30 PM** – Afternoon Workshops
+            - **4:30 PM** – Closing Remarks & Raffle
+
+            **What to Bring**
+
+            - Photo ID for check-in
+            - Laptop (optional, for workshops)
+            - Business cards for networking
+
+            **Parking**
+
+            Free parking available in Lot B. Street parking is limited.
+
+            **Contact**
+
+            Questions? Email us at events@techconf.io
+            """;
+
+    public ScrollerBasic() {
+        Card card = new Card();
+        card.setMaxWidth(400, Unit.PIXELS);
+
+        card.setTitle("Summer Tech Conference 2025");
+
+        // tag::snippet[]
+        Markdown markdown = new Markdown(EVENT_DETAILS);
+
+        Scroller scroller = new Scroller(markdown);
+        scroller.addThemeName("overflow-indicators");
+        scroller.setMaxHeight(300, Unit.PIXELS);
+        // end::snippet[]
+        card.add(scroller);
+
+        Button addToCalendar = new Button("Add to calendar");
+        card.addToFooter(addToCalendar);
+
+        add(card);
+    }
+
+}
+
+[React: scroller-basic.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Card } from '@vaadin/react-components/Card.js';
+import { Markdown } from '@vaadin/react-components/Markdown.js';
+import { Scroller } from '@vaadin/react-components/Scroller.js';
+
+const eventDetails = `
+**Date & Time**
+
+Saturday, July 19, 2025
+9:00 AM – 5:00 PM (PDT)
+
+**About This Event**
+
+Join us for a full day of inspiring talks, hands-on workshops, and networking opportunities with industry leaders. Whether you're a seasoned developer or just starting out, there's something for everyone.
+
+**Schedule**
+
+- **9:00 AM** – Registration & Breakfast
+- **10:00 AM** – Opening Keynote
+- **11:30 AM** – Breakout Sessions
+- **1:00 PM** – Lunch & Networking
+- **2:30 PM** – Afternoon Workshops
+- **4:30 PM** – Closing Remarks & Raffle
+
+**What to Bring**
+
+- Photo ID for check-in
+- Laptop (optional, for workshops)
+- Business cards for networking
+
+**Parking**
+
+Free parking available in Lot B. Street parking is limited.
+
+**Contact**
+
+Questions? Email us at events@techconf.io
+`;
+
+function Example() {
+  return (
+    <Card style={{ maxWidth: '400px' }}>
+      <div slot="title">Summer Tech Conference 2025</div>
+      {/* tag::snippet[] */}
+      <Scroller theme="overflow-indicators" style={{ maxHeight: '300px' }}>
+        <Markdown>{eventDetails}</Markdown>
+      </Scroller>
+      {/* end::snippet[] */}
+      <Button slot="footer">Add to calendar</Button>
+    </Card>
+  );
+}
+
+[Lit: scroller-basic.ts]
+import '@vaadin/button';
+import '@vaadin/card';
+import '@vaadin/scroller';
+import '@vaadin/markdown';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('scroller-basic')
+export class Example extends LitElement {
+  private eventDetails = `
+**Date & Time**
+
+Saturday, July 19, 2025
+9:00 AM – 5:00 PM (PDT)
+
+**About This Event**
+
+Join us for a full day of inspiring talks, hands-on workshops, and networking opportunities with industry leaders. Whether you're a seasoned developer or just starting out, there's something for everyone.
+
+**Schedule**
+
+- **9:00 AM** – Registration & Breakfast
+- **10:00 AM** – Opening Keynote
+- **11:30 AM** – Breakout Sessions
+- **1:00 PM** – Lunch & Networking
+- **2:30 PM** – Afternoon Workshops
+- **4:30 PM** – Closing Remarks & Raffle
+
+**What to Bring**
+
+- Photo ID for check-in
+- Laptop (optional, for workshops)
+- Business cards for networking
+
+**Parking**
+
+Free parking available in Lot B. Street parking is limited.
+
+**Contact**
+
+Questions? Email us at events@techconf.io
+`;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-card style="max-width: 400px">
+        <div slot="title">Summer Tech Conference 2025</div>
+        <!-- tag::snippet[] -->
+        <vaadin-scroller theme="overflow-indicators" style="max-height: 300px">
+          <vaadin-markdown .content="${this.eventDetails}"></vaadin-markdown>
+        </vaadin-scroller>
+        <!-- end::snippet[] -->
+        <vaadin-button slot="footer">Add to calendar</vaadin-button>
+      </vaadin-card>
+    `;
+  }
+}
+
+Scroll Direction
+
+Scroller supports four scroll directions: vertical, horizontal, both, and none. The default is both.
+
+Vertical
+
+When vertical scrolling is enabled, users can scroll down if the content exceeds the container’s height. Horizontal overflow, however, is clipped and inaccessible—so the content’s width should be set to 100%.
+
+Horizontal
+
+When horizontal scrolling is enabled, users can scroll sideways if the content exceeds the container’s width. However, vertical overflow is clipped and inaccessible—so the content’s height should be set to 100%.
+
+Note: Use horizontal scrolling with caution, as it’s less common and can be harder for users to notice and interact with—especially on non-mobile devices.
+
+Desktop
+
+Aside from grids, horizontal scrolling is uncommon in desktop or business applications, as it can be unintuitive and cumbersome.
+
+To improve usability, consider using buttons to make horizontal scrolling more noticeable and accessible. For horizontally scrollable lists, it’s good practice to indicate the total number of items and highlight which ones are currently in view.
+
+Mobile
+
+Horizontal scrolling or swiping is more common on mobile, often used for navigation. It can also help conserve vertical space—for example, when displaying less important content such as shortcuts or images.
+
+[Flow: ScrollerMobile.java]
+package com.vaadin.demo.component.scroller;
+
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Section;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.router.Route;
+
+@Route("scroller-mobile")
+public class ScrollerMobile extends Section {
+
+    public ScrollerMobile() {
+        getStyle().set("border", "solid 1px var(--vaadin-border-color)");
+        setMaxWidth(100, Unit.PERCENTAGE);
+        setWidth(360, Unit.PIXELS);
+
+        // Header
+        H2 createNewTitle = new H2("Create new...");
+        createNewTitle.getStyle().set("padding", "1rem 1rem 0").set("font-size",
+                "1.375rem");
+        add(createNewTitle);
+
+        // tag::snippet[]
+        Scroller scroller = new Scroller();
+        scroller.setScrollDirection(Scroller.ScrollDirection.HORIZONTAL);
+
+        Button auditBtn = new Button("Audit");
+        auditBtn.setIcon(new Icon(VaadinIcon.CLIPBOARD_CHECK));
+        auditBtn.setHeight("100px");
+
+        Button reportBtn = new Button("Report");
+        reportBtn.setIcon(new Icon(VaadinIcon.BOOK_DOLLAR));
+        reportBtn.setHeight("100px");
+
+        Button dashboardBtn = new Button("Dashboard");
+        dashboardBtn.setIcon(new Icon(VaadinIcon.LINE_CHART));
+        dashboardBtn.setHeight("100px");
+
+        Button invoiceBtn = new Button("Invoice");
+        invoiceBtn.setIcon(new Icon(VaadinIcon.INVOICE));
+        invoiceBtn.setHeight("100px");
+
+        HorizontalLayout buttons = new HorizontalLayout(auditBtn, reportBtn,
+                dashboardBtn, invoiceBtn);
+        buttons.getStyle().set("display", "inline-flex");
+        buttons.setPadding(true);
+
+        scroller.setContent(buttons);
+        add(scroller);
+        // end::snippet[]
+    }
+
+}
+
+[React: scroller-mobile.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Scroller } from '@vaadin/react-components/Scroller.js';
+
+const sectionStyle = {
+  border: 'solid 1px var(--vaadin-border-color)',
+  width: '360px',
+  maxWidth: '100%',
+};
+
+function Example() {
+  return (
+    <section id="container" style={sectionStyle}>
+      <h2 style={{ padding: '1rem 1rem 0', fontSize: '1.375rem' }}>Create new...</h2>
+      {/* tag::snippet[] */}
+      <Scroller scroll-direction="horizontal">
+        <HorizontalLayout style={{ display: 'inline-flex' }} theme="padding spacing">
+          <Button style={{ height: '100px' }}>
+            <Icon icon="vaadin:clipboard-check" slot="prefix" />
+            Audit
+          </Button>
+          <Button style={{ height: '100px' }}>
+            <Icon icon="vaadin:book-dollar" slot="prefix" />
+            Report
+          </Button>
+          <Button style={{ height: '100px' }}>
+            <Icon icon="vaadin:line-chart" slot="prefix" />
+            Dashboard
+          </Button>
+          <Button style={{ height: '100px' }}>
+            <Icon icon="vaadin:invoice" slot="prefix" />
+            Invoice
+          </Button>
+        </HorizontalLayout>
+      </Scroller>
+      {/* end::snippet[] */}
+    </section>
+  );
+}
+
+[Lit: scroller-mobile.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/scroller';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('scroller-mobile')
+export class Example extends LitElement {
+  static override styles = css`
+    section {
+      border: solid 1px var(--vaadin-border-color);
+      max-width: 100%;
+      width: 360px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <section id="container">
+        <h2 style="padding: 1rem 1rem 0; font-size: 1.375rem">Create new...</h2>
+
+        <!-- tag::snippet[] -->
+        <vaadin-scroller scroll-direction="horizontal">
+          <vaadin-horizontal-layout style="display: inline-flex" theme="padding spacing">
+            <vaadin-button style="height: 100px;">
+              <vaadin-icon icon="vaadin:clipboard-check" slot="prefix"></vaadin-icon>
+              Audit
+            </vaadin-button>
+            <vaadin-button style="height: 100px;">
+              <vaadin-icon icon="vaadin:book-dollar" slot="prefix"></vaadin-icon>
+              Report
+            </vaadin-button>
+            <vaadin-button style="height: 100px;">
+              <vaadin-icon icon="vaadin:line-chart" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-button>
+            <vaadin-button style="height: 100px;">
+              <vaadin-icon icon="vaadin:invoice" slot="prefix"></vaadin-icon>
+              Invoice
+            </vaadin-button>
+          </vaadin-horizontal-layout>
+        </vaadin-scroller>
+        <!-- end::snippet[] -->
+      </section>
+    `;
+  }
+}
+
+Both
+
+When the scroll direction is set to Both (the default), users can scroll both vertically and horizontally if the content overflows in either direction.
+
+This option is ideal for allowing users to pan across large elements, such as images. It can also serve as a fallback for responsive layouts that may overflow in certain situations.
+
+[Flow: ScrollerBoth.java]
+package com.vaadin.demo.component.scroller;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+
+@Route("scroller-both")
+public class ScrollerBoth extends Div {
+
+    public ScrollerBoth() {
+        // tag::snippet[]
+        Scroller scroller = new Scroller();
+        scroller.setWidthFull();
+        scroller.setHeight("300px");
+
+        DownloadHandler imageHandler = DownloadHandler.forClassResource(
+                getClass(), "/images/reindeer.jpg", "reindeer.jpg");
+
+        Image img = new Image(imageHandler,
+                "A reindeer walking on a snowy lake shore at dusk");
+        scroller.setContent(img);
+
+        add(scroller);
+        // end::snippet[]
+    }
+
+}
+
+[React: scroller-both.tsx]
+import React from 'react';
+import { Scroller } from '@vaadin/react-components/Scroller.js';
+import img from '../../../../../src/main/resources/images/reindeer.jpg?url';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Scroller style={{ height: '300px', width: '100%' }}>
+      <img src={img} alt="A reindeer walking on a snowy lake shore at dusk" />
+    </Scroller>
+    // end::snippet[]
+  );
+}
+
+[Lit: scroller-both.ts]
+import '@vaadin/scroller';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import img from '../../../../src/main/resources/images/reindeer.jpg?url';
+
+@customElement('scroller-both')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-scroller style="height: 300px; width: 100%">
+        <img src="${img}" alt="A reindeer walking on a snowy lake shore at dusk" />
+      </vaadin-scroller>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+None
+
+Use None to hide overflowing content in either direction. No scrollbars are provided, and the clipped content is inaccessible. None is useful in fixed-size or fixed-layout scenarios where overflow would cause issues.
+
+Related Components
+
+Component | Usage recommendations
+Horizontal Layout | A layout that aligns components and HTML elements horizontally
+Vertical Layout | A layout that aligns components and HTML elements vertically.

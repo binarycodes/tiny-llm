@@ -1,0 +1,291 @@
+Upload File Handling
+
+Handling file uploads.
+
+The uploading of files may be handled either with Vaadin Flow using Java, or with Hilla using Lit and React. These are described in the two major sections here.
+
+Handling Uploaded Files in Flow
+
+The Java Flow Upload component provides an API to handle directly uploaded file data, without having to set up an endpoint or a servlet. It uses an UploadHandler implementation to handle the incoming file data.
+
+UploadHandler is a functional interface that only requires the handleUploadRequest(UploadEvent) to be implemented for receiving data or use one of the built-in implementations.
+
+The following built-in implementations of UploadHandler are available:
+
+- InMemoryUploadHandler, stores uploaded files in memory
+- FileUploadHandler, stores uploaded files to the file system
+- TemporaryFileUploadHandler, stores uploaded files to temporary files, typically using the system’s temporary directory. This handler is useful when dealing with large files or when memory usage needs to be minimized.
+
+These are described in the sub-sections that follow. All of the build-in implementations extend TransferProgressAwareHandler and support upload progress tracking.
+
+Note: The Receiver had implementations for single and multiple file upload. UploadHandler handles both version so Upload.setMaxFiles(1) needs to be called manually for single-file uploads.
+
+Custom UploadHandler Implementations
+
+For more advanced use cases, you can provide custom implementations for UploadHandler. You might do this, for example, to upload files to cloud storage or to load data into memory first, validate and save to file.
+
+UploadHandler is an FunctionalInterface so it can just be a lambda expression.
+
+[Java]
+UploadHandler uploadHandler = (event) -> {
+    try (InputStream inputStream = event.getInputStream()) {
+        // Process the uploaded file
+        // ...
+    }
+    // Any exception will be caught and fire
+    // a responseHandled(false, response) method call.
+};
+
+The responseHandled will write the upload status to the response. By default a success will set it to HttpStatusCode.OK and any failure will instead set HttpStatusCode.INTERNAL_SERVER_ERROR. This can be overridden when implementing the interface.
+
+UploadHandler can be implemented to override default methods:
+
+[Java]
+public class CustomUploadHandler implements UploadHandler {
+    @Override
+    public void handleUploadRequest(UploadEvent event) {
+        try (InputStream inputStream = event.getInputStream()) {
+            // Process the uploaded file
+            // ...
+        }
+    // Any exception will be caught and fire
+    // a responseHandled(false, response) method call.
+    }
+
+    @Override
+    public void responseHandled(boolean success, VaadinResponse response) {
+        // Set your own custom response value for success/fail by overriding this method.
+        // Default responses are 200 ok for success and 500 internal server error for failure
+    }
+
+    @Override
+    public long getRequestSizeMax() {
+        // Return the maximum size, in bytes, of a complete request for multipart upload.
+        return -1; // -1 means no limit and is the default
+    }
+
+    @Override
+    public long getFileSizeMax() {
+        // Return the maximum size, in bytes, of a single file for multipart upload.
+        return -1; // -1 means no limit and is the default
+    }
+
+    @Override
+    public long getFileCountMax() {
+        // Return the maximum amount of files allowed for multipart upload.
+        return 10000; // -1 means no limit default is 10000
+    }
+}
+
+The responseHandled method is called after upload has succeeded or an exception has been thrown. For multipart upload this is called after each part has succeeded.
+
+Maximum values for requestSize, fileSize and fileCount only target multipart uploads that are iterated (multipart uploads where the type is not multipart/form-data).
+
+- getRequestSizeMax sets the maximum size for the whole request.
+- getFileSizeMax sets the maximum size for single files in the request.
+- getFileCountMax sets the maximum amount of files in the request.
+
+Rejecting Files During Upload
+
+You can reject individual files during upload processing using UploadEvent.reject(). This is useful for validating file content after inspecting it, such as checking file headers, scanning for viruses, or verifying data format:
+
+[Java]
+UploadHandler uploadHandler = (event) -> {
+    try (InputStream inputStream = event.getInputStream()) {
+        byte[] header = inputStream.readNBytes(4);
+
+        if (!isValidFileHeader(header)) {
+            // Reject with a reason message
+            event.reject("Invalid file format: expected PNG header");
+            return;
+        }
+
+        // Process the valid file...
+    }
+};
+
+You can also reject without a message by calling event.reject() with no arguments.
+
+InMemoryUploadHandler
+
+The InMemoryUploadHandler stores uploaded files in memory as byte arrays.
+
+The handler is given a successHandler of type InMemoryUploadCallback successHandler. This successHandler is called for each successful uploaded file separately. The successHandler callback contains UploadMetadata with information on the uploaded file and a byte[] that contains the actual data from the upload.
+
+[Java]
+InMemoryUploadHandler inMemoryHandler = UploadHandler.inMemory(
+    (metadata, data) -> {
+        // Get other information about the file.
+        String fileName = metadata.fileName();
+        String mimeType = metadata.contentType();
+        long contentLength = metadata.contentLength();
+
+        // Do something with the file data...
+        // processFile(data, fileName);
+    });
+
+Upload upload = new Upload(inMemoryHandler);
+
+FileUploadHandler
+
+The FileUploadHandler stores the upload as a file to the file system.
+
+The handler is given a successHandler of type FileUploadCallback successHandler and a FileFactory. This successHandler is called for each successful uploaded file separately. The successHandler callback contains UploadMetadata with information on the uploaded file and the actual File where the data was written.
+
+The file used is defined with FileFactory that gets the filename for the upload and should return the File to store the data into.
+
+[Java]
+FileUploadCallback successHandler = (metadata, file) ->
+    System.out.printf("File saved to: %s%n", file.getAbsolutePath());
+FileFactory fileFactory = (fileName) -> new File("/path/to/uploads", fileName);
+FileUploadHandler fileHandler = UploadHandler.toFile(successHandler, fileFactory);
+
+Upload upload = new Upload(fileHandler);
+
+TemporaryFileUploadHandler
+
+The TemporaryFileUploadHandler works the same as FileUploadHandler, except that instead of taking in a FileFactory, it stores the data into a temporary file in the system default temporary-file directory.
+
+The handler is given a successHandler of type FileUploadCallback successHandler. This successHandler is called for each successful uploaded file separately. The successHandler callback contains UploadMetadata with information on the uploaded file and the actual File where the data was written.
+
+[Java]
+FileUploadCallback successHandler = (metadata, file) ->
+    System.out.printf("File saved to: %s%n", file.getAbsolutePath());
+
+TemporaryFileUploadHandler temporaryFileHandler = UploadHandler.toTempFile(successHandler);
+
+Upload upload = new Upload(temporaryFileHandler);
+
+Upload Progress Tracking
+
+The built-in implementations support TransferProgressListeners which can be added through the fluent API directly to the handler for specific events
+
+[Java]
+UploadHandler.toTempFile(
+        (metadata, file) -> System.out.printf("File saved to: %s%n",
+            file.getAbsolutePath()))
+    .whenStart(() -> System.out.println("Upload started"))
+    .onProgress((transferredBytes, totalBytes) -> {
+        double percentage = (double) transferredBytes / totalBytes * 100;
+        System.out.printf("Upload progress: %.2f%%\n", percentage);
+    }).whenComplete((success) -> {
+        if (success) {
+            System.out.println("Upload completed successfully");
+        } else {
+            System.out.println("Upload failed");
+        }
+    });
+
+or giving a TransferProgressListener through the factory methods as a parameter.
+
+[Java]
+TransferProgressListener progressListener = new TransferProgressListener() {
+        @Override
+        public void onStart(TransferContext context) {
+            Assert.assertEquals(165000, context.contentLength());
+            Assert.assertEquals("download", context.fileName());
+            invocations.add("onStart");
+        }
+
+        @Override
+        public void onProgress(TransferContext context,
+                long transferredBytes, long totalBytes) {
+            double percentage = (double) transferredBytes / totalBytes * 100;
+            System.out.printf("Upload progress: %.2f%%\n", percentage);
+        }
+
+        @Override
+        public void onComplete(TransferContext context,
+               long transferredBytes) {
+            System.out.println("Upload completed successfully");
+        }
+
+        @Override
+        public void onError(TransferContext context,
+                IOException reason) {
+            System.out.println("Upload failed");
+        }
+    };
+
+UploadHandler.toTempFile(
+        (metadata, file) -> System.out.printf("File saved to: %s%n",
+            file.getAbsolutePath()), progressListener);
+
+To add progress tracking to a custom upload handler, you can extend TransferProgressAwareHandler:
+
+[Java]
+public class CustomUploadHandler
+        extends TransferProgressAwareHandler<UploadEvent, CustomUploadHandler>
+        implements UploadHandler {
+    @Override
+    public void handleUploadRequest(UploadEvent event) {
+        try (InputStream inputStream = event.getInputStream();
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();) {
+            // Use the TransferUtil.transfer method to copy the data
+            // to notify progress listeners
+            TransferUtil.transfer(
+                    inputStream,
+                    outputStream,
+                    getTransferContext(event),
+                    getListeners());
+            // Process the data
+            byte[] data = outputStream.toByteArray();
+            // ...
+        } catch (IOException e) {
+            // Notify listeners of the error
+            notifyError(event, e);
+            throw new UncheckedIOException(e);
+        }
+    }
+    @Override
+    protected TransferContext getTransferContext(UploadEvent event) {
+        return new TransferContext(
+                event.getRequest(),
+                event.getResponse(),
+                event.getSession(),
+                event.getFileName(),
+                event.getOwningElement(),
+                event.getFileSize());
+    }
+}
+
+With this you can add the fluent methods to add handling for specific progress events.
+
+[Java]
+CustomUploadHandler uploadHandler = new CustomUploadHandler()
+    .whenStart(() -> System.out.println("Upload started"))
+    .onProgress((transferredBytes, totalBytes) -> {
+        double percentage = (double) transferredBytes / totalBytes * 100;
+        System.out.printf("Upload progress: %.2f%%\n", percentage);
+    })
+    .whenComplete((success) -> {
+        if (success) {
+            System.out.println("Upload completed successfully");
+        } else {
+            System.out.println("Upload failed");
+        }
+    });
+
+Handling Upload Requests in Lit and React
+
+When using the Upload web component standalone, you’ll need an upload file handler or endpoint in your backend to handle the file upload request. By default, the Upload component sends a request with the method type POST, the content type multipart/form-data, and the request URL (i.e., the current browser location).
+
+Use the target attribute to specify a different URL that should handle the upload request. It’s also possible to customize other aspects of the request, such as the method or request headers.
+
+[React: jsx]
+<Upload
+  method="PUT"
+  target="/api/upload-handler"
+  headers='{ "X-API-KEY": "7f4306cb-bb25-4064-9475-1254c4eff6e5" }'>
+</Upload>
+
+[React: jsx]
+
+[Lit: HTML]
+<vaadin-upload
+  method="PUT"
+  target="/api/upload-handler"
+  headers='{ "X-API-KEY": "7f4306cb-bb25-4064-9475-1254c4eff6e5" }'>
+</vaadin-upload>
+
+[Lit: HTML]

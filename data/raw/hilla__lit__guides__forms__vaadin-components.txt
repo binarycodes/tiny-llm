@@ -1,0 +1,322 @@
+Binding Data to Input Fields
+
+Implementing data binding, type mapping and error messages when binding data with Hilla components.
+
+Client Form binder supports out of the box the set of form elements present in Hilla components. This means that data binding, type mapping, required flag, and validation messages can function without any extra work.
+
+Configuring Server Data & Endpoint
+
+When defining Bean objects in Java, apart from the type, you can define validation and error messages.
+
+For the examples here, the code on the client side is based on the data and endpoints defined in the following Java classes:
+
+[Java]
+public class MyEntity {
+    @AssertTrue(message = "Please agree this")
+    Boolean myBooleanField = false;
+
+    @NotEmpty(message = "Select at least one option")
+    List<String> myListField = Arrays.asList("item-1");
+
+    @Pattern(regexp = "(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}",
+                message = "must be 8+ characters, with uppercase, lowercase, and numbers")
+    String myPasswordField = "bar";
+
+    @Email(message = "must be a valid email address")
+    String myEmailField = "foo@bar.baz";
+
+    @PositiveOrZero(message = "Should be positive or zero")
+    Integer myIntegerField = 12;
+    @Positive(message = "Should be positive")
+    Double myDoubleField = 12.33d;
+
+    @Future(message = "Should be a date in the future")
+    LocalDate myDateField = LocalDate.now().plusDays(1);
+    LocalDateTime myDateTimeField = LocalDateTime.now();
+    LocalTime myTimeField = LocalTime.now();
+
+    @Min(0) @Max(1)
+    Integer mySelectField = 1;
+}
+
+@Endpoint
+public class MyEndpoint {
+    public MyEntity getMyEntity() {
+        return new MyEntity();
+    }
+
+    public List<String> getMyOptions() {
+        return Arrays.asList("item-1", "item-2", "item-3");
+    }
+}
+
+Configuring Client Fields
+
+Before using form binders, you need to import your entity models and instantiate the binder. You also need to perform the endpoint call to get the entity value, as explained in the articles Binding Data to Forms and Loading from and Saving to Business Objects.
+
+For the examples in this article, these are the significant lines needed in the view:
+
+[TypeScript]
+import { MyEndpoint } from 'Frontend/generated/MyEndpoint';
+import MyEntityModel from 'Frontend/generated/com/example/MyEntityModel';
+...
+const binder = new Binder(this, MyEntityModel);
+...
+async firstUpdated(arg: any) {
+  super.firstUpdated(arg);
+  this.binder.read(await MyEndpoint.getMyEntity());
+}
+
+Binding Data to Text & Number Fields
+
+No extra action is needed to configure the Vaadin components that represent Text & Number values.
+
+[TypeScript]
+import '@vaadin/email-field';
+import '@vaadin/integer-field';
+import '@vaadin/number-field';
+import '@vaadin/password-field';
+import '@vaadin/text-area';
+import '@vaadin/text-field';
+...
+render() {
+  return html`
+    <vaadin-text-field
+      ${field(this.binder.model.myTextField)}
+      label="string"
+    ></vaadin-text-field>
+    <vaadin-password-field
+      ${field(this.binder.model.myPasswordField)}
+      label="password"
+    ></vaadin-password-field>
+    <vaadin-integer-field
+      ${field(this.binder.model.myIntegerField)}
+      label="integer"
+      step-buttons-visible
+    ></vaadin-integer-field>
+    <vaadin-number-field
+      ${field(this.binder.model.myDoubleField)}
+      label="number"
+      step-buttons-visible
+    ></vaadin-number-field>
+    <vaadin-email-field
+      ${field(this.binder.model.myEmailField)}
+      label="email"
+    ></vaadin-email-field>
+    <vaadin-text-area
+      ${field(this.binder.model.myTextField)}
+      label="textarea"
+    ></vaadin-text-area>
+  `;
+}
+
+Binding Data to Boolean Fields
+
+In Hilla, three components are available for handling booleans: vaadin-checkbox, vaadin-radio-button, and vaadin-select.
+
+The vaadin-checkbox and vaadin-radio-button work fine with form binders, but neither of them has validation and failure styling. Hence, you need to do some extra work to give error feedback. In the following snippet, the background color is changed on validation error.
+
+[TypeScript]
+import '@vaadin/checkbox';
+import '@vaadin/radio-group/vaadin-radio-button.js';
+...
+static get styles() {
+  return css`
+    vaadin-checkbox[invalid], vaadin-radio-button[invalid] {
+      background: var(--lumo-error-color-10pct);
+    }
+  `;
+}
+...
+render() {
+  return html`
+    <vaadin-checkbox
+      label="checkbox"
+      ${field(this.binder.model.myBooleanField)}
+    ></vaadin-checkbox>
+    <vaadin-radio-button
+      label="radio-button"
+      ${field(this.binder.model.myBooleanField)}
+    ></vaadin-radio-button>
+  `;
+}
+
+The vaadin-select can be bound to a boolean, as in the following snippet:
+
+[TypeScript]
+import '@vaadin/select';
+...
+const selectItems = [
+  { label: 'Value is true', value: 'true' },
+  { label: 'Value is false', value: 'false' }
+];
+...
+<vaadin-select
+  ${field(this.binder.model.myBooleanField)}
+  .items="${selectItems}"
+></vaadin-select>
+
+Binding Data to List Fields
+
+Hilla has several components for selection based on option lists, each one covering a specific purpose, Hence, there are various ways to set their values and options.
+
+Configuring Options for Selection
+
+Options for these components can be set by calling a server-side service that provides the list of strings. Since the call to the endpoint is asynchronous, one easy way is to combine the until() and repeat() methods from the Lit library.
+
+As reference, the following snippet demonstrates how to repeat a pattern, given an asynchronous method that returns a list of items. The same pattern is used in the code blocks for each component that follow.
+
+[TypeScript]
+import { until } from 'lit/directives/until.js';
+import { repeat } from 'lit/directives/repeat.js';
+...
+render() {
+  return html`
+  ...
+    ${until(MyEndpoint.getMyOptions().then(opts => repeat(opts, (item) => html`
+      <div>${item}</div>
+    `)))}
+  ...
+  `;
+}
+
+Single Selection Using Item Value
+
+For a single selection, you should use vaadin-combo-box, vaadin-radio-group or vaadin-list-box. They can all take the selected item value as a string.
+
+[TypeScript]
+import '@vaadin/combo-box';
+import '@vaadin/list-box';
+import '@vaadin/radio-group';
+...
+render() {
+  return html`
+    <vaadin-combo-box
+      label="combo-box"
+      ${field(this.binder.model.mySingleSelectionField)}
+      .items="${until(MyEndpoint.getMyOptions())}"
+    ></vaadin-combo-box>
+
+    <vaadin-radio-group
+      label="radio-group"
+      ${field(this.binder.model.mySingleSelectionField)}
+    >
+      ${until(
+        MyEndpoint.getMyOptions().then((opts) =>
+          repeat(
+            opts,
+            (item) => html`
+              <vaadin-radio-button value="${item}" label="${item}"></vaadin-radio-button>
+            `
+          )
+        )
+      )}
+    </vaadin-radio-group>
+
+    <vaadin-list-box
+      label="list-box"
+      ${field(this.binder.model.mySingleSelectionField)}
+    >
+      ${until(
+        MyEndpoint.getMyOptions().then((opts) =>
+          repeat(opts, (item) => html`<vaadin-item>${item}</vaadin-item>`)
+        )
+      )}
+    </vaadin-list-box>
+  `;
+}
+
+Single Selection Using Index
+
+To select items by index, you should use the vaadin-select component. This accepts an integer for the index value.
+
+[TypeScript]
+import '@vaadin/select';
+...
+render() {
+  return html`
+    <vaadin-select
+      label="select"
+      ${field(this.binder.model.mySelectField)}
+      .items=${until(MyEndpoint.getMyOptions())}
+    ></vaadin-select>
+  `;
+}
+
+Multiple Selection
+
+The Vaadin components for multiple selection are vaadin-checkbox-group and vaadin-multi-select-combo-box. Both of them accept an array of strings.
+
+[TypeScript]
+import '@vaadin/checkbox-group';
+import '@vaadin/multi-select-combo-box';
+...
+render() {
+  return html`
+    <vaadin-checkbox-group label="check-group" ${field(this.binder.model.myListField)}>
+      ${until(
+        MyEndpoint.getMyOptions().then((opts) =>
+          repeat(
+            opts,
+            (item) => html`<vaadin-checkbox value="${item}" label="${item}"></vaadin-checkbox>`
+          )
+        )
+      )}
+    </vaadin-checkbox-group>
+
+    <vaadin-multi-select-combo-box
+      label="multi-select"
+      .items=${until(MyEndpoint.getMyOptions())}
+    ></vaadin-multi-select-combo-box>
+  `;
+}
+
+Binding Data to Date & Time Fields
+
+Use vaadin-date-picker to bind to Java LocalDate, vaadin-time-picker for LocalTime, and vaadin-date-time-picker for LocalDateTime.
+
+[TypeScript]
+import '@vaadin/date-picker';
+import '@vaadin/time-picker';
+import '@vaadin/date-time-picker';
+...
+render() {
+  return html`
+    <vaadin-date-picker ${field(this.binder.model.myDateField)} label="date"></vaadin-date-picker>
+    <vaadin-time-picker ${field(this.binder.model.myTimeField)} label="time"></vaadin-time-picker>
+    <vaadin-date-time-picker
+      label="date-time"
+      ${field(this.binder.model.myDateTimeField)}
+    ></vaadin-date-time-picker>
+  `;
+}
+
+Wrapping Components in Custom Fields
+
+Hilla provides the vaadin-custom-field, which can be used to wrap one or multiple Vaadin fields. This works with the following components:
+
+- vaadin-text-field
+- vaadin-number-field
+- vaadin-password-field
+- vaadin-text-area
+- vaadin-select
+- vaadin-combo-box
+- vaadin-date-picker
+- vaadin-time-picker
+
+[TypeScript]
+import '@vaadin/custom-field';
+import '@vaadin/text-field';
+...
+render() {
+  return html`
+    <vaadin-custom-field ${field(this.binder.model.myTextField)} label="custom-field">
+      <vaadin-text-field></vaadin-text-field>
+    </vaadin-custom-field>
+  `;
+}
+
+You should be aware of the limitations when using vaadin-custom-field with other elements previously listed:
+
+- the value of the custom field should be provided as a string; and
+- children should have the value property in their API.

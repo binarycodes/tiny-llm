@@ -1,0 +1,675 @@
+Card Styling
+
+Styling API reference for the Card components.
+
+Style Variants
+
+The Card component supports the following style variants:
+
+Variant | Description | Supported by
+elevated | Adds an elevated appearance with a shadow effect | Aura, Lumo
+outlined | Adds a solid border outline to the card | Aura, Lumo
+horizontal | Places card content horizontally alongside the media element | Aura, Lumo
+stretch-media | Stretches the media element to fill the card width or height | Aura, Lumo
+cover-media | Allows the media element to cover the card’s padding area | Aura, Lumo
+
+[Flow: CardVariants.java]
+package com.vaadin.demo.component.card;
+
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.card.CardVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("card-variants")
+public class CardVariants extends Div {
+    public CardVariants() {
+        Card cardDefault = new Card();
+
+        Card cardOutlined = new Card();
+        cardOutlined.addThemeVariants(CardVariant.OUTLINED);
+
+        Card cardElevated = new Card();
+        cardElevated.addThemeVariants(CardVariant.ELEVATED);
+
+        cardDefault.setTitle("Default");
+        cardDefault.add(new Div("This is the default card style."));
+
+        cardOutlined.setTitle("Outlined");
+        cardOutlined.add(new Div("Adds a solid outline around the card."));
+
+        cardElevated.setTitle("Elevated");
+        cardElevated.add(
+                new Div("This variant works better on a shaded background."));
+
+        Div cardVariantsLayout = new Div(cardDefault, cardOutlined,
+                cardElevated);
+        cardVariantsLayout.getStyle().set("display", "grid").set("gap", "1rem")
+                .set("grid-template-columns",
+                        "repeat(auto-fit, minmax(12ch, 1fr))");
+
+        add(cardVariantsLayout);
+    }
+
+}
+
+[React: card-variants.tsx]
+import { Card } from '@vaadin/react-components/Card.js';
+
+function Example() {
+  return (
+    <>
+      <div className="card-variant-layout">
+        {/* tag::snippet[] */}
+        <Card cardTitle="Default">
+          <div>This is the default card style.</div>
+        </Card>
+
+        <Card cardTitle="Outlined" theme="outlined">
+          <div>Adds a solid outline around the card.</div>
+        </Card>
+
+        <Card cardTitle="Elevated" theme="elevated">
+          <div>This variant works better on a shaded background.</div>
+        </Card>
+        {/* end::snippet[] */}
+      </div>
+
+      <style>{`
+        .card-variant-layout {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
+          gap: 1em;
+        }
+      `}</style>
+    </>
+  );
+}
+
+[Lit: card-variants.ts]
+import '@vaadin/card';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('card-variants')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="card-variant-layout">
+        <!-- tag::snippet[] -->
+        <vaadin-card card-title="Default">
+          <div>This is the default card style.</div>
+        </vaadin-card>
+
+        <vaadin-card card-title="Outlined" theme="outlined">
+          <div>Adds a solid outline around the card.</div>
+        </vaadin-card>
+
+        <vaadin-card card-title="Elevated" theme="elevated">
+          <div>This variant works better on a shaded background.</div>
+        </vaadin-card>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+
+  static styles = css`
+    .card-variant-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
+      gap: 1em;
+    }
+  `;
+}
+
+Horizontal
+
+Place all card content on the side of the media element, if provided.
+
+[Flow: CardHorizontal.java]
+package com.vaadin.demo.component.card;
+
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.card.CardVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("card-horizontal")
+public class CardHorizontal extends Div {
+    public CardHorizontal() {
+        Card card = new Card();
+        card.addThemeVariants(CardVariant.HORIZONTAL);
+
+        card.setMedia(new Avatar("Lapland"));
+        card.setTitle(new Div("Lapland"));
+        card.setSubtitle(new Div("The Exotic North"));
+        card.add(new Div(
+                "Lapland is the northern-most region of Finland and an active outdoor destination."));
+
+        card.setMaxWidth("300px");
+        add(card);
+    }
+
+}
+
+[React: card-horizontal.tsx]
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Card } from '@vaadin/react-components/Card.js';
+
+function Example() {
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Card theme="horizontal">
+        <Avatar slot="media" name="Lapland" />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </Card>
+      {/* end::snippet[] */}
+
+      <style>{`
+        vaadin-card {
+          max-width: 300px;
+        }
+      `}</style>
+    </>
+  );
+}
+
+[Lit: card-horizontal.ts]
+import '@vaadin/avatar';
+import '@vaadin/card';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('card-horizontal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-card theme="horizontal">
+        <vaadin-avatar slot="media" name="Lapland"></vaadin-avatar>
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </vaadin-card>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  static styles = css`
+    vaadin-card {
+      max-width: 300px;
+    }
+  `;
+}
+
+Stretch Media
+
+Stretches the media element as wide – or tall, if combined with the horizontal variant – as the card, if the media element is an image, video, or an icon.
+
+[Flow: CardStretchMedia.java]
+package com.vaadin.demo.component.card;
+
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.card.CardVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+
+@Route("card-stretch-media")
+public class CardStretchMedia extends Div {
+    public CardStretchMedia() {
+        Div layout = new Div();
+        layout.getStyle().set("display", "grid")
+                .set("grid-template-columns",
+                        "repeat(auto-fill, minmax(200px, 1fr))")
+                .set("gap", "1em");
+
+        // Card with stretched image
+        Card imageCard = new Card();
+        imageCard.addThemeVariants(CardVariant.STRETCH_MEDIA);
+
+        DownloadHandler imageHandler = DownloadHandler.forClassResource(
+                getClass(), "/images/lapland.avif", "lapland.avif");
+        Image image = new Image(imageHandler, "");
+        imageCard.setMedia(image);
+
+        imageCard.setTitle(new Div("Lapland"));
+        imageCard.setSubtitle(new Div("The Exotic North"));
+        imageCard.add(new Div(
+                "Lapland is the northern-most region of Finland and an active outdoor destination."));
+
+        // Card with stretched icon
+        Card iconCard = new Card();
+        iconCard.addThemeVariants(CardVariant.STRETCH_MEDIA);
+
+        Icon icon = LumoIcon.PHOTO.create();
+        icon.getStyle().setBackgroundColor("rgba(0, 0, 0, 0.2)");
+        iconCard.setMedia(icon);
+
+        iconCard.setTitle(new Div("Lapland"));
+        iconCard.setSubtitle(new Div("The Exotic North"));
+        iconCard.add(new Div(
+                "Lapland is the northern-most region of Finland and an active outdoor destination."));
+
+        layout.add(imageCard, iconCard);
+        add(layout);
+    }
+
+}
+
+[React: card-stretch-media.tsx]
+import '@vaadin/vaadin-lumo-styles/icons.js';
+import { Card } from '@vaadin/react-components/Card.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import img from '../../../../../src/main/resources/images/lapland.avif?url';
+
+function Example() {
+  return (
+    <div className="card-grid">
+      {/* tag::snippet[] */}
+      <Card theme="stretch-media">
+        <img slot="media" width="200" src={img} alt="" />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </Card>
+
+      <Card theme="stretch-media">
+        <Icon slot="media" icon="lumo:photo" style={{ background: 'rgba(0, 0, 0, 0.2)' }} />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </Card>
+      {/* end::snippet[] */}
+
+      <style>{`
+        .card-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1em;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+[Lit: card-stretch-media.ts]
+import '@vaadin/card';
+import '@vaadin/icon';
+import '@vaadin/vaadin-lumo-styles/icons.js';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import img from '../../../../src/main/resources/images/lapland.avif?url';
+
+@customElement('card-stretch-media')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="card-grid">
+        <!-- tag::snippet[] -->
+        <vaadin-card theme="stretch-media">
+          <img slot="media" width="100" src="${img}" alt="" />
+          <div slot="title">Lapland</div>
+          <div slot="subtitle">The Exotic North</div>
+          <div>
+            Lapland is the northern-most region of Finland and an active outdoor destination.
+          </div>
+        </vaadin-card>
+
+        <vaadin-card theme="stretch-media">
+          <vaadin-icon
+            slot="media"
+            icon="lumo:photo"
+            style="background: rgba(0, 0, 0, 0.2)"
+          ></vaadin-icon>
+          <div slot="title">Lapland</div>
+          <div slot="subtitle">The Exotic North</div>
+          <div>
+            Lapland is the northern-most region of Finland and an active outdoor destination.
+          </div>
+        </vaadin-card>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+
+  static styles = css`
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1em;
+    }
+  `;
+}
+
+Cover Media
+
+Similar to the stretch-media variant, but this variant allows the media element to also cover the padding area of the card. This variant overrides the stretch-media variant.
+
+[Flow: CardCoverMedia.java]
+package com.vaadin.demo.component.card;
+
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.card.CardVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+
+@Route("card-cover-media")
+public class CardCoverMedia extends Div {
+    public CardCoverMedia() {
+        Div layout = new Div();
+        layout.getStyle().set("display", "grid")
+                .set("grid-template-columns",
+                        "repeat(auto-fill, minmax(200px, 1fr))")
+                .set("gap", "1em");
+
+        // Card with cover image
+        Card imageCard = new Card();
+        imageCard.addThemeVariants(CardVariant.COVER_MEDIA);
+
+        DownloadHandler imageHandler = DownloadHandler.forClassResource(
+                getClass(), "/images/lapland.avif", "lapland.avif");
+        Image image = new Image(imageHandler, "");
+        imageCard.setMedia(image);
+
+        imageCard.setTitle(new Div("Lapland"));
+        imageCard.setSubtitle(new Div("The Exotic North"));
+        imageCard.add(new Div(
+                "Lapland is the northern-most region of Finland and an active outdoor destination."));
+
+        // Card with cover icon
+        Card iconCard = new Card();
+        iconCard.addThemeVariants(CardVariant.COVER_MEDIA);
+
+        Icon icon = LumoIcon.PHOTO.create();
+        icon.getStyle().setBackgroundColor("rgba(0, 0, 0, 0.2)");
+        iconCard.setMedia(icon);
+
+        iconCard.setTitle(new Div("Lapland"));
+        iconCard.setSubtitle(new Div("The Exotic North"));
+        iconCard.add(new Div(
+                "Lapland is the northern-most region of Finland and an active outdoor destination."));
+
+        layout.add(imageCard, iconCard);
+        add(layout);
+    }
+
+}
+
+[React: card-cover-media.tsx]
+import '@vaadin/vaadin-lumo-styles/icons.js';
+import { Card } from '@vaadin/react-components/Card.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import img from '../../../../../src/main/resources/images/lapland.avif?url';
+
+function Example() {
+  return (
+    <div className="card-grid">
+      {/* tag::snippet[] */}
+      <Card theme="cover-media">
+        <img slot="media" width="200" src={img} alt="" />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </Card>
+
+      <Card theme="cover-media">
+        <Icon slot="media" icon="lumo:photo" style={{ background: 'rgba(0, 0, 0, 0.2)' }} />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </Card>
+      {/* end::snippet[] */}
+
+      <style>{`
+        .card-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1em;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+[Lit: card-cover-media.ts]
+import '@vaadin/avatar';
+import '@vaadin/card';
+import '@vaadin/icon';
+import '@vaadin/vaadin-lumo-styles/icons.js';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import img from '../../../../src/main/resources/images/lapland.avif?url';
+
+@customElement('card-cover-media')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="card-grid">
+        <!-- tag::snippet[] -->
+        <vaadin-card theme="cover-media">
+          <img slot="media" width="100" src="${img}" alt="" />
+          <div slot="title">Lapland</div>
+          <div slot="subtitle">The Exotic North</div>
+          <div>
+            Lapland is the northern-most region of Finland and an active outdoor destination.
+          </div>
+        </vaadin-card>
+
+        <vaadin-card theme="cover-media">
+          <vaadin-icon
+            slot="media"
+            icon="lumo:photo"
+            style="background: rgba(0, 0, 0, 0.2)"
+          ></vaadin-icon>
+          <div slot="title">Lapland</div>
+          <div slot="subtitle">The Exotic North</div>
+          <div>
+            Lapland is the northern-most region of Finland and an active outdoor destination.
+          </div>
+        </vaadin-card>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+
+  static styles = css`
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1em;
+    }
+  `;
+}
+
+Combine Variants
+
+You can combine all style variants together.
+
+[Flow: CardCombineVariants.java]
+package com.vaadin.demo.component.card;
+
+import com.vaadin.flow.component.card.Card;
+import com.vaadin.flow.component.card.CardVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+
+@Route("card-combine-variants")
+public class CardCombineVariants extends Div {
+    public CardCombineVariants() {
+        Card card = new Card();
+        card.addThemeVariants(
+                CardVariant.OUTLINED,
+                CardVariant.ELEVATED,
+                CardVariant.HORIZONTAL,
+                CardVariant.COVER_MEDIA
+        );
+
+        DownloadHandler imageHandler = DownloadHandler.forClassResource(
+                getClass(), "/images/lapland.avif", "lapland.avif");
+        Image image = new Image(imageHandler, "");
+        image.setWidth("200px");
+        card.setMedia(image);
+
+        card.setTitle(new Div("Lapland"));
+        card.setSubtitle(new Div("The Exotic North"));
+        card.add(new Div(
+                "Lapland is the northern-most region of Finland and an active outdoor destination."));
+
+        add(card);
+    }
+
+}
+
+[React: card-combine-variants.tsx]
+import '@vaadin/vaadin-lumo-styles/icons.js';
+import { Card } from '@vaadin/react-components/Card.js';
+import img from '../../../../../src/main/resources/images/lapland.avif?url';
+
+function Example() {
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Card theme="outlined elevated horizontal cover-media">
+        <img slot="media" width="200" src={img} alt="" />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </Card>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: card-combine-variants.ts]
+import '@vaadin/avatar';
+import '@vaadin/card';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import img from '../../../../src/main/resources/images/lapland.avif?url';
+
+@customElement('card-combine-variants')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-card theme="outlined elevated horizontal cover-media">
+        <img slot="media" width="100" src="${img}" alt="" />
+        <div slot="title">Lapland</div>
+        <div slot="subtitle">The Exotic North</div>
+        <div>Lapland is the northern-most region of Finland and an active outdoor destination.</div>
+      </vaadin-card>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Common Properties
+
+Property | Supported by
+--vaadin-card-background | Aura, Lumo
+--vaadin-card-shadow | Aura, Lumo
+--vaadin-card-border-width | Aura, Lumo
+--vaadin-card-border-color | Aura, Lumo
+--vaadin-card-border-radius | Aura, Lumo
+--vaadin-card-padding | Aura, Lumo
+--vaadin-card-gap | Aura, Lumo
+--vaadin-card-media-aspect-ratio | Aura, Lumo
+--vaadin-card-title-color | Aura, Lumo
+--vaadin-card-title-font-size | Aura, Lumo
+--vaadin-card-title-font-weight | Aura, Lumo
+--vaadin-card-title-line-height | Aura, Lumo
+--vaadin-card-subtitle-color | Aura, Lumo
+--vaadin-card-subtitle-font-size | Aura, Lumo
+--vaadin-card-subtitle-line-height | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-card
+
+Parts
+
+Media
+    vaadin-card::part(media)
+Header
+    vaadin-card::part(header)
+Content
+    vaadin-card::part(content)
+Footer
+    vaadin-card::part(footer)
+Title
+    vaadin-card [slot="title"]
+
+Style Variants
+
+Outlined
+    vaadin-card[theme~="outlined"]
+Elevated
+    vaadin-card[theme~="elevated"]
+Horizontal
+    vaadin-card[theme~="horizontal"]
+Stretch Media
+    vaadin-card[theme~="stretch-media"]
+Cover Media
+    vaadin-card[theme~="cover-media"]

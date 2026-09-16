@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tiny-llm"
+version = "0.1.0a1"
+description = "A tiny language model trained on Vaadin documentation with MLX"
+requires-python = ">=3.13"
+dependencies = [
+    "mlx",
+    "numpy",
+    "safetensors",
+    "tokenizers",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,286 @@
+Message List Styling
+
+Styling API reference for the Message List component.
+
+Styling Individual Messages
+
+You can style individual messages by adding a class name to some items and providing CSS for that class name. The following example shows how to highlight the current user’s own messages:
+
+[Flow: MessageListClassName.java]
+package com.vaadin.demo.component.messages;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.router.Route;
+
+@Route("message-list-class-name")
+public class MessageListClassName extends Div {
+
+    public MessageListClassName() {
+        // tag::snippet[]
+        Person person = DataService.getPeople(1).get(0);
+        MessageList list = new MessageList();
+
+        Instant yesterday = LocalDateTime.now(ZoneOffset.UTC).minusDays(1)
+                .toInstant(ZoneOffset.UTC);
+        MessageListItem message1 = new MessageListItem(
+                "Linsey, could you check if the details with the order are okay?",
+                yesterday, "Matt Mambo");
+        message1.setUserColorIndex(1);
+
+        Instant fiftyMinsAgo = LocalDateTime.now(ZoneOffset.UTC)
+                .minusMinutes(50).toInstant(ZoneOffset.UTC);
+        MessageListItem message2 = new MessageListItem("All good. Ship it.",
+                fiftyMinsAgo, "Linsey Listy", person.getPictureUrl());
+        message2.setUserColorIndex(2);
+        // Add custom class name
+        message2.addClassNames("current-user");
+
+        list.setItems(Arrays.asList(message1, message2));
+        add(list);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: message-list-class-name.css]
+vaadin-message.current-user {
+    --vaadin-message-name-color: #fff;
+    --vaadin-message-text-color: #fff;
+    --vaadin-message-time-color: #fff;
+    background-color: #000;
+    border: 2px solid #fff;
+    border-radius: 9px;
+    font-weight: 900;
+}
+vaadin-message.current-user::part(name) {
+    font-weight: 900;
+}
+vaadin-message.current-user::part(name)::after{
+    content: " (You)";
+}
+
+[Flow: message-list-class-name.css]
+
+[React: message-list-class-name.tsx]
+import React, { useEffect } from 'react';
+import { format, subDays, subMinutes } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MessageList } from '@vaadin/react-components/MessageList.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  const isoMinutes = 'yyyy-MM-dd HH:mm';
+  const yesterday = format(subDays(new Date(), 1), isoMinutes);
+  const fiftyMinutesAgo = format(subMinutes(new Date(), 50), isoMinutes);
+  return (
+    // tag::snippet[]
+    <MessageList
+      items={[
+        {
+          text: 'Linsey, could you check if the details with the order are okay?',
+          time: yesterday,
+          userName: 'Matt Mambo',
+          userColorIndex: 1,
+        },
+        {
+          text: 'All good. Ship it.',
+          time: fiftyMinutesAgo,
+          userName: 'Linsey Listy',
+          userColorIndex: 2,
+          userImg: person.value?.pictureUrl,
+          className: 'current-user',
+        },
+      ]}
+    />
+    // end::snippet[]
+  );
+}
+
+[React: message-list-class-name.css]
+vaadin-message.current-user {
+    --vaadin-message-name-color: #fff;
+    --vaadin-message-text-color: #fff;
+    --vaadin-message-time-color: #fff;
+    background-color: #000;
+    border: 2px solid #fff;
+    border-radius: 9px;
+    font-weight: 900;
+}
+vaadin-message.current-user::part(name) {
+    font-weight: 900;
+}
+vaadin-message.current-user::part(name)::after{
+    content: " (You)";
+}
+
+[React: message-list-class-name.css]
+
+[Lit: message-list-class-name.ts]
+import '@vaadin/message-list';
+import { format, subDays, subMinutes } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('message-list-class-name')
+export class Example extends LitElement {
+  private person: Person | undefined;
+  private isoMinutes = 'yyyy-MM-dd HH:mm';
+  private yesterday = format(subDays(new Date(), 1), this.isoMinutes);
+  private fiftyMinutesAgo = format(subMinutes(new Date(), 50), this.isoMinutes);
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    this.person = people[0];
+    this.requestUpdate();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-message-list
+        .items="${[
+          {
+            text: 'Linsey, could you check if the details with the order are okay?',
+            time: this.yesterday,
+            userName: 'Matt Mambo',
+            userColorIndex: 1,
+          },
+          {
+            text: 'All good. Ship it.',
+            time: this.fiftyMinutesAgo,
+            userName: 'Linsey Listy',
+            userColorIndex: 2,
+            userImg: this.person ? this.person.pictureUrl : undefined,
+            /* Add custom class name */
+            className: 'current-user',
+          },
+        ]}"
+      ></vaadin-message-list>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: message-list-class-name.css]
+vaadin-message.current-user {
+    --vaadin-message-name-color: #fff;
+    --vaadin-message-text-color: #fff;
+    --vaadin-message-time-color: #fff;
+    background-color: #000;
+    border: 2px solid #fff;
+    border-radius: 9px;
+    font-weight: 900;
+}
+vaadin-message.current-user::part(name) {
+    font-weight: 900;
+}
+vaadin-message.current-user::part(name)::after{
+    content: " (You)";
+}
+
+[Lit: message-list-class-name.css]
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-message-font-size | Aura, Lumo
+--vaadin-message-font-weight | Aura, Lumo
+--vaadin-message-gap | Aura, Lumo
+--vaadin-message-header-line-height | Aura, Lumo
+--vaadin-message-line-height | Aura, Lumo
+--vaadin-message-list-padding | Aura, Lumo
+--vaadin-message-name-color | Aura, Lumo
+--vaadin-message-name-font-size | Aura, Lumo
+--vaadin-message-name-font-weight | Aura, Lumo
+--vaadin-message-padding | Aura, Lumo
+--vaadin-message-text-color | Aura, Lumo
+--vaadin-message-time-color | Aura, Lumo
+--vaadin-message-time-font-size | Aura, Lumo
+--vaadin-message-time-font-weight | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+List
+
+Root element
+    vaadin-message-list
+Internal list layout
+    vaadin-message-list::part(list)
+
+Message
+
+Root element
+    vaadin-message
+Text content layout
+    vaadin-message::part(content)
+Header row
+    vaadin-message::part(header)
+Name
+    vaadin-message::part(name)
+Timestamp
+    vaadin-message::part(time)
+Message text
+    vaadin-message::part(message)
+
+Attachments
+
+Attachments container
+    vaadin-message::part(attachments)
+Attachment button
+    vaadin-message::part(attachment)
+Image attachment button
+    vaadin-message::part(attachment attachment-image)
+File attachment button
+    vaadin-message::part(attachment attachment-file)
+Image thumbnail
+    vaadin-message::part(attachment-preview)
+File icon
+    vaadin-message::part(attachment-icon)
+File name
+    vaadin-message::part(attachment-name)
+
+Avatars
+
+Avatar
+    vaadin-message > vaadin-avatar
+Avatar icon
+    vaadin-message > vaadin-avatar::part(icon)
+Avatar abbreviation
+    vaadin-message > vaadin-avatar::part(abbr)

@@ -1,0 +1,249 @@
+Avatar Styling
+
+Styling API reference for the Avatar and Avatar Group components.
+
+Style Variants
+
+Avatar and Avatar Group support the following style variants:
+
+Variant | Description | Supported by
+reverse | Reverses the stacking order of avatars in Avatar Group | Aura, Lumo
+large | Large avatar size | Aura, Lumo
+small | Small avatar size | Aura, Lumo
+xlarge | Extra large avatar size | Aura, Lumo
+xsmall | Extra small avatar size | Aura, Lumo
+filled | Uses a solid background color for avatars | Aura
+
+Size Variants
+
+Avatar has four available size variants:
+
+[Flow: AvatarSizes.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.avatar.AvatarVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("avatar-sizes")
+public class AvatarSizes extends HorizontalLayout {
+
+    private Person person = DataService.getPeople(1).get(0);
+
+    public AvatarSizes() {
+        String name = person.getFirstName() + " " + person.getLastName();
+
+        // tag::snippet[]
+        Avatar xl = new Avatar(name);
+        xl.addThemeVariants(AvatarVariant.XLARGE);
+
+        Avatar l = new Avatar(name);
+        l.addThemeVariants(AvatarVariant.LARGE);
+
+        Avatar s = new Avatar(name);
+        s.addThemeVariants(AvatarVariant.SMALL);
+
+        Avatar xs = new Avatar(name);
+        xs.addThemeVariants(AvatarVariant.XSMALL);
+        // end::snippet[]
+
+        add(xl, l, s, xs);
+    }
+
+}
+
+[React: avatar-sizes.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar, HorizontalLayout } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Avatar name={`${person.value?.firstName} ${person.value?.lastName}`} theme="xlarge" />
+
+      <Avatar name={`${person.value?.firstName} ${person.value?.lastName}`} theme="large" />
+
+      <Avatar name={`${person.value?.firstName} ${person.value?.lastName}`} theme="small" />
+
+      <Avatar name={`${person.value?.firstName} ${person.value?.lastName}`} theme="xsmall" />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: avatar-sizes.ts]
+import '@vaadin/avatar';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-sizes')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private person: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    this.person = people[0];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-avatar
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+          theme="xlarge"
+        ></vaadin-avatar>
+
+        <vaadin-avatar
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+          theme="large"
+        ></vaadin-avatar>
+
+        <vaadin-avatar
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+          theme="small"
+        ></vaadin-avatar>
+
+        <vaadin-avatar
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+          theme="xsmall"
+        ></vaadin-avatar>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Size variants should be used only in special cases. Use the --vaadin-avatar-size CSS property to change the default Avatar size.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Common Properties
+
+Property | Supported by
+--vaadin-avatar-background | Aura, Lumo
+--vaadin-avatar-border-width | Aura, Lumo
+--vaadin-avatar-text-color | Aura
+--vaadin-avatar-border-color | Aura
+--vaadin-avatar-group-overlap | Aura, Lumo
+--vaadin-avatar-group-gap | Aura, Lumo
+--vaadin-avatar-size | Aura, Lumo
+
+Overlay
+
+Property | Supported by
+--vaadin-item-overlay-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+
+Overlay Items
+
+Property | Supported by
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+
+User Color Properties
+
+Property | Supported by
+--vaadin-user-color-0 | Aura, Lumo
+--vaadin-user-color-1 | Aura, Lumo
+--vaadin-user-color-2 | Aura, Lumo
+--vaadin-user-color-3 | Aura, Lumo
+--vaadin-user-color-4 | Aura, Lumo
+--vaadin-user-color-5 | Aura, Lumo
+--vaadin-user-color-6 | Aura, Lumo
+--vaadin-user-color-7 | Aura
+--vaadin-user-color-8 | Aura
+--vaadin-user-color-9 | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Avatar
+
+Root element
+    vaadin-avatar
+Hovered avatar
+    vaadin-avatar:hover
+Focused avatar
+    vaadin-avatar[focused]
+Avatar with color index
+    vaadin-avatar[has-color-index]
+Overflow avatar
+    vaadin-avatar[slot="overflow"]
+Expanded overflow avatar
+    vaadin-avatar[aria-expanded="true"]
+Avatar icon
+    vaadin-avatar::part(icon)
+Avatar abbreviation
+    vaadin-avatar::part(abbr)
+
+Avatar Group
+
+Root element
+    vaadin-avatar-group
+Avatar in group
+    vaadin-avatar-group > vaadin-avatar
+
+Overlay
+
+Overlay background
+    vaadin-avatar-group::part(overlay)
+Overlay content wrapper
+    vaadin-avatar-group::part(content)
+Menu inside overlay
+    vaadin-avatar-group-menu
+Item element
+    vaadin-avatar-group-menu-item
+Hovered item
+    vaadin-avatar-group-menu-item:hover
+Focused item
+    vaadin-avatar-group-menu-item[focused]
+Item content wrapper
+    vaadin-avatar-group-menu-item::part(content)
+Item avatar
+    vaadin-avatar-group-menu-item > vaadin-avatar

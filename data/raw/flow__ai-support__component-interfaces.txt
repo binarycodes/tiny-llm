@@ -1,0 +1,41 @@
+Component Interfaces
+
+AI interface contracts for input, message list, message, and file receiver components used by the AIOrchestrator.
+
+The orchestrator’s builder accepts both standard Vaadin components and custom implementations of the AI interfaces. This allows you to swap in custom UI components without changing the orchestrator wiring.
+
+AI Input
+
+AIInput defines the contract for text input components. It has a single method:
+
+- addSubmitListener(SerializableConsumer<String>) — registers a listener that receives the submitted text.
+
+The builder accepts either a MessageInput directly or any AIInput implementation.
+
+AI Message List
+
+AIMessageList defines the contract for displaying messages. Key methods:
+
+- addMessage(String text, String userName, List<AIAttachment> attachments) — creates and adds a message, returning an AIMessage handle.
+- addAttachmentClickListener(AttachmentClickCallback) — registers a handler for attachment click events.
+
+The builder accepts either a MessageList directly or any AIMessageList implementation.
+
+AI Message
+
+AIMessage represents a single message. It is returned by AIMessageList.addMessage() and supports:
+
+- getText() / setText(String) — read or replace the message text.
+- appendText(String) — append a token during streaming. The orchestrator calls this as tokens arrive from the LLM.
+- getTime() / setTime(Instant) — message timestamp.
+- getUserName() — the sender display name.
+
+AI File Receiver
+
+AIFileReceiver defines the contract for file upload components. It has a single method:
+
+- takeAttachments() — returns all pending attachments and clears the internal state. The orchestrator calls this when the user submits a message.
+
+The builder accepts UploadManager, Upload, or any AIFileReceiver implementation.
+
+The orchestrator installs its own in-memory upload handler on UploadManager or Upload. The component must not have an upload handler already set.

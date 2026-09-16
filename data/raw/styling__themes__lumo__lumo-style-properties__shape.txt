@@ -1,0 +1,48 @@
+Lumo Shapes
+
+Describing the Lumo style properties related to component shapes.
+
+[lumo-tokens.ts]
+import colorScheme from '@vaadin/vaadin-lumo-styles/src/global/color-scheme.css?inline';
+import propsStyles from '@vaadin/vaadin-lumo-styles/src/props/index.css?inline';
+import utilityStyles from '@vaadin/vaadin-lumo-styles/utility.css?inline';
+import { addStylesheet } from 'Frontend/demo/theme';
+
+// Extract dark theme properties. Exclude non-custom properties, so that we don't override docs
+// styles (color, background) with Lumo styles.
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
+const darkThemeProps = colorScheme
+  .toString()
+  .split('\n')
+  .filter((line) => line.trim().startsWith('--'));
+const darkThemeStyles = `
+[theme~='dark'] {
+${darkThemeProps.join('\n')}
+}
+`;
+
+// Include styles in the page
+addStylesheet(propsStyles);
+addStylesheet(utilityStyles);
+addStylesheet(darkThemeStyles);
+
+// Notify DSP CustomPropertyPreview React component after custom properties have been loaded
+window.dispatchEvent(new CustomEvent('custom-properties-changed'));
+
+// Dummy element so that this module can be included as a rendered example in a docs page
+export default class LumoTokens extends HTMLElement {}
+
+[lumo-tokens.ts]
+
+This page lists Lumo shapes-related style properties, which you can use to adjust the visual style of component shapes.
+
+Lumo defines several border radius values. These values are defined as em by default, so they scale with the font size.
+
+Description | CSS Custom Property
+Large Dialogs, cards, and other larger container elements. | --lumo-border-radius-l:
+Medium Buttons and input fields, and most other normal-sized UI elements. | --lumo-border-radius-m:
+Small Checkboxes and other small elements that could turn into circles with an excessive border radius. | --lumo-border-radius-s:
+
+Caution: The --lumo-border-radius property is deprecated. Use the --lumo-border-radius-m property, instead.
+
+Important: If you set one of the border radius property values to zero, always use an explicit unit, for example, --lumo-border-radius-m: 0px;. If you use 0 without a unit, it causes some CSS calc() operations to be invalid.

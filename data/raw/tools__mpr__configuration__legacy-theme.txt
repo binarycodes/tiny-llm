@@ -1,0 +1,34 @@
+Legacy Theme in MPR
+
+By default, the theme used with MPR is "valo" and this can be changed with adding the MprTheme annotation with the wanted theme name to your AppShellConfigurator configuration class.
+
+Note: Runtime changing of the theme isn’t supported.
+
+[Sample theme definition]
+@MprTheme("reindeer")
+public class Configuration implements AppShellConfigurator {
+}
+
+public class MainLayout extends Div implements RouterLayout {
+}
+
+@Route(value = "", layout = MainLayout.class)
+public class RootTarget extends Div {
+    public RootTarget() {
+      LegacyWrapper addressbookWrapper = new LegacyWrapper(
+                  new AddressbookLayout());
+      add(addressbookWrapper);
+    }
+}
+
+The theme can be a old legacy styles.css theme or a styles.scss theme. With a Sass-based theme, on-the-fly compilation works out of the box without any changes.
+
+Using Custom Themes
+
+Using your own Vaadin legacy theme remains the same. Create your theme by following the instructions in the themes documentation for Vaadin 7 or Vaadin 8.
+
+Then add the @MprTheme annotation with your theme name on the AppShellConfigurator instance and your theme is used for the legacy framework part.
+
+Note: Legacy Theme Applied Only to View with Legacy Components
+
+Styles for non-legacy components shouldn’t be included in the legacy theme.

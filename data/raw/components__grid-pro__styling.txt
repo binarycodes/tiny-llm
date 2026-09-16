@@ -1,0 +1,358 @@
+Grid Pro Styling
+
+Styling API reference for the Grid Pro component.
+
+Style Variants
+
+Grid Pro supports the following style variants:
+
+Variant | Description | Supported by
+highlight-editable-cells | Highlights editable cells with a background color | Aura, Lumo
+highlight-read-only-cells | Highlights read-only cells with a background color | Aura, Lumo
+
+In addition, Grid Pro also supports all Grid Style Variants.
+
+Highlight Editable
+
+Editable cells are indicated with a hover effect, by default. They can be highlighted by applying the highlight-editable-cells style variant.
+
+[Flow: GridProThemeHighlightEditableCells.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.gridpro.GridProVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.util.List;
+
+@Route("grid-pro-highlight-editable-cells")
+public class GridProThemeHighlightEditableCells extends Div {
+
+    public GridProThemeHighlightEditableCells() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+        grid.addThemeVariants(GridProVariant.HIGHLIGHT_EDITABLE_CELLS);
+        // end::snippet[]
+
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getMembership).setHeader("Membership");
+
+        grid.addEditColumn(Person::getEmail).text(Person::setEmail)
+                .setHeader("Email (Editable)");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-highlight-editable-cells.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro theme="highlight-editable-cells" items={items.value}>
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="membership" />
+      <GridProEditColumn path="email" header="Email (Editable)" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-highlight-editable-cells.ts]
+import '@vaadin/grid/vaadin-grid-column.js';
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-highlight-editable-cells')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro theme="highlight-editable-cells" .items="${this.items}">
+        <!-- end::snippet[] -->
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="membership"></vaadin-grid-column>
+        <vaadin-grid-pro-edit-column
+          path="email"
+          header="Email (Editable)"
+        ></vaadin-grid-pro-edit-column>
+        <!-- tag::snippet[] -->
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+You can also apply custom styling to editable cells by targeting the editable-cell part in CSS. The following example shows how to apply custom styling to all Grid Pro elements that have the editable-custom-effect class name:
+
+[CSS]
+vaadin-grid-pro.editable-custom-effect::part(editable-cell):hover,
+vaadin-grid-pro.editable-custom-effect::part(editable-cell focused-cell) {
+  background: var(--lumo-contrast-10pct);
+}
+
+vaadin-grid-pro.editable-custom-effect::part(editable-cell) {
+  background: var(--lumo-contrast-5pct);
+}
+
+Highlight Read-Only
+
+Read-only cells can be highlighted by applying the highlight-read-only-cells style variant.
+
+[Flow: GridProThemeHighlightReadOnlyCells.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.gridpro.GridProVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.util.List;
+
+@Route("grid-pro-highlight-read-only-cells")
+public class GridProThemeHighlightReadOnlyCells extends Div {
+
+    public GridProThemeHighlightReadOnlyCells() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+        grid.addThemeVariants(GridProVariant.HIGHLIGHT_READ_ONLY_CELLS);
+        // end::snippet[]
+
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getMembership).setHeader("Membership");
+
+        grid.addEditColumn(Person::getEmail).text(Person::setEmail)
+                .setHeader("Email (Editable)");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-highlight-read-only-cells.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro theme="highlight-read-only-cells" items={items.value}>
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="membership" />
+      <GridProEditColumn path="email" header="Email (Editable)" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-highlight-read-only-cells.ts]
+import '@vaadin/grid/vaadin-grid-column.js';
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-highlight-read-only-cells')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro theme="highlight-read-only-cells" .items="${this.items}">
+        <!-- end::snippet[] -->
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="membership"></vaadin-grid-column>
+        <vaadin-grid-pro-edit-column
+          path="email"
+          header="Email (Editable)"
+        ></vaadin-grid-pro-edit-column>
+        <!-- tag::snippet[] -->
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-grid-pro-editable-cell-background-color | Aura
+
+In addition, Grid Pro also supports all Grid Style Properties.
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-grid-pro
+
+Cells
+
+Cell (any)
+    vaadin-grid-pro::part(cell)
+Header row cell
+    vaadin-grid-pro::part(header-cell)
+Body cell
+    vaadin-grid-pro::part(body-cell)
+Footer row cell
+    vaadin-grid-pro::part(footer-cell)
+Focused cell
+    vaadin-grid-pro::part(focused-cell)
+Editable cell
+    vaadin-grid-pro::part(editable-cell)
+Cell contents
+    vaadin-grid-cell-content
+Cell in first column
+    vaadin-grid-pro::part(first-column-cell)
+Cell in last column
+    vaadin-grid-pro::part(last-column-cell)
+Cell in first row
+    vaadin-grid-pro::part(first-row-cell)
+Cell in last column
+    vaadin-grid-pro::part(last-row-cell)
+Cell in odd row
+    vaadin-grid-pro::part(odd-row-cell)
+Cell in even row
+    vaadin-grid-pro::part(even-row-cell)
+Cell in selected row
+    vaadin-grid-pro::part(selected-row-cell)
+Cell in first header row
+    vaadin-grid-pro::part(first-header-row-cell)
+Cell in last header row
+    vaadin-grid-pro::part(last-header-row-cell)
+Cell focus ring
+    vaadin-grid::part(cell)::before
+Row focus ring
+    vaadin-grid::part(row)::before
+
+Selection Checkboxes
+
+Row selection checkbox
+    vaadin-grid-pro > vaadin-checkbox
+Select All checkbox
+    vaadin-grid-pro > #selectAllCheckbox
+
+Sorters
+
+Element
+    vaadin-grid-sorter
+Active sorter
+    vaadin-grid-sorter[direction]
+Column header content
+    vaadin-grid-sorter::part(content)
+Sort indicators
+    vaadin-grid-sorter::part(indicators)
+Sort indicator icons
+    vaadin-grid-sorter::part(indicators)::before
+Sort order indicator
+    vaadin-grid-sorter::part(order)
+
+Item Details
+
+Item details cell (spans entire row)
+    vaadin-grid-pro::part(details-cell)
+Cell in row with open details
+    vaadin-grid-pro::part(details-open-row-cell)
+Row with open details
+    vaadin-grid-pro::part(details-open-row)
+
+Editors
+
+Text field editor
+    vaadin-grid-pro-edit-text-field
+Checkbox editor
+    vaadin-grid-pro-edit-checkbox
+Select editor
+    vaadin-grid-pro-edit-select
+
+See Text Field, Select and Checkbox selectors for details on styling the editors

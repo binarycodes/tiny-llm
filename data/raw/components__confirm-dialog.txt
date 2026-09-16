@@ -1,0 +1,760 @@
+Confirm Dialog
+
+Confirm Dialog is a modal Dialog used to confirm user actions.
+
+Confirm Dialog is a modal Dialog used to confirm user actions.
+
+[Flow: ConfirmDialogBasic.java]
+package com.vaadin.demo.component.confirmdialog;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("confirm-dialog-basic")
+public class ConfirmDialogBasic extends Div {
+
+    private Span status;
+
+    public ConfirmDialogBasic() {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        // tag::snippet[]
+        status = new Span();
+        status.setVisible(false);
+
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Unsaved changes");
+        dialog.setText(
+                "There are unsaved changes. Do you want to discard or save them?");
+
+        dialog.setCancelable(true);
+        dialog.addCancelListener(event -> setStatus("Canceled"));
+
+        dialog.setRejectable(true);
+        dialog.setRejectText("Discard");
+        dialog.addRejectListener(event -> setStatus("Discarded"));
+
+        dialog.setConfirmText("Save");
+        dialog.addConfirmListener(event -> setStatus("Saved"));
+
+        Button button = new Button("Open confirm dialog");
+        button.addClickListener(event -> {
+            dialog.open();
+            status.setVisible(false);
+        });
+        // end::snippet[]
+
+        dialog.open();
+
+        layout.add(button, status);
+        add(layout);
+
+        // Center the button within the example
+        getStyle().set("position", "fixed").set("top", "0").set("right", "0")
+                .set("bottom", "0").set("left", "0").set("display", "flex")
+                .set("align-items", "center").set("justify-content", "center");
+    }
+
+    private void setStatus(String value) {
+        status.setText("Status: " + value);
+        status.setVisible(true);
+    }
+
+}
+
+[React: confirm-dialog-basic.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { ConfirmDialog } from '@vaadin/react-components/ConfirmDialog.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import confirmDialogBasicStyles from './confirm-dialog-basic-styles';
+
+function Example() {
+  const dialogOpened = useSignal(true);
+  const status = useSignal('');
+
+  function open() {
+    status.value = '';
+    dialogOpened.value = true;
+  }
+
+  function onClosed() {
+    dialogOpened.value = false;
+  }
+
+  return (
+    <HorizontalLayout style={{ alignItems: 'center', justifyContent: 'center' }} theme="spacing">
+      <Button onClick={open}>Open confirm dialog</Button>
+
+      {/* tag::snippet[] */}
+      <ConfirmDialog
+        header="Unsaved changes"
+        cancelButtonVisible
+        rejectButtonVisible
+        rejectText="Discard"
+        confirmText="Save"
+        opened={dialogOpened.value}
+        onClosed={onClosed}
+        onConfirm={() => {
+          status.value = 'Saved';
+        }}
+        onCancel={() => {
+          status.value = 'Canceled';
+        }}
+        onReject={() => {
+          status.value = 'Discarded';
+        }}
+      >
+        There are unsaved changes. Do you want to discard or save them?
+      </ConfirmDialog>
+      {/* end::snippet[] */}
+
+      <span hidden={status.value === ''}>Status: {status.value}</span>
+    </HorizontalLayout>
+  );
+}
+
+[Lit: confirm-dialog-basic.ts]
+import '@vaadin/button';
+import '@vaadin/confirm-dialog';
+import '@vaadin/horizontal-layout';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('confirm-dialog-basic')
+export class Example extends LitElement {
+  static override styles = css`
+    /* Center the button within the example */
+    :host {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private dialogOpened = true;
+
+  @state()
+  private status = '';
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; justify-content: center;"
+        theme="spacing"
+      >
+        <vaadin-button @click="${this.open}">Open confirm dialog</vaadin-button>
+
+        <!-- tag::snippet[] -->
+        <vaadin-confirm-dialog
+          header="Unsaved changes"
+          cancel-button-visible
+          reject-button-visible
+          reject-text="Discard"
+          confirm-text="Save"
+          .opened="${this.dialogOpened}"
+          @closed="${this.onClosed}"
+          @confirm="${() => {
+            this.status = 'Saved';
+          }}"
+          @cancel="${() => {
+            this.status = 'Canceled';
+          }}"
+          @reject="${() => {
+            this.status = 'Discarded';
+          }}"
+        >
+          There are unsaved changes. Do you want to discard or save them?
+        </vaadin-confirm-dialog>
+        <!-- end::snippet[] -->
+
+        <span ?hidden="${this.status === ''}">Status: ${this.status}</span>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  onClosed() {
+    this.dialogOpened = false;
+  }
+
+  private open() {
+    this.dialogOpened = true;
+    this.status = '';
+  }
+}
+
+Content
+
+Confirm Dialog consists of:
+
+- Title
+- Message
+- Footer
+  - “Cancel” button
+  - “Reject” button
+  - “Confirm” button
+
+Each Confirm Dialog should have a title and/or message. The “Confirm” button is shown by default, while the two other buttons aren’t (they must be explicitly enabled to be displayed).
+
+Title
+
+The title should be brief but informative and written in sentence case. It must explain the purpose of the dialog and can be phrased as a statement or question. Avoid ambiguous titles, such as “Are you sure?”. Rich content, such as other components and elements, can also be used in the title.
+
+Messages
+
+The message should contain any information a user might need to make an informed decision.
+
+While it can contain any type of content, Confirm Dialog isn’t meant for collecting user input, except for a Checkbox used for remembering the user’s choice.
+
+Buttons
+
+The buttons in a Confirm Dialog are customizable. You can edit their labels and change their theme variants.
+
+Confirm Button
+
+The “Confirm” button represents primary action and is the only button that’s visible by default. Every dialog needs at least one button.
+
+As the name suggests, its default label is “Confirm”, but it can and should be relabeled based on the use case.
+
+Usage Recommendations
+
+- Use concise labels that explain the action, such as “Save” and “Delete”. Avoid ambiguous labels like “Yes” and “No”.
+- For dangerous actions, such as those that lose or destroy data, use the Error theme variant.
+- For simple acknowledgements, it’s acceptable to use an “OK” label.
+
+[Flow: ConfirmDialogConfirmButton.java]
+package com.vaadin.demo.component.confirmdialog;
+
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("confirm-dialog-confirm-button")
+public class ConfirmDialogConfirmButton extends Div {
+
+    private Span status;
+
+    public ConfirmDialogConfirmButton() {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        // tag::snippet[]
+        status = new Span();
+        status.setVisible(false);
+
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Export failed");
+        dialog.setText(new Html(
+                "<p>An error occurred while exporting <b>Report Q4</b>. Please try again. If the problem persists, contact <a href=\"mailto:support@company.com\">support@company.com</a>.</p>"));
+
+        dialog.setConfirmText("OK");
+        dialog.addConfirmListener(event -> setStatus("Acknowledged"));
+
+        Button button = new Button("Open confirm dialog");
+        button.addClickListener(event -> {
+            dialog.open();
+            status.setVisible(false);
+        });
+        // end::snippet[]
+
+        layout.add(button, status);
+        add(layout);
+    }
+
+    private void setStatus(String value) {
+        status.setText("Status: " + value);
+        status.setVisible(true);
+    }
+
+}
+
+[React: confirm-dialog-confirm-button.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { ConfirmDialog } from '@vaadin/react-components/ConfirmDialog.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const dialogOpened = useSignal(false);
+  const status = useSignal('');
+
+  function open() {
+    status.value = '';
+    dialogOpened.value = true;
+  }
+
+  function onClosed() {
+    dialogOpened.value = false;
+  }
+
+  return (
+    <HorizontalLayout style={{ alignItems: 'center', justifyContent: 'center' }} theme="spacing">
+      <Button onClick={open}>Open confirm dialog</Button>
+
+      {/* tag::snippet[] */}
+      <ConfirmDialog
+        header="Export failed"
+        confirmText="OK"
+        opened={dialogOpened.value}
+        onClosed={onClosed}
+        onConfirm={() => {
+          status.value = 'Acknowledged';
+        }}
+      >
+        An error occurred while exporting <b>Report Q4</b>. Please try again. If the problem
+        persists, contact <a href="mailto:support@company.com">support@company.com</a>.
+      </ConfirmDialog>
+      {/* end::snippet[] */}
+
+      <span hidden={status.value === ''}>Status: {status.value}</span>
+    </HorizontalLayout>
+  );
+}
+
+[Lit: confirm-dialog-confirm-button.ts]
+import '@vaadin/button';
+import '@vaadin/confirm-dialog';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('confirm-dialog-confirm-button')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private dialogOpened = false;
+
+  @state()
+  private status = '';
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; justify-content: center;"
+        theme="spacing"
+      >
+        <vaadin-button @click="${this.open}">Open confirm dialog</vaadin-button>
+
+        <!-- tag::snippet[] -->
+        <vaadin-confirm-dialog
+          header="Export failed"
+          confirm-text="OK"
+          .opened="${this.dialogOpened}"
+          @closed="${this.onClosed}"
+          @confirm="${() => {
+            this.status = 'Acknowledged';
+          }}"
+        >
+          An error occurred while exporting <b>Report Q4</b>. Please try again. If the problem
+          persists, contact <a href="mailto:support@company.com">support@company.com</a>.
+        </vaadin-confirm-dialog>
+        <!-- end::snippet[] -->
+
+        <span ?hidden="${this.status === ''}">Status: ${this.status}</span>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  onClosed() {
+    this.dialogOpened = false;
+  }
+
+  private open() {
+    this.dialogOpened = true;
+    this.status = '';
+  }
+}
+
+Cancel Button
+
+The “Cancel” button is used in situations where the user must be able to cancel an action altogether, such as confirming irreversible actions like saving or deleting data.
+
+[Flow: ConfirmDialogCancelButton.java]
+package com.vaadin.demo.component.confirmdialog;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("confirm-dialog-cancel-button")
+public class ConfirmDialogCancelButton extends Div {
+
+    private Span status;
+
+    public ConfirmDialogCancelButton() {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        // tag::snippet[]
+        status = new Span();
+        status.setVisible(false);
+
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Delete \"Report Q4\"?");
+        dialog.setText(
+                "Are you sure you want to permanently delete this item?");
+
+        dialog.setCancelable(true);
+        dialog.addCancelListener(event -> setStatus("Canceled"));
+
+        dialog.setConfirmText("Delete");
+        dialog.setConfirmButtonTheme("error primary");
+        dialog.addConfirmListener(event -> setStatus("Deleted"));
+
+        Button button = new Button("Open confirm dialog");
+        button.addClickListener(event -> {
+            dialog.open();
+            status.setVisible(false);
+        });
+        // end::snippet[]
+
+        layout.add(button, status);
+        add(layout);
+    }
+
+    private void setStatus(String value) {
+        status.setText("Status: " + value);
+        status.setVisible(true);
+    }
+
+}
+
+[React: confirm-dialog-cancel-button.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { ConfirmDialog } from '@vaadin/react-components/ConfirmDialog.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const dialogOpened = useSignal(false);
+  const status = useSignal('');
+
+  function open() {
+    status.value = '';
+    dialogOpened.value = true;
+  }
+
+  function onClosed() {
+    dialogOpened.value = false;
+  }
+
+  return (
+    <HorizontalLayout style={{ alignItems: 'center', justifyContent: 'center' }} theme="spacing">
+      <Button onClick={open}>Open confirm dialog</Button>
+
+      {/* tag::snippet[] */}
+      <ConfirmDialog
+        header='Delete "Report Q4"?'
+        cancelButtonVisible
+        confirmText="Delete"
+        confirmTheme="error primary"
+        opened={dialogOpened.value}
+        onClosed={onClosed}
+        onCancel={() => {
+          status.value = 'Canceled';
+        }}
+        onConfirm={() => {
+          status.value = 'Deleted';
+        }}
+      >
+        Are you sure you want to permanently delete this item?
+      </ConfirmDialog>
+      {/* end::snippet[] */}
+
+      <span hidden={status.value === ''}>Status: {status.value}</span>
+    </HorizontalLayout>
+  );
+}
+
+[Lit: confirm-dialog-cancel-button.ts]
+import '@vaadin/button';
+import '@vaadin/confirm-dialog';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('confirm-dialog-cancel-button')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private dialogOpened = false;
+
+  @state()
+  private status = '';
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; justify-content: center;"
+        theme="spacing"
+      >
+        <vaadin-button @click="${this.open}">Open confirm dialog</vaadin-button>
+
+        <!-- tag::snippet[] -->
+        <vaadin-confirm-dialog
+          header='Delete "Report Q4"?'
+          cancel-button-visible
+          confirm-text="Delete"
+          confirm-theme="error primary"
+          .opened="${this.dialogOpened}"
+          @closed="${this.onClosed}"
+          @cancel="${() => {
+            this.status = 'Canceled';
+          }}"
+          @confirm="${() => {
+            this.status = 'Deleted';
+          }}"
+        >
+          Are you sure you want to permanently delete this item?
+        </vaadin-confirm-dialog>
+        <!-- end::snippet[] -->
+
+        <span ?hidden="${this.status === ''}">Status: ${this.status}</span>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  onClosed() {
+    this.dialogOpened = false;
+  }
+
+  private open() {
+    this.dialogOpened = true;
+    this.status = '';
+  }
+}
+
+Reject Button
+
+The “Reject” button differs from the “Cancel” button in that it still moves the user forward in their workflow.
+
+For example, if the user tries to leave a view containing unsaved changes, they are typically presented with three options: “Cancel”, “Discard” and “Save”. “Cancel” allows the user to stay put and review their changes. “Discard” (the “Reject” button in this case) gets rid of the changes and the user leaves the view.
+
+[Flow: ConfirmDialogRejectButton.java]
+package com.vaadin.demo.component.confirmdialog;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("confirm-dialog-reject-button")
+public class ConfirmDialogRejectButton extends Div {
+
+    private Span status;
+
+    public ConfirmDialogRejectButton() {
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        // tag::snippet[]
+        status = new Span();
+        status.setVisible(false);
+
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Unsaved changes");
+        dialog.setText(
+                "Do you want to discard or save your changes before navigating away?");
+
+        dialog.setCancelable(true);
+        dialog.addCancelListener(event -> setStatus("Canceled"));
+
+        dialog.setRejectable(true);
+        dialog.setRejectText("Discard");
+        dialog.addRejectListener(event -> setStatus("Discarded"));
+
+        dialog.setConfirmText("Save");
+        dialog.addConfirmListener(event -> setStatus("Saved"));
+
+        Button button = new Button("Open confirm dialog");
+        button.addClickListener(event -> {
+            dialog.open();
+            status.setVisible(false);
+        });
+        // end::snippet[]
+
+        layout.add(button, status);
+        add(layout);
+    }
+
+    private void setStatus(String value) {
+        status.setText("Status: " + value);
+        status.setVisible(true);
+    }
+
+}
+
+[React: confirm-dialog-reject-button.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { ConfirmDialog } from '@vaadin/react-components/ConfirmDialog.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const dialogOpened = useSignal(false);
+  const status = useSignal('');
+
+  function open() {
+    status.value = '';
+    dialogOpened.value = true;
+  }
+
+  function onClosed() {
+    dialogOpened.value = false;
+  }
+
+  return (
+    <HorizontalLayout style={{ alignItems: 'center', justifyContent: 'center' }} theme="spacing">
+      <Button onClick={open}>Open confirm dialog</Button>
+
+      {/* tag::snippet[] */}
+      <ConfirmDialog
+        header="Unsaved changes"
+        cancelButtonVisible
+        rejectButtonVisible
+        rejectText="Discard"
+        confirmText="Save"
+        opened={dialogOpened.value}
+        onClosed={onClosed}
+        onConfirm={() => {
+          status.value = 'Saved';
+        }}
+        onCancel={() => {
+          status.value = 'Canceled';
+        }}
+        onReject={() => {
+          status.value = 'Discarded';
+        }}
+      >
+        Do you want to discard or save your changes before navigating away?
+      </ConfirmDialog>
+      {/* end::snippet[] */}
+
+      <span hidden={status.value === ''}>Status: {status.value}</span>
+    </HorizontalLayout>
+  );
+}
+
+[Lit: confirm-dialog-reject-button.ts]
+import '@vaadin/button';
+import '@vaadin/confirm-dialog';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('confirm-dialog-reject-button')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private dialogOpened = false;
+
+  @state()
+  private status = '';
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; justify-content: center;"
+        theme="spacing"
+      >
+        <vaadin-button @click="${this.open}">Open confirm dialog</vaadin-button>
+
+        <!-- tag::snippet[] -->
+        <vaadin-confirm-dialog
+          header="Unsaved changes"
+          cancel-button-visible
+          reject-button-visible
+          reject-text="Discard"
+          confirm-text="Save"
+          .opened="${this.dialogOpened}"
+          @closed="${this.onClosed}"
+          @confirm="${() => {
+            this.status = 'Saved';
+          }}"
+          @cancel="${() => {
+            this.status = 'Canceled';
+          }}"
+          @reject="${() => {
+            this.status = 'Discarded';
+          }}"
+        >
+          Do you want to discard or save your changes before navigating away?
+        </vaadin-confirm-dialog>
+        <!-- end::snippet[] -->
+
+        <span ?hidden="${this.status === ''}">Status: ${this.status}</span>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  onClosed() {
+    this.dialogOpened = false;
+  }
+
+  private open() {
+    this.dialogOpened = true;
+    this.status = '';
+  }
+}
+
+Closing
+
+Confirm Dialog can be closed by clicking one of its buttons (all buttons close the dialog by default), or by pressing Esc (which triggers the action associated with the Cancel button if one exists). Closing on Esc can be disabled by setting the noCloseOnEsc property to false.
+
+Related Components
+
+Component | Usage Recommendations
+Dialog | Component for presenting information and UI elements in an overlay.

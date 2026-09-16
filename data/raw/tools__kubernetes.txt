@@ -1,0 +1,42 @@
+Kubernetes Kit
+
+Deploy your Vaadin application to Kubernetes, an open-source system for automating deployment, scaling, and management of containerized applications, and enable scalability, high availability, and rolling updates for your application.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Kubernetes Kit in your project.
+
+- Start Trial
+- See Pricing
+
+Features
+
+Kubernetes Kit is used to deploy Vaadin Flow applications on-premise or in the cloud using Kubernetes. It helps in creating applications that are scalable, highly available, and user-friendly. To elaborate, it enables the following:
+
+- Horizontal scalability, saving on cloud costs by allowing applications to scale down without impacting active user sessions — and scale up when needed to meet your user and server needs.
+- High availability, enabling users to continue their active sessions and keep using your application even if a server fails.
+- Non-disruptive rolling updates that don’t interfere with user sessions, thus reducing the cost and inconvenience of after-hour deployments.
+- Serialization helpers that make it faster and easier to leverage fully horizontal scaling and fail-over.
+
+How It Works
+
+The Kubernetes Kit uses a combination of sticky sessions and session replication to enable scaling up or down, and high availability. Under normal circumstances, sticky sessions are used to route the same user always to the same node or pod.
+
+A node or pod keeps current user sessions connected in memory. It’ll also asynchronously replicate sessions to the distributed cache (i.e., Hazelcast or Redis).
+
+Under normal circumstances, the user experience shouldn’t be negatively affected as a session is retrieved from the internal memory of each node or pod. However, when there is a scaling down event, or if there is an unexpected node/pod/network failure on the server to which the user is currently connected, the user is connected to a new healthy node or pod that retrieves their session from the distributed cache.
+
+As a result, the experience can be seamless for the end user: they won’t notice that anything has happened — except perhaps for a very slight delay when scaling down, or when a node failure event occurs.
+
+Topics
+
+Getting Started
+    Step-by-step guide showing how to enable scalability, high availability, and non-disruptive rolling updates for your application using Kubernetes Kit.
+Rolling Updates
+    Kubernetes Kit helps to roll out a new version of an application by sending a notification to users on the previous version so that they can choose when to switch. This allows them to save any changes to their work, rather than risk losing them.
+Session Replication
+    Best practices to achieve session replication.
+Session Replication Debug Tool
+    To help make HTTP sessions fully serializable and deserializable, Kubernetes Kit offers a tool for discovering serialization issues during development.
+Configuration
+    Configuration options for Kubernetes Kit.

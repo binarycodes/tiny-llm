@@ -1,0 +1,5 @@
+Removing Legacy Servlets
+
+The MPR framework manages the VaadinServlets to make sure the correct requests are routed to the right frameworks — either Flow or Vaadin 7/8. For that to work, all legacy VaadinServlets have to be removed. If you need some custom functionality, you can use the VaadinServlet provided by Flow instead.
+
+The next step is Converting legacy UIs.

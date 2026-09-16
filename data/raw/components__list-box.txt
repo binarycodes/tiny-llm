@@ -1,0 +1,694 @@
+List Box
+
+List Box allows the user to select one or more values from a scrollable list of items.
+
+List Box allows the user to select one or more values from a scrollable list of items.
+
+[Flow: ListBoxBasic.java]
+package com.vaadin.demo.component.listbox;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
+import com.vaadin.flow.router.Route;
+
+@Route("list-box-basic")
+public class ListBoxBasic extends Div {
+
+    private final String SHOW_ASSIGNEE = "Show assignee";
+    private final String SHOW_DUE_DATE = "Show due date";
+    private final String SHOW_STATUS = "Show status";
+
+    public ListBoxBasic() {
+        // tag::snippet[]
+        MultiSelectListBox<String> listBox = new MultiSelectListBox<>();
+        listBox.setItems(SHOW_ASSIGNEE, SHOW_DUE_DATE, SHOW_STATUS);
+        listBox.select(SHOW_ASSIGNEE, SHOW_STATUS);
+        // end::snippet[]
+        add(listBox);
+    }
+
+}
+
+[React: list-box-basic.tsx]
+import React from 'react';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ListBox multiple selectedValues={[0, 2]}>
+      <Item>Show assignee</Item>
+      <Item>Show due date</Item>
+      <Item>Show status</Item>
+    </ListBox>
+    // end::snippet[]
+  );
+}
+
+[Lit: list-box-basic.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('list-box-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-list-box multiple .selectedValues="${[0, 2]}">
+        <vaadin-item>Show assignee</vaadin-item>
+        <vaadin-item>Show due date</vaadin-item>
+        <vaadin-item>Show status</vaadin-item>
+      </vaadin-list-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Although functionally similar to Checkbox Group and Radio Button Group, List Box is designed to be used as a lightweight scrollable selection list, rather than as a form input field.
+
+Dividers
+
+You can use dividers to group related items. Use them sparingly to avoid creating unnecessary visual clutter.
+
+[Flow: ListBoxSeparators.java]
+package com.vaadin.demo.component.listbox;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
+import com.vaadin.flow.router.Route;
+
+@Route("list-box-separators")
+public class ListBoxSeparators extends Div {
+
+    private final String SHOW_ASSIGNEE = "Show assignee";
+    private final String SHOW_DUE_DATE = "Show due date";
+    private final String SHOW_STATUS = "Show status";
+    private final String SHOW_THUMBNAIL = "Show thumbnail";
+    private final String SHOW_PREVIEW = "Show preview";
+
+    public ListBoxSeparators() {
+        MultiSelectListBox<String> listBox = new MultiSelectListBox<>();
+        // tag::snippet[]
+        listBox.setItems(SHOW_ASSIGNEE, SHOW_DUE_DATE, SHOW_STATUS,
+                SHOW_THUMBNAIL, SHOW_PREVIEW);
+        listBox.addComponents(SHOW_STATUS, new Hr());
+        // end::snippet[]
+        listBox.select(SHOW_ASSIGNEE, SHOW_STATUS, SHOW_THUMBNAIL);
+        add(listBox);
+    }
+
+}
+
+[React: list-box-separators.tsx]
+import React from 'react';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ListBox multiple selectedValues={[0, 2, 3]}>
+      <Item>Show assignee</Item>
+      <Item>Show due date</Item>
+      <Item>Show status</Item>
+      <hr />
+      <Item>Show thumbnail</Item>
+      <Item>Show preview</Item>
+    </ListBox>
+    // end::snippet[]
+  );
+}
+
+[Lit: list-box-separators.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('list-box-separators')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-list-box multiple .selectedValues="${[0, 2, 3]}">
+        <vaadin-item>Show assignee</vaadin-item>
+        <vaadin-item>Show due date</vaadin-item>
+        <vaadin-item>Show status</vaadin-item>
+        <hr />
+        <vaadin-item>Show thumbnail</vaadin-item>
+        <vaadin-item>Show preview</vaadin-item>
+      </vaadin-list-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Disabled Items
+
+Disable items to show that they are currently unavailable for selection.
+
+[Flow: ListBoxDisabledItems.java]
+package com.vaadin.demo.component.listbox;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.listbox.ListBox;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+
+@Route("list-box-disabled-items")
+public class ListBoxDisabledItems extends Div {
+
+    private class Status {
+
+        private String name;
+        private int count;
+
+        Status(String name, int count) {
+            this.name = name;
+            this.count = count;
+        }
+
+        public String getDisplayName() {
+            return this.name + " (" + this.count + ")";
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getCount() {
+            return count;
+        }
+    }
+
+    private Status inProgress = new Status("In progress", 2);
+    private Status done = new Status("Done", 4);
+    private Status cancelled = new Status("Cancelled", 0);
+
+    public ListBoxDisabledItems() {
+        // tag::snippet[]
+        ListBox<Status> listBox = new ListBox<>();
+        listBox.setItems(inProgress, done, cancelled);
+        listBox.setItemEnabledProvider(status -> status.getCount() > 0);
+        // end::snippet[]
+        listBox.setRenderer(new ComponentRenderer<>(
+                status -> new Text(status.getDisplayName())));
+        listBox.setValue(inProgress);
+        add(listBox);
+    }
+
+}
+
+[React: list-box-disabled-items.tsx]
+import React from 'react';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ListBox selected={0}>
+      <Item>In progress (2)</Item>
+      <Item>Done (4)</Item>
+      <Item disabled>Cancelled (0)</Item>
+    </ListBox>
+    // end::snippet[]
+  );
+}
+
+[Lit: list-box-disabled-items.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('list-box-disabled-items')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-list-box selected="0">
+        <vaadin-item>In progress (2)</vaadin-item>
+        <vaadin-item>Done (4)</vaadin-item>
+        <vaadin-item disabled>Cancelled (0)</vaadin-item>
+      </vaadin-list-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Accessibility
+
+Some assistive technologies don’t announce disabled items.
+
+Selection
+
+List Box supports both single and multiple selection. Single selection allows the user to select only one item, whereas multiple selection enables more than one item to be selected.
+
+Single
+
+[Flow: ListBoxSingleSelection.java]
+package com.vaadin.demo.component.listbox;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.listbox.ListBox;
+import com.vaadin.flow.router.Route;
+
+@Route("list-box-single-selection")
+public class ListBoxSingleSelection extends Div {
+
+    private final String IN_PROGRESS = "In progress";
+    private final String DONE = "Done";
+    private final String CANCELLED = "Cancelled";
+
+    public ListBoxSingleSelection() {
+        // tag::snippet[]
+        ListBox<String> listBox = new ListBox<>();
+        listBox.setItems(IN_PROGRESS, DONE, CANCELLED);
+        listBox.setValue(IN_PROGRESS);
+        // end::snippet[]
+        add(listBox);
+    }
+
+}
+
+[React: list-box-single-selection.tsx]
+import React from 'react';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ListBox selected={0}>
+      <Item>In progress</Item>
+      <Item>Done</Item>
+      <Item>Cancelled</Item>
+    </ListBox>
+    // end::snippet[]
+  );
+}
+
+[Lit: list-box-single-selection.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('list-box-single-selection')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-list-box selected="0">
+        <vaadin-item>In progress</vaadin-item>
+        <vaadin-item>Done</vaadin-item>
+        <vaadin-item>Cancelled</vaadin-item>
+      </vaadin-list-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Multi
+
+[Flow: ListBoxMultiSelection.java]
+package com.vaadin.demo.component.listbox;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("list-box-multi-selection")
+public class ListBoxMultiSelection extends Div {
+
+    private List<Person> items = DataService.getPeople(20);
+
+    public ListBoxMultiSelection() {
+        // tag::snippet[]
+        MultiSelectListBox<Person> listBox = new MultiSelectListBox<>();
+        listBox.setItems(items);
+        listBox.select(items.get(0), items.get(3));
+        // end::snippet[]
+        listBox.setRenderer(new ComponentRenderer<>(
+                person -> new Text(person.getFullName())));
+        listBox.setHeight("200px");
+        add(listBox);
+    }
+
+}
+
+[React: list-box-multi-selection.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const selectedValues = useSignal<number[]>([0, 3]);
+
+  useEffect(() => {
+    getPeople({ count: 20 }).then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <ListBox
+      multiple
+      selectedValues={selectedValues.value}
+      onSelectedValuesChanged={(e) => {
+        selectedValues.value = e.detail.value;
+      }}
+      style={{ height: '200px' }}
+    >
+      {items.value.map((person, index) => (
+        <Item key={index}>
+          {person.firstName} {person.lastName}
+        </Item>
+      ))}
+    </ListBox>
+    // end::snippet[]
+  );
+}
+
+[Lit: list-box-multi-selection.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('list-box-multi-selection')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 20 });
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-list-box multiple .selectedValues="${[0, 3]}" style="height: 200px">
+        ${this.items.map(
+          (person) => html`<vaadin-item>${person.firstName} ${person.lastName}</vaadin-item> `
+        )}
+      </vaadin-list-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Custom Item Presentation
+
+Items can be rendered with rich content instead of plain text. This can be useful to provide additional information in a more legible fashion than appending it to the item text.
+
+[Flow: ListBoxCustomItemPresentation.java]
+package com.vaadin.demo.component.listbox;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("list-box-custom-item-presentation")
+public class ListBoxCustomItemPresentation extends Div {
+
+    private List<Person> items = DataService.getPeople(5);
+
+    public ListBoxCustomItemPresentation() {
+        MultiSelectListBox<Person> listBox = new MultiSelectListBox<>();
+        listBox.setItems(items);
+        // tag::snippet[]
+        listBox.setRenderer(new ComponentRenderer<>(person -> {
+            Avatar avatar = new Avatar(person.getFullName(),
+                    person.getPictureUrl());
+            Span name = new Span(person.getFullName());
+            Span profession = new Span(person.getProfession());
+
+            Div personItem = new Div(avatar, name, profession);
+            personItem.addClassName("person-item");
+            return personItem;
+        }));
+        // end::snippet[]
+        listBox.select(items.get(0), items.get(2));
+        add(listBox);
+    }
+
+}
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: list-box-custom-item-presentation.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const selectedValues = useSignal([0, 2]);
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <ListBox
+      multiple
+      selectedValues={selectedValues.value}
+      onSelectedValuesChanged={(e) => {
+        selectedValues.value = e.detail.value;
+      }}
+    >
+      {items.value.map((person) => (
+        <Item value={String(items.value.indexOf(person))} key={items.value.indexOf(person)}>
+          <div className="person-item">
+            <Avatar img={person.pictureUrl} name={`${person.firstName} ${person.lastName}`} />
+            <span>
+              {person.firstName} {person.lastName}
+            </span>
+            <span>{person.profession}</span>
+          </div>
+        </Item>
+      ))}
+    </ListBox>
+    // end::snippet[]
+  );
+}
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: list-box-custom-item-presentation.ts]
+import '@vaadin/avatar';
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('list-box-custom-item-presentation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 5 });
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-list-box multiple .selectedValues="${[0, 2]}">
+        ${this.items.map(
+          (person) => html`
+            <vaadin-item>
+              <div class="person-item">
+                <vaadin-avatar
+                  .img="${person.pictureUrl}"
+                  .name="${`${person.firstName} ${person.lastName}`}"
+                ></vaadin-avatar>
+                <span>${person.firstName} ${person.lastName}</span>
+                <span>${person.profession}</span>
+              </div>
+            </vaadin-item>
+          `
+        )}
+      </vaadin-list-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Best Practices
+
+List Box isn’t designed to be used as an input field in forms, and lacks features such as label, helper, and validation errors. See related components later for better options for use in forms. List Box is best suited for use as a lightweight, scrollable, single-column list for single or multi-selection of items.
+
+Related Components
+
+Component | Usage recommendations
+Checkbox Group | Input field for selecting multiple options from a list.
+Combo Box | Select a value from a filterable overlay. Appropriate for large sets of options. Supports lazy loading and entry of custom values.
+Radio Button Group | Select a single option from a list. Optimal accessibility, as all options are visible without any user action.
+Select | Input field for selecting a value from a overlay. More compact than a Radio Button Group.
+Grid | A more advanced list component for cases where multiple columns, filtering or lazy loading is required.

@@ -1,0 +1,863 @@
+Message List
+
+Message List allows you to show a list of messages, for example, a chat log.
+
+Message List allows you to show a list of messages, for example, a chat log. You can configure the text content, information about the sender, and the time of sending for each message.
+
+[Flow: MessageListComponent.java]
+package com.vaadin.demo.component.messages;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.router.Route;
+
+@Route("message-list")
+public class MessageListComponent extends Div {
+
+    public MessageListComponent() {
+        // tag::snippet[]
+        Person person = DataService.getPeople(1).get(0);
+        MessageList list = new MessageList();
+        Instant yesterday = LocalDateTime.now().minusDays(1)
+                .toInstant(ZoneOffset.UTC);
+        Instant fiftyMinsAgo = LocalDateTime.now().minusMinutes(50)
+                .toInstant(ZoneOffset.UTC);
+        MessageListItem message1 = new MessageListItem(
+                "Linsey, could you check if the details with the order are okay?",
+                yesterday, "Matt Mambo");
+        message1.setUserColorIndex(1);
+        MessageListItem message2 = new MessageListItem("All good. Ship it.",
+                fiftyMinsAgo, "Linsey Listy", person.getPictureUrl());
+        message2.setUserColorIndex(2);
+        list.setItems(Arrays.asList(message1, message2));
+        add(list);
+        // end::snippet[]
+    }
+
+}
+
+[React: message-list-component.tsx]
+import React, { useEffect } from 'react';
+import { format, subDays, subMinutes } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MessageList } from '@vaadin/react-components/MessageList.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const person = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  const isoMinutes = 'yyyy-MM-dd HH:mm';
+  const yesterday = format(subDays(new Date(), 1), isoMinutes);
+  const fiftyMinutesAgo = format(subMinutes(new Date(), 50), isoMinutes);
+
+  const items = [
+    {
+      text: 'Linsey, could you check if the details with the order are okay?',
+      time: yesterday,
+      userName: 'Matt Mambo',
+      userColorIndex: 1,
+    },
+    {
+      text: 'All good. Ship it.',
+      time: fiftyMinutesAgo,
+      userName: 'Linsey Listy',
+      userColorIndex: 2,
+      userImg: person.value?.pictureUrl,
+    },
+  ];
+
+  return <MessageList items={items} />;
+  // end::snippet[]
+}
+
+[Lit: message-list-component.ts]
+import '@vaadin/message-list';
+import { format, subDays, subMinutes } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('message-list-component')
+export class Example extends LitElement {
+  private person: Person | undefined;
+  private isoMinutes = 'yyyy-MM-dd HH:mm';
+  private yesterday = format(subDays(new Date(), 1), this.isoMinutes);
+  private fiftyMinutesAgo = format(subMinutes(new Date(), 50), this.isoMinutes);
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    this.person = people[0];
+    this.requestUpdate();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-message-list
+        .items="${[
+          {
+            text: 'Linsey, could you check if the details with the order are okay?',
+            time: this.yesterday,
+            userName: 'Matt Mambo',
+            userColorIndex: 1,
+          },
+          {
+            text: 'All good. Ship it.',
+            time: this.fiftyMinutesAgo,
+            userName: 'Linsey Listy',
+            userColorIndex: 2,
+            userImg: this.person ? this.person.pictureUrl : undefined,
+          },
+        ]}"
+      ></vaadin-message-list>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The messages in the list can be populated with the items property. The items property is of type Array, with JSON objects in it. Each JSON object is a single message.
+
+Markdown
+
+Use Markdown formatting in Message List to display rich text instead of plain text.
+
+Markdown syntax gives you rich text formatting with headings, lists, links, and more. You can also use HTML tags within Markdown content. Message List automatically sanitizes content to prevent rendering dangerous HTML.
+
+[Flow: MessageListMarkdown.java]
+package com.vaadin.demo.component.messages;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.router.Route;
+
+@Route("message-list-markdown")
+public class MessageListMarkdown extends Div {
+
+    public MessageListMarkdown() {
+        // tag::snippet[]
+        MessageList list = new MessageList();
+        list.setItems(new MessageListItem(
+                "**Hello team!** Did everyone review the *design document* for the new project?",
+                "Alex Johnson"),
+                new MessageListItem(
+                        """
+                                ## Project Update
+                                I've completed the initial research phase and documented my findings.
+
+                                * UI mockups ✅
+                                * Market analysis ✅
+                                * [See detailed report](https://vaadin.com)
+
+                                Let me know your thoughts!
+                                """,
+                        "Sam Rivera"));
+        list.setMarkdown(true);
+        // end::snippet[]
+
+        add(list);
+    }
+
+}
+
+[React: message-list-markdown.tsx]
+import { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MessageList, type MessageListItem } from '@vaadin/react-components/MessageList.js';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<MessageListItem[]>([]);
+
+  useEffect(() => {
+    items.value = [
+      {
+        text: '**Hello team!** Did everyone review the *design document* for the new project?',
+        userName: 'Alex Johnson',
+      },
+      {
+        text: `## Project Update
+I've completed the initial research phase and documented my findings.
+
+* UI mockups ✅
+* Market analysis ✅
+* [See detailed report](https://vaadin.com)
+
+Let me know your thoughts!`,
+        userName: 'Sam Rivera',
+      },
+    ];
+  }, []);
+
+  return <MessageList items={items.value} markdown />;
+  // end::snippet[]
+}
+
+[Lit: message-list-markdown.ts]
+import '@vaadin/message-list';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MessageListItem } from '@vaadin/message-list';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('message-list-markdown')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: MessageListItem[] = [
+    {
+      text: '**Hello team!** Did everyone review the *design document* for the new project?',
+      userName: 'Alex Johnson',
+    },
+    {
+      text: `## Project Update
+I've completed the initial research phase and documented my findings.
+
+* UI mockups ✅
+* Market analysis ✅
+* [See detailed report](https://vaadin.com)
+
+Let me know your thoughts!`,
+      userName: 'Sam Rivera',
+    },
+  ];
+
+  protected override render() {
+    return html`<vaadin-message-list .items="${this.items}" markdown></vaadin-message-list>`;
+  }
+  // end::snippet[]
+}
+
+Attachments
+
+Messages can include file attachments. Image attachments are displayed as clickable thumbnail previews, while other file types are shown with a file icon and name.
+
+[Flow: MessageListAttachments.java]
+package com.vaadin.demo.component.messages;
+
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Base64;
+
+import javax.imageio.ImageIO;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.router.Route;
+
+@Route("message-list-attachments")
+public class MessageListAttachments extends Div {
+
+    public MessageListAttachments() {
+
+        MessageList list = new MessageList();
+
+        Instant yesterday = LocalDateTime.now().minusDays(1)
+                .toInstant(ZoneOffset.UTC);
+        Instant fiftyMinsAgo = LocalDateTime.now().minusMinutes(50)
+                .toInstant(ZoneOffset.UTC);
+
+        // tag::snippet[]
+        MessageListItem message1 = new MessageListItem(
+                "Here are the documents for the project.", yesterday,
+                "Matt Mambo");
+        message1.setUserColorIndex(1);
+
+        message1.addAttachment(new MessageListItem.Attachment(
+                "project-proposal.pdf",
+                "https://example.com/files/proposal.pdf", "application/pdf"));
+        // end::snippet[]
+        message1.addAttachment(new MessageListItem.Attachment(
+                "budget-overview.xlsx", "https://example.com/files/budget.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+
+        MessageListItem message2 = new MessageListItem(
+                "Thanks! Here's a photo from the offsite.", fiftyMinsAgo,
+                "Linsey Listy");
+        message2.setUserColorIndex(2);
+
+        String imageDataUrl = toThumbnailDataUrl(
+                getClass().getResourceAsStream("/images/reindeer.jpg"));
+        message2.addAttachment(new MessageListItem.Attachment("landscape.jpg",
+                imageDataUrl, "image/jpeg"));
+
+        // tag::snippet[]
+        list.setItems(Arrays.asList(message1, message2));
+
+        var status = new Span("Click an attachment to see its name here.");
+        list.addAttachmentClickListener(event -> {
+            status.setText("Clicked: " + event.getAttachment().name());
+        });
+        // end::snippet[]
+
+        add(list, status);
+    }
+
+    private static final int THUMBNAIL_MAX_SIZE = 200;
+
+    private static String toThumbnailDataUrl(InputStream imageStream) {
+        try {
+            var originalImage = ImageIO.read(imageStream);
+            var originalWidth = originalImage.getWidth();
+            var originalHeight = originalImage.getHeight();
+
+            var scale = Math.min((double) THUMBNAIL_MAX_SIZE / originalWidth,
+                    (double) THUMBNAIL_MAX_SIZE / originalHeight);
+            var scaledWidth = (int) (originalWidth * scale);
+            var scaledHeight = (int) (originalHeight * scale);
+
+            var scaledImage = new BufferedImage(scaledWidth, scaledHeight,
+                    BufferedImage.TYPE_INT_RGB);
+            var g2d = scaledImage.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
+            g2d.dispose();
+
+            var outputStream = new ByteArrayOutputStream();
+            ImageIO.write(scaledImage, "jpg", outputStream);
+            return "data:image/jpeg;base64," + Base64.getEncoder()
+                    .encodeToString(outputStream.toByteArray());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+}
+
+[React: message-list-attachments.tsx]
+import React from 'react';
+import { format, subDays, subMinutes } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MessageList } from '@vaadin/react-components/MessageList.js';
+import landscapeImage from '../../../../../src/main/resources/images/reindeer.jpg?url';
+
+function Example() {
+
+  // tag::snippet[]
+  const isoMinutes = 'yyyy-MM-dd HH:mm';
+  const yesterday = format(subDays(new Date(), 1), isoMinutes);
+  const fiftyMinutesAgo = format(subMinutes(new Date(), 50), isoMinutes);
+
+  const items = [
+    {
+      text: 'Here are the documents for the project.',
+      time: yesterday,
+      userName: 'Matt Mambo',
+      userColorIndex: 1,
+      attachments: [
+        {
+          name: 'project-proposal.pdf',
+          url: 'https://example.com/files/proposal.pdf',
+          type: 'application/pdf',
+        },
+        {
+          name: 'budget-overview.xlsx',
+          url: 'https://example.com/files/budget.xlsx',
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
+      ],
+    },
+    {
+      text: "Thanks! Here's a photo from the offsite.",
+      time: fiftyMinutesAgo,
+      userName: 'Linsey Listy',
+      userColorIndex: 2,
+      attachments: [
+        {
+          name: 'landscape.jpg',
+          url: landscapeImage,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+  ];
+
+  const statusText = useSignal('Click an attachment to see its name here.');
+
+  return (
+    <>
+      <MessageList
+        items={items}
+        ref={(messageList) => {
+          if (messageList) {
+            messageList.addEventListener('attachment-click', (e: CustomEvent) => {
+              statusText.value = 'Clicked: ' + e.detail.attachment.name;
+            });
+          }
+        }}
+        // Switch to using onAttachmentClick once https://github.com/vaadin/web-components/pull/11189 is available in a release.
+        // onAttachmentClick={(e) => {
+        //   statusText.value = 'Clicked: ' + e.detail.attachment.name;
+        // }}
+      />
+      <span>{statusText.value}</span>
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: message-list-attachments.ts]
+import '@vaadin/message-list';
+import { format, subDays, subMinutes } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import landscapeImage from '../../../../src/main/resources/images/reindeer.jpg?url';
+
+@customElement('message-list-attachments')
+export class Example extends LitElement {
+  private readonly yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd HH:mm');
+  private readonly fiftyMinutesAgo = format(subMinutes(new Date(), 50), 'yyyy-MM-dd HH:mm');
+
+  @state()
+  private statusText = 'Click an attachment to see its name here.';
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-message-list
+        @attachment-click="${(e: CustomEvent) => {
+          this.statusText = 'Clicked: ' + e.detail.attachment.name;
+        }}"
+        .items="${[
+          {
+            text: 'Here are the documents for the project.',
+            time: this.yesterday,
+            userName: 'Matt Mambo',
+            userColorIndex: 1,
+            attachments: [
+              {
+                name: 'project-proposal.pdf',
+                url: 'https://example.com/files/proposal.pdf',
+                type: 'application/pdf',
+              },
+              {
+                name: 'budget-overview.xlsx',
+                url: 'https://example.com/files/budget.xlsx',
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              },
+            ],
+          },
+          {
+            text: 'Thanks! Here\u0027s a photo from the offsite.',
+            time: this.fiftyMinutesAgo,
+            userName: 'Linsey Listy',
+            userColorIndex: 2,
+            attachments: [
+              {
+                name: 'landscape.jpg',
+                url: landscapeImage,
+                type: 'image/jpeg',
+              },
+            ],
+          },
+        ]}"
+      ></vaadin-message-list>
+      <span>${this.statusText}</span>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Each attachment has a name, a URL, and a MIME type. The MIME type determines how the attachment is rendered: types starting with image/ are shown as thumbnail previews, while all other types are shown as file icons. You can listen for attachment click events to handle downloads or other actions.
+
+Usage for AI Chats
+
+For a higher-level approach that eliminates boilerplate wiring, see the AI support features, which connect Message List and Message Input to an LLM provider automatically.
+
+Combine Message List with Message Input to create effective AI chat interfaces. Build your AI chat interface with:
+
+- Message List with Markdown formatting to display conversation history
+- Message Input for user interactions
+- Backend service to handle AI interactions
+
+Follow these best practices for a smooth user experience:
+
+- Append tokens to assistant messages in real time as they arrive
+- Show visual indicators for system activity
+- Preserve conversation history by loading past messages and maintaining session state
+
+[Flow: MessageListAiChat.java]
+package com.vaadin.demo.component.messages;
+
+import java.util.List;
+
+import com.vaadin.demo.component.messages.LLMClient.Message;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageInput;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.router.Route;
+
+@Route("message-list-ai-chat")
+public class MessageListAiChat extends Div {
+
+    private MessageListItem createItem(String text, boolean assistant) {
+        MessageListItem item = new MessageListItem(text,
+                assistant ? "Assistant" : "User");
+        item.setUserColorIndex(assistant ? 2 : 1);
+        return item;
+    }
+
+    public MessageListAiChat() {
+        String chatId = "1234"; // Placeholder chat identifier
+        // tag::snippet[]
+        MessageList list = new MessageList();
+        list.setMarkdown(true);
+        // end::snippet[]
+        MessageInput input = new MessageInput();
+
+        // Live region for screen reader announcements
+        Div liveRegion = new Div();
+        liveRegion.getElement().setAttribute("aria-live", "polite");
+        liveRegion.addClassName("screen-reader-only");
+        add(liveRegion);
+
+        List<Message> history = LLMClient.getHistory(chatId);
+
+        list.setItems(history.stream()
+                .map(message -> createItem(message.text(), message.assistant()))
+                .toList());
+
+        input.addSubmitListener(e -> {
+            String userInput = e.getValue();
+
+            // Add the user message to the list
+            list.addItem(createItem(userInput, false));
+
+            // Add the Assistant message to the list
+            MessageListItem newAssistantMessage = createItem("", true);
+            list.addItem(newAssistantMessage);
+
+            // Announce that AI is processing
+            liveRegion.setText("AI is processing the prompt");
+
+            int messageListItemCount = list.getItems().size();
+            LLMClient.stream(chatId, userInput).subscribe(token -> {
+                getUI().get().access(() -> {
+                    // Update the Assistant message with the response
+                    // Make sure to have server push enabled!
+                    // See
+                    // https://vaadin.com/docs/latest/flow/advanced/server-push
+                    newAssistantMessage.appendText(token);
+                });
+            }, error -> {
+                // Handle error
+            }, () -> {
+                getUI().get().access(() -> {
+                    if (messageListItemCount != list.getItems().size()) {
+                        // Another message is still being processed
+                        return;
+                    }
+
+                    // Announce that a new message is available
+                    liveRegion.setText("New message available");
+                });
+
+            });
+        });
+
+        add(list, input);
+
+    }
+
+}
+
+[Flow: screen-reader-only.css]
+.screen-reader-only {
+  border-width: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[Flow: screen-reader-only.css]
+
+[React: message-list-ai-chat.tsx]
+import { useCallback, useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MessageInput, type MessageInputSubmitEvent } from '@vaadin/react-components';
+import { MessageList, type MessageListItem } from '@vaadin/react-components/MessageList.js';
+import LLMChatService from 'Frontend/demo/services/LLMChatService.js';
+
+function createItem(text: string, assistant = false): MessageListItem {
+  return {
+    text,
+    userName: assistant ? 'Assistant' : 'User',
+    userColorIndex: assistant ? 2 : 1,
+  };
+}
+
+function Example() {
+  const messageListItems = useSignal<MessageListItem[]>([]);
+  const announcement = useSignal('');
+  const chatId = '1234'; // Placeholder chat identifier
+
+  useEffect(() => {
+    LLMChatService.getHistory(chatId).then((messages) => {
+      messageListItems.value = messages.map((message) =>
+        createItem(message.text, message.assistant)
+      );
+    });
+  }, []);
+
+  const handleChatSubmit = useCallback((e: MessageInputSubmitEvent) => {
+    const userInput = e.detail.value;
+
+    // Add the user message to the list
+    messageListItems.value = [...messageListItems.value, createItem(userInput)];
+
+    // Add the Assistant message to the list
+    const newAssistantItem = createItem('', true);
+    messageListItems.value = [...messageListItems.value, newAssistantItem];
+
+    // Announce that AI is processing
+    announcement.value = 'AI is processing the prompt';
+
+    LLMChatService.stream(chatId, userInput)
+      .onNext((token) => {
+        // Append the token to the Assistant message
+        newAssistantItem.text += token;
+        // Force the MessageList to re-render
+        messageListItems.value = [...messageListItems.value];
+      })
+      .onComplete(() => {
+        // Announce that a new message is available
+        announcement.value = 'New message available';
+      });
+  }, []);
+
+  return (
+    <div>
+      {/* Live region for screen reader announcements */}
+      <div aria-live="polite" className="screen-reader-only">
+        {announcement.value}
+      </div>
+
+      {/* tag::snippet[] */}
+      <MessageList items={messageListItems.value} markdown />
+      {/* end::snippet[] */}
+      <MessageInput onSubmit={handleChatSubmit} />
+    </div>
+  );
+}
+
+[React: LLMChatService.java]
+package com.vaadin.demo.component.messages;
+
+import java.util.List;
+
+import com.vaadin.demo.component.messages.LLMClient.Message;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import reactor.core.publisher.Flux;
+
+// tag::snippet[]
+@BrowserCallable
+@AnonymousAllowed
+public class LLMChatService {
+
+    public List<Message> getHistory(String chatId) {
+        // Implement your message history retrieval logic here
+        return LLMClient.getHistory(chatId);
+    }
+
+    public Flux<String> stream(String chatId, String userMessage) {
+        // Implement your message streaming logic here
+        return LLMClient.stream(chatId, userMessage);
+    }
+}
+// end::snippet[]
+
+[React: screen-reader-only.css]
+.screen-reader-only {
+  border-width: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[React: screen-reader-only.css]
+
+[Lit: message-list-ai-chat.ts]
+import '@vaadin/message-list';
+import '@vaadin/message-input';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MessageInputSubmitEvent } from '@vaadin/message-input';
+import type { MessageListItem } from '@vaadin/message-list';
+import LLMChatService from 'Frontend/demo/services/LLMChatService.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+function createItem(text: string, assistant = false): MessageListItem {
+  return {
+    text,
+    userName: assistant ? 'Assistant' : 'User',
+    userColorIndex: assistant ? 2 : 1,
+  };
+}
+
+@customElement('message-list-ai-chat')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private messageListItems: MessageListItem[] = [];
+
+  @state()
+  private announcement: string = '';
+
+  private chatId = '1234'; // Placeholder chat identifier
+
+  protected override async firstUpdated() {
+    const messages = await LLMChatService.getHistory(this.chatId);
+    this.messageListItems = messages.map((message) => createItem(message.text, message.assistant));
+  }
+
+  protected override render() {
+    return html`
+      <!-- Live region for screen reader announcements -->
+      <div aria-live="polite" class="screen-reader-only">${this.announcement}</div>
+
+      <!-- tag::snippet[] -->
+      <vaadin-message-list .items="${this.messageListItems}" markdown></vaadin-message-list>
+      <!-- end::snippet[] -->
+      <vaadin-message-input @submit="${this.handleChatSubmit}"></vaadin-message-input>
+    `;
+  }
+
+  private handleChatSubmit(e: MessageInputSubmitEvent) {
+    const userInput = e.detail.value;
+
+    // Add the user message to the list
+    this.messageListItems = [...this.messageListItems, createItem(userInput)];
+
+    // Add the Assistant message to the list
+    const newAssistantItem = createItem('', true);
+    this.messageListItems = [...this.messageListItems, newAssistantItem];
+
+    // Announce that AI is processing
+    this.announcement = 'AI is processing the prompt';
+
+    LLMChatService.stream(this.chatId, userInput)
+      .onNext((token) => {
+        // Append the token to the Assistant message
+        newAssistantItem.text += token;
+        // Force the MessageList to re-render
+        this.messageListItems = [...this.messageListItems];
+      })
+      .onComplete(() => {
+        // Announce that a new message is available
+        this.announcement = 'New message available';
+      });
+  }
+}
+
+[Lit: LLMChatService.java]
+package com.vaadin.demo.component.messages;
+
+import java.util.List;
+
+import com.vaadin.demo.component.messages.LLMClient.Message;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import reactor.core.publisher.Flux;
+
+// tag::snippet[]
+@BrowserCallable
+@AnonymousAllowed
+public class LLMChatService {
+
+    public List<Message> getHistory(String chatId) {
+        // Implement your message history retrieval logic here
+        return LLMClient.getHistory(chatId);
+    }
+
+    public Flux<String> stream(String chatId, String userMessage) {
+        // Implement your message streaming logic here
+        return LLMClient.stream(chatId, userMessage);
+    }
+}
+// end::snippet[]
+
+[Lit: screen-reader-only.css]
+.screen-reader-only {
+  border-width: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[Lit: screen-reader-only.css]
+
+Related Components
+
+Component | Usage recommendations
+Message Input | Allow users to author and send messages.
+Markdown | Standalone component for rendering Markdown content.

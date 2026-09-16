@@ -1,0 +1,38 @@
+List of Supported Technologies
+
+Lists the minimum required version of compatible technologies for Vaadin 25.
+
+This page shows the minimum required versions of supported technologies for Vaadin 25. See the release notes for more details.
+
+Technology | Version
+Java | 21 or later
+Spring Boot | 4.1 or later
+Node.js | 24 or later
+NPM | 11.3 or later
+PNPM | 10.16 or later
+Maven | 3.8 or later
+Gradle | 8.14 or later
+Servlet | 6.1 or later
+Application Servers | - Apache Tomcat 11 - Open Liberty 23 - RedHat JBoss Enterprise Application Platform (EAP) 8.1 - WildFly 36 - Jetty 12 - Payara Server 6 - Payara Micro 6
+Quarkus | 3.27 or later
+Portlet | Not supported yet
+OSGi | Not supported yet
+Karaf | Not supported yet
+
+Browser Compatibility
+
+Vaadin 25 is supported by several web browsers. The following is a list of compatible desktop browsers and mobile browsers.
+
+Desktop Browsers
+
+Browser | Version
+Chrome | Evergreen
+Firefox | Evergreen, ESR
+Safari | 17 or later
+Edge | Evergreen, Chromium
+
+Mobile Browsers
+
+Browser | Version
+Chrome | Evergreen
+Safari | 17 or later

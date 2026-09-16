@@ -1,0 +1,197 @@
+Getting Started with Browserless Testing
+
+Tutorial to create and run a browserless test.
+
+To start creating browserless tests in an existing Spring Boot project, add the browserless-test-spring dependency with a test scope. Spring Boot’s test starter must also be present — it’s typically already on the classpath in Spring Boot projects.
+
+Tip: Non-Spring Projects
+
+This guide assumes a Spring Boot project. If you aren’t using Spring, see Non-Spring Projects for a simpler setup.
+
+Assuming you’ve imported the Vaadin Bill-of-Materials (BOM) and have a Maven project, add the following:
+
+[XML]
+<dependency>
+    <groupId>com.vaadin</groupId>
+    <artifactId>browserless-test-spring</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+
+First Browserless Test
+
+In Spring Boot projects, views typically use dependency injection for services and other components. To handle this correctly, browserless testing provides a specialized base class: SpringBrowserlessTest. Annotate your test class with @SpringBootTest so that the full application context is available.
+
+Given a simple view like this:
+
+[HelloWorldView.java]
+@Route("")
+public class HelloWorldView extends HorizontalLayout {
+
+    TextField name;
+    Button sayHello;
+
+    public HelloWorldView() {
+        name = new TextField("Your name");
+        sayHello = new Button("Say hello");
+        sayHello.addClickListener(e -> {
+            Notification.show("Hello " + name.getValue());
+        });
+        add(name, sayHello);
+    }
+}
+
+A browserless test for it looks like this:
+
+[HelloWorldViewTest.java]
+@SpringBootTest
+class HelloWorldViewTest extends SpringBrowserlessTest {
+
+    @Test
+    public void setText_clickButton_notificationIsShown() {
+        final HelloWorldView helloView = navigate(HelloWorldView.class);
+
+        test(helloView.name).setValue("Test");
+        test(helloView.sayHello).click();
+
+        Notification notification = find(Notification.class).single();
+        Assertions.assertEquals("Hello Test", test(notification).getText());
+    }
+
+}
+
+The following sections break down what this test does.
+
+Navigating to a View
+
+The navigate() method opens a view, just as a user would navigate to it in the browser. It returns the view instance so you can interact with it directly.
+
+[Java]
+final HelloWorldView helloView = navigate(HelloWorldView.class);
+
+Using the Java API Directly
+
+Since you’re running on the server side, you have direct access to the Java component API. In the example above, the TextField and Button fields are package-protected. This means the test class can access them directly, as long as it’s in the same Java package — for example, if the view is in src/main/java/com/example/app/, put the test in src/test/java/com/example/app/.
+
+[Java]
+// Read a component's value directly
+String currentValue = helloView.name.getValue();
+
+// Check component state
+boolean isEnabled = helloView.sayHello.isEnabled();
+boolean isVisible = helloView.name.isVisible();
+
+Simulating User Actions with Testers
+
+To simulate how a user interacts with a component, wrap it with test(). This returns a component-specific tester that provides methods like setValue(), click(), and getText(). Unlike calling the Java API directly, tester methods also verify that the component is in a usable state — visible, enabled, and attached to the UI.
+
+[Java]
+// Simulate typing into a text field
+test(helloView.name).setValue("Test");
+
+// Simulate clicking a button
+test(helloView.sayHello).click();
+
+// Read the text a user would see
+String text = test(notification).getText();
+
+Each Vaadin component has a tester tailored to its behavior. For example, a CheckboxTester uses click() to toggle checked state, a ComboBoxTester has selectItem(), and a GridTester has getRow(). See Component Testers for a full overview and how to build testers for your own components.
+
+Finding Components
+
+Not every component is stored in a view field. For example, the Notification in the test above is created inside a click listener and isn’t referenced anywhere in the view. Use the find() query method to find components in the UI by their type:
+
+[Java]
+// Find the single Notification currently open
+Notification notification = find(Notification.class).single();
+
+The query API supports filtering by properties, predicates, and scoping to specific parts of the component tree. See Querying Components for details.
+
+Test IDs
+
+Use Component.setTestId() to assign a stable identifier to a component for use in tests. This sets the data-testid HTML attribute on the component’s element, which can be used by testing frameworks like Playwright to locate elements reliably:
+
+[Java]
+Button submitButton = new Button("Submit");
+submitButton.setTestId("submit-button");
+
+// Later, retrieve the test ID
+String testId = submitButton.getTestId(); // "submit-button"
+
+Test IDs are preferable to CSS class names or text content for locating elements in tests because they are stable, decoupled from styling, and unaffected by translations or UI changes.
+
+In a Playwright test, you can locate the element using the data-testid attribute:
+
+[Java]
+page.locator("[data-testid='submit-button']").click();
+
+Browserless tests can use the same identifier: the testId() terminal operator and the withTestId() filter look up components by their test ID:
+
+[Java]
+Button submit = find(Button.class).testId("submit-button");
+
+See Querying Components for details.
+
+Running Tests
+
+Testing with SpringBrowserlessTest doesn’t require any particular setup beyond the dependencies above. Run the test directly from your IDE or use Maven, for example by typing mvn test in the terminal.
+
+Navigating to Views
+
+On test initialization, the loaded view is the root view.
+
+To navigate to another registered view, use the navigate() methods provided by the base class:
+
+- For a normal view with only a path defined
+  navigate(MyView.class)
+  navigate("myView", MyView.class)
+- For a view with HasUrlParameter
+  navigate(MyParam.class, "parameter")
+  navigate("myParam/parameter", MyParam.class)
+- For a view with URL template @Route("template/:param")
+  navigate(Template.class, Collections.singletonMap("param", PARAMETER))
+  navigate("template/myParam", Template.class)
+
+All navigation methods return the instantiated view, so that its fields can be used directly for testing.
+
+Note: Navigation by location string takes in the view class, so that the initialized view can be automatically validated to be the expected one.
+
+You can also retrieve the current view at any time with getCurrentView():
+
+[Java]
+HasElement view = getCurrentView();
+
+Simulating Keyboard Shortcuts
+
+Use fireShortcut() to simulate keyboard shortcuts registered with Vaadin’s shortcut API:
+
+[Java]
+// Simulate pressing Enter
+fireShortcut(Key.ENTER);
+
+// Simulate Ctrl+S
+fireShortcut(Key.KEY_S, KeyModifier.CONTROL);
+
+Testing Signal-Based UIs
+
+Views built on signals are testable without extra setup: BrowserlessTest registers a test SignalEnvironment, so signal effects run deterministically on the test thread instead of on a background thread pool. Signal changes made directly by a simulated user action are reflected in the UI immediately, so the testers and queries see the updated state right away. For a deeper look see Testing Signals.
+
+When a signal is changed from a background thread — for example, by a service callback or another part of the application — call runPendingSignalsTasks() to process the pending signal effects before asserting:
+
+[Java]
+// Application code updates a signal from a background thread
+test(view.start).click();
+
+// Process the pending signal effects, then assert
+runPendingSignalsTasks();
+Assertions.assertEquals("Completed", test(view.status).getText());
+
+The same method is available on the JUnit extension as ext.runPendingSignalsTasks() (see JUnit 6 Extensions) and on each window in multi-user tests (see Signals in Multi-User Tests).
+
+Tip: Multiple Users or Windows?
+
+This setup drives a single user with a single window. For tests that need several concurrent users or multiple windows of the same user, see Multi-User and Multi-Window Testing.

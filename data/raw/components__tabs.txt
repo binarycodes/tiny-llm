@@ -1,0 +1,1332 @@
+Tabs
+
+Tabs are used to organize and group content into sections that the user can navigate.
+
+Tabs are used to organize and group content into sections that the user can navigate.
+
+Below is a simple example of tabs with labels:
+
+[Flow: TabsBasic.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-basic")
+public class TabsBasic extends Div {
+
+    public TabsBasic() {
+        // tag::snippet[]
+        Tab details = new Tab("Details");
+        Tab payment = new Tab("Payment");
+        Tab shipping = new Tab("Shipping");
+
+        Tabs tabs = new Tabs(details, payment, shipping);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-basic.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs>
+      <Tab>Details</Tab>
+      <Tab>Payment</Tab>
+      <Tab>Shipping</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-basic.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs>
+        <vaadin-tab>Details</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Use Tabs when you want to allow in-place navigation within a certain part of the UI — that is to say, without having to load another page and instead of showing everything at once, or forcing the user to navigate to different views.
+
+Tab Sheet
+
+Tabs are most conveniently used as part of a Tab Sheet that includes automatically switched content areas for each tab. Try clicking on the tabs in the example below. Notice how different text is displayed for each tab.
+
+[Flow: TabSheetBasic.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.router.Route;
+
+@Route("tabsheet-basic")
+public class TabSheetBasic extends Div {
+
+    public TabSheetBasic() {
+        // tag::snippet[]
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.add("Dashboard",
+                new Div(new Text("This is the Dashboard tab content")));
+        tabSheet.add("Payment",
+                new Div(new Text("This is the Payment tab content")));
+        tabSheet.add("Shipping",
+                new Div(new Text("This is the Shipping tab content")));
+        add(tabSheet);
+        // end::snippet[]
+    }
+
+}
+
+[React: tabsheet-basic.tsx]
+import React from 'react';
+import { TabSheet, TabSheetTab } from '@vaadin/react-components/TabSheet.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TabSheet>
+      <TabSheetTab label="Dashboard">
+        <div>This is the Dashboard tab content</div>
+      </TabSheetTab>
+
+      <TabSheetTab label="Payment">
+        <div>This is the Payment tab content</div>
+      </TabSheetTab>
+
+      <TabSheetTab label="Shipping">
+        <div>This is the Shipping tab content</div>
+      </TabSheetTab>
+    </TabSheet>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabsheet-basic.ts]
+import '@vaadin/tabs';
+import '@vaadin/tabsheet';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabsheet-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabsheet>
+        <vaadin-tabs slot="tabs">
+          <vaadin-tab id="dashboard-tab">Dashboard</vaadin-tab>
+          <vaadin-tab id="payment-tab">Payment</vaadin-tab>
+          <vaadin-tab id="shipping-tab">Shipping</vaadin-tab>
+        </vaadin-tabs>
+
+        <div tab="dashboard-tab">This is the Dashboard tab content</div>
+        <div tab="payment-tab">This is the Payment tab content</div>
+        <div tab="shipping-tab">This is the Shipping tab content</div>
+      </vaadin-tabsheet>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+States
+
+A Tab can be selected, unselected, or disabled.
+
+[Flow: TabsStates.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-states")
+public class TabsStates extends Div {
+
+    public TabsStates() {
+        // tag::snippet[]
+        Tab selected = new Tab("Selected");
+
+        Tab unselected = new Tab("Unselected");
+
+        Tab disabled = new Tab("Disabled");
+        disabled.setEnabled(false);
+
+        Tabs tabs = new Tabs(selected, unselected, disabled);
+        tabs.setSelectedTab(selected);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-states.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs>
+      <Tab>Selected</Tab>
+      <Tab>Unselected</Tab>
+      <Tab disabled>Disabled</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-states.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-states')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs>
+        <vaadin-tab>Selected</vaadin-tab>
+        <vaadin-tab>Unselected</vaadin-tab>
+        <vaadin-tab disabled>Disabled</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+You can disable a tab to mark it as unavailable. Disabled tabs can’t be focused and may be invisible to assistive technologies, such as screen readers.
+
+Disabling can be preferable to hiding an element to prevent changes in layout when the element’s visibility changes. They can also make users aware of its existence even when unavailable.
+
+Autoselect (Flow)
+
+The first tab you add to Tabs or Tab Sheet is automatically selected. Similarly, when a selected tab is removed, the next available tab is automatically selected.
+
+Autoselect is enabled by default, but you can disable this behavior if needed. Notice how none of the tabs in the example below are initially selected.
+
+[TabsAutoselect.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-autoselect")
+public class TabsAutoselect extends Div {
+
+    private final Tab details;
+    private final Tab payment;
+    private final Tab shipping;
+    private final VerticalLayout content;
+
+    public TabsAutoselect() {
+        details = new Tab("Details");
+        payment = new Tab("Payment");
+        shipping = new Tab("Shipping");
+
+        // tag::snippet[]
+        Tabs tabs = new Tabs();
+        tabs.setAutoselect(false);
+        // end::snippet[]
+
+        tabs.addSelectedChangeListener(
+                event -> setContent(event.getSelectedTab()));
+        tabs.add(details, payment, shipping);
+
+        content = new VerticalLayout();
+        content.setSpacing(false);
+
+        add(tabs, content);
+    }
+
+    private void setContent(Tab tab) {
+        content.removeAll();
+        if (tab == null) {
+            return;
+        }
+        if (tab.equals(details)) {
+            content.add(new Paragraph("This is the Details tab"));
+        } else if (tab.equals(payment)) {
+            content.add(new Paragraph("This is the Payment tab"));
+        } else {
+            content.add(new Paragraph("This is the Shipping tab"));
+        }
+    }
+
+}
+
+When using autoselect and tab selection change listeners, you should add selection change listeners before adding any tabs if you want the listeners to trigger for the automatically selected tab.
+
+Orientation & Overflow
+
+Tabs support two different orientations: horizontal (default) and vertical, which is not currently supported in Tab Sheets. Base your choice of orientation on your particular use case and the available space. Both are explained below.
+
+Horizontal
+
+Horizontal tabs may be easier for users to understand and associate with the content. They’re best suited for a small number of items, but provide scrolling on overflow. Try scrolling horizontally the tabs in the example here: you’ll see that there are more than the initially visible ones.
+
+[Flow: TabsHorizontal.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-horizontal")
+public class TabsHorizontal extends Div {
+
+    public TabsHorizontal() {
+        // tag::snippet[]
+        Tab analytics = new Tab("Analytics");
+        Tab customers = new Tab("Customers");
+        Tab dashboards = new Tab("Dashboards");
+        Tab documents = new Tab("Documents");
+        Tab orders = new Tab("Orders");
+
+        Tabs tabs = new Tabs(analytics, customers, dashboards, documents,
+                orders);
+        tabs.setMaxWidth("100%");
+        tabs.setWidth("400px");
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-horizontal.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs style={{ maxWidth: '100%', width: '400px' }}>
+      <Tab>Analytics</Tab>
+      <Tab>Customers</Tab>
+      <Tab>Dashboards</Tab>
+      <Tab>Documents</Tab>
+      <Tab>Orders</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-horizontal.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-horizontal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs style="max-width: 100%; width: 400px;">
+        <vaadin-tab>Analytics</vaadin-tab>
+        <vaadin-tab>Customers</vaadin-tab>
+        <vaadin-tab>Dashboards</vaadin-tab>
+        <vaadin-tab>Documents</vaadin-tab>
+        <vaadin-tab>Orders</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+In horizontal orientation, scroll buttons are displayed by default to aid scrolling the tabs. These can be disabled by applying the hide-scroll-buttons theme variant. Notice in the example below that there’s no scrollbar or scroll buttons, but you can still scroll to reveal the overflowing tabs.
+
+[Flow: TabsHideScrollButtons.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.tabs.TabsVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-hide-scroll-buttons")
+public class TabsHideScrollButtons extends Div {
+
+    public TabsHideScrollButtons() {
+        // tag::snippet[]
+        Tab analytics = new Tab("Analytics");
+        Tab customers = new Tab("Customers");
+        Tab dashboards = new Tab("Dashboards");
+        Tab documents = new Tab("Documents");
+        Tab orders = new Tab("Orders");
+        Tab products = new Tab("Products");
+        Tab tasks = new Tab("Tasks");
+
+        Tabs tabs = new Tabs(analytics, customers, dashboards, documents,
+                orders, products, tasks);
+        tabs.addThemeVariants(TabsVariant.HIDE_SCROLL_BUTTONS);
+        tabs.setMaxWidth("100%");
+        tabs.setWidth("400px");
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-hide-scroll-buttons.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs theme="hide-scroll-buttons" style={{ maxWidth: '100%', width: '400px' }}>
+      <Tab>Analytics</Tab>
+      <Tab>Customers</Tab>
+      <Tab>Dashboards</Tab>
+      <Tab>Documents</Tab>
+      <Tab>Orders</Tab>
+      <Tab>Products</Tab>
+      <Tab>Tasks</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-hide-scroll-buttons.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-hide-scroll-buttons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs theme="hide-scroll-buttons" style="max-width: 100%; width: 400px;">
+        <vaadin-tab>Analytics</vaadin-tab>
+        <vaadin-tab>Customers</vaadin-tab>
+        <vaadin-tab>Dashboards</vaadin-tab>
+        <vaadin-tab>Documents</vaadin-tab>
+        <vaadin-tab>Orders</vaadin-tab>
+        <vaadin-tab>Products</vaadin-tab>
+        <vaadin-tab>Tasks</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Hiding the scroll buttons isn’t recommended, though, for UIs designed to be operated on non-touchscreen devices, as horizontal scrolling can be difficult without them.
+
+Vertical
+
+Vertical tabs can sometimes be a better choice for a large number of items. It’s easier for the user to scan a vertical list of options. However, they may not always be easy to understand and associate with the content.
+
+Vertical tabs also provide scrolling on overflow, but no scroll buttons. Incidentally, vertical orientation is not available for Tab Sheets.
+
+[Flow: TabsVertical.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-vertical")
+public class TabsVertical extends Div {
+
+    public TabsVertical() {
+        // tag::snippet[]
+        Tab analytics = new Tab("Analytics");
+        Tab customers = new Tab("Customers");
+        Tab dashboards = new Tab("Dashboards");
+        Tab documents = new Tab("Documents");
+        Tab orders = new Tab("Orders");
+        Tab products = new Tab("Products");
+        Tab tasks = new Tab("Tasks");
+
+        Tabs tabs = new Tabs(analytics, customers, dashboards, documents,
+                orders, products, tasks);
+        tabs.setOrientation(Tabs.Orientation.VERTICAL);
+        tabs.setHeight("240px");
+        tabs.setWidth("240px");
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-vertical.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs orientation="vertical" style={{ height: '240px', width: '240px' }}>
+      <Tab>Analytics</Tab>
+      <Tab>Customers</Tab>
+      <Tab>Dashboards</Tab>
+      <Tab>Documents</Tab>
+      <Tab>Orders</Tab>
+      <Tab>Products</Tab>
+      <Tab>Tasks</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-vertical.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-vertical')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs orientation="vertical" style="height: 240px; width: 240px;">
+        <vaadin-tab>Analytics</vaadin-tab>
+        <vaadin-tab>Customers</vaadin-tab>
+        <vaadin-tab>Dashboards</vaadin-tab>
+        <vaadin-tab>Documents</vaadin-tab>
+        <vaadin-tab>Orders</vaadin-tab>
+        <vaadin-tab>Products</vaadin-tab>
+        <vaadin-tab>Tasks</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Icons & Other Tab Content
+
+In addition to text, tabs can contain icons and other content.
+
+Icons
+
+Icons can be used to make tabs more prominent and easier to identify. They can be added next to the labels or above them (Lumo only). Generally, horizontal tabs work best with icons above the labels, as you can see in the example below.
+
+[Flow: TabsIconsHorizontal.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.TabVariant;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-icons-horizontal")
+public class TabsIconsHorizontal extends Div {
+
+    public TabsIconsHorizontal() {
+        // tag::snippet[]
+        Tab profile = new Tab(VaadinIcon.USER.create(), new Span("Profile"));
+        Tab settings = new Tab(VaadinIcon.COG.create(), new Span("Settings"));
+        Tab notifications = new Tab(VaadinIcon.BELL.create(),
+                new Span("Notifications"));
+
+        // Set the icon on top
+        for (Tab tab : new Tab[] { profile, settings, notifications }) {
+            tab.addThemeVariants(TabVariant.LUMO_ICON_ON_TOP);
+        }
+
+        Tabs tabs = new Tabs(profile, settings, notifications);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-icons-horizontal.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs>
+      <Tab theme="icon-on-top">
+        <Icon icon="vaadin:user" />
+        <span>Profile</span>
+      </Tab>
+
+      <Tab theme="icon-on-top">
+        <Icon icon="vaadin:cog" />
+        <span>Settings</span>
+      </Tab>
+
+      <Tab theme="icon-on-top">
+        <Icon icon="vaadin:bell" />
+        <span>Notifications</span>
+      </Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-icons-horizontal.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-icons-horizontal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs>
+        <vaadin-tab theme="icon-on-top">
+          <vaadin-icon icon="vaadin:user"></vaadin-icon>
+          <span>Profile</span>
+        </vaadin-tab>
+        <vaadin-tab theme="icon-on-top">
+          <vaadin-icon icon="vaadin:cog"></vaadin-icon>
+          <span>Settings</span>
+        </vaadin-tab>
+        <vaadin-tab theme="icon-on-top">
+          <vaadin-icon icon="vaadin:bell"></vaadin-icon>
+          <span>Notifications</span>
+        </vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Vertical tabs work best with icons next to labels, as you can see here.
+
+[Flow: TabsIconsVertical.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-icons-vertical")
+public class TabsIconsVertical extends Div {
+
+    public TabsIconsVertical() {
+        // tag::snippet[]
+        Tab profile = new Tab(VaadinIcon.USER.create(), new Span("Profile"));
+        Tab settings = new Tab(VaadinIcon.COG.create(), new Span("Settings"));
+        Tab notifications = new Tab(VaadinIcon.BELL.create(),
+                new Span("Notifications"));
+
+        Tabs tabs = new Tabs(profile, settings, notifications);
+        tabs.setOrientation(Tabs.Orientation.VERTICAL);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-icons-vertical.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs orientation="vertical">
+      <Tab>
+        <Icon icon="vaadin:user" />
+        <span>Profile</span>
+      </Tab>
+
+      <Tab>
+        <Icon icon="vaadin:cog" />
+        <span>Settings</span>
+      </Tab>
+
+      <Tab>
+        <Icon icon="vaadin:bell" />
+        <span>Notifications</span>
+      </Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-icons-vertical.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-icons-vertical')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs orientation="vertical">
+        <vaadin-tab>
+          <vaadin-icon icon="vaadin:user"></vaadin-icon>
+          <span>Profile</span>
+        </vaadin-tab>
+        <vaadin-tab>
+          <vaadin-icon icon="vaadin:cog"></vaadin-icon>
+          <span>Settings</span>
+        </vaadin-tab>
+        <vaadin-tab>
+          <vaadin-icon icon="vaadin:bell"></vaadin-icon>
+          <span>Notifications</span>
+        </vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Icon-only labels may sometimes be appealing, but they should provide a textual description using a Tooltip, or an aria-label attribute for assistive technologies.
+
+Other Elements
+
+Tabs can contain almost any UI elements. For instance, they can contain badges indicating the number of items per tab. In this example, there’s a gray box with a number to the right of each tab label, indicating the count for each.
+
+[Flow: TabsBadges.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-badges")
+public class TabsBadges extends Div {
+
+    public TabsBadges() {
+        // tag::snippet[]
+        Tab open = new Tab(new Span("Open"), createBadge(24));
+        Tab completed = new Tab(new Span("Completed"), createBadge(49));
+        Tab cancelled = new Tab(new Span("Cancelled"), createBadge(5));
+
+        Tabs tabs = new Tabs(open, completed, cancelled);
+        // end::snippet[]
+        add(tabs);
+    }
+
+    /**
+     * Helper method for creating a badge.
+     */
+    private Badge createBadge(int value) {
+        Badge badge = new Badge();
+        badge.setNumber(value);
+        badge.addThemeVariants(BadgeVariant.FILLED);
+        badge.getStyle().set("margin-inline-start", "var(--vaadin-gap-xs)");
+        return badge;
+    }
+
+}
+
+[React: tabs-badges.tsx]
+import React from 'react';
+import { Badge, Tab, Tabs } from '@vaadin/react-components';
+
+const badgeStyle = {
+  marginInlineStart: 'var(--vaadin-gap-xs)',
+};
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs>
+      <Tab>
+        <span>Open</span>
+        <Badge number={24} theme="filled" style={badgeStyle} />
+      </Tab>
+
+      <Tab>
+        <span>Completed</span>
+        <Badge number={49} theme="filled" style={badgeStyle} />
+      </Tab>
+
+      <Tab>
+        <span>Cancelled</span>
+        <Badge number={5} theme="filled" style={badgeStyle} />
+      </Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-badges.ts]
+import '@vaadin/badge';
+import '@vaadin/tabs';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-badges')
+export class Example extends LitElement {
+  static override styles = [
+    css`
+      vaadin-badge {
+        margin-inline-start: var(--vaadin-gap-xs);
+      }
+    `,
+  ];
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs>
+        <vaadin-tab>
+          <span>Open</span>
+          <vaadin-badge number="24" theme="filled"></vaadin-badge>
+        </vaadin-tab>
+        <vaadin-tab>
+          <span>Completed</span>
+          <vaadin-badge number="49" theme="filled"></vaadin-badge>
+        </vaadin-tab>
+        <vaadin-tab>
+          <span>Cancelled</span>
+          <vaadin-badge number="5" theme="filled"></vaadin-badge>
+        </vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Prefix & Suffix
+
+Custom content can be placed before or after the tabs in a Tab Sheet by placing that content in the prefix and suffix slots. Notice the additional content at both ends of the tab bar in this example.
+
+[Flow: TabSheetPrefixSuffix.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.router.Route;
+
+@Route("tabsheet-prefix-suffix")
+public class TabSheetPrefixSuffix extends Div {
+
+    public TabSheetPrefixSuffix() {
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.add("Dashboard",
+                new Div(new Text("This is the Dashboard tab content")));
+        tabSheet.add("Payment",
+                new Div(new Text("This is the Payment tab content")));
+        tabSheet.add("Shipping",
+                new Div(new Text("This is the Shipping tab content")));
+
+        // tag::snippet[]
+        tabSheet.setPrefixComponent(new Button("Close all"));
+
+        Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
+        plusButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+        plusButton.setAriaLabel("Add tab");
+        tabSheet.setSuffixComponent(plusButton);
+        // end::snippet[]
+
+        add(tabSheet);
+    }
+
+}
+
+[React: tabsheet-prefix-suffix.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TabSheet, TabSheetTab } from '@vaadin/react-components/TabSheet.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TabSheet>
+      <Button slot="prefix">Close all</Button>
+
+      <Button slot="suffix" theme="icon" aria-label="Add tab">
+        <Icon icon="vaadin:plus" />
+      </Button>
+
+      <TabSheetTab label="Dashboard">
+        <div>This is the Dashboard tab content</div>
+      </TabSheetTab>
+
+      <TabSheetTab label="Payment">
+        <div>This is the Payment tab content</div>
+      </TabSheetTab>
+
+      <TabSheetTab label="Shipping">
+        <div>This is the Shipping tab content</div>
+      </TabSheetTab>
+    </TabSheet>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabsheet-prefix-suffix.ts]
+import '@vaadin/button';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tabs';
+import '@vaadin/tabsheet';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabsheet-prefix-suffix')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-tabsheet>
+        <!-- tag::snippet[] -->
+        <vaadin-button slot="prefix">Close all</vaadin-button>
+
+        <vaadin-button slot="suffix" theme="icon" aria-label="Add tab">
+          <vaadin-icon icon="vaadin:plus"></vaadin-icon>
+        </vaadin-button>
+        <!-- end::snippet[] -->
+
+        <vaadin-tabs slot="tabs">
+          <vaadin-tab id="dashboard-tab">Dashboard</vaadin-tab>
+          <vaadin-tab id="payment-tab">Payment</vaadin-tab>
+          <vaadin-tab id="shipping-tab">Shipping</vaadin-tab>
+        </vaadin-tabs>
+
+        <div tab="dashboard-tab">This is the Dashboard tab content</div>
+        <div tab="payment-tab">This is the Payment tab content</div>
+        <div tab="shipping-tab">This is the Shipping tab content</div>
+      </vaadin-tabsheet>
+    `;
+  }
+}
+
+Focus & Keyboard
+
+Tab focus is rendered differently when focused by the keyboard. Once a tab is focused, arrow keys can be used to move the focus between tabs. Try pressing Enter or Space to select the tab on which to focus — or click on one tab with your mouse. Then use the left and right arrow keys to shift the focus.
+
+[React: tabs-focus-ring.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs>
+      <Tab {...{ 'focus-ring': '' }}>Details</Tab>
+      <Tab>Payment</Tab>
+      <Tab>Shipping</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-focus-ring.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-focus-ring')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs>
+        <vaadin-tab focus-ring>Details</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Common Cases
+
+Content Switching without Tab Sheet
+
+Using the integrated content areas in Tab Sheet is the easiest way to switch among the different content for each tab. Sometimes, such as when the tabs need to be separated structurally from their content areas, it may be necessary to use the stand-alone Tabs component and manually implement content switching.
+
+Try clicking on each tab here. Notice how the text content changes depending on which you select.
+
+[Flow: TabsContent.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-content")
+public class TabsContent extends Div {
+
+    private final Tab details;
+    private final Tab payment;
+    private final Tab shipping;
+    private final VerticalLayout content;
+
+    public TabsContent() {
+        // tag::snippet[]
+        details = new Tab("Details");
+        payment = new Tab("Payment");
+        shipping = new Tab("Shipping");
+
+        Tabs tabs = new Tabs(details, payment, shipping);
+        tabs.addSelectedChangeListener(
+                event -> setContent(event.getSelectedTab()));
+        // end::snippet[]
+
+        content = new VerticalLayout();
+        content.setSpacing(false);
+        setContent(tabs.getSelectedTab());
+
+        add(tabs, content);
+    }
+
+    private void setContent(Tab tab) {
+        content.removeAll();
+
+        if (tab.equals(details)) {
+            content.add(new Paragraph("This is the Details tab"));
+        } else if (tab.equals(payment)) {
+            content.add(new Paragraph("This is the Payment tab"));
+        } else {
+            content.add(new Paragraph("This is the Shipping tab"));
+        }
+    }
+
+}
+
+[React: tabs-content.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs, type TabsSelectedChangedEvent } from '@vaadin/react-components/Tabs.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  const value = useSignal(0);
+  const pages = ['Dashboard', 'Payment', 'Shipping'];
+
+  const selectedChanged = (e: TabsSelectedChangedEvent) => {
+    value.value = e.detail.value;
+  };
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Tabs selected={value.value} onSelectedChanged={selectedChanged}>
+        <Tab>Dashboard</Tab>
+        <Tab>Payment</Tab>
+        <Tab>Shipping</Tab>
+      </Tabs>
+
+      <VerticalLayout theme="padding">
+        <p>{`This is the ${pages[value.value]} tab`}</p>
+      </VerticalLayout>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: tabs-content.ts]
+import '@vaadin/tabs';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { TabsSelectedChangedEvent } from '@vaadin/tabs';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-content')
+export class Example extends LitElement {
+  @state()
+  private content = '';
+
+  @state()
+  private pages = ['Dashboard', 'Payment', 'Shipping'];
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs @selected-changed="${this.selectedChanged}">
+        <vaadin-tab>Dashboard</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+
+      <vaadin-vertical-layout theme="padding">
+        <p>${this.content}</p>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  selectedChanged(e: TabsSelectedChangedEvent) {
+    this.content = `This is the ${this.pages[e.detail.value]} tab`;
+  }
+}
+
+Lazy Initialization of Tab Contents
+
+Sometimes it can be desirable to initialize the contents for a tab, lazily. That is to say, delay its initialization until the tab is selected. When you first click on one of the tabs below, you’ll notice a loading indicator, and a short delay until the tab content is displayed for each.
+
+[Flow: TabSheetLazyInitialization.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.function.SerializableSupplier;
+import com.vaadin.flow.router.Route;
+
+@Route("tabsheet-lazy-initialization")
+public class TabSheetLazyInitialization extends Div {
+
+    public TabSheetLazyInitialization() {
+        TabSheet tabSheet = new TabSheet();
+        // tag::snippet[]
+        tabSheet.add("Dashboard", new LazyComponent(
+                () -> new Text("This is the Dashboard tab content")));
+        // end::snippet[]
+        tabSheet.add("Payment", new LazyComponent(
+                () -> new Text("This is the Payment tab content")));
+        tabSheet.add("Shipping", new LazyComponent(
+                () -> new Text("This is the Shipping tab content")));
+        add(tabSheet);
+
+    }
+    // tag::snippet[]
+
+    public class LazyComponent extends Div {
+        public LazyComponent(
+                SerializableSupplier<? extends Component> supplier) {
+            addAttachListener(e -> {
+                if (getElement().getChildCount() == 0) {
+                    add(supplier.get());
+                }
+            });
+        }
+    }
+    // end::snippet[]
+
+}
+
+[React: tabsheet-lazy-initialization.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  TabSheet,
+  type TabSheetSelectedChangedEvent,
+  TabSheetTab,
+} from '@vaadin/react-components/TabSheet.js';
+
+function Example() {
+  // tag::snippet[]
+  const visitedTabs = useSignal(new Set<number>([0]));
+
+  const selectedTabChanged = (event: TabSheetSelectedChangedEvent) => {
+    visitedTabs.value = new Set([...visitedTabs.value, event.detail.value]);
+  };
+
+  return (
+    <TabSheet onSelectedChanged={selectedTabChanged}>
+      <TabSheetTab label="Dashboard">
+        {visitedTabs.value.has(0) && <div>This is the Dashboard tab content</div>}
+      </TabSheetTab>
+
+      <TabSheetTab label="Payment">
+        {visitedTabs.value.has(1) && <div>This is the Payment tab content</div>}
+      </TabSheetTab>
+
+      <TabSheetTab label="Shipping">
+        {visitedTabs.value.has(2) && <div>This is the Shipping tab content</div>}
+      </TabSheetTab>
+    </TabSheet>
+  );
+  // end::snippet[]
+}
+
+[Lit: tabsheet-lazy-initialization.ts]
+import '@vaadin/tabs';
+import '@vaadin/tabsheet';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { TabSheetSelectedChangedEvent } from '@vaadin/tabsheet';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabsheet-lazy-initialization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private visitedTabs = new Set<number>();
+
+  private selectedTabChanged(event: TabSheetSelectedChangedEvent) {
+    this.visitedTabs = new Set([...this.visitedTabs, event.detail.value]);
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-tabsheet @selected-changed=${this.selectedTabChanged}>
+        <vaadin-tabs slot="tabs">
+          <vaadin-tab id="dashboard-tab">Dashboard</vaadin-tab>
+          <vaadin-tab id="payment-tab">Payment</vaadin-tab>
+          <vaadin-tab id="shipping-tab">Shipping</vaadin-tab>
+        </vaadin-tabs>
+
+        ${this.visitedTabs.has(0)
+          ? html`<div tab="dashboard-tab">This is the Dashboard tab content</div>`
+          : ''}
+        ${this.visitedTabs.has(1)
+          ? html`<div tab="payment-tab">This is the Payment tab content</div>`
+          : ''}
+        ${this.visitedTabs.has(2)
+          ? html`<div tab="shipping-tab">This is the Shipping tab content</div>`
+          : ''}
+      </vaadin-tabsheet>
+    `;
+  }
+  // end::snippet[]
+}
+
+Related Components
+
+Component | Usage recommendations
+Accordion | An accordion is a vertically stacked set of expandable panels.
+Details | The Details component is an expandable panel for showing and hiding content to make the UI less crowded.

@@ -1,0 +1,14 @@
+Element API
+
+Control the HTML DOM in the browser from the server side using the Element API.
+
+Properties & Attributes
+    Get and set DOM properties and attributes.
+Element Events
+    Listen to any browser events on the server.
+Calling JavaScript
+    Call JavaScript functions from the server.
+Dynamic Styling
+    Style elements dynamically with class names and inline styles.
+Shadow Roots
+    Create shadow roots from the server.

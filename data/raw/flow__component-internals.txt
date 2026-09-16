@@ -1,0 +1,32 @@
+Component Internals Reference
+
+Technical reference for Vaadin’s component architecture and client-server communication model. Covers properties, events, RPC, the Element API, and other low-level mechanisms used when building custom components.
+
+This is the technical reference guide for Vaadin’s component architecture. For a list of available components, see the Components documentation. For step-by-step guides on creating UI:s with Vaadin, see the Building Apps guide.
+
+Basics
+    Creating a Vaadin component with a client-side element and a server-side Java API.
+Properties
+    Declaring and synchronizing Vaadin component properties between client and server.
+Events
+    Declaring, listening to, and firing events in Vaadin components.
+Remote Procedure Calls
+    Calling client-side functions from the server, and server-side methods from the client.
+Component Containers
+    Creating components that can contain other components.
+Enabled State
+    How enabling and disabling UI components affects user interaction and server communication in Vaadin applications.
+Visibility
+    How component visibility works in Vaadin.
+Mixin Interfaces
+    Using mixin interfaces to add a common API to Vaadin components.
+Keyboard Shortcuts
+    Adding keyboard shortcuts to components for a better user experience.
+Drag & Drop
+    Dragging and dropping between components as well as between the UI and the operating system.
+Element API
+    Control the HTML DOM in the browser from the server side using the Element API.
+Integrating Web Components
+    How to create new HTML tags with custom names.
+Templates
+    How to build views declaratively using templates.

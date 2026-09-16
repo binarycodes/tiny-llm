@@ -1,0 +1,1211 @@
+Badge
+
+Badges are colored text elements containing small bits of information.
+
+Badges are colored text elements containing small bits of information. They’re used for labeling content, displaying metadata and/or highlighting information.
+
+[Flow: BadgeBasic.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-basic")
+public class BadgeBasic extends HorizontalLayout {
+
+    public BadgeBasic() {
+        // tag::snippet[]
+        Badge pending = new Badge("Pending");
+
+        Badge confirmed = new Badge("Confirmed");
+        confirmed.addThemeVariants(BadgeVariant.SUCCESS);
+
+        Badge warning = new Badge("Warning");
+        warning.addThemeVariants(BadgeVariant.WARNING);
+
+        Badge denied = new Badge("Denied");
+        denied.addThemeVariants(BadgeVariant.ERROR);
+
+        // end::snippet[]
+
+        add(pending, confirmed, warning, denied);
+    }
+
+}
+
+[React: badge-basic.tsx]
+import React from 'react';
+import { Badge, HorizontalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Badge>Pending</Badge>
+      <Badge theme="success">Confirmed</Badge>
+      <Badge theme="warning">Warning</Badge>
+      <Badge theme="error">Denied</Badge>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: badge-basic.ts]
+import '@vaadin/badge';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-badge>Pending</vaadin-badge>
+        <vaadin-badge theme="success">Confirmed</vaadin-badge>
+        <vaadin-badge theme="warning">Warning</vaadin-badge>
+        <vaadin-badge theme="error">Denied</vaadin-badge>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Label
+
+Badges should contain a label. Labels should be clear, concise, and written using sentence case. Aim for 1 to 2 words.
+
+Icons
+
+Badges can contain icons as well as text. Icons are placed before the text using the icon slot.
+
+[Flow: BadgeIcons.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-icons")
+public class BadgeIcons extends HorizontalLayout {
+
+    public BadgeIcons() {
+        // tag::snippet[]
+        Badge pending = new Badge("Pending", VaadinIcon.CLOCK.create());
+
+        Badge confirmed = new Badge("Confirmed", VaadinIcon.CHECK.create());
+        confirmed.addThemeVariants(BadgeVariant.SUCCESS);
+
+        Badge warning = new Badge("Warning", VaadinIcon.WARNING.create());
+        warning.addThemeVariants(BadgeVariant.WARNING);
+
+        Badge denied = new Badge("Denied",
+                VaadinIcon.EXCLAMATION_CIRCLE_O.create());
+        denied.addThemeVariants(BadgeVariant.ERROR);
+
+        // end::snippet[]
+
+        add(pending, confirmed, warning, denied);
+    }
+
+}
+
+[React: badge-icons.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Badge, HorizontalLayout, Icon } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <HorizontalLayout theme="spacing">
+      <Badge>
+        <Icon icon="vaadin:clock" slot="icon" />
+        Pending
+      </Badge>
+      <Badge theme="success">
+        <Icon icon="vaadin:check" slot="icon" />
+        Confirmed
+      </Badge>
+      <Badge theme="warning">
+        <Icon icon="vaadin:warning" slot="icon" />
+        Warning
+      </Badge>
+      <Badge theme="error">
+        <Icon icon="vaadin:exclamation-circle-o" slot="icon" />
+        Denied
+      </Badge>
+    </HorizontalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: badge-icons.ts]
+import '@vaadin/badge';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-icons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-horizontal-layout theme="spacing">
+        <vaadin-badge>
+          <vaadin-icon icon="vaadin:clock" slot="icon"></vaadin-icon>
+          Pending
+        </vaadin-badge>
+        <vaadin-badge theme="success">
+          <vaadin-icon icon="vaadin:check" slot="icon"></vaadin-icon>
+          Confirmed
+        </vaadin-badge>
+        <vaadin-badge theme="warning">
+          <vaadin-icon icon="vaadin:warning" slot="icon"></vaadin-icon>
+          Warning
+        </vaadin-badge>
+        <vaadin-badge theme="error">
+          <vaadin-icon icon="vaadin:exclamation-circle-o" slot="icon"></vaadin-icon>
+          Denied
+        </vaadin-badge>
+      </vaadin-horizontal-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Use icons sparingly
+
+The benefit of using icons should be weighed against the visual noise it adds.
+
+Icon-Only
+
+Badges can also be used with icons without a label. For accessibility, the text should be still provided when using icon-only style variant. It’s only hidden visually but available for screen readers to ensure that all users can identify the meaning of the badge.
+
+[Flow: BadgeIconsOnly.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-icons-only")
+public class BadgeIconsOnly extends HorizontalLayout {
+
+    public BadgeIconsOnly() {
+        // tag::snippet[]
+        Badge confirmed = new Badge("Confirmed", VaadinIcon.CHECK.create());
+        confirmed.addThemeVariants(BadgeVariant.SUCCESS,
+                BadgeVariant.ICON_ONLY);
+
+        Badge cancelled = new Badge("Cancelled",
+                VaadinIcon.CLOSE_SMALL.create());
+        cancelled.addThemeVariants(BadgeVariant.ERROR, BadgeVariant.ICON_ONLY);
+        // end::snippet[]
+
+        add(confirmed, cancelled);
+    }
+
+}
+
+[React: badge-icons-only.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Badge, HorizontalLayout, Icon } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Badge theme="success icon-only">
+        <Icon icon="vaadin:check" slot="icon" />
+        Confirmed
+      </Badge>
+      <Badge theme="error icon-only">
+        <Icon icon="vaadin:close-small" slot="icon" />
+        Cancelled
+      </Badge>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: badge-icons-only.ts]
+import '@vaadin/badge';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-icons-only')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-badge theme="success icon-only">
+          <vaadin-icon icon="vaadin:check" slot="icon"></vaadin-icon>
+          Confirmed
+        </vaadin-badge>
+        <vaadin-badge theme="error icon-only">
+          <vaadin-icon icon="vaadin:close-small" slot="icon"></vaadin-icon>
+          Cancelled
+        </vaadin-badge>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Icon-only badges should primarily be used for common recurring content with highly standardized, universally understood icons (such as a checkmark for "yes"), and for content that’s repeated, for example in lists and tables.
+
+[Flow: BadgeIconsOnlyTable.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.UserPermissions;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("badge-icons-only-table")
+public class BadgeIconsOnlyTable extends Div {
+
+    public BadgeIconsOnlyTable() {
+        Grid<UserPermissions> grid = new Grid<>(UserPermissions.class, false);
+
+        // tag::snippet1[]
+        grid.addColumn(UserPermissions::getName).setHeader("Name");
+        grid.addComponentColumn(userPermissions -> createPermissionBadge(
+                userPermissions.getView())).setHeader("View");
+        grid.addComponentColumn(userPermissions -> createPermissionBadge(
+                userPermissions.getComment())).setHeader("Comment");
+        grid.addComponentColumn(userPermissions -> createPermissionBadge(
+                userPermissions.getEdit())).setHeader("Edit");
+        // end::snippet1[]
+
+        List<UserPermissions> userPermissions = DataService
+                .getUserPermissions();
+        grid.setItems(userPermissions);
+
+        add(grid);
+    }
+
+    private Badge createPermissionBadge(boolean hasPermission) {
+        Badge badge;
+        if (hasPermission) {
+            badge = new Badge("Yes", VaadinIcon.CHECK.create());
+            badge.addThemeVariants(BadgeVariant.SUCCESS,
+                    BadgeVariant.ICON_ONLY);
+        } else {
+            badge = new Badge("No", VaadinIcon.CLOSE_SMALL.create());
+            badge.addThemeVariants(BadgeVariant.ERROR, BadgeVariant.ICON_ONLY);
+        }
+        return badge;
+    }
+
+}
+
+[React: badge-icons-only-table.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Badge, Grid, GridColumn, type GridColumnElement, Icon } from '@vaadin/react-components';
+import { getUserPermissions } from 'Frontend/demo/domain/DataService';
+import type UserPermissions from 'Frontend/generated/com/vaadin/demo/domain/UserPermissions';
+
+function Example() {
+  const items = useSignal<UserPermissions[]>([]);
+
+  useEffect(() => {
+    getUserPermissions().then((data) => {
+      items.value = [...data];
+    });
+  }, []);
+
+  // tag::snippet[]
+  const renderBadge = ({
+    item,
+    original: column,
+  }: {
+    item: any;
+    original: GridColumnElement<UserPermissions>;
+  }) => {
+    let icon;
+    let title;
+    let theme;
+
+    if (item[column.id]) {
+      icon = 'vaadin:check';
+      title = 'Yes';
+      theme = 'success';
+    } else {
+      icon = 'vaadin:close-small';
+      title = 'No';
+      theme = 'error';
+    }
+
+    return (
+      <Badge theme={`${theme} icon-only`}>
+        <Icon icon={icon} slot="icon" />
+        {title}
+      </Badge>
+    );
+  };
+
+  return (
+    <Grid items={items.value}>
+      <GridColumn path="name" header="Name" />
+      <GridColumn id="view" header="View" renderer={renderBadge} />
+      <GridColumn id="comment" header="Comment" renderer={renderBadge} />
+      <GridColumn id="edit" header="Edit" renderer={renderBadge} />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: badge-icons-only-table.ts]
+import '@vaadin/badge';
+import '@vaadin/grid';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-icons-only-table')
+export class Example extends LitElement {
+  @state()
+  private items: readonly UserPermissions[] = [];
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override async firstUpdated() {
+    this.items = await getUserPermissions();
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    const renderBoolean: GridColumnBodyLitRenderer<UserPermissions> = (item, _model, column) => {
+      let icon: string;
+      let title: string;
+      let theme: string;
+
+      if (item[column.id as keyof UserPermissions]) {
+        icon = 'vaadin:check';
+        title = 'Yes';
+        theme = 'success';
+      } else {
+        icon = 'vaadin:close-small';
+        title = 'No';
+        theme = 'error';
+      }
+
+      return html`
+        <vaadin-badge theme="${theme} icon-only">
+          <vaadin-icon icon="${icon}" slot="icon"></vaadin-icon>
+          ${title}
+        </vaadin-badge>
+      `;
+    };
+
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column path="name" header="Name"></vaadin-grid-column>
+        <vaadin-grid-column
+          id="view"
+          header="View"
+          ${columnBodyRenderer(renderBoolean, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          id="comment"
+          header="Comment"
+          ${columnBodyRenderer(renderBoolean, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          id="edit"
+          header="Edit"
+          ${columnBodyRenderer(renderBoolean, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+    // end::snippet[]
+  }
+}
+
+Number
+
+Badges can display a numeric value using the number property. This is useful for showing counts, such as unread messages or notifications. When both text content and a number are set, both are displayed.
+
+[Flow: BadgeNumber.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-number")
+public class BadgeNumber extends HorizontalLayout {
+
+    public BadgeNumber() {
+        // tag::snippet[]
+        Badge inbox = new Badge("New messages", 12);
+
+        Badge completed = new Badge("Completed", 3);
+        completed.addThemeVariants(BadgeVariant.SUCCESS);
+
+        Badge failed = new Badge("Failed", 1);
+        failed.addThemeVariants(BadgeVariant.ERROR);
+        // end::snippet[]
+
+        add(inbox, completed, failed);
+    }
+
+}
+
+[React: badge-number.tsx]
+import React from 'react';
+import { Badge, HorizontalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Badge number={12}>New messages</Badge>
+      <Badge number={3} theme="success">
+        Completed
+      </Badge>
+      <Badge number={1} theme="error">
+        Failed
+      </Badge>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: badge-number.ts]
+import '@vaadin/badge';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-number')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-badge number="12">New messages</vaadin-badge>
+        <vaadin-badge number="3" theme="success">Completed</vaadin-badge>
+        <vaadin-badge number="1" theme="error">Failed</vaadin-badge>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Number-Only
+
+Badges can display a number without a visible label using the number-only style variant. For accessibility, the text label should still be provided — it’s only hidden visually but available for screen readers to ensure that all users can identify the meaning of the badge.
+
+[Flow: BadgeNumberOnly.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-number-only")
+public class BadgeNumberOnly extends HorizontalLayout {
+
+    public BadgeNumberOnly() {
+        // tag::snippet[]
+        Badge inbox = new Badge("New messages", 12);
+        inbox.addThemeVariants(BadgeVariant.NUMBER_ONLY);
+
+        Badge alerts = new Badge("Alerts", 3);
+        alerts.addThemeVariants(BadgeVariant.ERROR, BadgeVariant.NUMBER_ONLY);
+        // end::snippet[]
+
+        add(inbox, alerts);
+    }
+
+}
+
+[React: badge-number-only.tsx]
+import React from 'react';
+import { Badge, HorizontalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Badge number={12} theme="number-only">
+        New messages
+      </Badge>
+      <Badge number={3} theme="error number-only">
+        Alerts
+      </Badge>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: badge-number-only.ts]
+import '@vaadin/badge';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-number-only')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-badge number="12" theme="number-only">New messages</vaadin-badge>
+        <vaadin-badge number="3" theme="error number-only">Alerts</vaadin-badge>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Use Cases
+
+Highlighting and Distinguishing Information
+
+A typical use case for badges is to highlight an item’s status, for example in a Grid.
+
+[Flow: BadgeHighlight.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Report;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+
+@Route("badge-highlight")
+public class BadgeHighlight extends Div {
+
+    public BadgeHighlight() {
+        Grid<Report> grid = new Grid<>(Report.class, false);
+
+        grid.addColumn(Report::getReport).setHeader("Report");
+        grid.addColumn(new LocalDateRenderer<>(BadgeHighlight::getDueDate,
+                "MMM d, YYYY")).setHeader("Due date");
+        grid.addColumn(Report::getAssignee).setHeader("Assignee");
+        // tag::snippet1[]
+        grid.addComponentColumn(report -> createStatusBadge(report.getStatus()))
+                .setHeader("Status");
+        // end::snippet1[]
+
+        List<Report> reports = DataService.getReports();
+        grid.setItems(reports);
+
+        add(grid);
+    }
+
+    private Badge createStatusBadge(String status) {
+        Badge badge = new Badge(status);
+        badge.addThemeVariants(BadgeVariant.FILLED);
+        switch (status) {
+        case "Completed":
+            badge.addThemeVariants(BadgeVariant.SUCCESS);
+            break;
+        case "Cancelled":
+            badge.addThemeVariants(BadgeVariant.ERROR);
+            break;
+        case "On hold":
+            badge.addThemeVariants(BadgeVariant.WARNING);
+            break;
+        default:
+            break;
+        }
+        return badge;
+    }
+
+    private static LocalDate getDueDate(Report report) {
+        return report.getDue().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+}
+
+[React: badge-highlight.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Badge, Grid, GridColumn } from '@vaadin/react-components';
+import { getReports, type Report, ReportStatus } from 'Frontend/demo/domain/DataService';
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+// tag::snippet[]
+function renderDueDate({ item: report }: { item: Report }) {
+  return <span>{dateFormatter.format(new Date(report.due))}</span>;
+}
+
+function renderStatus({ item: report }: { item: Report }) {
+  let title: string;
+  let theme: string;
+
+  switch (report.status) {
+    case ReportStatus.COMPLETED:
+      title = 'Completed';
+      theme = 'success';
+      break;
+    case ReportStatus.IN_PROGRESS:
+      title = 'In progress';
+      theme = '';
+      break;
+    case ReportStatus.CANCELLED:
+      title = 'Cancelled';
+      theme = 'error';
+      break;
+    case ReportStatus.ON_HOLD:
+      title = 'On hold';
+      theme = 'warning';
+      break;
+  }
+
+  return <Badge theme={`${theme} filled`}>{title}</Badge>;
+}
+
+function Example() {
+  const items = useSignal<Report[]>([]);
+  useEffect(() => {
+    getReports().then((reports) => {
+      items.value = reports as Report[];
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridColumn path="report" header="Report" />
+      <GridColumn header="Due date" renderer={renderDueDate} />
+      <GridColumn path="assignee" header="Assignee" />
+      <GridColumn header="Status" renderer={renderStatus} />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[Lit: badge-highlight.ts]
+import '@vaadin/badge';
+import '@vaadin/grid';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getReports, type Report, ReportStatus } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+@customElement('badge-highlight')
+export class Example extends LitElement {
+  @state()
+  private items: readonly Report[] = [];
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override async firstUpdated() {
+    this.items = await getReports();
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column path="report" header="Report"></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Due date"
+          ${columnBodyRenderer<Report>(
+            ({ due }) => html`${dateFormatter.format(new Date(due))}`,
+            []
+          )}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="assignee" header="Assignee"></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Status"
+          ${columnBodyRenderer<Report>(({ status }) => {
+            let title: string;
+            let theme: string;
+
+            switch (status) {
+              case ReportStatus.COMPLETED:
+                title = 'Completed';
+                theme = 'success';
+                break;
+              case ReportStatus.IN_PROGRESS:
+                title = 'In progress';
+                theme = '';
+                break;
+              case ReportStatus.CANCELLED:
+                title = 'Cancelled';
+                theme = 'error';
+                break;
+              case ReportStatus.ON_HOLD:
+                title = 'On hold';
+                theme = 'warning';
+                break;
+            }
+
+            return html`<vaadin-badge theme="${theme} filled">${title}</vaadin-badge>`;
+          }, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+    // end::snippet[]
+  }
+}
+
+They are also often used for displaying metadata tags.
+
+Interactive Content
+
+Badges can house interactive content such as Anchors and Buttons. For example, Badges that highlight active filters might contain a "Clear" Button which removes the associated filter.
+
+[Flow: BadgeInteractive.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-interactive")
+public class BadgeInteractive extends VerticalLayout {
+
+    public BadgeInteractive() {
+        // tag::snippet1[]
+        HorizontalLayout badges = new HorizontalLayout();
+        badges.addThemeNames("wrap");
+
+        ComboBox<String> comboBox = new ComboBox<>("Profession");
+        comboBox.setItems(DataService.getProfessions());
+        comboBox.addValueChangeListener(e -> {
+            Badge filterBadge = createFilterBadge(e.getValue());
+            badges.add(filterBadge);
+        });
+        // end::snippet1[]
+
+        add(comboBox, badges);
+        setPadding(false);
+        setSizeUndefined();
+    }
+
+    private Badge createFilterBadge(String profession) {
+        Button clearButton = new Button(VaadinIcon.CLOSE_SMALL.create());
+        clearButton.addThemeVariants(ButtonVariant.TERTIARY);
+        clearButton.getStyle().set("height", "1.5rem")
+                .set("min-width", "1.5rem").set("margin", "0")
+                .set("padding", "0");
+        // Accessible button name
+        clearButton.getElement().setAttribute("aria-label",
+                "Clear filter: " + profession);
+        // Tooltip
+        clearButton.getElement().setAttribute("title",
+                "Clear filter: " + profession);
+
+        Badge badge = new Badge(profession);
+        badge.getStyle().set("padding-right", "0");
+        badge.getElement().appendChild(clearButton.getElement());
+
+        // Add handler for removing the badge
+        clearButton.addClickListener(event -> {
+            badge.getElement().removeFromParent();
+        });
+
+        return badge;
+    }
+
+}
+
+[React: badge-interactive.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Badge,
+  Button,
+  type ButtonElement,
+  ComboBox,
+  type ComboBoxChangeEvent,
+  HorizontalLayout,
+  Icon,
+  VerticalLayout,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+type Profession = string;
+
+function Example() {
+  const items = useSignal<Profession[]>([]);
+  const selectedProfessions = useSignal<Profession[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      const professions = [...new Set(people.map(({ profession }) => profession))];
+      items.value = professions;
+    });
+  }, []);
+
+  const onChange = (event: ComboBoxChangeEvent<Profession>) => {
+    const { value } = event.target;
+
+    if (value) {
+      if (!selectedProfessions.value.includes(value)) {
+        selectedProfessions.value = [...selectedProfessions.value, value];
+      }
+    }
+  };
+
+  const onClick = (event: React.MouseEvent<ButtonElement>) => {
+    const { profession } = event.currentTarget.dataset;
+
+    if (profession) {
+      selectedProfessions.value = selectedProfessions.value.filter((p) => p !== profession);
+    }
+  };
+
+  // tag::snippet[]
+  return (
+    <VerticalLayout theme="spacing">
+      <ComboBox label="Profession" items={items.value} onChange={onChange} />
+
+      <HorizontalLayout theme="spacing wrap">
+        {selectedProfessions.value.map((profession) => (
+          <Badge key={profession} style={{ paddingRight: '0' }}>
+            <span>{profession}</span>
+            <Button
+              aria-label={`Clear filter: ${profession}`}
+              data-profession={profession}
+              theme="tertiary"
+              title={`Clear filter: ${profession}`}
+              style={{ height: '1.5rem', minWidth: '1.5rem', margin: '0', padding: '0' }}
+              onClick={onClick}
+            >
+              <Icon icon="vaadin:close-small" />
+            </Button>
+          </Badge>
+        ))}
+      </HorizontalLayout>
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: badge-interactive.ts]
+import '@vaadin/badge';
+import '@vaadin/button';
+import '@vaadin/combo-box';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
+import type { Button } from '@vaadin/button';
+import type { ComboBoxChangeEvent } from '@vaadin/combo-box';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+
+type Profession = string;
+
+@customElement('badge-interactive')
+export class Example extends LitElement {
+  @state()
+  private items: readonly Profession[] = [];
+
+  @state()
+  private selectedProfessions: readonly Profession[] = [];
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = [...new Set(people.map(({ profession }) => profession))];
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-combo-box
+          label="Profession"
+          .items="${this.items}"
+          @change="${this.onChange}"
+        ></vaadin-combo-box>
+        <vaadin-horizontal-layout theme="spacing wrap">
+          ${repeat(
+            this.selectedProfessions,
+            (profession) => profession,
+            (profession) => html`
+              <vaadin-badge style="padding-right: 0">
+                <span>${profession}</span>
+                <vaadin-button
+                  aria-label="Clear filter: ${profession}"
+                  data-profession="${profession}"
+                  theme="tertiary"
+                  title="Clear filter: ${profession}"
+                  style="height: 1.5rem; min-width: 1.5rem; margin: 0; padding: 0"
+                  @click="${this.onClick}"
+                >
+                  <vaadin-icon icon="vaadin:close-small"></vaadin-icon>
+                </vaadin-button>
+              </vaadin-badge>
+            `
+          )}
+        </vaadin-horizontal-layout>
+      </vaadin-vertical-layout>
+    `;
+    // end::snippet[]
+  }
+
+  private onChange(event: ComboBoxChangeEvent<Profession>) {
+    const { selectedItem } = event.target;
+
+    if (selectedItem == null) {
+      return;
+    }
+
+    if (!this.selectedProfessions.includes(selectedItem)) {
+      this.selectedProfessions = [...this.selectedProfessions, selectedItem];
+    }
+  }
+
+  private onClick({ target }: Event) {
+    const { profession } = (target as Button).dataset;
+
+    if (profession) {
+      this.selectedProfessions = this.selectedProfessions.filter((p) => p !== profession);
+    }
+  }
+}
+
+Counter
+
+Badges can be used as counters, for example to show the number of unread/new messages, selection count, etc.
+
+[Flow: BadgeCounter.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-counter")
+public class BadgeCounter extends Div {
+
+    public BadgeCounter() {
+        // tag::snippet1[]
+        Tabs tabs = new Tabs(createTab("Inbox", 12), createTab("Important", 3),
+                createTab("Spam", 45), createTab("Archive", 23));
+        // end::snippet1[]
+
+        add(tabs);
+    }
+
+    private static Tab createTab(String labelText, int messageCount) {
+        Span label = new Span(labelText);
+        Badge counter = new Badge("unread messages", messageCount);
+        counter.addThemeVariants(BadgeVariant.FILLED, BadgeVariant.NUMBER_ONLY);
+        counter.getStyle().set("margin-inline-start", "var(--vaadin-gap-s)");
+
+        return new Tab(label, counter);
+    }
+
+}
+
+[React: badge-counter.tsx]
+import React from 'react';
+import { Badge, Tab, Tabs } from '@vaadin/react-components';
+
+const badgeStyle = {
+  marginInlineStart: 'var(--vaadin-gap-s)',
+};
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs>
+      <Tab>
+        <span>Inbox</span>
+        <Badge number={12} theme="filled number-only" style={badgeStyle}>
+          unread messages
+        </Badge>
+      </Tab>
+      <Tab>
+        <span>Important</span>
+        <Badge number={3} theme="filled number-only" style={badgeStyle}>
+          unread messages
+        </Badge>
+      </Tab>
+      <Tab>
+        <span>Spam</span>
+        <Badge number={45} theme="filled number-only" style={badgeStyle}>
+          unread messages
+        </Badge>
+      </Tab>
+      <Tab>
+        <span>Archive</span>
+        <Badge number={23} theme="filled number-only" style={badgeStyle}>
+          unread messages
+        </Badge>
+      </Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: badge-counter.ts]
+import '@vaadin/badge';
+import '@vaadin/tabs';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-counter')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-badge {
+      margin-inline-start: var(--vaadin-gap-s);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs>
+        <vaadin-tab>
+          <span>Inbox</span>
+          <vaadin-badge number="12" theme="filled number-only">unread messages</vaadin-badge>
+        </vaadin-tab>
+        <vaadin-tab>
+          <span>Important</span>
+          <vaadin-badge number="3" theme="filled number-only">unread messages</vaadin-badge>
+        </vaadin-tab>
+        <vaadin-tab>
+          <span>Spam</span>
+          <vaadin-badge number="45" theme="filled number-only">unread messages</vaadin-badge>
+        </vaadin-tab>
+        <vaadin-tab>
+          <span>Archive</span>
+          <vaadin-badge number="23" theme="filled number-only">unread messages</vaadin-badge>
+        </vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Assistive technologies, such as screen readers, interpret badges solely based on their content. Without proper context, they may end up confusing the user. To provide context for people using screen readers, set the badge’s aria-label attribute.
+
+Best Practices
+
+Badge vs Button
+
+Badges and Buttons are similar in appearance. This might lead users to think that badges are interactive.
+
+Placement, language, and color can all help mitigate any confusion. First, badges shouldn’t be labeled with active verbs. They aren’t actions, but rather static text/content. Second, avoid placing badges directly next to Buttons, in particular if they are using similar themes.

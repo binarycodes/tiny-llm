@@ -1,0 +1,216 @@
+Development Mode
+
+Develop applications faster with a live-reload, frontend development server.
+
+Vaadin Flow’s Development Mode makes application development faster by enabling easier debugging with a live-reload, frontend development server, and helpful debugging tools. Vaadin applications can run in two modes: development mode; or production mode.
+
+Development mode is designed to make it easier to build applications. Changes you make to a project are detected automatically, refreshing the browser to display the new page and application. Included in the data sent to the browser is information to help troubleshoot any problems. It provides such information and helpful debugging tools through the browser’s development tools window.
+
+The amount of data sent when in Development mode, though, is not optimized to be small. Conversely, Production mode sends as little data as possible to the end user’s browser. It optimizes performance wherever possible. In this mode, no development tools are used, and debugging information is disabled.
+
+Development mode is opt-in feature. To enable it, add following dependency to your build configuration:
+
+[Maven: XML]
+<dependency>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-dev</artifactId>
+
+    <!-- Add optional=true if same Maven project build or profile has
+         vaadin-maven-plugin configured with build-frontend goal. This ensures
+         that vaadin-dev dependencies are excluded from the production package.
+    -->
+    <optional>true</optional>
+</dependency>
+
+[Maven: XML]
+
+[Gradle: groovy]
+// In general, enable by adding vaadin-dev in dependencies.
+dependencies {
+    implementation('com.vaadin:vaadin-dev')
+}
+
+// For production configurations, add vaadin-dev dependency only
+// for runtimeClasspath.
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+dependencies {
+    developmentOnly('com.vaadin:vaadin-dev')
+}
+
+[Gradle: groovy]
+
+Development Mode Methods
+
+When in development mode, you have two choices or methods for utilizing this mode: use a Pre-Compiled Frontend Bundle; or use a Frontend Development Server. The difference between these methods is in how the frontend files are handled.
+
+When using a pre-compiled frontend bundle, the frontend files are collected and compiled into a bundle and are served similarly to the browser as when in production mode. The difference is that debugging features are enabled.
+
+When running with the frontend development server, JavaScript and CSS and other frontend files are served by it and given individually to the browser as requested — instead of the application’s Java server handling such requests.
+
+Faster Starts by Pre-Compiling
+
+The build and start-up time can be decreased if no frontend installation or compilation is made. This means not installing the tools Node.js, npm/pnpm/bun. It also means not having to download npm packages, or running the Vite development server.
+
+If your project uses only the standard Vaadin Flow components or third-party Vaadin add-ons (e.g., from the Vaadin Directory) without client code, Vaadin skips frontend compilation and uses the default themes and frontend files shipped with Vaadin.
+
+Adding any custom JavaScript/TypeScript or add-ons with frontend customizations to a project can trigger the frontend re-compilation using Vite the next time the application is started. Any new or missing frontend packages are downloaded using npm/pnpm/bun before building. Vaadin does this automatically and spots the frontend customizations.
+
+Making a new frontend bundle takes time. However, the generated frontend files are compressed to the src/main/bundles/prod.bundle file inside the project’s root. This file can be added to the Version Control System, which allows other developers to fetch the application bundle and thereby run it.
+
+The actual bundle files go to the build directory (i.e., target for Maven, build for Gradle) and are used from there. This way minor changes don’t cause multiple files to change and be committed to the Version Control System.
+
+The application bundle is the same as the default bundle, but it’s made for a specific application. Vaadin defines two origins for the frontend development bundle: the "default" bundle updated and provided in each release version; and the "application" bundle, which is made by locally running the project and taking into account the specific frontend customizations.
+
+Vaadin generates an application bundle in the following situations:
+
+- An npm package is added with @NpmPackage, or directly into package.json;
+- CSS or JavaScript is added with @CssImport, @JsModule, or @JavaScript;
+- Vaadin add-on with frontend customizations is added;
+- Custom theme packaged as a JAR dependency is added, if it defines any assets to be added to the project; or
+- Exported web component is added.
+
+Custom theme files are served separately from the frontend bundle. They can be modified on the fly; the browser live-reload refreshes the page immediately — no re-compilation is needed.
+
+When customizing a Vaadin 24-style theme folder in this mode, the following points should be taken into account:
+
+- Loading CSS into the shadow DOM of Vaadin components by placing them in the theme’s components sub-folder requires the running of a frontend development server.
+- Vaadin component styles are set in styles.css, or in the imported stylesheet file located in the theme directory, with the ::part() selector.
+- Use the assets block in the theme.json file to specify the external assets — fonts, images, or stylesheets — to be added to the application development bundle, so that they can be used in the application.
+- Use Vaadin Line-Awesome add-on that doesn’t require building a new bundle.
+
+In case the project uses Sass files instead of CSS, for instance, the files are not by default taken into account in the bundle contents. To have the bundle include the .scss file content, the plugin contains the configuration property frontendExtraFileExtensions that takes a comma-separated string of extensions to allow for bundle frontend files.
+
+The default values .js, .js.map, .ts, .ts.map, .tsx, .tsx.map, .css, and .css.map can always be used and don’t need to be mentioned.
+
+[Sass in a Project]
+<plugin>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-maven-plugin</artifactId>
+    <!-- plugin goals and other configuration  -->
+    <configuration>
+        <frontendExtraFileExtensions>scss</frontendExtraFileExtensions>
+    </configuration>
+</plugin>
+
+Extensions can also be set as a system property (i.e., -Ddevmode.frontendExtraFileExtensions="scss"). The property works for both the development mode bundle and production mode bundle.
+
+Easier Debugging
+
+When working with a frontend heavy project, there can be a frontend development server running for fast compilation and live-reload when the frontend files are changed.
+
+Vaadin uses Vite to quicken frontend development by enabling the client-side live reload. By doing this, JavaScript/TypeScript changes are updated immediately in the browser. Vite only re-compiles what has changed, making hot reloads fast.
+
+Vite installation is made through npm/pnpm/bun. Running Vite requires Node.js. See Node.js installation and Configuring frontend package manager for more information.
+
+This mode is recommended if components or views use Templates and are edited often. This mode is used when the configuration parameter frontend.hotdeploy is set to true (see Configuration Properties for more information).
+
+Disabling the Pre-Compiled Bundle
+
+One of the following methods can be used to disable the pre-compiled frontend bundle, and use instead the frontend development server, depending on the project’s setup:
+
+[Spring-Based Applications: application.properties]
+vaadin.frontend.hotdeploy=true
+
+[Spring-Based Applications: application.properties]
+
+[Vaadin Maven Plugin: pom.xml]
+<plugin>
+   <groupId>com.vaadin</groupId>
+   <artifactId>vaadin-maven-plugin</artifactId>
+   <executions>
+       <execution>
+           <goals>
+               <goal>prepare-frontend</goal>
+           </goals>
+       </execution>
+   </executions>
+   <configuration>
+       <frontendHotdeploy>true</frontendHotdeploy>
+   </configuration>
+</plugin>
+
+[Vaadin Maven Plugin: pom.xml]
+
+[Vaadin Gradle Plugin: build.gradle]
+vaadin {
+    frontendHotdeploy = true
+}
+
+[Vaadin Gradle Plugin: build.gradle]
+
+[Jetty: pom.xml]
+<plugin>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-maven-plugin</artifactId>
+    ...
+    <configuration>
+        <systemProperties>
+            <vaadin.frontend.hotdeploy>true</vaadin.frontend.hotdeploy>
+        </systemProperties>
+    </configuration>
+</plugin>
+
+[Jetty: pom.xml]
+
+[System Property: terminal]
+-Dvaadin.frontend.hotdeploy=true
+
+[System Property: terminal]
+
+Vaadin allows this to prevent the frontend development bundle from being re-built even if it decides to use an existing compiled development bundle. This might be needed when re-bundling checker in Flow has issues leading to a false re-bundling and one needs a workaround while the problem is being resolved:
+
+[System Property: terminal]
+-Dvaadin.skip.dev.bundle=true
+
+[System Property: terminal]
+
+Optimize Bundle
+
+There may be situations in which Vaadin components aren’t used, but only third-party components are utilized. In these cases, Vaadin’s professional and core components can be excluded from package.json using the vaadin.npm.excludeWebComponents property, and removed from the project’s dependencies. This has the benefit of faster project startup, a smaller frontend bundle, and less packages in package.json.
+
+Here’s an example that excludes both professional and core components by adding exclusions to the vaadin-core dependency in the Maven project’s pom.xml. Use the vaadin-core artifactId, not vaadin:
+
+[pom.xml]
+<dependency>
+	<groupId>com.vaadin</groupId>
+	<artifactId>vaadin-core</artifactId>
+	<exclusions>
+            <exclusion>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-core-components</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-icons-flow</artifactId>
+            </exclusion>
+	</exclusions>
+</dependency>
+
+Set vaadin.npm.excludeWebComponents configuration property to true to exclude professional and core components, including hilla-auto-crud, from package.json.
+
+Use npmExcludeWebComponents Vaadin Plugin property when building with Maven and Gradle.
+
+When the property is set to true, Vaadin’s professional and core components aren’t installed by npm. If a project has dependencies to uninstalled components, it’ll return an error saying Failed to find the following imports in the node_modules tree with a list of missing resources. These remaining dependencies can be removed from the project’s dependencies.
+
+The production bundle size may not change with this property as production bundle is already optimized by including only used components.
+
+Usage Statistics
+
+Vaadin collects limited, anonymous usage statistics when running in development mode. This helps us understand which Vaadin features are used in practice and guides future improvements. No personal or application-specific data is collected.
+
+You can disable statistics collection on the server by setting either: - the vaadin.devmode.usageStatistics.enabled system property, or - the VAADIN_USAGE_STATS_ENABLED environment variable
+
+to false.
+
+Topics
+
+Node.js
+    Installing and using Node.js locally and in CI servers.
+npm/pnpm/bun
+    Configuring the frontend package manager.

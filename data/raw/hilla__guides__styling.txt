@@ -1,0 +1,26 @@
+How to style forms and elements in Hilla
+
+How to add CSS styles to views and React components in Hilla applications.
+
+Styling Components with CSS
+
+You can import CSS files directly, either plain files or CSS modules, with the import() method. You can place the files anywhere in your application. The sample below has them in views folder for simplicity.
+
+[frontend/views/HelloWorld.tsx]
+import './HelloWorld.css';
+import css from './HelloWorld.module.css';
+
+Using CSS Variables
+
+Hilla apps typically use either the Lumo or Aura theme as a base for component and application styling. Both themes are based on a set of CSS custom properties that you can use to achieve a consistent look and feel across applications.
+
+You can use these properties in place of hard-coded units using var().
+
+[CSS]
+.card {
+  border: 1px solid var(--lumo-contrast-30pct);
+  border-radius: var(--lumo-border-radius-s);
+  box-shadow: var(--lumo-box-shadow-s);
+}
+
+The Styling section provides more information about styling Vaadin applications.

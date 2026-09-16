@@ -1,0 +1,36 @@
+Aura: Other Properties
+
+Aura style properties related to sizing, spacing, corner shapes, shadows, and other visual styles.
+
+Density & Sizing
+
+--aura-base-size
+    Defines the density of the UI. Aura redefines the base style gap and padding properties, and those values are computed based on this property. The property value is a number without a unit (i.e., not a CSS length value). Suitable values range from 12 to 24. The resulting --vaadin-gap and --vaadin-padding values are defined with the px unit and are rounded to nearest 1px. Prefer values divisible by 4 (i.e., 12, 16, 20, 24).
+--aura-base-radius
+    Aura redefines the base style radius properties, and those values are computed based on this property. The property is a number without a unit (i.e., not a CSS length value). Suitable values range from 0 to 10, depending on the --aura-base-size value.
+
+    Setting the base radius to zero doesn’t make all corners square. If you wish to remove all rounded corners, override the base style radius properties directly.
+
+Shadows
+
+--aura-shadow-color
+    The color of shadows. Computed based on the --aura-background-color (color-scheme dependant).
+--aura-shadow-xs
+    Subtle shadow. Used for buttons and form inputs.
+--aura-shadow-s
+    Small shadow. Used for small overlays like tooltips, cards, and filled component variants like primary buttons and checked checkboxes.
+--aura-shadow-m
+    Prominent shadow. Used for most overlays like popovers, dialogs and notifications.
+
+Overlays
+
+--aura-overlay-shadow
+    The default shadow for all overlays. Defaults to --aura-shadow-m.
+--aura-overlay-outline-color
+    The outer border color of overlays. Mostly visible with a light color scheme.
+--aura-overlay-inner-outline-color
+    The inner border color of overlays. Mostly visible with a dark color scheme.
+--aura-overlay-backdrop-filter
+    The backdrop filter for all overlays. By default, it lightens and blurs the content behind overlays. Only visible if --aura-overlay-surface-opacity is less than 1.
+--aura-overlay-surface-opacity
+    Surface color opacity for overlay elements. The default is 0.85.

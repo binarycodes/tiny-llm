@@ -1,0 +1,313 @@
+Add a Buffered Grid
+
+Learn how to populate a grid with data from an application service.
+
+Buffered data refers to data that is loaded from an application service where the entire filtered result set is fetched at once. This approach works well when you can guarantee that filtered result sets remain small enough to fit in memory (for example, orders for a single customer, or tasks assigned to a user).
+
+As with static data, buffered data is loaded into the grid at once and sorted in memory. However, the filtering happens in the application service.
+
+This guide starts with a complete example that you can copy-paste into your project if you want. It then breaks down the example into sections that explain how to populate, filter, and sort the grid. The guides does not cover setting up the Grid component itself; for that, see the Grid component documentation.
+
+Copy-Paste into Your Project
+
+If you want to quickly try out a buffered grid in your Vaadin application, copy-paste the following code into your project:
+
+[BufferedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.Collections;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/buffered-grid")
+public class BufferedGridView extends VerticalLayout {
+
+    BufferedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortable(true);
+        grid.addColumn(Item::name).setHeader("Name").setSortable(true);
+
+        // Update the grid whenever the text field changes
+        filterField.addValueChangeListener(e -> grid.getListDataView()
+                .setItems(service.findItems(e.getValue())));
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private static final List<Item> ITEMS = List.of(
+                new Item(1, "Denmark"),
+                new Item(2, "Finland"),
+                new Item(3, "Norway"),
+                new Item(4, "Iceland"),
+                new Item(5, "Sweden"),
+                new Item(6, "Estonia"),
+                new Item(7, "Germany"));
+
+        public List<Item> findItems(String filterString) {
+            // In a real application, this would query a database and
+            // enforce a maximum result size to avoid flooding the UI
+            // with too many items.
+            var filterLower = filterString.toLowerCase().trim();
+            if (filterLower.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return ITEMS.stream().filter(
+                    item -> item.name().toLowerCase().contains(filterLower))
+                    .toList();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+For more detailed walk-through of the example code, continue reading below.
+
+Getting the Data
+
+In this example, the data is coming from a simple service class that simulates fetching data from a database:
+
+[BufferedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.Collections;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/buffered-grid")
+public class BufferedGridView extends VerticalLayout {
+
+    BufferedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortable(true);
+        grid.addColumn(Item::name).setHeader("Name").setSortable(true);
+
+        // Update the grid whenever the text field changes
+        filterField.addValueChangeListener(e -> grid.getListDataView()
+                .setItems(service.findItems(e.getValue())));
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private static final List<Item> ITEMS = List.of(
+                new Item(1, "Denmark"),
+                new Item(2, "Finland"),
+                new Item(3, "Norway"),
+                new Item(4, "Iceland"),
+                new Item(5, "Sweden"),
+                new Item(6, "Estonia"),
+                new Item(7, "Germany"));
+
+        public List<Item> findItems(String filterString) {
+            // In a real application, this would query a database and
+            // enforce a maximum result size to avoid flooding the UI
+            // with too many items.
+            var filterLower = filterString.toLowerCase().trim();
+            if (filterLower.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return ITEMS.stream().filter(
+                    item -> item.name().toLowerCase().contains(filterLower))
+                    .toList();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+In a real world application, the service would be in its own file. The data would be loaded from a database and the result size limited to avoid flooding the UI with too many items. For the same reason an empty filter string returns no items in this example.
+
+Note: Can you call a repository or Data Access Object (DAO) directly from the UI?
+
+Yes, if you’re not using method security or any other service layer logic.
+
+Populating and Filtering the Grid
+
+Since the filtering happens in the service, you need to call the service whenever the filter string changes, and then call setItems() on the grid’s ListDataView with the returned items:
+
+[BufferedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.Collections;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/buffered-grid")
+public class BufferedGridView extends VerticalLayout {
+
+    BufferedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortable(true);
+        grid.addColumn(Item::name).setHeader("Name").setSortable(true);
+
+        // Update the grid whenever the text field changes
+        filterField.addValueChangeListener(e -> grid.getListDataView()
+                .setItems(service.findItems(e.getValue())));
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private static final List<Item> ITEMS = List.of(
+                new Item(1, "Denmark"),
+                new Item(2, "Finland"),
+                new Item(3, "Norway"),
+                new Item(4, "Iceland"),
+                new Item(5, "Sweden"),
+                new Item(6, "Estonia"),
+                new Item(7, "Germany"));
+
+        public List<Item> findItems(String filterString) {
+            // In a real application, this would query a database and
+            // enforce a maximum result size to avoid flooding the UI
+            // with too many items.
+            var filterLower = filterString.toLowerCase().trim();
+            if (filterLower.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return ITEMS.stream().filter(
+                    item -> item.name().toLowerCase().contains(filterLower))
+                    .toList();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+The reason you’re calling ListDataView.setItems() and not Grid.setItems() is that Grid.setItems() always creates a new data provider. This in turns clears the selection of the grid. If you want to preserve the selection, you need to update the existing data provider and that is what ListDataView.setItems() does.
+
+Sorting
+
+Sorting happens in the grid automatically, for every column that is marked as sortable:
+
+[BufferedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.Collections;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/buffered-grid")
+public class BufferedGridView extends VerticalLayout {
+
+    BufferedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortable(true);
+        grid.addColumn(Item::name).setHeader("Name").setSortable(true);
+
+        // Update the grid whenever the text field changes
+        filterField.addValueChangeListener(e -> grid.getListDataView()
+                .setItems(service.findItems(e.getValue())));
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private static final List<Item> ITEMS = List.of(
+                new Item(1, "Denmark"),
+                new Item(2, "Finland"),
+                new Item(3, "Norway"),
+                new Item(4, "Iceland"),
+                new Item(5, "Sweden"),
+                new Item(6, "Estonia"),
+                new Item(7, "Germany"));
+
+        public List<Item> findItems(String filterString) {
+            // In a real application, this would query a database and
+            // enforce a maximum result size to avoid flooding the UI
+            // with too many items.
+            var filterLower = filterString.toLowerCase().trim();
+            if (filterLower.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return ITEMS.stream().filter(
+                    item -> item.name().toLowerCase().contains(filterLower))
+                    .toList();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+For more information about sorting, see the Grid component documentation.

@@ -1,0 +1,24 @@
+Configuration
+
+Instructions on how to configure your application and development environment.
+
+Properties
+    Setting configuration properties to change the application behavior.
+Development Mode
+    Develop applications faster with a live-reload, frontend development server.
+Hot Deploy & Live Reload
+    How to live reload and hot deploy for automatically applying source code changes.
+PWA
+    Configuring your application as a Progressive Web Application.
+Web Push
+    How to setup, subscribe, and send Web Push notifications from a Vaadin Flow application.
+Maven
+    Configuring the Vaadin Maven plugin.
+Gradle
+    Configuring the Vaadin Gradle plugin.
+Source Control
+    Track and manage changes to the source code in a Vaadin project.
+Licenses
+    How commercial product license validation works, and how to get and use license keys.
+Feature Flags
+    How to test experimental features or switch temporarily back to legacy and deprecated features.

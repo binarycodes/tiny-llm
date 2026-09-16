@@ -1,0 +1,446 @@
+Virtual List
+
+Virtual List allows you to render a long list of items inside a scrollable container without sacrificing performance.
+
+Virtual List allows you to render a long list of items inside a scrollable container without sacrificing performance. Each item is rendered on the fly as the user scrolls the list.
+
+To use this component, you need to assign it a set of data items and a renderer that’s used to render each individual data item. The height of an item is determined by its content and can change dynamically.
+
+[Flow: VirtualListBasic.java]
+package com.vaadin.demo.component.virtuallist;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.virtuallist.VirtualList;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+
+@Route("virtual-list-basic")
+public class VirtualListBasic extends Div {
+
+    private List<Person> people = DataService.getPeople();
+
+    private ComponentRenderer<Component, Person> personCardRenderer = new ComponentRenderer<>(
+            person -> {
+                HorizontalLayout cardLayout = new HorizontalLayout();
+                cardLayout.setMargin(true);
+
+                Avatar avatar = new Avatar(person.getFullName(),
+                        person.getPictureUrl());
+                avatar.setHeight("64px");
+                avatar.setWidth("64px");
+
+                VerticalLayout infoLayout = new VerticalLayout();
+                infoLayout.setSpacing(false);
+                infoLayout.setPadding(false);
+                infoLayout.getElement().appendChild(
+                        ElementFactory.createStrong(person.getFullName()));
+                infoLayout.add(new Div(new Text(person.getProfession())));
+
+                VerticalLayout contactLayout = new VerticalLayout();
+                contactLayout.setSpacing(false);
+                contactLayout.setPadding(false);
+                contactLayout.add(new Div(new Text(person.getEmail())));
+                contactLayout
+                        .add(new Div(new Text(person.getAddress().getPhone())));
+                infoLayout
+                        .add(new Details("Contact information", contactLayout));
+
+                cardLayout.add(avatar, infoLayout);
+                return cardLayout;
+            });
+
+    public VirtualListBasic() {
+        // tag::snippet[]
+        VirtualList<Person> list = new VirtualList<>();
+        list.setItems(people);
+        list.setRenderer(personCardRenderer);
+        add(list);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[React: virtual-list-basic.tsx]
+import React, { useCallback, useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Details } from '@vaadin/react-components/Details.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { VirtualList } from '@vaadin/react-components/VirtualList.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const avatarStyle = {
+  height: '64px',
+  width: '64px',
+};
+
+// tag::snippet[]
+function Example() {
+  const people = useSignal<Person[]>([]);
+  const expandedPeople = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people: items }) => {
+      people.value = items;
+    });
+  }, []);
+
+  const personCardRenderer = useCallback(
+    ({ item: person }: { item: Person }) => (
+      <HorizontalLayout theme="spacing margin">
+        <Avatar
+          img={person.pictureUrl}
+          name={`${person.firstName} ${person.lastName}`}
+          style={avatarStyle}
+        />
+
+        <VerticalLayout>
+          <b>
+            {person.firstName} {person.lastName}
+          </b>
+          <span>{person.profession}</span>
+
+          <Details
+            summary="Contact information"
+            opened={expandedPeople.value.includes(person)}
+            onClick={({ currentTarget: details }) => {
+              if (details.opened) {
+                expandedPeople.value = [...expandedPeople.value, person];
+              } else {
+                expandedPeople.value = expandedPeople.value.filter((p) => p !== person);
+              }
+            }}
+          >
+            <VerticalLayout>
+              <span>{person.email}</span>
+              <span>{person.address.phone}</span>
+            </VerticalLayout>
+          </Details>
+        </VerticalLayout>
+      </HorizontalLayout>
+    ),
+    []
+  );
+
+  return <VirtualList items={people.value} renderer={personCardRenderer} />;
+}
+
+// end::snippet[]
+
+[React: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[React: Person.ts]
+
+[Lit: virtual-list-basic.ts]
+import '@vaadin/avatar';
+import '@vaadin/details';
+import '@vaadin/horizontal-layout';
+import '@vaadin/vertical-layout';
+import '@vaadin/virtual-list';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
+import type { Details } from '@vaadin/details';
+import type { VirtualListLitRenderer } from '@vaadin/virtual-list/lit.js';
+import { virtualListRenderer } from '@vaadin/virtual-list/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('virtual-list-basic')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-avatar {
+      height: 64px;
+      width: 64px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private people: Person[] | undefined;
+
+  private expandedPeople = new Set<Person>();
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.people = people;
+  }
+
+  private personCardRenderer: VirtualListLitRenderer<Person> = (person) => html`
+    <vaadin-horizontal-layout theme="spacing margin">
+      <vaadin-avatar
+        .img="${person.pictureUrl}"
+        .name="${`${person.firstName} ${person.lastName}`}"
+      ></vaadin-avatar>
+
+      <vaadin-vertical-layout>
+        <b>${person.firstName} ${person.lastName}</b>
+        <span>${person.profession}</span>
+
+        <vaadin-details
+          summary="Contact information"
+          .opened="${live(this.expandedPeople.has(person))}"
+          @click="${(e: Event) => {
+            const details = e.currentTarget as Details;
+            if (details.opened) {
+              this.expandedPeople.add(person);
+            } else {
+              this.expandedPeople.delete(person);
+            }
+          }}"
+        >
+          <vaadin-vertical-layout>
+            <span>${person.email}</span>
+            <span>${person.address.phone}</span>
+          </vaadin-vertical-layout>
+        </vaadin-details>
+      </vaadin-vertical-layout>
+    </vaadin-horizontal-layout>
+  `;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-virtual-list
+        .items="${this.people}"
+        ${virtualListRenderer(this.personCardRenderer, [])}
+      ></vaadin-virtual-list>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[Lit: Person.ts]

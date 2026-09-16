@@ -1,0 +1,232 @@
+Router Layouts & Nested Router Targets
+
+Explains router layouts and nested router targets.
+
+All parent layouts of a navigation target component have to implement the RouterLayout interface. You can define a parent layout by adding the @Layout annotation to the class, or by using the optional element layout from the @Route annotation.
+
+RouterLayout interface appends and removes child route content during navigation. For more in depth information, see the Router Layout section below.
+
+Automatic Layout Using @Layout
+
+The @Layout can be added to any Component that implements RouterLayout.
+
+The example below renders all routes inside MainLayout:
+
+[Java]
+@Layout
+public class MainLayout extends AppLayout {
+}
+
+See AppLayout for more information on usage.
+
+The value for the @Layout annotation path has to be unique for the project. Otherwise, the resolver won’t be able to determine which layout component should be used. Having multiple @Layout annotations with the same path throws an exception.
+
+If an application is using access protection, the view access is checked for the Layout, as well as the view. To make the layout accessible, add @AnonymousAllowed — or some other access annotation — on the MainLayout so that the request is not denied.
+
+@Route and @RouteAlias each contain an annotation attribute called, autoLayout. Setting that attribute to false stops automatic layout; it ignores any @Layout matching the route. Giving a class for the layout method in @Route also disables automatic layout and causes the one given to be used.
+
+[Ignore Automatic Layout]
+@Route(autoLayout = false)
+public class NoLayoutView extends Div {
+}
+
+@Route(layout = MyLayout.class)
+public class DefinedLayoutView extends Div {
+}
+
+Excluding Vaadin Flow routes from Hilla layouts with autoLayout = false is not yet supported. See the related GitHub issue for details and discussions.
+
+Defining a Layout in @Route
+
+This next example renders CompanyComponent inside MainLayout by defining the layout for the route:
+
+[Java]
+@Tag("div")
+@Route(value = "company", layout = MainLayout.class)
+public class CompanyComponent extends Component {
+}
+
+When using the @Route("path") annotation to define a route, the component renders by default in the <body> tag on the page when there is no @Layout for RouterLayout. This is because the element returned by HasElement.getElement() is attached to the <body> tag.
+
+Layout Matching Routes
+
+To configure which routes a @Layout annotated RouterLayout handles, the prefix of the route’s path can be given for the value.
+
+The example below gives a value of /user, which would match the routes /user and /user/info:
+
+[Java]
+@Layout(value="/user")
+
+The default value is /, which matches all paths.
+
+Multiple Router Target Components
+
+Where multiple router target components use the same parent layout, the parent layout instances remain the same when the user navigates among the child components.
+
+See Updating Page Title on Navigation for more information on this.
+
+Multiple Parent Layouts
+
+Use the @ParentLayout annotation to define a parent layout for components in the routing hierarchy. Where necessary, a parent can have its own parent layout.
+
+In the example below, MainLayout is used for everything, and SubMenu is reused for views:
+
+[Java]
+public class MainLayout extends AppLayout {
+}
+
+@Layout
+@ParentLayout(MainLayout.class)
+public class SubMenu extends Div
+        implements RouterLayout {
+    public SubMenu() {
+        addMenuElement(TutorialView.class, "Tutorial");
+        addMenuElement(IconsView.class, "Icons");
+    }
+    private void addMenuElement(
+            Class<? extends Component> navigationTarget,
+            String name) {
+        // implementation omitted
+    }
+}
+
+@Route(value = "tutorial")
+public class TutorialView extends Div {
+}
+
+@Route(value = "icons")
+public class IconsView extends Div {
+}
+
+MainLayout encapsulates SubMenu, which in turn encapsulates TutorialView or IconsView — depending on where the user has navigated.
+
+ParentLayout Route Control
+
+Annotating a parent layout with @RoutePrefix("prefix_to_add") adds a prefix to its children’s route.
+
+In the example here, PathComponent receives the some prefix from its parent, resulting in some/path as its final route:
+
+[Java]
+@Route(value = "path", layout = SomeParent.class)
+public class PathComponent extends Div {
+    // Implementation omitted
+}
+
+@RoutePrefix("some")
+public class SomeParent extends Div
+        implements RouterLayout {
+    // Implementation omitted
+}
+
+Absolute Routes
+
+A child component can bypass the parent’s route prefix by adding absolute = true to its own @Route or @RoutePrefix annotations.
+
+This generic example builds a MyContent class to add "something" to multiple places in the SomeParent layout, without adding the route prefix to the navigation path:
+
+[Java]
+@Route(value = "content", layout = SomeParent.class,
+       absolute = true)
+public class MyContent extends Div {
+    // Implementation omitted
+}
+
+Even though the full path would typically be some/content, the result is only content because it has been defined as "absolute".
+
+The example here defines absolute = true in the middle of the chain:
+
+[Java]
+@RoutePrefix(value = "framework", absolute = true)
+@ParentLayout(SomeParent.class)
+public class FrameworkSite extends Div
+        implements RouterLayout {
+    // Implementation omitted
+}
+
+@Route(value = "tutorial", layout = FrameworkSite.class)
+public class Tutorials extends Div {
+    // Implementation omitted
+}
+
+The bound route is framework/tutorial, although the full chain is some/framework/tutorial.
+
+If a parent layout defines a @RoutePrefix, the "default" child could have its route defined as @Route("") and be mapped to the parent layout route. For example, Tutorials with route "" would be mapped as framework/.
+
+Router Layout
+
+A class implementing the RouterLayout interface causes Vaadin to append and remove content on navigation to a route with the layout in the parent stack.
+
+By default, the content is appended to the RouterLayout component. Anything added on navigation is positioned last.
+
+[Layout Order Sample]
+public class ParentLayout extends Div implements RouterLayout {
+    public ParentLayout() {
+        add(new Span("Parent content"));
+    }
+}
+
+@Route(value = "route", layout = ParentLayout.class)
+public class MyRoute extends Div {
+    public MyRoute() {
+        add(new Span("View content"));
+    }
+}
+
+[Sample Output]
+Parent content
+View content
+
+Adding elements after navigation in the parent puts the content after the view content.
+
+[Layout Order Sample]
+public class ParentLayout extends Div implements RouterLayout {
+    public ParentLayout() {
+        add(new Span("Parent content"));
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        add(new Span("On attach"));
+    }
+}
+
+@Route(value = "route", layout = ParentLayout.class)
+public class MyRoute extends Div {
+    public MyRoute() {
+        add(new Span("View content"));
+    }
+}
+
+[Sample Output]
+Parent content
+View content
+On attach
+
+To customize content position, the method showRouterLayoutContent(HasElement content) can be overridden. Even with showRouterLayoutContent overridden, the content is removed from the component on navigation if not part of the new route.
+
+[Custom Content Sample]
+public class ParentLayout extends Div implements RouterLayout {
+    private Div childHolder = new Div();
+
+    public ParentLayout() {
+        add(childHolder, new Span("Parent content"));
+    }
+
+    @Override
+    public void showRouterLayoutContent(HasElement content) {
+        if(content != null) {
+            childHolder.getElement().appendChild(content.getElement());
+        }
+    }
+}
+
+@Route(value = "route", layout = ParentLayout.class)
+public class MyRoute extends Div {
+    public MyRoute() {
+        add(new Span("View content"));
+    }
+}
+
+[Sample Output]
+View content
+Parent content

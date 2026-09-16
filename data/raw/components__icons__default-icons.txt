@@ -1,0 +1,43 @@
+Built-In Icons
+
+The icon component renders these icons as inline SVGs by default, but both are also available as font icons and standalone SVG images.
+
+Vaadin Icons
+
+Each Vaadin icon is defined on a 16×16 pixel canvas without whitespace around it, but it’s rendered by default in a 24×24 pixel size. Many components, though, apply padding around the icons to shrink them to a size matching the Lumo icons.
+
+Vaadin Icons are rendered as inline SVGs by the icon component, but they’re also available as an icon font and standalone SVG images.
+
+[vaadin-icons-preview.ts]
+import './icons-preview.js';
+
+export class VaadinIconsPreview extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `<icons-preview iconset-type="vaadin"></icons-preview>`;
+  }
+}
+
+customElements.define('vaadin-icons-preview', VaadinIconsPreview);
+
+[vaadin-icons-preview.ts]
+
+Lumo Icons
+
+Lumo Icons are used in the default Lumo theme for Vaadin components.
+
+Each of the Lumo Icons is rendered on a 24×24 pixel canvas, with a 16×16 pixel active area for the icon itself, and 4 pixels of whitespace around each.
+
+Lumo Icons are rendered as inline SVGs by the icon component, but they’re also available as an icon font and standalone SVG images.
+
+[lumo-icons-preview.ts]
+import './icons-preview.js';
+
+export class LumoIconsPreview extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `<icons-preview iconset-type="lumo"></icons-preview>`;
+  }
+}
+
+customElements.define('lumo-icons-preview', LumoIconsPreview);
+
+[lumo-icons-preview.ts]

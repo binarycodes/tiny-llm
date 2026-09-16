@@ -1,0 +1,107 @@
+MCP Server for Vaadin
+
+Learn how to integrate AI assistants with Vaadin documentation using the Model Context Protocol.
+
+Model Context Protocol (MCP) is an open standard that enables AI assistants to securely integrate with external data sources and tools. It allows AI development tools like Claude Code, Cursor, GitHub Copilot, and others to access structured information from external sources.
+
+Vaadin MCP Server
+
+Vaadin provides an MCP server that gives AI assistants direct access to comprehensive Vaadin documentation. This enables AI assistants to provide accurate, context-aware responses based on latest Vaadin documentation.
+
+The Vaadin MCP server provides:
+
+- Semantic search across Vaadin documentation
+- Full document retrieval for complete context
+- Component version information and API references
+- Component-specific API documentation (Java, React, Web Components)
+- Component styling and theming information
+- Support for both Java and React applications
+- Current Vaadin version information
+- Vaadin development primer with best practices
+
+Getting Started
+
+To use the Vaadin MCP server with your AI development tool, follow these steps:
+
+1. Choose your AI development tool from the supported tools list
+2. Follow the configuration instructions for your specific tool
+3. Restart your tool to load the MCP server
+4. Start asking questions about Vaadin development
+
+The MCP server automatically provides your AI assistant with access to up-to-date Vaadin documentation.
+
+Tip: If you use Claude Code or Codex, the Vaadin Agent Marketplace is the quickest way to get started. A single plugin installs both the Vaadin MCP server and a set of Vaadin development skills, so there’s no need to configure the MCP server by hand. See the setup guides for Claude Code and Codex for details.
+
+Supported Tools
+
+The Vaadin MCP server is compatible with various AI development tools. Each tool has different configuration requirements and transport support.
+
+See the MCP Setup Guide for detailed configuration instructions for:
+
+Claude Code
+
+Anthropic’s official CLI tool with native HTTP MCP support.
+
+See setup guide for Claude Code
+
+Cursor
+
+AI-powered code editor with native HTTP MCP support.
+
+See setup guide for Cursor
+
+Windsurf
+
+Codeium’s AI-native IDE with built-in HTTP MCP support.
+
+See setup guide for Windsurf
+
+Junie
+
+JetBrains’s AI assistant (requires stdio-to-HTTP adapter).
+
+See setup guide for Junie
+
+GitHub Copilot
+
+GitHub’s AI pair programmer in VS Code and JetBrains IDEs Agent mode.
+
+See setup guide for GitHub Copilot
+
+Codex (OpenAI)
+
+OpenAI’s code generation tool with native HTTP support.
+
+See setup guide for Codex
+
+Gemini CLI (Google)
+
+Google’s Gemini CLI with native HTTP support.
+
+See setup guide for Gemini CLI
+
+Other Clients
+
+Configuration for any MCP-compatible client.
+
+See setup guides for other MCP-compatible clients
+
+Transport Types
+
+Important: The Vaadin MCP server uses HTTP transport (streamable-http). This is natively supported by Claude Code, Cursor, Windsurf, GitHub Copilot (VS Code and JetBrains IDEs), Codex, and Gemini CLI.
+
+For stdio-only tools like Junie, you can use @pyroprompts/mcp-stdio-to-streamable-http-adapter as a bridge between the two transport types.
+
+Resources
+
+Vaadin Agent Marketplace
+
+Install the Vaadin MCP server and development skills as a plugin for Claude Code and Codex.
+
+https://github.com/vaadin/agent-marketplace
+
+Model Context Protocol
+
+Learn more about the Model Context Protocol standard.
+
+https://modelcontextprotocol.io

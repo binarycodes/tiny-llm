@@ -1,0 +1,1059 @@
+Checkbox
+
+How to use Checkbox, an input field for a binary choice and Checkbox Group to group related items.
+
+Checkbox is an input field representing a binary choice. Checkbox Group is a group of related binary choices.
+
+[Flow: CheckboxBasic.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-basic")
+public class CheckboxBasic extends Div {
+
+    public CheckboxBasic() {
+        // tag::snippet[]
+        Checkbox checkbox = new Checkbox();
+        checkbox.setLabel("I accept the terms and conditions");
+
+        add(checkbox);
+        // end::snippet[]
+    }
+
+}
+
+[React: checkbox-basic.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Checkbox label="I accept the terms and conditions" />
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-basic.ts]
+import '@vaadin/checkbox';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox label="I accept the terms and conditions"></vaadin-checkbox>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Flow: CheckboxGroupBasic.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-group-basic")
+public class CheckboxGroupBasic extends Div {
+
+    public CheckboxGroupBasic() {
+        // tag::snippet[]
+        CheckboxGroup<String> checkboxGroup = new CheckboxGroup<>();
+        checkboxGroup.setLabel("Export data");
+        checkboxGroup.setItems("Order ID", "Product name", "Customer",
+                "Status");
+        checkboxGroup.select("Order ID", "Customer");
+        add(checkboxGroup);
+        // end::snippet[]
+
+        // Only for Lumo
+        checkboxGroup.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: checkbox-group-basic.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+
+function Example() {
+  const exportData = useSignal(['0', '2']);
+
+  return (
+    // tag::snippet[]
+    <CheckboxGroup
+      label="Export data"
+      value={exportData.value}
+      onValueChanged={(event) => {
+        exportData.value = event.detail.value;
+      }}
+      theme="vertical"
+    >
+      <Checkbox value="0" label="Order ID" />
+      <Checkbox value="1" label="Product name" />
+      <Checkbox value="2" label="Customer" />
+      <Checkbox value="3" label="Status" />
+    </CheckboxGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-group-basic.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CheckboxGroupValueChangedEvent } from '@vaadin/checkbox-group';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-group-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private value = ['0', '2'];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox-group
+        label="Export data"
+        .value="${this.value}"
+        @value-changed="${(event: CheckboxGroupValueChangedEvent) => {
+          this.value = event.detail.value;
+        }}"
+        theme="vertical"
+      >
+        <vaadin-checkbox value="0" label="Order ID"></vaadin-checkbox>
+        <vaadin-checkbox value="1" label="Product name"></vaadin-checkbox>
+        <vaadin-checkbox value="2" label="Customer"></vaadin-checkbox>
+        <vaadin-checkbox value="3" label="Status"></vaadin-checkbox>
+      </vaadin-checkbox-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Use Checkbox Group to group related items. Individual checkboxes should be used for options that aren’t necessarily related to each other in any way.
+
+States
+
+Checkbox has a few states: disabled; read-only; required; and indeterminate. These are described in this section, in the following sub-sections.
+
+Disabled
+
+Disable a field to mark it as currently unavailable. Disabled state is used for fields that aren’t editable and don’t need to be readable. Disabled elements can’t be focused and may be inaccessible to assistive technologies like screen readers.
+
+Disabling can be preferable to hiding an element to prevent changes in layout when the element’s visibility changes, and to make users aware of its existence even when currently unavailable.
+
+Disabling is supported both for individual checkboxes, and for an entire checkbox group.
+
+[Flow: CheckboxDisabled.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-disabled")
+public class CheckboxDisabled extends Div {
+
+    public CheckboxDisabled() {
+        // tag::snippet[]
+        CheckboxGroup<String> disabledCheckGroup = new CheckboxGroup<>();
+        disabledCheckGroup.setLabel("Departments");
+        disabledCheckGroup.setItems("Engineering", "Human Resources",
+                "Marketing", "Operations", "Sales");
+        disabledCheckGroup.setEnabled(false);
+        add(disabledCheckGroup);
+        // end::snippet[]
+        // Only for Lumo
+        disabledCheckGroup.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: checkbox-disabled.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <CheckboxGroup label="Departments" theme="vertical" disabled>
+      <Checkbox value="engineering" label="Engineering" />
+      <Checkbox value="human-resources" label="Human Resources" />
+      <Checkbox value="marketing" label="Marketing" />
+      <Checkbox value="operations" label="Operations" />
+      <Checkbox value="sales" label="Sales" />
+    </CheckboxGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-disabled.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox-group label="Departments" theme="vertical" disabled>
+        <vaadin-checkbox value="engineering" label="Engineering"></vaadin-checkbox>
+        <vaadin-checkbox value="human-resources" label="Human Resources"></vaadin-checkbox>
+        <vaadin-checkbox value="marketing" label="Marketing"></vaadin-checkbox>
+        <vaadin-checkbox value="operations" label="Operations"></vaadin-checkbox>
+        <vaadin-checkbox value="sales" label="Sales"></vaadin-checkbox>
+      </vaadin-checkbox-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Read-Only
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers.
+
+Read-only mode is supported both on individual checkboxes and on an entire checkbox group.
+
+[Flow: CheckboxReadonly.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-readonly")
+public class CheckboxReadonly extends Div {
+
+    public CheckboxReadonly() {
+        // tag::snippet[]
+        CheckboxGroup<String> checkboxGroup = new CheckboxGroup<>();
+        checkboxGroup.setLabel("Export data");
+        checkboxGroup.setItems("Order ID", "Product name", "Customer",
+                "Status");
+        checkboxGroup.select("Order ID", "Customer");
+        checkboxGroup.setReadOnly(true);
+        add(checkboxGroup);
+        // end::snippet[]
+        // Only for Lumo
+        checkboxGroup.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: checkbox-readonly.tsx]
+import React, { useState } from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+
+function Example() {
+  const [value] = useState(['0', '2']);
+
+  return (
+    // tag::snippet[]
+    <CheckboxGroup label="Export data" value={value} readonly theme="vertical">
+      <Checkbox value="0" label="Order ID" />
+      <Checkbox value="1" label="Product name" />
+      <Checkbox value="2" label="Customer" />
+      <Checkbox value="3" label="Status" />
+    </CheckboxGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-readonly.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-group-readonly')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private value = ['0', '2'];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox-group label="Export data" .value="${this.value}" readonly theme="vertical">
+        <vaadin-checkbox value="0" label="Order ID"></vaadin-checkbox>
+        <vaadin-checkbox value="1" label="Product name"></vaadin-checkbox>
+        <vaadin-checkbox value="2" label="Customer"></vaadin-checkbox>
+        <vaadin-checkbox value="3" label="Status"></vaadin-checkbox>
+      </vaadin-checkbox-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Required
+
+Individual checkboxes can be marked as required. This is commonly used for checkboxes that must be checked to proceed with an operation, such as submitting a form. Required checkboxes become invalid when validated or if left unchecked after being focused.
+
+An entire checkbox group can also be marked as required. They become invalid when validated or when blurred if none of their items are checked.
+
+[Flow: CheckboxRequired.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.UserPermissions;
+
+@Route("checkbox-required")
+public class CheckboxRequired extends HorizontalLayout {
+
+    public CheckboxRequired() {
+        // tag::snippet[]
+        Checkbox checkbox = new Checkbox();
+        checkbox.setLabel("Grant view permissions");
+        checkbox.setRequiredIndicatorVisible(true);
+
+        Binder<UserPermissions> binder = new Binder<>(UserPermissions.class);
+        binder.forField(checkbox).asRequired("This field is required")
+                .bind(UserPermissions::getView, UserPermissions::setView);
+        // end::snippet[]
+
+        Button button = new Button("Submit", e -> {
+            binder.validate();
+        });
+
+        setAlignItems(FlexComponent.Alignment.BASELINE);
+        add(checkbox, button);
+    }
+
+}
+
+[React: checkbox-required.tsx]
+import React, { useEffect } from 'react';
+import { Required } from '@vaadin/hilla-lit-form';
+import { useForm, useFormPart } from '@vaadin/hilla-react-form';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import UserPermissionsModel from 'Frontend/generated/com/vaadin/demo/domain/UserPermissionsModel';
+
+function Example() {
+  const { model, field, validate } = useForm(UserPermissionsModel);
+  const viewField = useFormPart(model.view);
+
+  useEffect(() => {
+    viewField.addValidator(new Required());
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <HorizontalLayout theme="spacing" style={{ alignItems: 'baseline' }}>
+      <Checkbox
+        label="Grant view permissions"
+        required
+        errorMessage="This field is required"
+        {...field(model.view)}
+      />
+      <Button onClick={validate}>Submit</Button>
+    </HorizontalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-required.ts]
+import '@vaadin/button';
+import '@vaadin/checkbox';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Binder, field, Required } from '@vaadin/hilla-lit-form';
+import { applyTheme } from 'Frontend/demo/theme';
+import UserPermissionsModel from 'Frontend/generated/com/vaadin/demo/domain/UserPermissionsModel';
+
+@customElement('checkbox-required')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private binder = new Binder(this, UserPermissionsModel);
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing" style="align-items: baseline">
+        <!-- tag::snippet[] -->
+        <vaadin-checkbox
+          label="Grant view permissions"
+          required
+          error-message="This field is required"
+          ${field(this.binder.model.view)}
+        ></vaadin-checkbox>
+        <!-- end::snippet[] -->
+        <vaadin-button @click="${this.validate}">Submit</vaadin-button>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  protected override firstUpdated() {
+    this.binder.for(this.binder.model.view).addValidator(new Required());
+  }
+
+  protected validate() {
+    this.binder.validate();
+  }
+}
+
+Indeterminate
+
+The indeterminate state can be used for a parent checkbox to show that there is a mix of checked and unchecked child items in a list, and to change the state of all child items at once.
+
+[Flow: CheckboxIndeterminate.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+import java.util.HashSet;
+import java.util.List;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+
+@Route("checkbox-indeterminate")
+public class CheckboxIndeterminate extends VerticalLayout {
+
+    private List<Person> items = DataService.getPeople(3);
+
+    public CheckboxIndeterminate() {
+        setPadding(false);
+
+        // tag::snippet[]
+        Checkbox checkbox = new Checkbox("Notify users");
+
+        CheckboxGroup<Person> checkboxGroup = new CheckboxGroup<>();
+        checkboxGroup.setLabel("Users to notify");
+        checkboxGroup.setItemLabelGenerator(
+                person -> person.getFirstName() + " " + person.getLastName());
+        checkboxGroup.setItems(items);
+        checkboxGroup.addValueChangeListener(event -> {
+            if (event.getValue().size() == items.size()) {
+                checkbox.setValue(true);
+                checkbox.setIndeterminate(false);
+            } else if (event.getValue().size() == 0) {
+                checkbox.setValue(false);
+                checkbox.setIndeterminate(false);
+            } else {
+                checkbox.setIndeterminate(true);
+            }
+        });
+        checkbox.addValueChangeListener(event -> {
+            if (checkbox.getValue()) {
+                checkboxGroup.setValue(new HashSet<>(items));
+            } else {
+                checkboxGroup.deselectAll();
+            }
+        });
+        checkboxGroup.select(items.get(0), items.get(2));
+        add(checkbox, checkboxGroup);
+        // end::snippet[]
+        // Only for Lumo
+        checkboxGroup.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: checkbox-indeterminate.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const selectedIds = useSignal<string[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 3 }).then(({ people }) => {
+      items.value = people;
+      selectedIds.value = [String(people[0].id), String(people[2].id)];
+    });
+  }, []);
+
+  return (
+    <VerticalLayout theme="spacing">
+      <Checkbox
+        label="Notify users"
+        checked={selectedIds.value.length === items.value.length}
+        indeterminate={
+          selectedIds.value.length > 0 && selectedIds.value.length < items.value.length
+        }
+        onChange={(e) => {
+          selectedIds.value = e.target.checked
+            ? items.value.map((person) => String(person.id))
+            : [];
+        }}
+      />
+
+      <CheckboxGroup
+        label="Users to notify"
+        theme="vertical"
+        value={selectedIds.value}
+        onValueChanged={(event) => {
+          selectedIds.value = event.detail.value;
+        }}
+      >
+        {items.value.map((person) => (
+          <Checkbox
+            key={person.id}
+            value={String(person.id)}
+            label={`${person.firstName} ${person.lastName}`}
+          />
+        ))}
+      </CheckboxGroup>
+    </VerticalLayout>
+  );
+}
+// end::snippet[]
+
+[Lit: checkbox-indeterminate.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CheckboxGroupValueChangedEvent } from '@vaadin/checkbox-group';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('checkbox-indeterminate')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private selectedIds: string[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 3 });
+    this.items = people;
+    this.selectedIds = [String(this.items[0].id), String(this.items[2].id)];
+  }
+
+  protected override render() {
+    const { items, selectedIds } = this;
+
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-checkbox
+          label="Notify users"
+          .checked="${selectedIds.length === items.length}"
+          .indeterminate="${selectedIds.length > 0 && selectedIds.length < items.length}"
+          @change="${(e: Event) => {
+            this.selectedIds = (e.target as HTMLInputElement).checked
+              ? this.items.map((person) => String(person.id))
+              : [];
+          }}"
+        ></vaadin-checkbox>
+
+        <vaadin-checkbox-group
+          label="Users to notify"
+          theme="vertical"
+          .value="${this.selectedIds}"
+          @value-changed="${(event: CheckboxGroupValueChangedEvent) => {
+            this.selectedIds = event.detail.value;
+          }}"
+        >
+          ${items.map(
+            (person) => html`
+              <vaadin-checkbox
+                .value="${String(person.id)}"
+                label="${person.firstName} ${person.lastName}"
+              ></vaadin-checkbox>
+            `
+          )}
+        </vaadin-checkbox-group>
+        <!-- end::snippet[] -->
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+Orientation
+
+The default Checkbox Group orientation depends on the theme: horizontal in Lumo, and vertical in Aura. Vertical orientation is recommended whenever possible as it’s easier for the user to scan a vertical list of options:
+
+[Flow: CheckboxVertical.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-vertical")
+public class CheckboxVertical extends Div {
+
+    public CheckboxVertical() {
+        // tag::snippet[]
+        CheckboxGroup<String> checkboxGroup = new CheckboxGroup<>();
+        checkboxGroup.setLabel("Working days");
+        checkboxGroup.setItems("Monday", "Tuesday", "Wednesday", "Thursday",
+                "Friday", "Saturday", "Sunday");
+        // Only for Lumo
+        checkboxGroup.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+        add(checkboxGroup);
+        // end::snippet[]
+    }
+
+}
+
+[React: checkbox-vertical.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <CheckboxGroup label="Working days" theme="vertical">
+      <Checkbox value="mon" label="Monday" />
+      <Checkbox value="tue" label="Tuesday" />
+      <Checkbox value="wed" label="Wednesday" />
+      <Checkbox value="thu" label="Thursday" />
+      <Checkbox value="fri" label="Friday" />
+      <Checkbox value="sat" label="Saturday" />
+      <Checkbox value="sun" label="Sunday" />
+    </CheckboxGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-vertical.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-vertical')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox-group label="Working days" theme="vertical">
+        <vaadin-checkbox value="mon" label="Monday"></vaadin-checkbox>
+        <vaadin-checkbox value="tue" label="Tuesday"></vaadin-checkbox>
+        <vaadin-checkbox value="wed" label="Wednesday"></vaadin-checkbox>
+        <vaadin-checkbox value="thu" label="Thursday"></vaadin-checkbox>
+        <vaadin-checkbox value="fri" label="Friday"></vaadin-checkbox>
+        <vaadin-checkbox value="sat" label="Saturday"></vaadin-checkbox>
+        <vaadin-checkbox value="sun" label="Sunday"></vaadin-checkbox>
+      </vaadin-checkbox-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+In cases where vertical space needs to be conserved, horizontal orientation can be used. Still, no more than three options are recommended:
+
+[Flow: CheckboxHorizontal.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-horizontal")
+public class CheckboxHorizontal extends Div {
+
+    public CheckboxHorizontal() {
+        // tag::snippet[]
+        CheckboxGroup<String> checkboxGroup = new CheckboxGroup<>();
+        checkboxGroup.setLabel("Permissions");
+        checkboxGroup.setItems("Read", "Edit", "Delete");
+        // Only for Aura
+        checkboxGroup.addThemeVariants(CheckboxGroupVariant.AURA_HORIZONTAL);
+        add(checkboxGroup);
+        // end::snippet[]
+    }
+
+}
+
+[React: checkbox-horizontal.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <CheckboxGroup label="Permissions" theme="horizontal">
+      <Checkbox value="read" label="Read" />
+      <Checkbox value="edit" label="Edit" />
+      <Checkbox value="delete" label="Delete" />
+    </CheckboxGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-horizontal.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-horizontal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox-group label="Permissions" theme="horizontal">
+        <vaadin-checkbox value="read" label="Read"></vaadin-checkbox>
+        <vaadin-checkbox value="edit" label="Edit"></vaadin-checkbox>
+        <vaadin-checkbox value="delete" label="Delete"></vaadin-checkbox>
+      </vaadin-checkbox-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-checkbox accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-checkbox accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: CheckboxGroupBasicFeatures.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-group-basic-features")
+public class CheckboxGroupBasicFeatures extends VerticalLayout {
+
+    public CheckboxGroupBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        Checkbox checkbox = new Checkbox();
+        checkbox.setLabel("Label");
+        checkbox.setHelperText("Helper text");
+
+        CheckboxGroup<String> field = new CheckboxGroup<>();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setTooltipText("Tooltip text");
+        // end::snippet[]
+        field.setItems("Item 1", "Item 2", "Item 3");
+        // Only for Lumo
+        field.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+
+        add(checkbox, field);
+    }
+
+}
+
+[React: checkbox-group-basic-features.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  // tag::snippet[]
+  return (
+    <VerticalLayout theme="spacing">
+      <Checkbox label="Label" helperText="Helper text" />
+
+      <CheckboxGroup label="Label" helperText="Helper text" theme="vertical">
+        <Tooltip slot="tooltip" text="Tooltip text" />
+
+        <Checkbox value="1" label="Item 1" />
+        <Checkbox value="2" label="Item 2" />
+        <Checkbox value="3" label="Item 3" />
+      </CheckboxGroup>
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: checkbox-group-basic-features.ts]
+import '@vaadin/checkbox-group';
+import '@vaadin/tooltip';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-group-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-checkbox label="Label" helper-text="Helper text"></vaadin-checkbox>
+        <vaadin-checkbox-group label="Label" helper-text="Helper text" theme="vertical">
+          <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+          <vaadin-checkbox value="1" label="Item 1"></vaadin-checkbox>
+          <vaadin-checkbox value="2" label="Item 2"></vaadin-checkbox>
+          <vaadin-checkbox value="3" label="Item 3"></vaadin-checkbox>
+        </vaadin-checkbox-group>
+        <!-- end::snippet[] -->
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+Best Practices
+
+One of the best practices to consider is related to labeling. Try to use short and descriptive labels with positive wording. Avoid negations.
+
+[React: checkbox-labeling.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+
+function Example() {
+  // tag::snippet[]
+  return <Checkbox label="Yes, I agree" />;
+  // end::snippet[]
+}
+
+[Lit: checkbox-labeling.ts]
+import '@vaadin/checkbox';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+// tag::snippet[]
+@customElement('checkbox-labeling')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`<vaadin-checkbox label="Yes, I agree"></vaadin-checkbox>`;
+  }
+}
+// end::snippet[]
+
+It’s important to provide labels for Checkbox Groups to distinguish clearly any adjacent groups.
+
+[Flow: CheckboxAdjacentGroups.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-adjacent-groups")
+public class CheckboxAdjacentGroups extends VerticalLayout {
+
+    public CheckboxAdjacentGroups() {
+        setPadding(false);
+        setSpacing("15px");
+
+        // tag::snippet[]
+        CheckboxGroup<String> manufacturer = new CheckboxGroup<>();
+        manufacturer.setLabel("Manufacturer");
+        manufacturer.setItems("Akuchi", "Broek", "Wulf");
+
+        CheckboxGroup<String> status = new CheckboxGroup<>();
+        status.setLabel("Status");
+        status.setItems("In progress", "Done", "Cancelled");
+
+        add(manufacturer, status);
+        // end::snippet[]
+
+        // Only for Lumo
+        manufacturer.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+        status.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: checkbox-adjacent-groups.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <VerticalLayout style={{ gap: '15px' }}>
+      <CheckboxGroup label="Manufacturer" theme="vertical">
+        <Checkbox value="0" label="Akuchi" />
+        <Checkbox value="1" label="Broek" />
+        <Checkbox value="2" label="Wulf" />
+      </CheckboxGroup>
+
+      <CheckboxGroup label="Status" theme="vertical">
+        <Checkbox value="0" label="In progress" />
+        <Checkbox value="1" label="Done" />
+        <Checkbox value="2" label="Cancelled" />
+      </CheckboxGroup>
+    </VerticalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-adjacent-groups.ts]
+import '@vaadin/checkbox';
+import '@vaadin/checkbox-group';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-adjacent-groups')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-vertical-layout style="gap: 15px">
+        <vaadin-checkbox-group label="Manufacturer" theme="vertical">
+          <vaadin-checkbox value="0" label="Akuchi"></vaadin-checkbox>
+          <vaadin-checkbox value="1" label="Broek"></vaadin-checkbox>
+          <vaadin-checkbox value="2" label="Wulf"></vaadin-checkbox>
+        </vaadin-checkbox-group>
+
+        <vaadin-checkbox-group label="Status" theme="vertical">
+          <vaadin-checkbox value="0" label="In progress"></vaadin-checkbox>
+          <vaadin-checkbox value="1" label="Done"></vaadin-checkbox>
+          <vaadin-checkbox value="2" label="Cancelled"></vaadin-checkbox>
+        </vaadin-checkbox-group>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Related Components
+
+Component | Usage Recommendation
+Select | A field for selecting an item from a list of options which are presented in an overlay. This is useful when there is insufficient space for a Radio Button Group.
+Combo Box | A filterable, lazy loading alternative to Select. This is recommended for ten or more items.
+List Box | Scrollable list of options. This supports single and multi-select.
+Radio Button Group | Corresponding component for mutually exclusive options, or single-select.

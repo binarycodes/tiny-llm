@@ -1,0 +1,2432 @@
+Upload
+
+Upload allows the user to upload files, giving feedback to the user during the upload process.
+
+Upload allows the user to upload files, giving feedback to the user during the upload process. It shows the upload progress and the status of each file. Files can be uploaded by clicking on the Upload button, or by dragging them onto the component.
+
+[Flow: UploadBasic.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-basic")
+public class UploadBasic extends Div {
+
+    public UploadBasic() {
+        // tag::snippet[]
+        InMemoryUploadHandler inMemoryHandler = UploadHandler
+                .inMemory((metadata, data) -> {
+                    // Get other information about the file.
+                    String fileName = metadata.fileName();
+                    String mimeType = metadata.contentType();
+                    long contentLength = metadata.contentLength();
+
+                    // Do something with the file data...
+                    // processFile(data, fileName);
+                });
+        Upload upload = new Upload(inMemoryHandler);
+        // end::snippet[]
+
+        add(upload);
+    }
+
+}
+
+[React: upload-basic.tsx]
+import React from 'react';
+import { useComputed } from '@vaadin/hilla-react-signals';
+import { Upload } from '@vaadin/react-components/Upload.js';
+import { createFakeFilesUploadBasic } from './upload-demo-mock-files';
+
+function Example() {
+  const files = useComputed(createFakeFilesUploadBasic);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      {/* Use the target attribute to specify the URL that handles the file upload */}
+      <Upload
+        target="/api/fileupload"
+        files={files.value}
+        // ... other properties
+      />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: upload-basic.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- Use the target attribute to specify the URL
+           that handles the file upload -->
+      <vaadin-upload
+        target="/api/fileupload"></vaadin-upload>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Drag & Drop
+
+Upload allows the user to drag files onto the component to upload them. Multiple files can be dropped simultaneously. By default, this is enabled on desktop computers, and disabled on touch devices. Explicitly setting it to enabled or disabled, though, affects both desktop and mobile devices.
+
+[Flow: UploadDragAndDrop.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-drag-and-drop")
+public class UploadDragAndDrop extends Div {
+
+    public UploadDragAndDrop() {
+
+        InMemoryUploadHandler inMemoryHandler1 = UploadHandler
+                .inMemory((metadata, data) -> {
+                });
+        InMemoryUploadHandler inMemoryHandler2 = UploadHandler
+                .inMemory((metadata, data) -> {
+                });
+
+        // tag::snippet[]
+        Upload dropEnabledUpload = new Upload(inMemoryHandler1);
+        dropEnabledUpload.setDropAllowed(true);
+
+        Upload dropDisabledUpload = new Upload(inMemoryHandler2);
+        dropDisabledUpload.setDropAllowed(false);
+        // end::snippet[]
+
+        NativeLabel dropEnabledLabel = new NativeLabel("Drag and drop enabled");
+        dropEnabledLabel.getStyle().set("font-weight", "600");
+        dropEnabledUpload.setId("upload-drop-enabled");
+        dropEnabledLabel.setFor(dropEnabledUpload.getId().get());
+
+        NativeLabel dropDisabledLabel = new NativeLabel(
+                "Drag and drop disabled");
+        dropDisabledLabel.getStyle().set("font-weight", "600");
+        dropDisabledUpload.setId("upload-drop-disabled");
+        dropDisabledLabel.setFor(dropDisabledUpload.getId().get());
+
+        Div leftSection = new Div(dropEnabledLabel, dropEnabledUpload);
+        Div rightSection = new Div(dropDisabledLabel, dropDisabledUpload);
+
+        FormLayout formLayout = new FormLayout(leftSection, rightSection);
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("520px", 2));
+
+        add(formLayout);
+    }
+
+}
+
+[React: upload-drag-and-drop.tsx]
+import React from 'react';
+import { FormLayout, type FormLayoutResponsiveStep } from '@vaadin/react-components/FormLayout.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+const layoutSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1, labelsPosition: 'top' },
+  { minWidth: '520px', columns: 2, labelsPosition: 'top' },
+];
+
+function Example() {
+  return (
+    <FormLayout responsiveSteps={layoutSteps}>
+      <div>
+        <label htmlFor="upload-drop-enabled">Drag and drop enabled</label>
+        <Upload id="upload-drop-enabled" />
+      </div>
+      <div>
+        <label htmlFor="upload-drop-disabled">Drag and drop disabled</label>
+        {/* tag::snippet[] */}
+        <Upload id="upload-drop-disabled" nodrop />
+        {/* end::snippet[] */}
+      </div>
+    </FormLayout>
+  );
+}
+
+[Lit: upload-drag-and-drop.ts]
+import '@vaadin/form-layout';
+import '@vaadin/upload';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { FormLayoutResponsiveStep } from '@vaadin/form-layout';
+import { applyTheme } from 'Frontend/demo/theme';
+
+const layoutSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1, labelsPosition: 'top' },
+  { minWidth: '520px', columns: 2, labelsPosition: 'top' },
+];
+
+@customElement('upload-drag-and-drop')
+export class Example extends LitElement {
+  static override styles = css`
+    label {
+      font-weight: 600;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout .responsiveSteps="${layoutSteps}">
+        <div>
+          <!-- tag::snippet[] -->
+          <label for="upload-drop-enabled">Drag and drop enabled</label>
+          <vaadin-upload id="upload-drop-enabled" .nodrop="${false}"></vaadin-upload>
+          <!-- end::snippet[] -->
+        </div>
+        <div>
+          <!-- tag::snippet[] -->
+          <label for="upload-drop-disabled">Drag and drop disabled</label>
+          <vaadin-upload id="upload-drop-disabled" nodrop></vaadin-upload>
+          <!-- end::snippet[] -->
+        </div>
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+Upload supports uploading folders via drag & drop. This uploads all files from the folder and its sub-folders recursively. The folder structure is flattened and the names of the uploaded files don’t indicate in which folder they were in. Uploading folders is currently not supported through the native file picker.
+
+Auto-Upload
+
+By default, files are uploaded immediately — or at least they’re added to the queue to be uploaded. Auto-upload can be disabled, for example, to allow the user to review the list of files before initiating their upload by clicking the ▶️ button for each file. Change the button label, though, to indicate that uploads don’t start automatically.
+
+[Flow: UploadAutoUploadDisabled.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-auto-upload-disabled")
+public class UploadAutoUploadDisabled extends Div {
+
+    public UploadAutoUploadDisabled() {
+        InMemoryUploadHandler inMemoryHandler = UploadHandler
+                .inMemory((metadata, data) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryHandler);
+        upload.setAutoUpload(false);
+
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getAddFiles().setMany("Select Files...");
+        upload.setI18n(i18n);
+        // end::snippet[]
+
+        add(upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-auto-upload-disabled.tsx]
+import React from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { Upload } from '@vaadin/react-components/Upload.js';
+import { createFakeFilesUploadAutoUploadDisabled } from './upload-demo-mock-files';
+
+function Example() {
+  const uploadI18n = useSignal({
+    addFiles: {
+      many: 'Select Files...',
+    },
+  });
+
+  const files = useComputed(createFakeFilesUploadAutoUploadDisabled);
+
+  return (
+    // tag::snippet[]
+    <Upload noAuto files={files.value} i18n={uploadI18n.value} />
+    // end::snippet[]
+  );
+}
+
+[Lit: upload-auto-upload-disabled.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-auto-upload-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private uploadI18n = {
+    addFiles: {
+      many: 'Select Files...',
+    },
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-upload
+        no-auto
+        .i18n="${this.uploadI18n}"
+      ></vaadin-upload>
+    `;
+  }
+  // end::snippet[]
+}
+
+Uploads can be initiated programmatically when auto-upload is disabled. You might do this, for example, if you want to provide the user with a single button to start all uploads.
+
+[Flow: UploadAllFiles.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-all-files")
+public class UploadAllFiles extends Div {
+
+    public UploadAllFiles() {
+        InMemoryUploadHandler inMemoryHandler = UploadHandler
+                .inMemory((metadata, data) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryHandler);
+        upload.setAutoUpload(false);
+
+        Button uploadAllButton = new Button("Upload All Files");
+        uploadAllButton.addThemeVariants(ButtonVariant.PRIMARY);
+        uploadAllButton.getStyle().set("margin-top", "var(--vaadin-gap-s)");
+        uploadAllButton.addClickListener(event -> {
+            // No explicit Flow API for this at the moment
+            upload.getElement().callJsFunction("uploadFiles");
+        });
+
+        // end::snippet[]
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getAddFiles().setMany("Select Files...");
+        upload.setI18n(i18n);
+
+        add(upload, uploadAllButton);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-all-files.tsx]
+import React, { useRef } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Upload, type UploadElement } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  const uploadRef = useRef<UploadElement>(null);
+  const uploadI18n = useSignal({
+    addFiles: {
+      many: 'Select Files...',
+    },
+  });
+
+  const files = useComputed(createFakeFilesUploadAllFiles);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Upload noAuto ref={uploadRef} files={files.value} i18n={uploadI18n.value} />
+
+      <Button
+        theme="primary"
+        style={{ marginTop: 'var(--vaadin-gap-s)' }}
+        onClick={() => uploadRef.current?.uploadFiles()}
+      >
+        Upload All Files
+      </Button>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: upload-all-files.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import type { Upload } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-all-files')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private uploadI18n = {
+    addFiles: {
+      many: 'Select Files...',
+    },
+  };
+
+  // tag::snippet[]
+  @query('vaadin-upload')
+  private upload!: Upload;
+
+  protected override render() {
+    return html`
+      <vaadin-upload
+        no-auto
+        .i18n="${this.uploadI18n}"
+      ></vaadin-upload>
+      <vaadin-button
+        theme="primary"
+        style="margin-top: var(--vaadin-gap-s)"
+        @click="${this.uploadFiles}"
+      >
+        Upload All Files
+      </vaadin-button>
+    `;
+  }
+
+  uploadFiles() {
+    this.upload?.uploadFiles();
+  }
+  // end::snippet[]
+}
+
+Upload Restrictions
+
+You can set three types of restrictions: file format; file count; and file size.
+
+Exceptions that arise — usually from the user violating any of the imposed restrictions — aren’t shown in the UI by default. Use a File Rejected listener to catch those exceptions and, for example, a Notification to inform the user of the problem, together with any potential solutions.
+
+The user should be informed upfront, though, about any file upload restrictions. Limitations on the maximum number of files allowed, file size, and format should all be communicated clearly, to reduce or eliminate exceptions.
+
+File Format
+
+Upload can be configured to accept only files of specific formats. The acceptable file formats are set using MIME type patterns or file extensions (e.g., "video/*", "image/tiff" or ".pdf" and "audio/mp3").
+
+[Flow: UploadFileFormat.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-file-format")
+public class UploadFileFormat extends Div {
+
+    public UploadFileFormat() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setAcceptedFileTypes("application/pdf", ".pdf");
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.ERROR);
+        });
+        // end::snippet[]
+
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getAddFiles().setOne("Upload Report...");
+        i18n.getDropFiles().setOne("Drop report here");
+        i18n.getError().setIncorrectFileType(
+                "The provided file does not have the correct format (PDF document).");
+        upload.setI18n(i18n);
+
+        H4 title = new H4("Upload report");
+        Paragraph hint = new Paragraph("Accepted file formats: PDF (.pdf)");
+        hint.getStyle().set("color", "var(--vaadin-text-color-secondary)");
+
+        add(title, hint, upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-file-format.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+
+  const uploadI18n = useSignal({
+    addFiles: { one: 'Upload Report...' },
+    dropFiles: { one: 'Drop report here' },
+    error: {
+      incorrectFileType: 'The provided file does not have the correct format (PDF document).',
+    },
+  });
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <h4>Upload report</h4>
+      <p style={{ color: 'var(--vaadin-text-color-secondary)' }}>
+        Accepted file formats: PDF (.pdf)
+      </p>
+      <Upload
+        accept="application/pdf,.pdf"
+        maxFiles={1}
+        i18n={uploadI18n.value}
+        onFileReject={(event) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}
+      />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: upload-file-format.ts]
+import '@vaadin/upload';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { UploadFileRejectEvent } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-file-format')
+export class Example extends LitElement {
+  static override styles = css`
+    p {
+      color: var(--vaadin-text-color-secondary);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private uploadI18n = {
+    addFiles: { one: 'Upload Report...' },
+    dropFiles: { one: 'Drop report here' },
+    error: {
+      incorrectFileType: 'The provided file does not have the correct format (PDF document).',
+    },
+  };
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <h4>Upload report</h4>
+      <p>Accepted file formats: PDF (.pdf)</p>
+      <vaadin-upload
+        accept="application/pdf,.pdf"
+        max-files="1"
+        .i18n="${this.uploadI18n}"
+        @file-reject="${(event: UploadFileRejectEvent) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}"
+      ></vaadin-upload>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Prefer MIME Type
+
+Although MIME types are widely supported, file extensions are only implemented in certain browsers and should be avoided.
+
+Note: File Format Restrictions are Client-Side
+
+File format restrictions set with setAcceptedFileType method are checked only on the client side. They indicate the hints for users as to what file types to upload.
+
+Using this method won’t restrict the uploaded file’s format on the server side. The Upload component doesn’t have an API to restrict uploaded files by file format or content on the server side. If required, it’s the responsibility of the application developer to implement application-specific restrictions on the server side in one or more of the Upload component’s event listeners (e.g., in Upload::addSucceededListener).
+
+File Count
+
+By default, Upload doesn’t limit the number of files that can be uploaded. However, you can set a file count limit. If you set the maximum to one, the native file browser prevents multiple files from being selected.
+
+Note: Potential Performance Degradation
+
+The Upload component has no built-in limit on the number of files that can be uploaded simultaneously. However, performance may degrade after a few hundred files, and browser-specific XHR limitations can cause uploads to fail when attempting to upload more than 2000 files at once. To ensure reliable operation and good user experience, set a file count limit (for example, around 100).
+
+Note: Java Flow-Specific
+
+When using a Receiver that doesn’t implement the MultiFileReceiver interface — such as MemoryBuffer or FileBuffer — the Upload component limits the number of files to one. This is because these receiver implementations only support handling a single file at once.
+
+[Flow: UploadFileCount.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-file-count")
+public class UploadFileCount extends Div {
+
+    public UploadFileCount() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setMaxFiles(3);
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.ERROR);
+        });
+        // end::snippet[]
+
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getError().setTooManyFiles(
+                "You may only upload a maximum of three files at once.");
+        upload.setI18n(i18n);
+
+        H4 title = new H4("Upload files");
+        Paragraph hint = new Paragraph("Maximum of 3 files allowed");
+        hint.getStyle().set("color", "var(--vaadin-text-color-secondary)");
+
+        add(title, hint, upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-file-count.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  // tag::snippet[]
+  const maxFiles = 3;
+
+  const uploadI18n = useSignal({
+    error: {
+      tooManyFiles: 'You may only upload a maximum of three files at once.',
+    },
+  });
+
+  return (
+    <>
+      <h4>Upload files</h4>
+      <p style={{ color: 'var(--vaadin-text-color-secondary)' }}>
+        Maximum of {maxFiles} files allowed
+      </p>
+      <Upload
+        maxFiles={maxFiles}
+        i18n={uploadI18n.value}
+        onFileReject={(event) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}
+      />
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-file-count.ts]
+import '@vaadin/upload';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { UploadFileRejectEvent } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-file-count')
+export class Example extends LitElement {
+  static override styles = css`
+    p {
+      color: var(--vaadin-text-color-secondary);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private uploadI18n = {
+    error: {
+      tooManyFiles: 'You may only upload a maximum of three files at once.',
+    },
+  };
+
+  // tag::snippet[]
+  protected override render() {
+    const maxFiles = 3;
+    return html`
+      <h4>Upload files</h4>
+      <p>Maximum of ${maxFiles} files allowed</p>
+      <vaadin-upload
+        .maxFiles="${maxFiles}"
+        .i18n="${this.uploadI18n}"
+        @file-reject="${(event: UploadFileRejectEvent) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}"
+      ></vaadin-upload>
+    `;
+  }
+
+  // end::snippet[]
+}
+
+File Size
+
+Upload allows you to limit the file size by setting a maximum amount in bytes. By default, though, there is no limit.
+
+[Flow: UploadFileSize.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-file-size")
+public class UploadFileSize extends Div {
+
+    public UploadFileSize() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+
+        int maxFileSizeInBytes = 10 * 1024 * 1024; // 10MB
+        upload.setMaxFileSize(maxFileSizeInBytes);
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.ERROR);
+        });
+        // end::snippet[]
+
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getError().setFileIsTooBig(
+                "The file exceeds the maximum allowed size of 10MB.");
+        upload.setI18n(i18n);
+
+        H4 title = new H4("Upload file");
+        Paragraph hint = new Paragraph("Maximum file size: 10 MB");
+        hint.getStyle().set("color", "var(--vaadin-text-color-secondary)");
+
+        add(title, hint, upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-file-size.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  // tag::snippet[]
+  const maxFileSizeInMB = 10;
+  const maxFileSizeInBytes = maxFileSizeInMB * 1024 * 1024;
+
+  const uploadI18n = useSignal({
+    error: {
+      fileIsTooBig: 'The file exceeds the maximum allowed size of 10MB.',
+    },
+  });
+
+  return (
+    <>
+      <h4>Upload file</h4>
+      <p style={{ color: 'var(--vaadin-text-color-secondary)' }}>
+        Maximum file size: {maxFileSizeInMB} MB
+      </p>
+      <Upload
+        maxFiles={1}
+        maxFileSize={maxFileSizeInBytes}
+        i18n={uploadI18n.value}
+        onFileReject={(event) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}
+      />
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-file-size.ts]
+import '@vaadin/upload';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { UploadFileRejectEvent } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-file-size')
+export class Example extends LitElement {
+  static override styles = css`
+    p {
+      color: var(--vaadin-text-color-secondary);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private uploadI18n = {
+    error: {
+      fileIsTooBig: 'The file exceeds the maximum allowed size of 10MB.',
+    },
+  };
+
+  // tag::snippet[]
+  protected override render() {
+    const maxFileSizeInMB = 10;
+    const maxFileSizeInBytes = maxFileSizeInMB * 1024 * 1024;
+    return html`
+      <h4>Upload file</h4>
+      <p>Maximum file size: ${maxFileSizeInMB} MB</p>
+      <vaadin-upload
+        max-files="1"
+        .maxFileSize="${maxFileSizeInBytes}"
+        .i18n="${this.uploadI18n}"
+        @file-reject="${(event: UploadFileRejectEvent) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}"
+      ></vaadin-upload>
+    `;
+  }
+  // end::snippet[]
+}
+
+Note: Revalidate Size Limit on Server
+
+This constraint is set on the client and is checked before contacting the server.
+
+When using Vaadin Flow with Spring Boot, file size limits are also affected by Spring’s multipart configuration.
+
+By default, Spring Boot applies restrictive limits that may cause uploads to fail — typically for files larger than 1MB. You can increase these limits in your application.properties or application.yml file:
+
+[properties]
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=100MB
+
+Additionally, if you’re using an UploadHandler or Receiver, you may need to disable Spring’s multipart resolver entirely to allow the Upload component to handle the stream directly:
+
+[properties]
+spring.servlet.multipart.enabled=false
+
+By default, Spring intercepts multipart requests and caches the file content before the Upload component receives it. This behavior can prevent upload event listeners or stream receivers from working correctly.
+
+File Actions
+
+Each file has a certain set of associated actions available, depending on its upload state. A file always has a Clear/Remove button. This button cancels the upload if applicable, and removes the file from the list. This button is the only available action during and after a successful upload.
+
+[React: upload-clear-button.tsx]
+import React from 'react';
+import { useComputed } from '@vaadin/hilla-react-signals';
+import { Upload } from '@vaadin/react-components/Upload.js';
+import { createFakeUploadFiles } from './upload-demo-helpers';
+
+function createFakeFiles() {
+  return createFakeUploadFiles([
+    {
+      name: 'Workflow.pdf',
+      progress: 60,
+      status: '19.7 MB: 60% (remaining time: 00:12:34)',
+    },
+    { name: 'Financials.xlsx', complete: true },
+  ]);
+}
+
+function Example() {
+  const files = useComputed(createFakeFiles);
+  return <Upload files={files.value} />;
+}
+
+[React: upload-clear-button.tsx]
+
+[React: upload-clear-button.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+function createFakeFiles() {
+  return createFakeUploadFiles([
+    {
+      name: 'Workflow.pdf',
+      progress: 60,
+      status: '19.7 MB: 60% (remaining time: 00:12:34)',
+    },
+    { name: 'Financials.xlsx', complete: true },
+  ]);
+}
+
+@customElement('upload-clear-button')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`<vaadin-upload .files="${createFakeFiles()}"></vaadin-upload>`;
+  }
+}
+
+[React: upload-clear-button.ts]
+
+Note: Remove the File
+
+The Clear/Remove button doesn’t remove a successfully uploaded file from the server file system or database. It’s only removed from the file list. Remember to remove the file from the backend.
+
+If an error or exception occurs, Upload displays a Retry button for the user to be able to try to upload the file again.
+
+[React: upload-retry-button.tsx]
+import React from 'react';
+import { Upload } from '@vaadin/react-components/Upload.js';
+import { createFakeUploadFiles } from './upload-demo-helpers';
+
+function createFakeFiles() {
+  return createFakeUploadFiles([
+    { name: 'Financials.xlsx', error: 'Something went wrong, please try again' },
+  ]);
+}
+
+function Example() {
+  const files = createFakeFiles();
+
+  return (
+    // tag::snippet[]
+    <Upload files={files} />
+    // end::snippet[]
+  );
+}
+
+[React: upload-retry-button.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+function createFakeFiles() {
+  return createFakeUploadFiles([
+    { name: 'Financials.xlsx', error: 'Something went wrong, please try again' },
+  ]);
+}
+
+@customElement('upload-retry-button')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`<vaadin-upload .files="${createFakeFiles()}"></vaadin-upload>`;
+  }
+}
+
+[React: upload-retry-button.ts]
+
+When a file is queued (i.e., auto-upload is disabled), there’s a Start Button that the user must press to begin the upload process.
+
+[React: upload-start-button.tsx]
+import React from 'react';
+import { useComputed } from '@vaadin/hilla-react-signals';
+import { Upload } from '@vaadin/react-components/Upload.js';
+import { createFakeUploadFiles } from './upload-demo-helpers';
+
+function createFakeFiles() {
+  return createFakeUploadFiles([
+    {
+      name: 'Workflow.pdf',
+      status: 'Queued',
+      held: true,
+    },
+  ]);
+}
+
+function Example() {
+  const files = useComputed(createFakeFiles);
+
+  return (
+    // tag::snippet[]
+    <Upload files={files.value} />
+    // end::snippet[]
+  );
+}
+
+[React: upload-start-button.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+function createFakeFiles() {
+  return createFakeUploadFiles([
+    {
+      name: 'Workflow.pdf',
+      status: 'Queued',
+      held: true,
+    },
+  ]);
+}
+
+@customElement('upload-start-button')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`<vaadin-upload .files="${createFakeFiles()}"></vaadin-upload>`;
+  }
+}
+
+[React: upload-start-button.ts]
+
+Internationalization (i18n)
+
+All labels and messages in Upload are configurable. For a complete list of them, see the API documentation (Java and Web component).
+
+[Flow: UploadInternationalization.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-internationalization")
+public class UploadInternationalization extends Div {
+
+    public UploadInternationalization() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+
+        // See the separate UploadFinnishI18N class / file
+        // in this example for the I18N configuration
+        UploadFinnishI18N i18N = new UploadFinnishI18N();
+        upload.setI18n(i18N);
+        // end::snippet[]
+
+        add(upload);
+    }
+
+}
+
+[Flow: UploadFinnishI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts. Make sure
+ * that you have set all translations when writing a custom I18N config.
+ */
+public class UploadFinnishI18N extends UploadI18N {
+    public UploadFinnishI18N() {
+        setDropFiles(new DropFiles().setOne("Raahaa tiedosto tähän")
+                .setMany("Raahaa tiedostot tähän"));
+        setAddFiles(new AddFiles().setOne("Valitse tiedosto...")
+                .setMany("Valitse tiedostot..."));
+        setError(new Error().setTooManyFiles("Liian monta tiedostoa.")
+                .setFileIsTooBig("Tiedosto on liian suuri.")
+                .setIncorrectFileType("Väärä tiedostomuoto."));
+        setUploading(new Uploading().setStatus(new Uploading.Status()
+                .setConnecting("Yhdistetään...").setStalled("Pysäytetty")
+                .setProcessing("Käsitellään tiedostoa...").setHeld("Jonossa"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("aikaa jäljellä: ")
+                        .setUnknown("jäljellä olevaa aikaa ei saatavilla"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable("Palvelin ei vastaa")
+                        .setUnexpectedServerError("Palvelinvirhe")
+                        .setForbidden("Kielletty")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadFinnishI18N.java]
+
+[React: upload-internationalization.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  // tag::snippet[]
+  const uploadI18n = useSignal({
+    dropFiles: {
+      one: 'Raahaa tiedosto tähän',
+      many: 'Raahaa tiedostot tähän',
+    },
+    addFiles: {
+      one: 'Valitse tiedosto...',
+      many: 'Valitse tiedostot...',
+    },
+    error: {
+      tooManyFiles: 'Liian monta tiedostoa.',
+      fileIsTooBig: 'Tiedosto on liian suuri.',
+      incorrectFileType: 'Väärä tiedostomuoto.',
+    },
+    uploading: {
+      status: {
+        connecting: 'Yhdistetään...',
+        stalled: 'Pysäytetty',
+        processing: 'Käsitellään tiedostoa...',
+        held: 'Jonossa',
+      },
+      remainingTime: {
+        prefix: 'aikaa jäljellä: ',
+        unknown: 'jäljellä olevaa aikaa ei saatavilla',
+      },
+      error: {
+        serverUnavailable: 'Palvelin ei vastaa',
+        unexpectedServerError: 'Palvelinvirhe',
+        forbidden: 'Kielletty',
+      },
+    },
+    units: {
+      size: ['t', 'kt', 'Mt', 'Gt', 'Tt', 'Pt', 'Et', 'ZB', 'YB'],
+      sizeBase: 1000,
+    },
+  });
+
+  return <Upload i18n={uploadI18n.value} />;
+  // end::snippet[]
+}
+
+[Lit: upload-internationalization.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-internationalization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private uploadI18n = {
+    dropFiles: {
+      one: 'Raahaa tiedosto tähän',
+      many: 'Raahaa tiedostot tähän',
+    },
+    addFiles: {
+      one: 'Valitse tiedosto...',
+      many: 'Valitse tiedostot...',
+    },
+    error: {
+      tooManyFiles: 'Liian monta tiedostoa.',
+      fileIsTooBig: 'Tiedosto on liian suuri.',
+      incorrectFileType: 'Väärä tiedostomuoto.',
+    },
+    uploading: {
+      status: {
+        connecting: 'Yhdistetään...',
+        stalled: 'Pysäytetty',
+        processing: 'Käsitellään tiedostoa...',
+        held: 'Jonossa',
+      },
+      remainingTime: {
+        prefix: 'aikaa jäljellä: ',
+        unknown: 'jäljellä olevaa aikaa ei saatavilla',
+      },
+      error: {
+        serverUnavailable: 'Palvelin ei vastaa',
+        unexpectedServerError: 'Palvelinvirhe',
+        forbidden: 'Kielletty',
+      },
+    },
+    units: {
+      size: ['t', 'kt', 'Mt', 'Gt', 'Tt', 'Pt', 'Et', 'ZB', 'YB'],
+      sizeBase: 1000,
+    },
+  };
+
+  protected override render() {
+    return html` <vaadin-upload .i18n="${this.uploadI18n}"></vaadin-upload>`;
+  }
+  // end::snippet[]
+}
+
+Customization
+
+You can replace the default upload button. You might do this if Upload needs a stronger emphasis. If so, you can use a primary button.
+
+[Flow: UploadButtonThemeVariant.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-button-theme-variant")
+public class UploadButtonThemeVariant extends Div {
+
+    public UploadButtonThemeVariant() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setMaxFiles(1);
+        upload.setAcceptedFileTypes("application/pdf", ".pdf");
+
+        Button uploadButton = new Button("Upload PDF...");
+        uploadButton.addThemeVariants(ButtonVariant.PRIMARY);
+
+        upload.setUploadButton(uploadButton);
+
+        // Disable the upload button after the file is selected
+        // Re-enable the upload button after the file is cleared
+        upload.getElement()
+                .addEventListener("max-files-reached-changed", event -> {
+                    boolean maxFilesReached = event.getEventData()
+                            .get("event.detail.value").asBoolean();
+                    uploadButton.setEnabled(!maxFilesReached);
+                }).addEventData("event.detail.value");
+        // end::snippet[]
+
+        UploadExamplesI18N i18N = new UploadExamplesI18N();
+        i18N.getDropFiles().setOne("Drop PDF here");
+        upload.setI18n(i18N);
+
+        add(upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-button-theme-variant.tsx]
+import React, { useRef } from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  const maxFilesReached = useRef(false);
+
+  const fileRejectHandler = (event: any) => {
+    Notification.show(`Error: ${event.detail.error} '${event.detail.file.name}'`);
+  };
+
+  const maxFilesReachedChangedHandler = (event: any) => {
+    maxFilesReached.current = event.detail.value;
+  };
+
+  return (
+    // tag::snippet[]
+    <Upload
+      maxFiles={1}
+      accept="application/pdf,.pdf"
+      onFileReject={fileRejectHandler}
+      onMaxFilesReachedChanged={maxFilesReachedChangedHandler}
+    >
+      <Button slot="add-button" theme="primary" disabled={maxFilesReached.current}>
+        Upload PDF...
+      </Button>
+    </Upload>
+    // end::snippet[]
+  );
+}
+
+[Lit: upload-button-theme-variant.ts]
+import '@vaadin/button';
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { UploadFileRejectEvent, UploadMaxFilesReachedChangedEvent } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-button-theme-variant')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private maxFilesReached = false;
+
+  private uploadI18n = {
+    dropFiles: {
+      one: 'Drop PDF here',
+    },
+  };
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-upload
+        max-files="1"
+        accept="application/pdf,.pdf"
+        .i18n="${this.uploadI18n}"
+        @file-reject="${this.fileRejectHandler}"
+        @max-files-reached-changed="${(event: UploadMaxFilesReachedChangedEvent) => {
+          this.maxFilesReached = event.detail.value;
+        }}"
+      >
+        <vaadin-button slot="add-button" theme="primary" ?disabled="${this.maxFilesReached}">
+          Upload PDF...
+        </vaadin-button>
+      </vaadin-upload>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  fileRejectHandler(event: UploadFileRejectEvent) {
+    Notification.show(`Error: ${event.detail.error} '${event.detail.file.name}'`);
+  }
+}
+
+You can also customize the drop label, as well as the icon.
+
+[Flow: UploadDropLabel.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.AnchorTarget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-drop-label")
+public class UploadDropLabel extends Div {
+
+    public UploadDropLabel() {
+        InMemoryUploadHandler inMemoryHandler = UploadHandler
+                .inMemory((metadata, data) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryHandler);
+
+        Span dropLabel = createDropLabel();
+        Icon dropIcon = VaadinIcon.CLOUD_UPLOAD_O.create();
+
+        upload.setDropLabel(dropLabel);
+        upload.setDropLabelIcon(dropIcon);
+        // end::snippet[]
+
+        add(upload);
+    }
+
+    private static Span createDropLabel() {
+        Span cloudHint = new Span(
+                "Files will be uploaded to our cloud. See our ");
+        Anchor policyLink = new Anchor("https://vaadin.com/privacy-policy",
+                "privacy policy", AnchorTarget.BLANK);
+
+        return new Span(cloudHint, policyLink);
+    }
+
+}
+
+[React: upload-drop-label.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Upload>
+      <Icon slot="drop-label-icon" icon="vaadin:cloud-upload-o" />
+      <span slot="drop-label">
+        Files will be uploaded to our cloud. See our&nbsp;
+        <a href="https://vaadin.com/privacy-policy" target="_blank">
+          privacy policy
+        </a>
+      </span>
+    </Upload>
+    // end::snippet[]
+  );
+}
+
+[Lit: upload-drop-label.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-drop-label')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-upload>
+        <vaadin-icon slot="drop-label-icon" icon="vaadin:cloud-upload-o"></vaadin-icon>
+        <span slot="drop-label">
+          Files will be uploaded to our cloud. See our
+          <a href="https://vaadin.com/privacy-policy" target="_blank">privacy policy</a>
+        </span>
+      </vaadin-upload>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Tip: Large Drop Target
+
+When customizing the Upload component, make sure not to make the drop target too small. A large drop target is easier to use and less error-prone.
+
+Listeners
+
+Upload has listeners for the following events:
+
+All Finished
+    Triggered when Upload has processed all of the files in its queue, regardless of whether all uploads were successful.
+File Rejected
+    Sent when the file selected for upload doesn’t meet the constraints (e.g., file size limit).
+
+For the following upload events TransferProgressListener should be used, see progress listener
+
+Started
+    TransferProgressListener::onStart
+Finished and Succeeded
+    TransferProgressListener::onComplete
+Progress
+    TransferProgressListener::onProgress
+Failed
+    TransferProgressListener::onError
+
+Best Practices
+
+With regards to developing with Upload, this section provides some suggestions on how to label buttons and how to construct error messages for better user experiences.
+
+Labeling
+
+Choose labels that are informative and instructive. For example, if the user is to upload a single PDF file, it’s better to have the button label say "Upload PDF…" instead of "Upload File…". The task becomes clearer and improves accessibility for the user — especially if they’re using a screen reader, as the button’s label is read aloud when focused.
+
+[Flow: UploadLabelling.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-labelling")
+public class UploadLabelling extends Div {
+
+    public UploadLabelling() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setAcceptedFileTypes("application/pdf", ".pdf");
+
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getAddFiles().setOne("Upload PDF...");
+        i18n.getDropFiles().setOne("Drop PDF here");
+        i18n.getError().setIncorrectFileType(
+                "The provided file does not have the correct format (PDF document).");
+        upload.setI18n(i18n);
+        // end::snippet[]
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.ERROR);
+        });
+
+        add(upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-labelling.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import type { UploadFileRejectEvent } from '@vaadin/react-components/Upload.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+const fileRejectHandler = (event: UploadFileRejectEvent) => {
+  Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+};
+
+function Example() {
+  // tag::snippet[]
+  const uploadI18n = useSignal({
+    addFiles: {
+      one: 'Upload PDF...',
+    },
+    dropFiles: {
+      one: 'Drop PDF here',
+    },
+    error: {
+      incorrectFileType: 'The provided file does not have the correct format (PDF document).',
+    },
+  });
+
+  return (
+    <Upload
+      maxFiles={1}
+      accept="application/pdf,.pdf"
+      i18n={uploadI18n.value}
+      onFileReject={fileRejectHandler}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-labelling.ts]
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { UploadFileRejectEvent } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-labelling')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private uploadI18n = {
+    addFiles: { one: 'Upload Report...' },
+    dropFiles: { one: 'Drop report here' },
+    error: {
+      incorrectFileType: 'The provided file does not have the correct format (PDF document).',
+    },
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-upload
+        max-files="1"
+        accept="application/pdf,.pdf"
+        .i18n="${this.uploadI18n}"
+        @file-reject="${this.fileRejectHandler}"
+      ></vaadin-upload>
+    `;
+  }
+  // end::snippet[]
+
+  fileRejectHandler(event: UploadFileRejectEvent) {
+    Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+  }
+}
+
+Likewise, if the user is expected to upload a spreadsheet, but multiple file formats are accepted, label the button, "Upload Spreadsheet". Include helpers to inform the user which formats are accepted.
+
+[Flow: UploadHelper.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-helper")
+public class UploadHelper extends Div {
+
+    public UploadHelper() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        H4 title = new H4("Upload spreadsheet");
+        Paragraph hint = new Paragraph(
+                "File size must be less than or equal to 1 MB. Only Excel and CSV files are accepted.");
+
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setAcceptedFileTypes(
+                // Microsoft Excel (.xls)
+                "application/vnd.ms-excel", ".xls",
+                // Microsoft Excel (OpenXML, .xlsx)
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".xlsx",
+                // Comma-separated values (.csv)
+                "text/csv", ".csv");
+
+        int maxFileSizeInBytes = 1 * 1024 * 1024; // 1MB
+        upload.setMaxFileSize(maxFileSizeInBytes);
+
+        UploadExamplesI18N i18n = new UploadExamplesI18N();
+        i18n.getAddFiles().setOne("Upload Spreadsheet...");
+        i18n.getDropFiles().setOne("Drop spreadsheet here");
+        i18n.getError().setIncorrectFileType(
+                "Provide the file in one of the supported formats (.xls, .xlsx, .csv).");
+        upload.setI18n(i18n);
+
+        add(title, hint, upload);
+        // end::snippet[]
+
+        hint.getStyle().set("color", "var(--vaadin-text-color-secondary)");
+
+        upload.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.MIDDLE);
+            notification.addThemeVariants(NotificationVariant.ERROR);
+        });
+
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-helper.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { Upload } from '@vaadin/react-components/Upload.js';
+
+function Example() {
+  const maxFileSizeInMB = 1;
+  const maxFileSizeInBytes = maxFileSizeInMB * 1024 * 1024;
+  const acceptedTypes = [
+    // Microsoft Excel (.xls)
+    'application/vnd.ms-excel',
+    '.xls',
+    // Microsoft Excel (OpenXML, .xlsx)
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xlsx',
+    // Comma-separated values (.csv)
+    'text/csv',
+    '.csv',
+  ];
+
+  // tag::snippet[]
+  const uploadI18n = useSignal({
+    addFiles: {
+      one: 'Upload Spreadsheet...',
+    },
+    dropFiles: {
+      one: 'Drop spreadsheet here',
+    },
+    error: {
+      incorrectFileType: 'Provide the file in one of the supported formats (.xls, .xlsx, .csv).',
+    },
+  });
+
+  return (
+    <>
+      <h4>Upload spreadsheet</h4>
+      <p style={{ color: 'var(--vaadin-text-color-secondary)' }}>
+        File size must be less than or equal to {maxFileSizeInMB} MB.
+        <br />
+        Only Excel and CSV files are accepted.
+      </p>
+      <Upload
+        maxFiles={1}
+        maxFileSize={maxFileSizeInBytes}
+        accept={acceptedTypes.join(',')}
+        i18n={uploadI18n.value}
+        onFileReject={(event) => {
+          Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+        }}
+      />
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: upload-helper.ts]
+import '@vaadin/upload';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import type { UploadFileRejectEvent } from '@vaadin/upload';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('upload-helper')
+export class Example extends LitElement {
+  static override styles = css`
+    p {
+      color: var(--vaadin-text-color-secondary);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private uploadI18n = {
+    addFiles: { one: 'Upload Spreadsheet...' },
+    dropFiles: { one: 'Drop spreadsheet here' },
+    error: {
+      incorrectFileType: 'Provide the file in one of the supported formats (.xls, .xlsx, .csv).',
+    },
+  };
+
+  protected override render() {
+    // end::snippet[]
+    const maxFileSizeInMB = 1;
+    const maxFileSizeInBytes = maxFileSizeInMB * 1024 * 1024;
+    const acceptedTypes = [
+      // Microsoft Excel (.xls)
+      'application/vnd.ms-excel',
+      '.xls',
+      // Microsoft Excel (OpenXML, .xlsx)
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.xlsx',
+      // Comma-separated values (.csv)
+      'text/csv',
+      '.csv',
+    ];
+    // tag::snippet[]
+    return html`
+      <h4>Upload spreadsheet</h4>
+      <p>
+        File size must be less than or equal to ${maxFileSizeInMB} MB.<br />
+        Only Excel and CSV files are accepted.
+      </p>
+      <vaadin-upload
+        max-files="1"
+        .maxFileSize="${maxFileSizeInBytes}"
+        .accept="${acceptedTypes.join(',')}"
+        .i18n="${this.uploadI18n}"
+        @file-reject="${this.fileRejectHandler}"
+      ></vaadin-upload>
+    `;
+  }
+  // end::snippet[]
+
+  fileRejectHandler(event: UploadFileRejectEvent) {
+    Notification.show(event.detail.error, { position: 'middle', theme: 'error' });
+  }
+}
+
+Error Messages
+
+Try to provide meaningful feedback and error messages when an exception or error occurs. Avoid technical jargon. Instead, try to provide solutions and instructions on how to fix the error.
+
+A "Server Unavailable" message might suffice for tech-savvy users, but for some it might be lacking, unhelpful, and frustrating. Error messages should be written with your users in mind.
+
+[Flow: UploadErrorMessages.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.UploadHandler;
+
+@Route("upload-error-messages")
+public class UploadErrorMessages extends Div {
+
+    public UploadErrorMessages() {
+        Div cautionExample = setupCautionExample();
+        Div recommendedExample = setupRecommendedExample();
+
+        FormLayout formLayout = new FormLayout(cautionExample,
+                recommendedExample);
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("540px", 2));
+
+        add(formLayout);
+    }
+
+    private Div setupCautionExample() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setDropAllowed(false);
+
+        UploadExamplesI18N i18N = new UploadExamplesI18N();
+        i18N.getUploading().getError()
+                .setUnexpectedServerError("Unexpected Server Error");
+        upload.setI18n(i18N);
+
+        NativeLabel label = new NativeLabel("Caution");
+        label.getStyle().set("font-weight", "600");
+        upload.setId("upload-caution");
+        label.setFor(upload.getId().get());
+
+        return new Div(label, upload);
+    }
+
+    private Div setupRecommendedExample() {
+        UploadHandler inMemoryUploadHandler = UploadHandler
+                .inMemory((uploadMetadata, bytes) -> {
+                });
+        // tag::snippet[]
+        Upload upload = new Upload(inMemoryUploadHandler);
+        upload.setDropAllowed(false);
+
+        UploadExamplesI18N i18N = new UploadExamplesI18N();
+        i18N.getUploading().getError().setUnexpectedServerError(
+                "File couldn't be uploaded, please try again later");
+        upload.setI18n(i18N);
+        // end::snippet[]
+
+        NativeLabel label = new NativeLabel("Recommended");
+        label.getStyle().set("font-weight", "600");
+        upload.setId("upload-recommended");
+        label.setFor(upload.getId().get());
+
+        return new Div(label, upload);
+    }
+
+}
+
+[Flow: UploadExamplesI18N.java]
+package com.vaadin.demo.component.upload;
+
+import com.vaadin.flow.component.upload.UploadI18N;
+
+import java.util.Arrays;
+
+/**
+ * Provides a default I18N configuration for the Upload examples
+ *
+ * At the moment the Upload component requires a fully configured I18N instance,
+ * even for use-cases where you only want to change individual texts.
+ *
+ * This I18N configuration is an adaption of the web components I18N defaults
+ * and can be used as a basis for customizing individual texts.
+ */
+public class UploadExamplesI18N extends UploadI18N {
+    public UploadExamplesI18N() {
+        setDropFiles(new DropFiles().setOne("Drop file here")
+                .setMany("Drop files here"));
+        setAddFiles(new AddFiles().setOne("Upload File...")
+                .setMany("Upload Files..."));
+        setError(new Error().setTooManyFiles("Too Many Files.")
+                .setFileIsTooBig("File is Too Big.")
+                .setIncorrectFileType("Incorrect File Type."));
+        setUploading(new Uploading()
+                .setStatus(new Uploading.Status().setConnecting("Connecting...")
+                        .setStalled("Stalled")
+                        .setProcessing("Processing File...").setHeld("Queued"))
+                .setRemainingTime(new Uploading.RemainingTime()
+                        .setPrefix("remaining time: ")
+                        .setUnknown("unknown remaining time"))
+                .setError(new Uploading.Error()
+                        .setServerUnavailable(
+                                "Upload failed, please try again later")
+                        .setUnexpectedServerError(
+                                "Upload failed due to server error")
+                        .setForbidden("Upload forbidden")));
+        setUnits(new Units().setSize(Arrays.asList("B", "kB", "MB", "GB", "TB",
+                "PB", "EB", "ZB", "YB")));
+    }
+}
+
+[Flow: UploadExamplesI18N.java]
+
+[React: upload-error-messages.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { FormLayout, type FormLayoutResponsiveStep } from '@vaadin/react-components/FormLayout.js';
+import { Upload, type UploadElement } from '@vaadin/react-components/Upload.js';
+import {
+  createFakeFilesUploadErrorMessagesA,
+  createFakeFilesUploadErrorMessagesB,
+} from './upload-demo-mock-files';
+
+const layoutSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1, labelsPosition: 'top' },
+  { minWidth: '540px', columns: 2, labelsPosition: 'top' },
+];
+const Example = () => {
+  const uploadCaution = useRef<UploadElement>(null);
+  const uploadRecommended = useRef<UploadElement>(null);
+
+  useEffect(() => {
+    if (!uploadCaution.current) {
+      return;
+    }
+
+    uploadCaution.current.setupMockErrorResponse();
+  }, [uploadCaution.current]);
+
+  useEffect(() => {
+    if (!uploadRecommended.current) {
+      return;
+    }
+
+    uploadRecommended.current.setupMockErrorResponse();
+  }, [uploadRecommended.current]);
+
+  const filesA = useComputed(createFakeFilesUploadErrorMessagesA);
+  const filesB = useComputed(createFakeFilesUploadErrorMessagesB);
+
+  const cautionI18n = useSignal({
+    uploading: {
+      error: {
+        unexpectedServerError: 'Unexpected Server Error',
+      },
+    },
+  });
+  // tag::snippet[]
+  const recommendedI18n = useSignal({
+    uploading: {
+      error: {
+        unexpectedServerError: "File couldn't be uploaded, try again later",
+      },
+    },
+  });
+
+  return (
+    <FormLayout responsiveSteps={layoutSteps}>
+      <div>
+        <strong>Caution</strong>
+        <Upload ref={uploadCaution} nodrop files={filesA.value} i18n={cautionI18n.value} />
+      </div>
+
+      <div>
+        <strong>Recommended</strong>
+        <Upload ref={uploadRecommended} nodrop files={filesB.value} i18n={recommendedI18n.value} />
+      </div>
+    </FormLayout>
+  );
+  // end::snippet[]
+};
+
+[Lit: upload-error-messages.ts]
+import '@vaadin/form-layout';
+import '@vaadin/upload';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { FormLayoutResponsiveStep } from '@vaadin/form-layout';
+import { applyTheme } from 'Frontend/demo/theme';
+/* prettier-ignore */
+
+const layoutSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1, labelsPosition: 'top' },
+  { minWidth: '540px', columns: 2, labelsPosition: 'top' },
+];
+
+@customElement('upload-error-messages')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private cautionI18n = {
+    uploading: {
+      error: {
+        unexpectedServerError: 'Unexpected Server Error',
+      },
+    },
+  };
+
+  // tag::snippet[]
+  private recommendedI18n = {
+    uploading: {
+      error: {
+        unexpectedServerError: "File couldn't be uploaded, try again later",
+      },
+    },
+  };
+
+  protected override render() {
+    return html`
+      <!-- end::snippet[] -->
+      <vaadin-form-layout .responsiveSteps="${layoutSteps}">
+        <div>
+          <strong>Caution</strong>
+          <vaadin-upload
+            id="upload-caution"
+            nodrop
+            .i18n="${this.cautionI18n}"
+          ></vaadin-upload>
+        </div>
+        <div>
+          <strong>Recommended</strong>
+          <!-- tag::snippet[] -->
+          <vaadin-upload
+            id="upload-recommended"
+            nodrop
+            .i18n="${this.recommendedI18n}"
+          ></vaadin-upload>
+          <!-- end::snippet[] -->
+        </div>
+      </vaadin-form-layout>
+      <!-- tag::snippet[] -->
+    `;
+  }
+  // end::snippet[]
+}
+
+Component State
+
+To conserve resources, the files themselves aren’t part of the component’s server-side state. This has significant implications for component behavior. Removing the Upload component from the layout means that the files in the browser memory are lost. The same applies when reloading the page. Read more about file handling.
+
+The user interface, including the Upload component, should take this into account. For example, if you expect that the user will refresh the page, you can display a message to the user that files needs to be selected again, if this wasn’t the first time the page was rendered.
+
+Related Components
+
+Modular Upload
+Independent upload components for flexible layouts and embedded upload experiences.
+Progress Bar
+Component for showing task completion progress.

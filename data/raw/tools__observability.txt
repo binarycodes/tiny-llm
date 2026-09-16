@@ -1,0 +1,31 @@
+Observability Kit
+
+Insights into Flow applications at runtime and in production by monitoring application health, detecting unhandled errors and performance issues, and observing user behavior.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Observability Kit in your project.
+
+- Start Trial
+- See Pricing
+
+Observability Kit provides integration with industry-leading Application Performance Monitoring (APM) and observability tools to provide insight into both the frontend and backend of an application.
+
+At its core, Observability Kit is a custom Java agent that runs with a Vaadin Flow application to collect telemetry data, including traces, metrics, and logs.
+
+Tip: New in Vaadin 24.1
+
+Starting with Vaadin version 24.1, you can use Observability Kit to observe the frontend of your application.
+
+Topics
+
+Getting Started
+    Step-by-step guide on how to use Observability Kit in an application.
+Configuration
+    How to configure Observability Kit and what are its default settings.
+Customization
+    How to add custom instrumentation traces and metrics to an application.
+Integrations
+    Observability Kit can be used with any vendor that natively supports the OpenTelemetry standard.
+Reference
+    Details on traces, metrics that Observability Kit provides, and their attributes.

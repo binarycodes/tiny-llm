@@ -1,0 +1,131 @@
+Session Lock & RPC Invocation Listeners
+
+Observing session-lock contention and per-invocation timing with SessionLockListener and RpcInvocationListener.
+
+Vaadin serializes all server-side work for a single session behind one lock. Two listeners let you observe this machinery without modifying application logic: SessionLockListener reports when the session lock is requested, acquired, and released; while RpcInvocationListener reports around the handling of each client-to-server RPC invocation. Together they’re useful for performance monitoring, distributed tracing, and diagnosing lock contention.
+
+Both listeners are registered on the VaadinService, typically from a VaadinServiceInitListener. Each registration method returns a Registration whose remove() method unregisters the listener.
+
+Note: Callbacks run on the request or access thread, directly around the lock or invocation operation. Implementations must be fast and non-blocking. Exceptions thrown from a callback are logged and suppressed, so they can’t disrupt session locking or RPC processing.
+
+Session Lock Listener
+
+Because all of a session’s server-side work is serialized behind a single lock, the time a thread spends blocked acquiring that lock (the wait time) and the time it then holds it (the hold time) are key performance signals. A SessionLockListener exposes both.
+
+The same lock instance protects a session whether it’s acquired by the framework while handling a request, or through VaadinSession.lock() — for example from UI.access().
+
+The interface has three callbacks, all with default (empty) implementations, so you only need to override those you use:
+
+Callback | When It’s Invoked
+lockRequested(SessionLockEvent) | Immediately before the thread attempts to acquire the lock.
+lockAcquired(SessionLockEvent) | Immediately after the lock has been acquired.
+lockReleased(SessionLockEvent) | Immediately after the outermost hold has been released (the hold count reached zero).
+
+Callbacks are delivered for the outermost acquisition only; reentrant re-locks aren’t reported. For a single lock-hold, all three callbacks are delivered on the same thread in the order lockRequested → lockAcquired → lockReleased. This makes a ThreadLocal a natural place to record timing, as shown in the following example:
+
+[Java]
+public class LockMetricsInitListener implements VaadinServiceInitListener {
+
+    @Override
+    public void serviceInit(ServiceInitEvent event) {
+        event.getSource().addSessionLockListener(new SessionLockListener() {
+
+            private final ThreadLocal<Long> requestedAt = new ThreadLocal<>();
+            private final ThreadLocal<Long> acquiredAt = new ThreadLocal<>();
+
+            @Override
+            public void lockRequested(SessionLockEvent event) {
+                requestedAt.set(System.nanoTime());
+            }
+
+            @Override
+            public void lockAcquired(SessionLockEvent event) {
+                long acquired = System.nanoTime();
+                acquiredAt.set(acquired);
+                long waitNanos = acquired - requestedAt.get();
+                LoggerFactory.getLogger(getClass())
+                        .debug("Session lock wait: {} ms", waitNanos / 1_000_000.0);
+            }
+
+            @Override
+            public void lockReleased(SessionLockEvent event) {
+                long holdNanos = System.nanoTime() - acquiredAt.get();
+                LoggerFactory.getLogger(getClass())
+                        .debug("Session lock hold: {} ms", holdNanos / 1_000_000.0);
+                requestedAt.remove();
+                acquiredAt.remove();
+            }
+        });
+    }
+}
+
+When several listeners are registered, lockRequested and lockAcquired are delivered in registration order, while lockReleased is delivered in reverse registration order. The callbacks therefore nest like try/finally blocks: a listener registered later sees its lockReleased run before that of a listener registered earlier.
+
+Listeners registered after a session’s lock has already been created are still honored.
+
+RPC Invocation Listener
+
+A single client request typically carries several RPC invocations — a DOM event, a @ClientCallable or template event handler, a server-side navigation, a return channel message, and so on. A RpcInvocationListener is notified once per invocation, which is useful for emitting a tracing span that shows exactly which invocation consumes the time spent holding the session lock during a request.
+
+The interface has three callbacks, all with default (empty) implementations:
+
+Callback | When It’s Invoked
+invocationStarted(RpcInvocationEvent) | Immediately before an invocation is handled.
+invocationFailed(RpcInvocationEvent, Throwable) | When handling an invocation threw, before invocationEnded. The framework still routes the throwable to the session error handler independently of this callback.
+invocationEnded(RpcInvocationEvent) | Once an invocation has been handled, whether it completed normally or threw.
+
+For one invocation, invocationStarted, the optional invocationFailed, and invocationEnded are delivered on the same thread, in that order. invocationEnded is always delivered after invocationStarted, regardless of outcome, so timing state can again be kept in a ThreadLocal.
+
+The RpcInvocationEvent exposes details about the invocation:
+
+Method | Description
+getUI() | The UI the invocation is handled against. Never null.
+getType() | The protocol-level invocation type, such as event, publishedEventHandler, navigation, or channel. Never null.
+getNodeId() | The id of the targeted StateNode, or -1 if the invocation doesn’t target a node.
+getName() | A human-readable identifier — the DOM event name, the invoked method name, the navigation location, and so on — or null if none applies.
+
+The following example traces each invocation and logs its duration:
+
+[Java]
+public class RpcTracingInitListener implements VaadinServiceInitListener {
+
+    @Override
+    public void serviceInit(ServiceInitEvent event) {
+        event.getSource().addRpcInvocationListener(new RpcInvocationListener() {
+
+            private final ThreadLocal<Long> startedAt = new ThreadLocal<>();
+
+            @Override
+            public void invocationStarted(RpcInvocationEvent event) {
+                startedAt.set(System.nanoTime());
+            }
+
+            @Override
+            public void invocationFailed(RpcInvocationEvent event,
+                    Throwable error) {
+                LoggerFactory.getLogger(getClass()).warn(
+                        "RPC invocation failed: type={}, name={}",
+                        event.getType(), event.getName(), error);
+            }
+
+            @Override
+            public void invocationEnded(RpcInvocationEvent event) {
+                long elapsedNanos = System.nanoTime() - startedAt.get();
+                LoggerFactory.getLogger(getClass()).debug(
+                        "RPC invocation: type={}, name={}, took {} ms",
+                        event.getType(), event.getName(),
+                        elapsedNanos / 1_000_000.0);
+                startedAt.remove();
+            }
+        });
+    }
+}
+
+Registering the Listeners
+
+Both listeners are added from a VaadinServiceInitListener, as shown in the examples above. How that init listener itself is discovered depends on the project type:
+
+- In Spring and CDI projects, annotate the class with @Component (Spring) or make it a managed bean (CDI); it’s then registered automatically.
+- In plain Java projects, register it through the Java Service Provider Interface by listing its fully qualified class name in META-INF/services/com.vaadin.flow.server.VaadinServiceInitListener.
+
+See Service Init Listener for the full details of each approach.

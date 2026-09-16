@@ -1,0 +1,63 @@
+Server Push
+
+How to use server push in your user interfaces.
+
+Server push is based on a client-server connection established by the client. The server can then use the connection to send updates to the client. For example, it could send a new chat message to all participants without delay.
+
+The server-client communication uses a WebSocket connection, if supported by the browser and the server. If not, the connection resorts to whatever method is supported. Vaadin uses the Atmosphere framework, internally.
+
+In Hilla views, push is always enabled when you subscribe to a reactive endpoint. For Flow views, you have to enable it, explicitly.
+
+Important: Server push is not the same as Web Push, which is also supported by Vaadin Flow. For more information, see the Web Push Notifications documentation page.
+
+Enabling Push
+
+Before you can use server push in Flow, you have to enable it. You do this by adding the @Push annotation to the application shell class, like this:
+
+[Java]
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+@Push
+public class Application implements AppShellConfigurator {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+Note: Adding, removing, or changing @Push — like any annotation on the application shell class — takes effect only when the application starts. During development, hot reload (such as HotswapAgent) doesn’t apply the change; you have to restart the application for the new push configuration to take effect.
+
+Push Modes
+
+By default, Flow uses automatic pushing (PushMode.AUTOMATIC). This means that any pending changes are pushed to the browser after UI.access() finishes. This is the recommended mode for most applications.
+
+You can also configure Flow to use manual pushing (PushMode.MANUAL). With manual mode, you call UI.push() explicitly to send changes to the browser. This gives you more control over when changes are pushed, which is useful when you want to batch multiple updates together.
+
+For details on how to use UI.access() and UI.push(), see Pushing UI Updates.
+
+For state-driven updates, you usually don’t need UI.access() at all: bind components to signals and update the signals from any thread, and Flow pushes the changes automatically. See Pushing State with Signals.
+
+Transport Options
+
+Server push can use several transports: WebSockets, long polling, or combined WebSockets+XHR. The default is WebSockets+XHR, which works well in most environments.
+
+You might need to change the transport if you’re experiencing connectivity issues, for example when running behind certain proxies or corporate firewalls that block WebSocket connections. In such cases, long polling can be a more reliable alternative.
+
+For technical details about configuring transports, see Server Push Configuration.
+
+Topics
+
+Pushing
+    How to push updates to a Vaadin Flow user interface.
+Threads
+    How to use threads in a Vaadin Flow user interface.
+Callbacks
+    How to use server push with callbacks.
+Futures
+    How to use server push with CompletableFuture.
+Consuming Reactive Streams
+    How to use server push with reactive streams.

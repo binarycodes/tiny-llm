@@ -1,0 +1,97 @@
+Component Containers
+
+Creating components that can contain other components.
+
+A component container is a component to which you can add other components.
+
+Using the HasComponents Interface
+
+You typically create a container by implementing the HasComponents interface. This interface provides add(Component…​) and remove(Component…​) methods for attaching and detaching child components to and from the container’s root element.
+
+Example 1. A simple component container
+
+[Java]
+@Tag("div")
+public class MyComponentContainer extends Component implements HasComponents {
+}
+
+Implementing a Custom Add Method
+
+You can also implement your own methods for adding and removing child components. In this case, you interact with the container’s root element directly through the getElement() method.
+
+Example 2. Implementing a custom method to add components to a container
+
+[Java]
+@Tag("div")
+public class MyComponentContainer extends Component {
+
+    public void add(Component child) {
+        getElement().appendChild(child.getElement());
+    }
+}
+
+You don’t need to add a child component directly to the container’s root element. You can add it to any element in the container’s element hierarchy.
+
+Example 3. Wrapping a child component in a <div> element
+
+[Java]
+@Tag("div")
+public class MyComponentContainer extends Component {
+
+    public void add(Component child) {
+        Element childWrapper = ElementFactory.createDiv();
+        childWrapper.appendChild(child.getElement());
+        getElement().appendChild(childWrapper);
+    }
+}
+
+Navigating the Component Hierarchy
+
+The component hierarchy is directly based on the element hierarchy in the DOM tree. You can access a component’s parent element using the getElement().getParent() method, and the child elements using the getElement().getChildren() method.
+
+If you need access to the components themselves and not only their elements, use the Component.getParent() and Component.getChildren() methods.
+
+Including Virtual Children
+
+The Component.getChildren() method doesn’t include virtually attached children, such as overlays attached to the UI or slotted components added through helper methods on web component wrappers. To traverse the component tree including virtual children, use the static helper methods in the ComponentUtil class:
+
+[Java]
+// Direct children, including virtual children
+Stream<Component> children = ComponentUtil.getAllChildren(layout);
+
+// All descendants in pre-order, including virtual children
+Stream<Component> descendants = ComponentUtil.streamDescendants(layout);
+
+The ComponentUtil.getAllChildren(Component) method returns the child components of the given parent, like Component.getChildren(), but also descends into virtually attached elements. Regular DOM children are returned first, in DOM order, followed by virtual children in their attachment order.
+
+The ComponentUtil.streamDescendants(Component) method streams all descendant components in pre-order, that is, each component before its own descendants, using getAllChildren() at every level. The parent itself isn’t included.
+
+Neither method traverses shadow root contents, so children injected into a template via @Id are excluded.
+
+Removing Child Components
+
+You remove a component by detaching its element from the container. You typically do this by calling the Element.removeFromParent() method on the child component’s element.
+
+You can also remove a child component by adding its element to another component. This effectively moves the element from the old parent to the new one.
+
+Example 4. Using the removeFromParent() method to remove a child component
+
+[Java]
+@Tag("div")
+public class MyComponentContainer extends Component {
+
+    public void add(Component child) {
+        Element childWrapper = ElementFactory.createDiv();
+        childWrapper.appendChild(child.getElement());
+        getElement().appendChild(childWrapper);
+    }
+
+    public void remove(Component child) {
+        Element wrapper = child.getElement().getParent();
+        wrapper.removeFromParent();
+    }
+}
+
+Tip: Detecting when a child component is removed
+
+If you need to know when a child component is removed, add a detach listener to it using the Component.addDetachListener() method. See Vaadin Component Basics for more information.

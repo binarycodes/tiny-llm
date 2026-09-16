@@ -1,0 +1,10 @@
+Basic Layouts
+
+How to render content with vertical and horizontal layout components.
+
+Vaadin features two basic layout components: Vertical Layout and Horizontal Layout.
+
+As their names suggest, they render their contents vertically and horizontally, respectively.
+
+- Go to Vertical Layout documentation
+- Go to Horizontal Layout documentation

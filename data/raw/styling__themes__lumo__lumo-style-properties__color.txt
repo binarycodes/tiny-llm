@@ -1,0 +1,142 @@
+Lumo Colors
+
+Colors and their corresponding style properties defined in the Lumo theme.
+
+[lumo-tokens.ts]
+import colorScheme from '@vaadin/vaadin-lumo-styles/src/global/color-scheme.css?inline';
+import propsStyles from '@vaadin/vaadin-lumo-styles/src/props/index.css?inline';
+import utilityStyles from '@vaadin/vaadin-lumo-styles/utility.css?inline';
+import { addStylesheet } from 'Frontend/demo/theme';
+
+// Extract dark theme properties. Exclude non-custom properties, so that we don't override docs
+// styles (color, background) with Lumo styles.
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
+const darkThemeProps = colorScheme
+  .toString()
+  .split('\n')
+  .filter((line) => line.trim().startsWith('--'));
+const darkThemeStyles = `
+[theme~='dark'] {
+${darkThemeProps.join('\n')}
+}
+`;
+
+// Include styles in the page
+addStylesheet(propsStyles);
+addStylesheet(utilityStyles);
+addStylesheet(darkThemeStyles);
+
+// Notify DSP CustomPropertyPreview React component after custom properties have been loaded
+window.dispatchEvent(new CustomEvent('custom-properties-changed'));
+
+// Dummy element so that this module can be included as a rendered example in a docs page
+export default class LumoTokens extends HTMLElement {}
+
+[lumo-tokens.ts]
+
+Lumo defines a set of style properties (i.e., CSS custom properties) for colors. You can use these properties to apply a consistent color palette across your application.
+
+You can use the built-in light and dark color schemes to switch the color palette of all components in your application. This page lists and displays the available color properties in Lumo.
+
+To customize a color for both the light and dark color schemes, use the CSS light-dark() function. The first value is used in the light scheme, and the second in the dark scheme:
+
+[CSS]
+html {
+  --lumo-primary-color: light-dark(blue, lightskyblue);
+}
+
+To customize a color only for the light color scheme, set the property on html:
+
+[CSS]
+html {
+  --lumo-primary-color: blue;
+}
+
+You can also customize colors specifically for the dark color scheme using the [theme~="dark"] selector:
+
+[CSS]
+[theme~="dark"] {
+  --lumo-primary-color: lightskyblue;
+}
+
+Note: The [theme~="dark"] selector only works when the dark color scheme is applied using ColorScheme.Value.DARK, which sets the theme attribute on the document. It does not work with system color scheme modes (LIGHT_DARK or DARK_LIGHT), which use the CSS color-scheme property instead of the theme attribute. Use the light-dark() function to customize colors that work with all color scheme modes.
+
+By using the ~= operator in the [theme~="dark"] selector it matches the color when multiple theme variants are defined on a single element. For example, if you use the theme="small dark" attribute on an HTML element somewhere in the global style scope of your application, the color change applies to it, as well.
+
+Base
+
+The base color is used as the main background color for the system. The Grayscale colors are designed to be used on top of it, and the Text colors are designed to provide sufficient contrast with it.
+
+Description | CSS Custom Property
+Base | --lumo-base-color:
+
+Grayscale
+
+These colors form the foundation for your application colors. The grayscale colors are useful for dividing pages into sections with different backgrounds and borders, or they might be used as text colors.
+
+Description | CSS Custom Property
+Contrast 5% Button background. Button toolbar. Secondary section background. | --lumo-contrast-5pct:
+Contrast 10% Input field background. | --lumo-contrast-10pct:
+Contrast 20% Divider border color. | --lumo-contrast-20pct:
+Contrast 30% Disabled text. | --lumo-contrast-30pct:
+Contrast 40% | --lumo-contrast-40pct:
+Contrast 50% Tertiary text. | --lumo-contrast-50pct:
+Contrast 60% Icons. | --lumo-contrast-60pct:
+Contrast 70% Secondary text. | --lumo-contrast-70pct:
+Contrast 80% | --lumo-contrast-80pct:
+Contrast 90% Body text. | --lumo-contrast-90pct:
+Contrast 100% Heading text. | --lumo-contrast:
+
+Primary
+
+This is the most prominent color in the system. It’s used to bring attention to certain elements in the interface. Accompanying text and contrast colors are also defined.
+
+Description | CSS Custom Property
+Primary 10% Badge background. | --lumo-primary-color-10pct:
+Primary 50% Focus outline color. | --lumo-primary-color-50pct:
+Primary 100% Primary button background. | --lumo-primary-color:
+Primary Text Secondary & tertiary button text. | --lumo-primary-text-color:
+Primary Contrast Primary button text. | --lumo-primary-contrast-color:
+
+Error
+
+The color red is most often used for errors. It’s used for error indicators, error messages, and buttons that can cause permanent data loss. Accompanying text and contrast colors are also defined.
+
+Description | CSS Custom Property
+Error 10% Error badge background. | --lumo-error-color-10pct:
+Error 50% | --lumo-error-color-50pct:
+Error 100% Primary error button background. | --lumo-error-color:
+Error Text Secondary & tertiary error button text. | --lumo-error-text-color:
+Error Contrast Primary error button text. | --lumo-error-contrast-color:
+
+Warning
+
+Warning colors are used primarily for warning notifications. They’re displayed typically in yellow or orange,
+
+Description | CSS Custom Property
+Warning 10% Faint warning background color. | --lumo-warning-color-10pct:
+Warning 100% Strong warning background color. | --lumo-warning-color:
+Warning Text Warning color with sufficient contrast for text. | --lumo-warning-text-color:
+Warning Contrast Contrast color for use on top of background colors. | --lumo-warning-contrast-color:
+
+Success
+
+This is most often depicted with a green color. It’s used for success messages, and buttons that complete a certain task. Accompanying text and contrast colors are also defined.
+
+Description | CSS Custom Property
+Success 10% Success badge background. | --lumo-success-color-10pct:
+Success 50% | --lumo-success-color-50pct:
+Success 100% Primary success button background. | --lumo-success-color:
+Success Text Secondary & tertiary success button text. | --lumo-success-text-color:
+Success Contrast Primary success button text. | --lumo-success-contrast-color:
+
+Text
+
+The following text colors have appropriate contrast with the Base color.
+
+Description | CSS Custom Property
+Heading Text | --lumo-header-text-color:
+Body Text Contrast above 7:1. | --lumo-body-text-color:
+Secondary Text Contrast above 4.5:1. | --lumo-secondary-text-color:
+Tertiary Text Contrast above 3:1. Use only for non-essential text. Suitable for graphical elements, such as icons. | --lumo-tertiary-text-color:
+Disabled Text Use only for non-essential text/elements. | --lumo-disabled-text-color:

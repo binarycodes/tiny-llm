@@ -1,0 +1,119 @@
+Grafana Integration
+
+Learn how to use Grafana together with Observability Kit.
+
+Grafana is an observability stack with support for metrics, traces, and logs. It can be self-hosted, in addition to using the commercial managed hosting.
+
+Setup
+
+These instructions are for a local Grafana setup which you can run using docker-compose. Alternatively, Grafana provides a managed hosting service for their products.
+
+Caution: Not Production-Ready
+
+This setup is intended for local testing, only. It isn’t production ready. See the Grafana documentation on how to configure and secure a self-hosted setup.
+
+Start by cloning the observability-grafana-setup repository:
+
+[terminal]
+git clone https://github.com/vaadin/observability-grafana-setup.git
+
+From the setup folder, run:
+
+[terminal]
+cd observability-grafana-setup
+docker-compose up
+
+This command starts a set of services for collecting and displaying data from Observability Kit:
+
+- Grafana Tempo for collecting and storing traces;
+- Prometheus for collecting and storing metrics;
+- Grafana Loki for collecting and storing logs;
+- OpenTelemetry collector for ingesting telemetry data from the agent, and distributing it to the services above; and
+- Grafana for displaying traces, metrics and logs, also from the services above.
+
+Observability Kit Configuration
+
+To configure Observability Kit, create an agent.properties file with the following content:
+
+[agent.properties]
+otel.service.name=vaadin
+otel.traces.exporter=otlp
+otel.metrics.exporter=otlp
+otel.logs.exporter=otlp
+
+In the configuration above, the service name is defined as vaadin, which is also the default of the agent. The service name can be customized. Notice that the pre-configured Grafana dashboard queries data from the vaadin service, and needs to be edited when using a custom service name.
+
+By default, the OpenTelemetry Protocol (OTLP) exporters assume that the OpenTelemetry collector is running locally. You don’t need to configure endpoints. If the collector is running on a different system, you need to configure an endpoint for the exporter:
+
+[agent.properties]
+otel.exporter.otlp.endpoint=https://collector.my-domain.net:4317
+
+Running the Application
+
+[JAR file: terminal]
+java -javaagent:PATH/TO/observability-kit-agent-VERSION.jar \
+     -Dotel.javaagent.configuration-file=PATH/TO/agent.properties \
+     -jar myapp.jar
+
+[JAR file: terminal]
+
+[Tomcat (Windows): terminal]
+set CATALINA_OPTS=%CATALINA_OPTS% -javaagent:PATH\TO\observability-kit-agent-VERSION.jar
+set OTEL_JAVAAGENT_CONFIGURATION_FILE=PATH\TO\agent.properties
+
+[Tomcat (Windows): terminal]
+
+[Tomcat (macOS/Linux): terminal]
+export CATALINA_OPTS="$CATALINA_OPTS -javaagent:PATH/TO/observability-kit-agent-VERSION.jar"
+export OTEL_JAVAAGENT_CONFIGURATION_FILE=PATH/TO/agent.properties
+
+[Tomcat (macOS/Linux): terminal]
+
+[Jetty: terminal]
+java -javaagent:PATH/TO/observability-kit-agent-VERSION.jar \
+     -Dotel.javaagent.configuration-file=PATH/TO/agent.properties \
+     -jar /PATH/TO/jetty_home/start.jar
+
+[Jetty: terminal]
+
+[Maven (Windows): terminal]
+set MAVEN_OPTS="-javaagent:PATH\TO\observability-kit-agent-VERSION.jar -Dotel.javaagent.configuration-file=PATH\TO\agent.properties"
+
+[Maven (Windows): terminal]
+
+[Maven (macOS/Linux): terminal]
+export MAVEN_OPTS="-javaagent:PATH/TO/observability-kit-agent-VERSION.jar -Dotel.javaagent.configuration-file=PATH/TO/agent.properties"
+
+[Maven (macOS/Linux): terminal]
+
+Note: Replace Placeholder Paths & Version
+
+Remember to correct the path to the agent.properties file, as well as the path and version of the Agent .jar file.
+
+Viewing Data
+
+The Grafana setup provides a sample dashboard that shows basic metrics, like JVM memory usage and CPU usage, traces and errors, as well as logs. To log in, use the default credentials admin and admin.
+
+Note: Configure Service Name
+
+The service name needs to be configured as vaadin in the configuration file. Otherwise, the dashboard doesn’t show any data.
+
+The individual panels of the dashboard may be used to explore the data in more detail. Click on a panel’s name to open the drop-down menu, and then click on Explore.
+
+See the Grafana documentation for more information on how to use the Explore view.
+
+Viewing Traces
+
+To view traces, open the Explore view, and select Tempo as the data source. Change the Query type to Search, and select the name of the service from the Service name menu. Then click the refresh button in the top-right to search for traces.
+
+Use the Tags option to filter for specific span attributes. For example, to filter for traces that contains errors, enter error=true.
+
+Clicking on a trace ID brings up a side panel that shows detailed information about a specific trace, such as nested spans, and their attributes and events.
+
+Viewing Metrics
+
+To view metrics, open the Explore view, and select Prometheus as the data source. Select a metric from the Metric drop-down, for example, process_runtime_jvm_memory_usage to view JVM memory usage. Then click the refresh button in the top-right display the metric.
+
+Viewing Logs
+
+To view logs, open the Explore view, and select Loki as data source. Under Labels, configure a label for service_name, with the value that’s defined as service name in the configuration file: vaadin by default. Then click the refresh button in the top-right to search for logs.

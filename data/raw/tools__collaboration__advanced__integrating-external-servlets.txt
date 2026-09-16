@@ -1,0 +1,109 @@
+Obtaining a Collaboration Kit Instance in a Servlet
+
+When a VaadinService instance isn’t available, it’s impossible to get a CollaborationEngine instance with the getInstance() method. In a servlet, you can get the instance with the getAttribute() method, as long as it’s been configured.
+
+[MyServlet.java]
+package com.vaadin.demo.collaboration;
+
+import java.io.IOException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.UserInfo;
+
+public class MyServlet extends HttpServlet {
+    private final UserInfo systemUser = new UserInfo("system");
+    private final String topicId = "topic";
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        CollaborationEngine ce = (CollaborationEngine) getServletContext()
+                .getAttribute(CollaborationEngine.class.getName());
+        if (ce == null) {
+            resp.sendError(500,
+                    "Collaboration Kit has not yet been initialized");
+            return;
+        }
+        // Retrieve message that was sent in this POST request
+        String userMessage = req.getParameter("message");
+        String message = "An anonymous user posted the following message: "
+                + userMessage;
+        sendMessageToTopic(ce, message);
+        resp.setStatus(202);
+    }
+
+    public void sendMessageToTopic(CollaborationEngine ce, String message) {
+        // Get SystemConnectionContext from Collaboration Kit
+        SystemConnectionContext systemConnectionContext = ce.getSystemContext();
+
+        MessageManager messageManager = new MessageManager(
+                systemConnectionContext, systemUser, topicId, () -> ce);
+
+        messageManager.submit(message) // Send message to topic
+                .whenComplete((a, t) -> {
+                    // Close the message manager when done
+                    messageManager.close();
+                });
+    }
+}
+
+In the following example, a message posted through a form is added to a topic as a system message:
+
+[MyServlet.java]
+package com.vaadin.demo.collaboration;
+
+import java.io.IOException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.UserInfo;
+
+public class MyServlet extends HttpServlet {
+    private final UserInfo systemUser = new UserInfo("system");
+    private final String topicId = "topic";
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        CollaborationEngine ce = (CollaborationEngine) getServletContext()
+                .getAttribute(CollaborationEngine.class.getName());
+        if (ce == null) {
+            resp.sendError(500,
+                    "Collaboration Kit has not yet been initialized");
+            return;
+        }
+        // Retrieve message that was sent in this POST request
+        String userMessage = req.getParameter("message");
+        String message = "An anonymous user posted the following message: "
+                + userMessage;
+        sendMessageToTopic(ce, message);
+        resp.setStatus(202);
+    }
+
+    public void sendMessageToTopic(CollaborationEngine ce, String message) {
+        // Get SystemConnectionContext from Collaboration Kit
+        SystemConnectionContext systemConnectionContext = ce.getSystemContext();
+
+        MessageManager messageManager = new MessageManager(
+                systemConnectionContext, systemUser, topicId, () -> ce);
+
+        messageManager.submit(message) // Send message to topic
+                .whenComplete((a, t) -> {
+                    // Close the message manager when done
+                    messageManager.close();
+                });
+    }
+}

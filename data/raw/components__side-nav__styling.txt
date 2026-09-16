@@ -1,0 +1,326 @@
+Side Navigation Styling
+
+Styling API reference for the Side Nav component.
+
+Style Variants
+
+Side navigation supports the following style variants.
+
+Variant | Description | Supported by
+filled | Uses a solid background color for active item | Aura
+
+Styling Individual Items
+
+Individual navigation items can be styled by applying a CSS class name to them.
+
+[Flow: SideNavStyling.java]
+package com.vaadin.demo.component.sidenav;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+import com.vaadin.demo.component.sidenav.views.DashboardView;
+import com.vaadin.demo.component.sidenav.views.InboxView;
+
+@Route("side-nav-styling")
+public class SideNavStyling extends Div {
+
+    public SideNavStyling() {
+        // tag::snippet[]
+        SideNav nav = new SideNav();
+
+        SideNavItem dashboardLink = new SideNavItem("Dashboard",
+                DashboardView.class, VaadinIcon.DASHBOARD.create());
+        SideNavItem inboxLink = new SideNavItem("Inbox", InboxView.class,
+                VaadinIcon.ENVELOPE.create());
+        SideNavItem vaadinLink = new SideNavItem("Vaadin website",
+                "https://vaadin.com", VaadinIcon.VAADIN_H.create());
+        vaadinLink.addClassName("external");
+
+        nav.addItem(dashboardLink, inboxLink, vaadinLink);
+        // end::snippet[]
+
+        Div navWrapper = new Div(nav);
+        nav.setWidthFull();
+        add(navWrapper);
+
+        this.addClassName("side-nav-sample");
+    }
+
+}
+
+[Flow: nav-item-styling.css]
+/* tag::snippet[] */
+
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-side-nav-item.external::part(link) {
+    color: deepskyblue;
+}
+
+vaadin-side-nav-item.external > vaadin-icon {
+    color: deepskyblue;
+}
+
+vaadin-side-nav-item.external::part(link):hover {
+    color: deepskyblue;
+    text-decoration: underline;
+}
+
+/* end::snippet[] */
+
+/* Styles for vaadin-side-nav documentation UI examples: */
+.side-nav-sample {
+    overflow: hidden;
+    background: var(--lumo-shade-5pct, var(--vaadin-background-container));
+}
+.side-nav-sample > * {
+    background: var(--vaadin-background-color);
+    box-shadow: var(--lumo-box-shadow-s, 0 8px 24px -4px rgba(0, 0, 0, 0.3));
+    padding: var(--vaadin-padding-m);
+    width: 15em;
+}
+
+[React: side-nav-styling.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { SideNav, type SideNavElement } from '@vaadin/react-components/SideNav.js';
+import { SideNavItem } from '@vaadin/react-components/SideNavItem.js';
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    <div className="side-nav-sample">
+      <div>
+        {/* tag::snippet[] */}
+        <SideNav style={{ width: '100%' }} ref={sideNavRef}>
+          <SideNavItem path="/dashboard">
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+          <SideNavItem path="/inbox">
+            <Icon icon="vaadin:envelope" slot="prefix" />
+            Inbox
+          </SideNavItem>
+          <SideNavItem path="https://vaadin.com" className="external">
+            <Icon icon="vaadin:vaadin-h" slot="prefix" />
+            Vaadin website
+          </SideNavItem>
+        </SideNav>
+        {/* end::snippet[] */}
+      </div>
+    </div>
+  );
+}
+
+[React: nav-item-styling.css]
+/* tag::snippet[] */
+
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-side-nav-item.external::part(link) {
+    color: deepskyblue;
+}
+
+vaadin-side-nav-item.external > vaadin-icon {
+    color: deepskyblue;
+}
+
+vaadin-side-nav-item.external::part(link):hover {
+    color: deepskyblue;
+    text-decoration: underline;
+}
+
+/* end::snippet[] */
+
+/* Styles for vaadin-side-nav documentation UI examples: */
+.side-nav-sample {
+    overflow: hidden;
+    background: var(--lumo-shade-5pct, var(--vaadin-background-container));
+}
+.side-nav-sample > * {
+    background: var(--vaadin-background-color);
+    box-shadow: var(--lumo-box-shadow-s, 0 8px 24px -4px rgba(0, 0, 0, 0.3));
+    padding: var(--vaadin-padding-m);
+    width: 15em;
+}
+
+[Lit: side-nav-styling.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/side-nav';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('side-nav-styling')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="side-nav-sample">
+        <div>
+          <!-- tag::snippet[] -->
+          <vaadin-side-nav style="width:100%">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/inbox">
+              <vaadin-icon icon="vaadin:envelope" slot="prefix"></vaadin-icon>
+              Inbox
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="https://vaadin.com" class="external">
+              <vaadin-icon icon="vaadin:vaadin-h" slot="prefix"></vaadin-icon>
+              Vaadin website
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+          <!-- end::snippet[] -->
+        </div>
+      </div>
+    `;
+  }
+}
+
+[Lit: nav-item-styling.css]
+/* tag::snippet[] */
+
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-side-nav-item.external::part(link) {
+    color: deepskyblue;
+}
+
+vaadin-side-nav-item.external > vaadin-icon {
+    color: deepskyblue;
+}
+
+vaadin-side-nav-item.external::part(link):hover {
+    color: deepskyblue;
+    text-decoration: underline;
+}
+
+/* end::snippet[] */
+
+/* Styles for vaadin-side-nav documentation UI examples: */
+.side-nav-sample {
+    overflow: hidden;
+    background: var(--lumo-shade-5pct, var(--vaadin-background-container));
+}
+.side-nav-sample > * {
+    background: var(--vaadin-background-color);
+    box-shadow: var(--lumo-box-shadow-s, 0 8px 24px -4px rgba(0, 0, 0, 0.3));
+    padding: var(--vaadin-padding-m);
+    width: 15em;
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Side Nav Properties
+
+Property | Supported by
+--vaadin-side-nav-child-indent | Aura, Lumo
+--vaadin-side-nav-items-gap | Aura
+--vaadin-side-nav-label-color | Aura
+--vaadin-side-nav-label-font-size | Aura
+--vaadin-side-nav-label-font-weight | Aura
+--vaadin-side-nav-label-line-height | Aura
+
+Side Nav Item Properties
+
+Property | Supported by
+--vaadin-side-nav-item-background | Aura
+--vaadin-side-nav-item-border-color | Aura
+--vaadin-side-nav-item-border-radius | Aura
+--vaadin-side-nav-item-border-width | Aura
+--vaadin-side-nav-item-font-size | Aura
+--vaadin-side-nav-item-font-weight | Aura
+--vaadin-side-nav-item-line-height | Aura
+--vaadin-side-nav-item-gap | Aura
+--vaadin-side-nav-item-padding | Aura
+--vaadin-side-nav-item-text-color | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-side-nav
+
+Parts
+
+Header (above list)
+    vaadin-side-nav::part(label)
+Label
+    vaadin-side-nav > [slot="label"]
+Expand/collapse toggle
+    vaadin-side-nav::part(toggle-button)
+Expand/collapse icon
+    vaadin-side-nav::part(toggle-button)::before
+
+States
+
+Collapsible list
+    vaadin-side-nav[collapsible]
+Collapsed list
+    vaadin-side-nav[collapsed]
+
+Navigation Item
+
+Item root element
+    vaadin-side-nav-item
+Current view/page item
+    vaadin-side-nav-item[current]
+Item with link
+    vaadin-side-nav-item[path]
+Item without link
+    vaadin-side-nav-item:not([path])
+Item contents (excl. children)
+    vaadin-side-nav-item::part(content)
+Link label (incl. prefix/suffix)
+    vaadin-side-nav-item::part(link)
+Item prefix element
+    vaadin-side-nav-item > [slot="prefix"]
+Item suffix element
+    vaadin-side-nav-item > [slot="suffix"]
+Item icon
+    vaadin-side-nav-item > vaadin-icon
+
+Parent and Child Items
+
+Expand/collapse toggle
+    vaadin-side-nav-item::part(toggle-button)
+Expand/collapse toggle icon
+    vaadin-side-nav-item::part(toggle-button)::before
+Expanded item
+    vaadin-side-nav-item[expanded]
+Child item
+    vaadin-side-nav-item[slot="children"]

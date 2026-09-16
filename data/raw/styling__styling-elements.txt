@@ -1,0 +1,54 @@
+Styling HTML Elements
+
+A guide to styling HTML elements in Vaadin applications.
+
+Native HTML elements, like <div> and <span>, can be styled the way you would normally style HTML: with CSS and utility classes. CSS class names are typically used to target specific instances of HTML elements.
+
+[Flow: Java]
+var warningBox = new Div("Warning!");
+warningBox.addClassNames("warning-message");
+
+[Flow: Java]
+
+[React: tsx]
+<div className="warning-message">Warning!</div>
+
+[React: tsx]
+
+[CSS]
+.warning-message {
+  background-color: #ff8904;
+}
+
+Utility classes like Tailwind CSS or Lumo Utility Classes can be applied directly to HTML elements:
+
+[Flow: Java]
+var warningBox = new Div("Warning!");
+warningBox.addClassNames("bg-orange-400 p-20");
+
+[Flow: Java]
+
+[React: tsx]
+<div className="bg-orange-400 p-20">Warning!</div>
+
+[React: tsx]
+
+Inline styles can also be applied to individual elements and components.
+
+[Flow: Java]
+var warningBox = new Div("Warning!");
+warningBox.getStyles().setBackground("#ff8904");
+
+[Flow: Java]
+
+[React: tsx]
+<div style={{ backgroundColor: '#ff8904' }}>Warning!</div>
+
+[React: tsx]
+
+Theme style properties can be used to apply theme styles to any HTML element:
+
+[CSS]
+.warning-message {
+  background-color: var(--lumo-warning-color);
+}

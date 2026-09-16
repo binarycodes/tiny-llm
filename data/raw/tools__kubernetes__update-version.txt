@@ -1,0 +1,207 @@
+Rolling Out a New Version
+
+Kubernetes Kit helps to roll out a new version of an application by sending a notification to users on the previous version so that they can choose when to switch. This allows them to save any changes to their work, rather than risk losing them.
+
+To roll out a new version of an application, there are a few basic steps to follow. This page describes them.
+
+Build a New Application Version
+
+Build a new container image using Docker and tag it with the new version number. Below is an example of this:
+
+[terminal]
+docker build -t my-app:2.0.0 .
+
+Note: Image Not Found by Cluster
+
+Depending on the Kubernetes cluster you’re using, you may need to publish the image to a local registry or push the image to the cluster. Otherwise, the image will not be found. Refer to your cluster documentation for more information.
+
+If you’re using kind on a local machine, you need to load the image to the cluster like so:
+
+[terminal]
+kind load docker-image my-app:2.0.0
+
+In a production environment you can publish the image to a registry that is accessible by the cluster.
+
+Deploy the New Version
+
+Create a new deployment manifest:
+
+[app-v2.yaml]
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-v2
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: my-app
+      version: 2.0.0
+  template:
+    metadata:
+      labels:
+        app: my-app
+        version: 2.0.0
+    spec:
+      containers:
+        - name: my-app
+          image: my-app:2.0.0
+          # Sets the APP_VERSION environment variable for the container which is
+          # used during the version update to compare with the new version
+          env:
+            - name: APP_VERSION
+              value: 2.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: multicast
+              containerPort: 5701
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-v2
+spec:
+  selector:
+    app: my-app
+    version: 2.0.0
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+
+Deploy it to the cluster like so:
+
+[terminal]
+kubectl apply -f app-v2.yaml
+
+You should now see four new pods running in the cluster. Below is an example of this:
+
+[terminal]
+kubectl get pods
+
+NAME                            READY   STATUS    RESTARTS      AGE
+my-app-v2-5dcf4cc98c-cmb5m      1/1     Running   0             22s
+my-app-v2-5dcf4cc98c-ctrxq      1/1     Running   0             22s
+my-app-v2-5dcf4cc98c-ktpcq      1/1     Running   0             22s
+my-app-v2-5dcf4cc98c-rfth2      1/1     Running   0             22s
+my-app-v1-f87bfcbb4-5qjml       1/1     Running   0             10m
+my-app-v1-f87bfcbb4-czkzr       1/1     Running   0             10m
+my-app-v1-f87bfcbb4-gjqw6       1/1     Running   0             10m
+my-app-v1-f87bfcbb4-rxvjb       1/1     Running   0             10m
+
+Route New Traffic to the New Version
+
+Before switching permanently to the new version, you can route only new sessions to the new version, while keeping existing sessions on the previous version. This is achieved using the Gateway API’s weighted routing and cookie-based session persistence.
+
+Update the HTTP route manifest to include both versions:
+
+[route-v1-v2.yaml]
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+spec:
+  parentRefs:
+    - name: public-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: my-app-v1
+          port: 80
+          weight: 1
+        - name: my-app-v2
+          port: 80
+          weight: 100
+      sessionPersistence:
+        sessionName: vaadin-session
+        type: Cookie
+
+Deploy it to your cluster:
+
+[terminal]
+kubectl apply -f route-v1-v2.yaml
+
+New sessions are now routed to the new version, while existing sessions remain connected to the previous version through cookie-based session persistence.
+
+Notify Existing Users
+
+Next, you may want to notify existing users that a new version is available. To do this, add an HTTP header filter that injects a version header into requests. The Kubernetes Kit uses this header to show a notification to users on the previous version, prompting them to switch.
+
+The header name is configurable via the vaadin.kubernetes.update-version-header-name property (default: X-AppUpdate).
+
+Update the HTTP route manifest to include a request header modifier:
+
+[route-v1-v2-notify.yaml]
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+spec:
+  parentRefs:
+    - name: public-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: my-app-v1
+          port: 80
+          weight: 1
+        - name: my-app-v2
+          port: 80
+          weight: 100
+      sessionPersistence:
+        sessionName: vaadin-session
+        type: Cookie
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            add:
+              - name: X-AppUpdate
+                value: "2.0.0"
+
+Deploy it to your cluster:
+
+[terminal]
+kubectl apply -f route-v1-v2-notify.yaml
+
+Remove Previous Version
+
+Once you’re satisfied with the new version deployment, you can remove the previous version and route all traffic to the new version.
+
+First, update the HTTP route manifest to point only to the new version:
+
+[route-v2.yaml]
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+spec:
+  parentRefs:
+    - name: public-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: my-app-v2
+          port: 80
+      sessionPersistence:
+        sessionName: vaadin-session
+        type: Cookie
+
+Deploy it to your cluster:
+
+[terminal]
+kubectl apply -f route-v2.yaml
+
+Now delete the previous version deployment and service:
+
+[terminal]
+kubectl delete -f app-v1.yaml

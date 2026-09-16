@@ -1,0 +1,2021 @@
+App Layout
+
+App Layout is a component for building common application layouts.
+
+App Layout is a component for the root layout of a Vaadin application. It provides predefined areas for the navigation drawer, the header, and the view’s content.
+
+Important: Scaled down examples
+
+The examples on this page are scaled down so that their viewport-size-dependent behavior can be demonstrated. Some examples also change their behavior based on your browser viewport size.
+
+[Flow: AppLayoutBasic.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+@Route("app-layout-basic")
+// tag::snippet[]
+public class AppLayoutBasic extends AppLayout {
+
+    public AppLayoutBasic() {
+        DrawerToggle toggle = new DrawerToggle();
+
+        H1 title = new H1("MyApp");
+        title.getStyle().set("font-size", "1.125rem").set("margin", "0");
+
+        SideNav nav = getSideNav();
+        nav.getStyle().set("margin", "var(--vaadin-gap-s)");
+
+        Scroller scroller = new Scroller(nav);
+
+        addToDrawer(scroller);
+        addToNavbar(toggle, title);
+    }
+    // end::snippet[]
+
+    private SideNav getSideNav() {
+        SideNav sideNav = new SideNav();
+        sideNav.addItem(
+                new SideNavItem("Dashboard", "/dashboard",
+                        VaadinIcon.DASHBOARD.create()),
+                new SideNavItem("Orders", "/orders", VaadinIcon.CART.create()),
+                new SideNavItem("Customers", "/customers",
+                        VaadinIcon.USER_HEART.create()),
+                new SideNavItem("Products", "/products",
+                        VaadinIcon.PACKAGE.create()),
+                new SideNavItem("Documents", "/documents",
+                        VaadinIcon.RECORDS.create()),
+                new SideNavItem("Tasks", "/tasks", VaadinIcon.LIST.create()),
+                new SideNavItem("Analytics", "/analytics",
+                        VaadinIcon.CHART.create()));
+        return sideNav;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-basic.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  DrawerToggle,
+  Icon,
+  Scroller,
+  SideNav,
+  type SideNavElement,
+  SideNavItem,
+} from '@vaadin/react-components';
+import { patchSideNavNavigation } from '../../side-nav/react/side-nav-helper';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  margin: 0,
+};
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout>
+      <DrawerToggle slot="navbar" />
+      <h1 slot="navbar" style={h1Style}>
+        MyApp
+      </h1>
+      <Scroller slot="drawer">
+        <SideNav ref={sideNavRef} style={{ margin: 'var(--vaadin-gap-s)' }}>
+          <SideNavItem path="/dashboard">
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+          <SideNavItem path="/orders">
+            <Icon icon="vaadin:cart" slot="prefix" />
+            Orders
+          </SideNavItem>
+          <SideNavItem path="/customers">
+            <Icon icon="vaadin:user-heart" slot="prefix" />
+            Customers
+          </SideNavItem>
+          <SideNavItem path="/products">
+            <Icon icon="vaadin:package" slot="prefix" />
+            Products
+          </SideNavItem>
+          <SideNavItem path="/documents">
+            <Icon icon="vaadin:records" slot="prefix" />
+            Documents
+          </SideNavItem>
+          <SideNavItem path="/tasks">
+            <Icon icon="vaadin:list" slot="prefix" />
+            Tasks
+          </SideNavItem>
+          <SideNavItem path="/analytics">
+            <Icon icon="vaadin:chart" slot="prefix" />
+            Analytics
+          </SideNavItem>
+        </SideNav>
+      </Scroller>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-basic.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/scroller';
+import '@vaadin/side-nav';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-basic')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      margin: 0;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout>
+        <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
+        <h1 slot="navbar">MyApp</h1>
+        <vaadin-scroller slot="drawer">
+          <vaadin-side-nav style="margin: var(--vaadin-gap-s)">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/orders">
+              <vaadin-icon icon="vaadin:cart" slot="prefix"></vaadin-icon>
+              Orders
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/customers">
+              <vaadin-icon icon="vaadin:user-heart" slot="prefix"></vaadin-icon>
+              Customers
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/products">
+              <vaadin-icon icon="vaadin:package" slot="prefix"></vaadin-icon>
+              Products
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/documents">
+              <vaadin-icon icon="vaadin:records" slot="prefix"></vaadin-icon>
+              Documents
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/tasks">
+              <vaadin-icon icon="vaadin:list" slot="prefix"></vaadin-icon>
+              Tasks
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/analytics">
+              <vaadin-icon icon="vaadin:chart" slot="prefix"></vaadin-icon>
+              Analytics
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+        </vaadin-scroller>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The layout consists of three sections:
+
+- Content area, a view content area;
+- Navbar, a horizontal navigation bar; and
+- Drawer, a collapsible navigation drawer-
+
+An application’s main navigation blocks should be positioned in the navbar or the drawer or both, whereas views are rendered in the content area. App Layout is responsive and adjusts automatically to fit desktop, tablet, and mobile screen sizes.
+
+Usage as Root Layout
+
+App Layout is designed to be the application’s root layout, within which most or all views are rendered. It’s not intended to be nested inside other elements.
+
+Flow
+
+With Flow, the root layout can be defined using the @Layout annotation, which tells the router to render all routes or views inside of it.
+
+[Java]
+@Layout
+public class MainLayout extends AppLayout {
+
+}
+
+Hilla
+
+Files named @layout.tsx define the root layout for the other views defined in the same directory or its subdirectories. A @layout.tsx in the root of the views directory acts as the default root layout for all views in the application. An <Outlet/> element is used to tell the router where to render the contents of routes or views.
+
+[@layout.tsx]
+export default function MainLayout() {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
+}
+
+See Hilla routing documentation for details.
+
+Content Area
+
+The content area is where individual views are rendered. The route layout mechanisms in Flow and Hilla can automatically render the contents of routes and views there, but it can be invoked manually:
+
+[Flow: Java]
+public class MainLayout extends AppLayout {
+  public MainLayout() {
+    MyView view = new MyView();
+    setContent(view);
+  }
+}
+
+[Flow: Java]
+
+[React: tsx]
+<AppLayout>
+  <MyView/>
+</AppLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-app-layout>
+  <my-view></my-view>
+</vaadin-app-layout>
+
+[Lit: HTML]
+
+Navbar
+
+The navbar is a header above the content area. It can contain primary or secondary navigation elements, the application’s title, or view-specific content such as the title of the current view.
+
+[Flow: Java]
+@Layout
+public class MainLayout extends AppLayout {
+  public MainLayout() {
+    H1 title = new H1("My App");
+    addToNavbar(title);
+  }
+}
+
+[Flow: Java]
+
+[React: tsx]
+<AppLayout>
+  <h1 slot="navbar">
+    My App
+  </h1>
+</AppLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-app-layout>
+  <h1 slot="navbar">My App</h1>
+</vaadin-app-layout>
+
+[Lit: HTML]
+
+Navbar Placement
+
+The navbar can be located on top, or to the side of the drawer. When put it on top, the navbar is typically used as an application header. Application headers contain, for example, the application’s name and branding, as well as actions that apply to the entire application (e.g., notifications, settings, etc.).
+
+[Flow: AppLayoutNavbarPlacement.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+@Route("app-layout-navbar-placement")
+// tag::snippet[]
+public class AppLayoutNavbarPlacement extends AppLayout {
+
+    public AppLayoutNavbarPlacement() {
+        DrawerToggle toggle = new DrawerToggle();
+
+        H1 title = new H1("MyApp");
+        title.getStyle().set("font-size", "1.125rem").set("margin", "0");
+
+        SideNav nav = getSideNav();
+        nav.getStyle().set("margin", "var(--vaadin-gap-s)");
+
+        Scroller scroller = new Scroller(nav);
+
+        addToDrawer(scroller);
+        addToNavbar(toggle, title);
+    }
+    // end::snippet[]
+
+    private SideNav getSideNav() {
+        SideNav nav = new SideNav();
+        nav.addItem(
+                new SideNavItem("Dashboard", "/dashboard",
+                        VaadinIcon.DASHBOARD.create()),
+                new SideNavItem("Orders", "/orders", VaadinIcon.CART.create()),
+                new SideNavItem("Customers", "/customers",
+                        VaadinIcon.USER_HEART.create()),
+                new SideNavItem("Products", "/products",
+                        VaadinIcon.PACKAGE.create()),
+                new SideNavItem("Documents", "/documents",
+                        VaadinIcon.RECORDS.create()),
+                new SideNavItem("Tasks", "/tasks", VaadinIcon.LIST.create()),
+                new SideNavItem("Analytics", "/analytics",
+                        VaadinIcon.CHART.create()));
+        return nav;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-navbar-placement.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  DrawerToggle,
+  Icon,
+  Scroller,
+  SideNav,
+  type SideNavElement,
+  SideNavItem,
+} from '@vaadin/react-components';
+import { patchSideNavNavigation } from '../../side-nav/react/side-nav-helper';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  margin: 0,
+};
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout>
+      <DrawerToggle slot="navbar" />
+      <h1 slot="navbar" style={h1Style}>
+        MyApp
+      </h1>
+
+      <Scroller slot="drawer">
+        <SideNav ref={sideNavRef} style={{ margin: 'var(--vaadin-gap-s)' }}>
+          <SideNavItem path="/dashboard">
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+          <SideNavItem path="/orders">
+            <Icon icon="vaadin:cart" slot="prefix" />
+            Orders
+          </SideNavItem>
+          <SideNavItem path="/customers">
+            <Icon icon="vaadin:user-heart" slot="prefix" />
+            Customers
+          </SideNavItem>
+          <SideNavItem path="/products">
+            <Icon icon="vaadin:package" slot="prefix" />
+            Products
+          </SideNavItem>
+          <SideNavItem path="/documents">
+            <Icon icon="vaadin:records" slot="prefix" />
+            Documents
+          </SideNavItem>
+          <SideNavItem path="/tasks">
+            <Icon icon="vaadin:list" slot="prefix" />
+            Tasks
+          </SideNavItem>
+          <SideNavItem path="/analytics">
+            <Icon icon="vaadin:chart" slot="prefix" />
+            Analytics
+          </SideNavItem>
+        </SideNav>
+      </Scroller>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-navbar-placement.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/scroller';
+import '@vaadin/side-nav';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-navbar-placement')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      margin: 0;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout>
+        <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
+        <h1 slot="navbar">MyApp</h1>
+        <vaadin-scroller slot="drawer">
+          <vaadin-side-nav style="margin: var(--vaadin-gap-s)">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              <span>Dashboard</span>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/orders">
+              <vaadin-icon icon="vaadin:cart" slot="prefix"></vaadin-icon>
+              <span>Orders</span>
+            </vaadin-side-nav-item>
+            <!-- end::snippet[] -->
+            <vaadin-side-nav-item path="/customers">
+              <vaadin-icon icon="vaadin:user-heart" slot="prefix"></vaadin-icon>
+              <span>Customers</span>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/products">
+              <vaadin-icon icon="vaadin:package" slot="prefix"></vaadin-icon>
+              <span>Products</span>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/documents">
+              <vaadin-icon icon="vaadin:records" slot="prefix"></vaadin-icon>
+              <span>Documents</span>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/tasks">
+              <vaadin-icon icon="vaadin:list" slot="prefix"></vaadin-icon>
+              <span>Tasks</span>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/analytics">
+              <vaadin-icon icon="vaadin:chart" slot="prefix"></vaadin-icon>
+              <span>Analytics</span>
+            </vaadin-side-nav-item>
+            <!-- tag::snippet[] -->
+          </vaadin-side-nav>
+        </vaadin-scroller>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+When placed to the side, the navbar is often seen as a view header, containing the view’s title, as well as actions and secondary navigation that relate only to the current view.
+
+[Flow: AppLayoutNavbarPlacementSide.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+@Route("app-layout-navbar-placement-side")
+// tag::snippet[]
+public class AppLayoutNavbarPlacementSide extends AppLayout {
+
+    public AppLayoutNavbarPlacementSide() {
+        DrawerToggle toggle = new DrawerToggle();
+
+        H1 title = new H1("Dashboard");
+        title.getStyle().set("font-size", "1.125rem").set("margin", "0");
+
+        SideNav nav = getSideNav();
+        nav.getStyle().set("margin", "var(--vaadin-gap-s)");
+
+        Scroller scroller = new Scroller(nav);
+
+        addToDrawer(scroller);
+        addToNavbar(toggle, title);
+
+        setPrimarySection(Section.DRAWER);
+    }
+    // end::snippet[]
+
+    private SideNav getSideNav() {
+        SideNav nav = new SideNav();
+        nav.addItem(
+                new SideNavItem("Dashboard", "/dashboard",
+                        VaadinIcon.DASHBOARD.create()),
+                new SideNavItem("Orders", "/orders", VaadinIcon.CART.create()),
+                new SideNavItem("Customers", "/customers",
+                        VaadinIcon.USER_HEART.create()),
+                new SideNavItem("Products", "/products",
+                        VaadinIcon.PACKAGE.create()),
+                new SideNavItem("Documents", "/documents",
+                        VaadinIcon.RECORDS.create()),
+                new SideNavItem("Tasks", "/tasks", VaadinIcon.LIST.create()),
+                new SideNavItem("Analytics", "/analytics",
+                        VaadinIcon.CHART.create()));
+        return nav;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-navbar-placement-side.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  DrawerToggle,
+  Icon,
+  Scroller,
+  SideNav,
+  type SideNavElement,
+  SideNavItem,
+} from '@vaadin/react-components';
+import { patchSideNavNavigation } from '../../side-nav/react/side-nav-helper';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  margin: 0,
+};
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout primarySection="drawer">
+      <DrawerToggle slot="navbar" />
+
+      <h1 slot="navbar" style={h1Style}>
+        Dashboard
+      </h1>
+
+      <Scroller slot="drawer">
+        <SideNav ref={sideNavRef} style={{ margin: 'var(--vaadin-gap-s)' }}>
+          <SideNavItem path="/dashboard">
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+
+          <SideNavItem path="/orders">
+            <Icon icon="vaadin:cart" slot="prefix" />
+            Orders
+          </SideNavItem>
+          {/* end::snippet[] */}
+          <SideNavItem path="/customers">
+            <Icon icon="vaadin:user-heart" slot="prefix" />
+            Customers
+          </SideNavItem>
+
+          <SideNavItem path="/products">
+            <Icon icon="vaadin:package" slot="prefix" />
+            Products
+          </SideNavItem>
+
+          <SideNavItem path="/documents">
+            <Icon icon="vaadin:records" slot="prefix" />
+            Documents
+          </SideNavItem>
+          <SideNavItem path="/tasks">
+            <Icon icon="vaadin:list" slot="prefix" />
+            Tasks
+          </SideNavItem>
+
+          <SideNavItem path="/analytics">
+            <Icon icon="vaadin:chart" slot="prefix" />
+            Analytics
+          </SideNavItem>
+          {/* tag::snippet[] */}
+        </SideNav>
+      </Scroller>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-navbar-placement-side.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/scroller';
+import '@vaadin/side-nav';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-navbar-placement-side')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      margin: 0;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout primary-section="drawer">
+        <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
+        <h1 slot="navbar">Dashboard</h1>
+        <vaadin-scroller slot="drawer">
+          <vaadin-side-nav style="margin: var(--vaadin-gap-s)">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/orders">
+              <vaadin-icon icon="vaadin:cart" slot="prefix"></vaadin-icon>
+              Orders
+            </vaadin-side-nav-item>
+            <!-- end::snippet[] -->
+            <vaadin-side-nav-item path="/customers">
+              <vaadin-icon icon="vaadin:user-heart" slot="prefix"></vaadin-icon>
+              Customers
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/products">
+              <vaadin-icon icon="vaadin:package" slot="prefix"></vaadin-icon>
+              Products
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/documents">
+              <vaadin-icon icon="vaadin:records" slot="prefix"></vaadin-icon>
+              Documents
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/tasks">
+              <vaadin-icon icon="vaadin:list" slot="prefix"></vaadin-icon>
+              Tasks
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/analytics">
+              <vaadin-icon icon="vaadin:chart" slot="prefix"></vaadin-icon>
+              Analytics
+            </vaadin-side-nav-item>
+            <!-- tag::snippet[] -->
+          </vaadin-side-nav>
+        </vaadin-scroller>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Drawer
+
+The drawer can switch between a fixed area next to the view’s content and an expandable panel, toggled via the drawer toggle. It typically contains the application’s primary navigation, such as a Side Navigation component.
+
+[Flow: Java]
+@Layout
+public class MainLayout extends AppLayout {
+  public MainLayout() {
+    SideNav nav = new SideNav();
+    addToDrawer(nav);
+  }
+}
+
+[Flow: Java]
+
+[React: tsx]
+<AppLayout>
+  <SideNav slot="drawer">
+    ...
+  </SideNav>
+</AppLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-app-layout>
+  <vaadin-side-nav slot="drawer">
+    ...
+  </vaadin-side-nav>
+</vaadin-app-layout>
+
+[Lit: HTML]
+
+Drawer Toggle
+
+Show and hide the drawer using a Drawer Toggle or a Button. The Drawer Toggle, which is represented by the hamburger icon (i.e., ☰), should always be accessible — unless the drawer is empty. It’s usually situated in the navbar.
+
+Scrolling Behavior
+
+Depending on whether App Layout has a defined height, the way the content inside the layout scrolls can differ.
+
+Auto Height
+
+When the App Layout has an undefined or auto height set, which is the default, the <body> element is the scrolling container for the content inside the layout.
+
+[Flow: AppLayoutHeightAuto.java]
+package com.vaadin.demo.component.applayout;
+
+import java.util.List;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("app-layout-height-auto")
+// tag::snippet[]
+public class AppLayoutHeightAuto extends AppLayout {
+
+    public AppLayoutHeightAuto() {
+        H1 title = new H1("MyApp");
+        title.getStyle().set("font-size", "1.125rem").set("margin",
+                "var(--vaadin-padding-m)");
+        addToNavbar(title);
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        List<Person> people = DataService.getPeople(20);
+        grid.setItems(people);
+        grid.setAllRowsVisible(true);
+        setContent(grid);
+    }
+    // end::snippet[]
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-height-auto.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { AppLayout, Grid, GridColumn } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  margin: 'var(--vaadin-padding-m)',
+};
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople({ count: 20 }).then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <AppLayout>
+      <h1 slot="navbar" style={h1Style}>
+        MyApp
+      </h1>
+
+      <Grid items={items.value} allRowsVisible>
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-height-auto.ts]
+import '@vaadin/app-layout';
+import '@vaadin/grid';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('app-layout-height-auto')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      margin: var(--vaadin-padding-m);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 20 });
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout>
+        <h1 slot="navbar">MyApp</h1>
+        <vaadin-grid .items="${this.items}" all-rows-visible>
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The vertical scrollbar crosses the App Layout navbar and the content flows under it, allowing for translucent visual styles. Mobile browsers collapse and expand their toolbars when the user scrolls down and up, respectively. On iOS, you can tap the status bar (i.e., where signal strength, battery, and clock are indicated) to scroll back to the top of the page or view.
+
+This behavior isn’t compatible with vertically scrollable Grids, or other scrolling containers within the content area that’s height is 100%. To support those, define 100% height for the App Layout.
+
+Full Height (100%)
+
+To allow a nested component to take all of the available vertical space inside the App Layout, you need to set an explicit height for the layout, typically 100%. A common use case is to let a data grid fill the entire content area.
+
+Note: Make sure all parent components and elements have 100% height. The full hierarchy of components from the App Layout to the <body> element need to have 100% height.
+
+[Flow: AppLayoutHeightFull.java]
+package com.vaadin.demo.component.applayout;
+
+import java.util.List;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("app-layout-height-full")
+// tag::snippet[]
+public class AppLayoutHeightFull extends AppLayout {
+
+    public AppLayoutHeightFull() {
+        H1 title = new H1("MyApp");
+        title.getStyle().set("font-size", "1.125rem").set("margin",
+                "var(--vaadin-padding-m)");
+        addToNavbar(title);
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        setContent(grid);
+
+        getElement().getStyle().set("height", "100%");
+        grid.setHeight("100%");
+        grid.addThemeVariants(GridVariant.NO_BORDER);
+    }
+    // end::snippet[]
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-height-full.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { AppLayout, Grid, GridColumn } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  margin: 'var(--vaadin-padding-m)',
+};
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <AppLayout style={{ height: '100%' }}>
+      <h1 slot="navbar" style={h1Style}>
+        MyApp
+      </h1>
+
+      <Grid items={items.value} style={{ height: '100%' }} theme="no-border">
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+const hostStyles = css`
+  :host {
+    height: 100vh;
+    margin: calc(-1 * var(--docs-space-l));
+  }
+`;
+
+[Lit: app-layout-height-full.ts]
+import '@vaadin/app-layout';
+import '@vaadin/grid';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('app-layout-height-full')
+export class Example extends LitElement {
+  static override styles = css`
+    :host {
+      height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.125rem;
+      margin: var(--vaadin-padding-m);
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout style="height: 100%;">
+        <h1 slot="navbar">MyApp</h1>
+        <vaadin-grid .items="${this.items}" style="height: 100%;" theme="no-border">
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // TODO: workaround to remove the padding from parent container (coming from Design System Publisher)
+    if (this.parentElement) this.parentElement.style.padding = '0';
+  }
+}
+
+The vertical scrollbar stays within the layout content area, and mobile browsers don’t collapse their toolbars when the content area is scrolled down.
+
+Bottom Navbar on Small Touchscreens
+
+When the navbar is used for navigation, the touch-optimized navbar slot can be used to provide a separate version of the navigation at the bottom of the UI, optimized for mobile phones.
+
+[Flow: AppLayoutBottomNavbar.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
+
+@Route("app-layout-bottom-navbar")
+// tag::snippet[]
+public class AppLayoutBottomNavbar extends AppLayout {
+
+    public AppLayoutBottomNavbar() {
+        H1 title = new H1("MyApp");
+        title.getStyle().set("font-size", "1.125rem").set("margin",
+                "var(--vaadin-padding-m) var(--vaadin-padding-l)");
+
+        HorizontalLayout nav = getNavigation();
+
+        H2 viewTitle = new H2("View title");
+        Paragraph viewContent = new Paragraph("View content");
+
+        Div content = new Div();
+        content.add(viewTitle, viewContent);
+
+        addToNavbar(title);
+        addToNavbar(true, nav);
+
+        setContent(content);
+    }
+    // end::snippet[]
+
+    private HorizontalLayout getNavigation() {
+        HorizontalLayout navigation = new HorizontalLayout();
+        navigation.setWidthFull();
+        navigation
+                .setJustifyContentMode(FlexComponent.JustifyContentMode.EVENLY);
+        navigation.setPadding(false);
+        navigation.setSpacing(false);
+        navigation.add(createLink(VaadinIcon.DASHBOARD, "Dashboard"),
+                createLink(VaadinIcon.CART, "Orders"),
+                createLink(VaadinIcon.USER_HEART, "Customers"),
+                createLink(VaadinIcon.PACKAGE, "Products"));
+
+        return navigation;
+    }
+
+    private RouterLink createLink(VaadinIcon icon, String viewName) {
+        RouterLink link = new RouterLink();
+        // Demo has no routes
+        // link.setRoute(viewClass.java);
+        link.getStyle().set("display", "flex").set("align-items", "center")
+                .set("padding", "0 1.5rem");
+        link.add(icon.create());
+        link.getElement().setAttribute("aria-label", viewName);
+        return link;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-bottom-navbar.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  type AppLayoutElement,
+  HorizontalLayout,
+  type HorizontalLayoutElement,
+  Icon,
+} from '@vaadin/react-components';
+import { patchAppLayoutNavigation } from '../app-layout-helper';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  margin: 'var(--vaadin-padding-m) var(--vaadin-padding-l)',
+};
+
+const linkStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 1.5rem',
+};
+
+function Example() {
+  const appLayoutRef = useRef<AppLayoutElement>(null);
+  const horizontalLayoutRef = useRef<HorizontalLayoutElement>(null);
+  useEffect(() => {
+    const appLayout = appLayoutRef.current;
+    if (appLayout) {
+      // --vaadin-app-layout-touch-optimized is only enforced as part of this example
+      appLayout.style.setProperty('--vaadin-app-layout-touch-optimized', 'true');
+      (appLayout as any)._updateTouchOptimizedMode();
+    }
+  }, [appLayoutRef.current]);
+
+  useEffect(() => {
+    const horizontalLayout = horizontalLayoutRef.current;
+    if (horizontalLayout) {
+      patchAppLayoutNavigation(horizontalLayout);
+    }
+  }, [horizontalLayoutRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout ref={appLayoutRef}>
+      <h1 slot="navbar" style={h1Style}>
+        MyApp
+      </h1>
+
+      <HorizontalLayout
+        slot="navbar touch-optimized"
+        style={{ width: '100%', justifyContent: 'space-evenly' }}
+        ref={horizontalLayoutRef}
+      >
+        <a href="/dashboard" aria-label="Dashboard" style={linkStyle}>
+          <Icon icon="vaadin:dashboard" />
+        </a>
+        <a href="/orders" aria-label="Orders" style={linkStyle}>
+          <Icon icon="vaadin:cart" />
+        </a>
+        <a href="/customers" aria-label="Customers" style={linkStyle}>
+          <Icon icon="vaadin:user-heart" />
+        </a>
+        <a href="/products" aria-label="Products" style={linkStyle}>
+          <Icon icon="vaadin:package" />
+        </a>
+      </HorizontalLayout>
+
+      <div className="content">
+        <h2>View title</h2>
+        <p>View content</p>
+      </div>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-bottom-navbar.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-bottom-navbar')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      margin: var(--vaadin-padding-m) var(--vaadin-padding-l);
+    }
+
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- --vaadin-app-layout-touch-optimized is only enforced as part of this example -->
+      <vaadin-app-layout style="--vaadin-app-layout-touch-optimized: true">
+        <h1 slot="navbar">MyApp</h1>
+        <vaadin-horizontal-layout
+          slot="navbar touch-optimized"
+          style="width: 100%; justify-content: space-evenly;"
+        >
+          <a
+            href="/dashboard"
+            aria-label="Dashboard"
+            style="display: flex; align-items: center; padding: 0 1.5rem;"
+          >
+            <vaadin-icon icon="vaadin:dashboard"></vaadin-icon>
+          </a>
+          <a
+            href="/orders"
+            aria-label="Orders"
+            style="display: flex; align-items: center; padding: 0 1.5rem;"
+          >
+            <vaadin-icon icon="vaadin:cart"></vaadin-icon>
+          </a>
+          <!-- end::snippet[] -->
+          <a
+            href="/customers"
+            aria-label="Customers"
+            style="display: flex; align-items: center; padding: 0 1.5rem;"
+          >
+            <vaadin-icon icon="vaadin:user-heart"></vaadin-icon>
+          </a>
+          <a
+            href="/products"
+            aria-label="Products"
+            style="display: flex; align-items: center; padding: 0 1.5rem;"
+          >
+            <vaadin-icon icon="vaadin:package"></vaadin-icon>
+          </a>
+          <!-- tag::snippet[] -->
+        </vaadin-horizontal-layout>
+        <div class="content">
+          <h2>View title</h2>
+          <p>View content</p>
+        </div>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Best Practices
+
+Navbar vs Drawer
+
+Choose between navbar and drawer based primarily on the number of items placed in it. The navbar is a good choice for a small number of items (i.e., three to five), as they can fit into the viewport without scrolling.
+
+[Flow: AppLayoutNavbar.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
+
+@Route("app-layout-navbar")
+// tag::snippet[]
+public class AppLayoutNavbar extends AppLayout {
+
+    public AppLayoutNavbar() {
+        H1 title = new H1("MyApp");
+        title.getStyle().set("font-size", "1.125rem")
+                .set("left", "var(--vaadin-padding-l)").set("margin", "0")
+                .set("position", "absolute");
+
+        HorizontalLayout navigation = getNavigation();
+        navigation.getElement()
+
+        addToNavbar(title, navigation);
+    }
+    // end::snippet[]
+
+    private HorizontalLayout getNavigation() {
+        HorizontalLayout navigation = new HorizontalLayout();
+        navigation.setWidthFull();
+        navigation
+                .setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        navigation.setHeight("2.25rem");
+        navigation.getStyle().set("gap", "0.5rem");
+        navigation.add(createLink("Dashboard"), createLink("Orders"),
+                createLink("Customers"), createLink("Products"));
+        return navigation;
+    }
+
+    private RouterLink createLink(String viewName) {
+        RouterLink link = new RouterLink();
+        link.add(viewName);
+        // Demo has no routes
+        // link.setRoute(viewClass.java);
+        link.getStyle().set("display", "flex").set("align-items", "center")
+                .set("padding", "0 1rem").set("font-weight", "500")
+                .set("text-decoration", "none");
+
+        return link;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-navbar.tsx]
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  HorizontalLayout,
+  type HorizontalLayoutElement,
+} from '@vaadin/react-components';
+import { patchAppLayoutNavigation } from '../app-layout-helper';
+
+const h1Style: React.CSSProperties = {
+  fontSize: '1.125rem',
+  left: 'var(--vaadin-padding-l)',
+  margin: 0,
+  position: 'absolute',
+};
+
+const linkStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 1rem',
+  fontWeight: '500',
+  textDecoration: 'none',
+};
+
+function Example() {
+  const horizontalLayoutRef = useRef<HorizontalLayoutElement>(null);
+
+  useEffect(() => {
+    const horizontalLayout = horizontalLayoutRef.current;
+    if (horizontalLayout) {
+      patchAppLayoutNavigation(horizontalLayout);
+    }
+  }, [horizontalLayoutRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout>
+      <h1 slot="navbar" style={h1Style}>
+        MyApp
+      </h1>
+      <HorizontalLayout
+        ref={horizontalLayoutRef}
+        slot="navbar"
+        style={{ width: '100%', height: '2.25rem', justifyContent: 'center', gap: '0.5rem' }}
+      >
+        <a href="/dashboard" style={linkStyle}>
+          Dashboard
+        </a>
+        <a href="/orders" style={linkStyle}>
+          Orders
+        </a>
+        <a href="/customers" style={linkStyle}>
+          Customers
+        </a>
+        <a href="/products" style={linkStyle}>
+          Products
+        </a>
+      </HorizontalLayout>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-navbar.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-navbar')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      left: var(--vaadin-padding-l);
+      margin: 0;
+      position: absolute;
+    }
+
+    vaadin-tabs {
+      margin: auto;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout>
+        <h1 slot="navbar">MyApp</h1>
+        <vaadin-horizontal-layout
+          slot="navbar"
+          style="width: 100%; height: 2.25rem; justify-content: center; gap: 0.5rem"
+        >
+          <a
+            href="/dashboard"
+            style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+          >
+            Dashboard
+          </a>
+          <a
+            href="/orders"
+            style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+          >
+            Orders
+          </a>
+          <!-- end::snippet[] -->
+          <a
+            href="/customers"
+            style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+          >
+            Customers
+          </a>
+          <a
+            href="/products"
+            style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+          >
+            Products
+          </a>
+          <!-- tag::snippet[] -->
+        </vaadin-horizontal-layout>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+When more items need to be displayed, or if small-screen support is a priority, the drawer is a better choice. It can accommodate a longer list of links without scrolling, and collapses into a hamburger menu on small screens. Furthermore, a vertical list of items is easier for the user to scan.
+
+[Flow: AppLayoutDrawer.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+@Route("app-layout-drawer")
+// tag::snippet[]
+public class AppLayoutDrawer extends AppLayout {
+
+    public AppLayoutDrawer() {
+        DrawerToggle toggle = new DrawerToggle();
+
+        H1 title = new H1("Dashboard");
+        title.getStyle().set("font-size", "1.125rem").set("margin", "0");
+
+        SideNav nav = getTabs();
+        nav.getStyle().set("margin", "var(--vaadin-gap-s)");
+
+        Scroller scroller = new Scroller(nav);
+
+        addToDrawer(scroller);
+        addToNavbar(toggle, title);
+
+        setPrimarySection(Section.DRAWER);
+    }
+    // end::snippet[]
+
+    private SideNav getTabs() {
+        SideNav nav = new SideNav();
+        nav.addItem(
+                new SideNavItem("Dashboard", "/dashboard",
+                        VaadinIcon.DASHBOARD.create()),
+                new SideNavItem("Orders", "/orders", VaadinIcon.CART.create()),
+                new SideNavItem("Customers", "/customers",
+                        VaadinIcon.USER_HEART.create()),
+                new SideNavItem("Products", "/products",
+                        VaadinIcon.PACKAGE.create()),
+                new SideNavItem("Documents", "/documents",
+                        VaadinIcon.RECORDS.create()),
+                new SideNavItem("Tasks", "/tasks", VaadinIcon.LIST.create()),
+                new SideNavItem("Analytics", "/analytics",
+                        VaadinIcon.CHART.create()));
+        return nav;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-drawer.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  DrawerToggle,
+  Icon,
+  Scroller,
+  SideNav,
+  type SideNavElement,
+  SideNavItem,
+} from '@vaadin/react-components';
+import { patchSideNavNavigation } from '../../side-nav/react/side-nav-helper';
+
+const h1Style = {
+  fontSize: '1.125rem',
+};
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout primarySection="drawer">
+      <DrawerToggle slot="navbar" />
+
+      <h1 slot="navbar" style={h1Style}>
+        Dashboard
+      </h1>
+
+      <Scroller slot="drawer">
+        <SideNav ref={sideNavRef} style={{ margin: 'var(--vaadin-gap-s)' }}>
+          <SideNavItem path="/dashboard">
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+          <SideNavItem path="/orders">
+            <Icon icon="vaadin:cart" slot="prefix" />
+            Orders
+          </SideNavItem>
+          <SideNavItem path="/customers">
+            <Icon icon="vaadin:user-heart" slot="prefix" />
+            Customers
+          </SideNavItem>
+          <SideNavItem path="/products">
+            <Icon icon="vaadin:package" slot="prefix" />
+            Products
+          </SideNavItem>
+          <SideNavItem path="/documents">
+            <Icon icon="vaadin:records" slot="prefix" />
+            Documents
+          </SideNavItem>
+          <SideNavItem path="/tasks">
+            <Icon icon="vaadin:list" slot="prefix" />
+            Tasks
+          </SideNavItem>
+          <SideNavItem path="/analytics">
+            <Icon icon="vaadin:chart" slot="prefix" />
+            Analytics
+          </SideNavItem>
+        </SideNav>
+      </Scroller>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-drawer.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/scroller';
+import '@vaadin/side-nav';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-drawer')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      margin: 0;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout primary-section="drawer">
+        <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
+        <h1 slot="navbar">Dashboard</h1>
+        <vaadin-scroller slot="drawer">
+          <vaadin-side-nav style="margin: var(--vaadin-gap-s)">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/orders">
+              <vaadin-icon icon="vaadin:cart" slot="prefix"></vaadin-icon>
+              Orders
+            </vaadin-side-nav-item>
+            <!-- end::snippet[] -->
+            <vaadin-side-nav-item path="/customers">
+              <vaadin-icon icon="vaadin:user-heart" slot="prefix"></vaadin-icon>
+              Customers
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/products">
+              <vaadin-icon icon="vaadin:package" slot="prefix"></vaadin-icon>
+              Products
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/documents">
+              <vaadin-icon icon="vaadin:records" slot="prefix"></vaadin-icon>
+              Documents
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/tasks">
+              <vaadin-icon icon="vaadin:list" slot="prefix"></vaadin-icon>
+              Tasks
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/analytics">
+              <vaadin-icon icon="vaadin:chart" slot="prefix"></vaadin-icon>
+              Analytics
+            </vaadin-side-nav-item>
+            <!-- tag::snippet[] -->
+          </vaadin-side-nav>
+        </vaadin-scroller>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+For applications that require multilevel or hierarchical navigation, use the drawer to contain at least the first level. The secondary and tertiary navigation items can be placed in either the drawer or the navbar.
+
+[Flow: AppLayoutSecondaryNavigation.java]
+package com.vaadin.demo.component.applayout;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
+
+@Route("app-layout-secondary-navigation")
+// tag::snippet[]
+public class AppLayoutSecondaryNavigation extends AppLayout {
+
+    public AppLayoutSecondaryNavigation() {
+        H1 appTitle = new H1("MyApp");
+        appTitle.getStyle().set("font-size", "1.125rem")
+                .set("line-height", "2.75rem")
+                .set("margin", "0 var(--vaadin-padding-m)");
+
+        SideNav views = getPrimaryNavigation();
+        views.getStyle().set("margin", "var(--vaadin-gap-s)");
+
+        Scroller scroller = new Scroller(views);
+
+        DrawerToggle toggle = new DrawerToggle();
+        toggle.getStyle().set("margin-inline-end", "var(--vaadin-gap-s)");
+
+        H2 viewTitle = new H2("Orders");
+        viewTitle.getStyle().set("font-size", "1.125rem").set("margin", "0");
+
+        HorizontalLayout subViews = getSecondaryNavigation();
+
+        HorizontalLayout wrapper = new HorizontalLayout(toggle, viewTitle);
+        wrapper.setAlignItems(FlexComponent.Alignment.CENTER);
+        wrapper.setSpacing(false);
+
+        VerticalLayout viewHeader = new VerticalLayout(wrapper, subViews);
+        viewHeader.setPadding(false);
+        viewHeader.setSpacing(false);
+
+        addToDrawer(appTitle, scroller);
+        addToNavbar(viewHeader);
+
+        setPrimarySection(Section.DRAWER);
+    }
+    // end::snippet[]
+
+    private SideNav getPrimaryNavigation() {
+        SideNav sideNav = new SideNav();
+        sideNav.addItem(
+                new SideNavItem("Dashboard", "/dashboard",
+                        VaadinIcon.DASHBOARD.create()),
+                new SideNavItem("Orders", "/orders", VaadinIcon.CART.create()),
+                new SideNavItem("Customers", "/customers",
+                        VaadinIcon.USER_HEART.create()),
+                new SideNavItem("Products", "/products",
+                        VaadinIcon.PACKAGE.create()),
+                new SideNavItem("Documents", "/documents",
+                        VaadinIcon.RECORDS.create()),
+                new SideNavItem("Tasks", "/tasks", VaadinIcon.LIST.create()),
+                new SideNavItem("Analytics", "/analytics",
+                        VaadinIcon.CHART.create()));
+        return sideNav;
+    }
+
+    private HorizontalLayout getSecondaryNavigation() {
+        HorizontalLayout navigation = new HorizontalLayout();
+        navigation
+                .setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        navigation.setHeight("2.25rem");
+        navigation.getStyle().set("gap", "0.5rem");
+        navigation.add(createLink("All"), createLink("Open"),
+                createLink("Completed"), createLink("Cancelled"));
+        return navigation;
+    }
+
+    private RouterLink createLink(String viewName) {
+        RouterLink link = new RouterLink();
+        link.add(viewName);
+        // Demo has no routes
+        // link.setRoute(viewClass.java);
+        link.getStyle().set("display", "flex").set("align-items", "center")
+                .set("padding", "0 1rem").set("font-weight", "500")
+                .set("text-decoration", "none");
+
+        return link;
+    }
+
+      // tag::snippet[]
+}
+// end::snippet[]
+
+[React: app-layout-secondary-navigation.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  DrawerToggle,
+  HorizontalLayout,
+  type HorizontalLayoutElement,
+  Icon,
+  Scroller,
+  SideNav,
+  type SideNavElement,
+  SideNavItem,
+} from '@vaadin/react-components';
+import { patchSideNavNavigation } from '../../side-nav/react/side-nav-helper';
+import { patchAppLayoutNavigation } from '../app-layout-helper';
+
+const h1Style = {
+  fontSize: '1.125rem',
+  lineHeight: '2.75rem',
+  margin: '0 var(--vaadin-padding-m)',
+};
+
+const h2Style = {
+  fontSize: '1.125rem',
+  margin: 0,
+};
+
+const linkStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 1rem',
+  fontWeight: '500',
+  textDecoration: 'none',
+};
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+  const horizontalLayoutRef = useRef<HorizontalLayoutElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  useEffect(() => {
+    if (horizontalLayoutRef.current) {
+      // Example-specific workaround
+      patchAppLayoutNavigation(horizontalLayoutRef.current);
+    }
+  }, [horizontalLayoutRef.current]);
+
+  return (
+    // tag::snippet[]
+    <AppLayout primarySection="drawer">
+      <h1 style={h1Style} slot="drawer">
+        MyApp
+      </h1>
+      <Scroller slot="drawer">
+        <SideNav ref={sideNavRef} style={{ margin: 'var(--vaadin-gap-s)' }}>
+          <SideNavItem>
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+
+          <SideNavItem path="/orders">
+            <Icon icon="vaadin:cart" slot="prefix" />
+            Orders
+          </SideNavItem>
+          {/* end::snippet[] */}
+          <SideNavItem path="/customers">
+            <Icon icon="vaadin:user-heart" slot="prefix" />
+            Customers
+          </SideNavItem>
+          <SideNavItem path="/products">
+            <Icon icon="vaadin:package" slot="prefix" />
+            Products
+          </SideNavItem>
+          <SideNavItem path="/documents">
+            <Icon icon="vaadin:records" slot="prefix" />
+            Documents
+          </SideNavItem>
+          <SideNavItem path="/tasks">
+            <Icon icon="vaadin:list" slot="prefix" />
+            Tasks
+          </SideNavItem>
+          <SideNavItem path="/analytics">
+            <Icon icon="vaadin:chart" slot="prefix" />
+            Analytics
+          </SideNavItem>
+          {/* tag::snippet[] */}
+        </SideNav>
+      </Scroller>
+
+      <div slot="navbar">
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <DrawerToggle style={{ marginInlineEnd: 'var(--vaadin-gap-s)' }} />
+          <h2 style={h2Style}>Orders</h2>
+        </div>
+
+        <HorizontalLayout
+          ref={horizontalLayoutRef}
+          style={{ height: '2.25rem', justifyContent: 'center', gap: '0.5rem' }}
+        >
+          <a href="/all" style={linkStyle}>
+            All
+          </a>
+          <a href="/open" style={linkStyle}>
+            Open
+          </a>
+          {/* end::snippet[] */}
+          <a href="/completed" style={linkStyle}>
+            Completed
+          </a>
+          <a href="/cancelled" style={linkStyle}>
+            Cancelled
+          </a>
+          {/* tag::snippet[] */}
+        </HorizontalLayout>
+      </div>
+    </AppLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: app-layout-secondary-navigation.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/scroller';
+import '@vaadin/side-nav';
+import '@vaadin/vertical-layout';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('app-layout-secondary-navigation')
+export class Example extends LitElement {
+  static override styles = css`
+    h1 {
+      font-size: 1.125rem;
+      line-height: 2.75rem;
+      margin: 0 var(--vaadin-padding-m);
+    }
+
+    h2 {
+      font-size: 1.125rem;
+      margin: 0;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-app-layout primary-section="drawer">
+        <h1 slot="drawer">MyApp</h1>
+        <vaadin-scroller slot="drawer">
+          <vaadin-side-nav style="margin: var(--vaadin-gap-s)">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/orders">
+              <vaadin-icon icon="vaadin:cart" slot="prefix"></vaadin-icon>
+              Orders
+            </vaadin-side-nav-item>
+            <!-- end::snippet[] -->
+            <vaadin-side-nav-item path="/customers">
+              <vaadin-icon icon="vaadin:user-heart" slot="prefix"></vaadin-icon>
+              Customers
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/products">
+              <vaadin-icon icon="vaadin:package" slot="prefix"></vaadin-icon>
+              Products
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/documents">
+              <vaadin-icon icon="vaadin:records" slot="prefix"></vaadin-icon>
+              Documents
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/tasks">
+              <vaadin-icon icon="vaadin:list" slot="prefix"></vaadin-icon>
+              Tasks
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/analytics">
+              <vaadin-icon icon="vaadin:chart" slot="prefix"></vaadin-icon>
+              Analytics
+            </vaadin-side-nav-item>
+            <!-- tag::snippet[] -->
+          </vaadin-side-nav>
+        </vaadin-scroller>
+        <vaadin-vertical-layout slot="navbar">
+          <vaadin-horizontal-layout style="align-items: center;">
+            <vaadin-drawer-toggle
+              style="margin-inline-end: var(--vaadin-gap-s)"
+            ></vaadin-drawer-toggle>
+            <h2>Orders</h2>
+          </vaadin-horizontal-layout>
+          <vaadin-horizontal-layout
+            id="navigation"
+            style="height: 2.25rem; justify-content: center; gap: 0.5rem"
+          >
+            <a
+              href="/all"
+              style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+            >
+              All
+            </a>
+            <a
+              href="/open"
+              style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+            >
+              Open
+            </a>
+            <!-- end::snippet[] -->
+            <a
+              href="/completed"
+              style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+            >
+              Completed
+            </a>
+            <a
+              href="/cancelled"
+              style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500; text-decoration: none"
+            >
+              Cancelled
+            </a>
+            <!-- tag::snippet[] -->
+          </vaadin-horizontal-layout>
+        </vaadin-vertical-layout>
+      </vaadin-app-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}

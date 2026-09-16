@@ -1,0 +1,144 @@
+Markdown
+
+Markdown allows you to render Markdown content in your application with support for basic formatting, lists, links, and more.
+
+The Markdown component renders content written in the Markdown syntax as HTML. It supports basic text formatting, lists, links, and more. All content provided to the component is internally sanitized to prevent potentially dangerous HTML from being rendered.
+
+For more information about common Markdown syntax features, see the Markdown Guide.
+
+[Flow: MarkdownBasic.java]
+package com.vaadin.demo.component.markdown;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.markdown.Markdown;
+import com.vaadin.flow.router.Route;
+
+@Route("markdown-basic")
+public class MarkdownBasic extends Div {
+
+    public MarkdownBasic() {
+        // tag::snippet[]
+        String markdownText = """
+                ## Rich Text Formatting
+
+                You can create **bold text**, *italicized text*, and `inline code` with simple Markdown syntax.
+                You can also ~~strike through~~ text when needed.
+
+                ## Lists
+
+                ### Ordered List:
+                1. First item
+                2. Second item
+                3. Third item with **bold text**
+
+                ### Unordered List:
+                - Fruits
+                    - Apples 🍎
+                    - Bananas 🍌
+                    - Oranges 🍊
+                - Vegetables
+                    - Carrots
+                    - Broccoli
+
+                ## Links & Quotes
+
+                > Markdown is a lightweight markup language that you can use to add formatting elements to plaintext text documents.
+
+                [Visit Vaadin website](https://vaadin.com) | [Learn more about Markdown](https://www.markdownguide.org/)
+                """;
+
+        Markdown markdown = new Markdown(markdownText);
+        add(markdown);
+        // end::snippet[]
+    }
+
+}
+
+[React: markdown-basic.tsx]
+import React from 'react';
+import { Markdown } from '@vaadin/react-components/Markdown.js';
+
+function Example() {
+  // tag::snippet[]
+  const markdownText = `
+## Rich Text Formatting
+
+You can create **bold text**, *italicized text*, and \`inline code\` with simple Markdown syntax.
+You can also ~~strike through~~ text when needed.
+
+## Lists
+
+### Ordered List:
+1. First item
+2. Second item
+3. Third item with **bold text**
+
+### Unordered List:
+- Fruits
+  - Apples 🍎
+  - Bananas 🍌
+  - Oranges 🍊
+- Vegetables
+  - Carrots
+  - Broccoli
+
+## Links & Quotes
+
+> Markdown is a lightweight markup language that you can use to add formatting elements to plaintext text documents.
+
+[Visit Vaadin website](https://vaadin.com) | [Learn more about Markdown](https://www.markdownguide.org/)
+  `;
+
+  return <Markdown>{markdownText}</Markdown>;
+  // end::snippet[]
+}
+
+[Lit: markdown-basic.ts]
+import '@vaadin/markdown';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('markdown-basic')
+export class MarkdownBasic extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    const markdownText = `
+## Rich Text Formatting
+
+You can create **bold text**, *italicized text*, and \`inline code\` with simple Markdown syntax.
+You can also ~~strike through~~ text when needed.
+
+## Lists
+
+### Ordered List:
+1. First item
+2. Second item
+3. Third item with **bold text**
+
+### Unordered List:
+- Fruits
+  - Apples 🍎
+  - Bananas 🍌
+  - Oranges 🍊
+- Vegetables
+  - Carrots
+  - Broccoli
+
+## Links & Quotes
+
+> Markdown is a lightweight markup language that you can use to add formatting elements to plaintext text documents.
+
+[Visit Vaadin website](https://vaadin.com) | [Learn more about Markdown](https://www.markdownguide.org/)
+    `;
+
+    return html`<vaadin-markdown .content=${markdownText}></vaadin-markdown>`;
+    // end::snippet[]
+  }
+}

@@ -1,0 +1,1238 @@
+Button
+
+The Button component allows users to perform actions. It comes in several different style variants and supports icons, as well as text labels.
+
+The Button component allows users to perform actions. It comes in several different style variants and supports icons as well as text labels.
+
+[Flow: ButtonBasic.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("button-basic")
+public class ButtonBasic extends Div {
+    private int counter = 0;
+
+    public ButtonBasic() {
+        // tag::snippet[]
+        Button button = new Button("Button");
+        Paragraph info = new Paragraph(infoText());
+        button.addClickListener(clickEvent -> {
+            counter += 1;
+            info.setText(infoText());
+        });
+        // end::snippet[]
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout(button, info);
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        add(horizontalLayout);
+    }
+
+    private String infoText() {
+        return String.format("Clicked %d times", counter);
+    }
+
+}
+
+[React: button-basic.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const counter = useSignal(0);
+
+  return (
+    // tag::snippet[]
+    <HorizontalLayout theme="spacing" style={{ alignItems: 'baseline' }}>
+      <Button onClick={() => counter.value++}>Button</Button>
+      <p>Clicked {counter} times</p>
+    </HorizontalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: button-basic.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private counter = 0;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-horizontal-layout theme="spacing" style="align-items: baseline">
+        <vaadin-button @click="${() => this.counter++}">Button</vaadin-button>
+        <p>Clicked ${this.counter} times</p>
+      </vaadin-horizontal-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Buttons with Icons
+
+Buttons can have icons instead of text, or they can have icons along with text.
+
+[Flow: ButtonIcons.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("button-icons")
+public class ButtonIcons extends Div {
+    public ButtonIcons() {
+        // tag::snippet[]
+        // Icon button using an aria-label to provide a textual alternative
+        // to screen readers
+        Button plusButton = new Button(new Icon(VaadinIcon.PLUS));
+        plusButton.setAriaLabel("Add item");
+
+        // Icon button using a tooltip to provide textual description
+        // of the action that it triggers
+        Button closeButton = new Button(new Icon(VaadinIcon.CLOSE_SMALL));
+        closeButton.setAriaLabel("Close");
+        closeButton.setTooltipText("Close the dialog");
+
+        Button arrowLeftButton = new Button("Left",
+                new Icon(VaadinIcon.ARROW_LEFT));
+
+        Button arrowRightButton = new Button("Right",
+                new Icon(VaadinIcon.ARROW_RIGHT));
+        arrowRightButton.setIconAfterText(true);
+        // end::snippet[]
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout(plusButton,
+                closeButton, arrowLeftButton, arrowRightButton);
+        add(horizontalLayout);
+    }
+
+}
+
+[React: button-icons.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      {/* Icon button using an aria-label to provide a textual alternative
+          to screen readers  */}
+      <Button aria-label="Add item">
+        <Icon icon="vaadin:plus" />
+      </Button>
+
+      {/* Icon button using a tooltip to provide a textual description of
+          the action that it triggers */}
+      <Button aria-label="Close">
+        <Icon icon="vaadin:close-small" />
+        <Tooltip slot="tooltip" text="Close the dialog" />
+      </Button>
+
+      <Button>
+        <Icon icon="vaadin:arrow-left" slot={'prefix'} />
+        Left
+      </Button>
+
+      <Button>
+        Right
+        <Icon icon="vaadin:arrow-right" slot={'suffix'} />
+      </Button>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: button-icons.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-icons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <!-- Icon button using an aria-label to provide a textual alternative
+             to screen readers -->
+        <vaadin-button aria-label="Add item">
+          <vaadin-icon icon="vaadin:plus"></vaadin-icon>
+        </vaadin-button>
+
+        <!-- Icon button using a tooltip to provide a textual description of
+             the action that it triggers -->
+        <vaadin-button aria-label="Close">
+          <vaadin-icon icon="vaadin:close-small"></vaadin-icon>
+          <vaadin-tooltip slot="tooltip" text="Close the dialog"></vaadin-tooltip>
+        </vaadin-button>
+
+        <vaadin-button>
+          <vaadin-icon icon="vaadin:arrow-left" slot="prefix"></vaadin-icon>
+          Left
+        </vaadin-button>
+
+        <vaadin-button>
+          Right
+          <vaadin-icon icon="vaadin:arrow-right" slot="suffix"></vaadin-icon>
+        </vaadin-button>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Use icons sparingly. Most actions are difficult to represent reliably with icons. The benefit of icons plus text should be weighed against the visual clutter they create.
+
+Icon-only buttons should be used primarily for common recurring actions with highly standardized, universally understood icons (e.g., a cross for close), and for actions that are repeated, such as in lists and tables. They should also include a textual alternative for screen readers using the aria-label attribute (see the first two buttons in the previous example).
+
+Additionally, tooltips can be added to provide a description of the action that the button triggers (see the Close button in the previous example).
+
+Buttons with Images
+
+Images on buttons can be used like icons. See the icon usage recommendations for more information.
+
+[Flow: ButtonImages.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+
+@Route("button-images")
+public class ButtonImages extends Div {
+    public ButtonImages() {
+        DownloadHandler src = DownloadHandler.forClassResource(getClass(),
+                "/images/vaadin-logo-dark.png", "vaadin-logo-dark.png");
+        // tag::snippet[]
+        Image img = new Image(src, "Vaadin logo");
+        img.setWidth("100px");
+
+        Button imgButton = new Button(img);
+        // end::snippet[]
+
+        add(imgButton);
+    }
+
+}
+
+[React: button-images.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import img from '../../../../../src/main/resources/images/vaadin-logo-dark.png?url';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Button>
+      <img src={img} width="100" alt="Vaadin logo" />
+    </Button>
+    // end::snippet[]
+  );
+}
+
+[Lit: button-images.ts]
+import '@vaadin/button';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import img from '../../../../src/main/resources/images/vaadin-logo-dark.png?url';
+
+@customElement('button-images')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-button>
+        <img src="${img}" width="100" alt="Vaadin logo" />
+      </vaadin-button>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Disabled
+
+Buttons representing actions that aren’t currently available to the user should be either hidden or disabled. A disabled button is rendered as "dimmed".
+
+[Flow: ButtonDisabled.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("button-disabled")
+public class ButtonDisabled extends Div {
+    public ButtonDisabled() {
+        // tag::snippet[]
+        Button primaryButton = new Button("Primary");
+        primaryButton.setEnabled(false);
+        primaryButton.addThemeVariants(ButtonVariant.PRIMARY);
+
+        Button secondaryButton = new Button("Secondary");
+        secondaryButton.setEnabled(false);
+
+        Button tertiaryButton = new Button("Tertiary");
+        tertiaryButton.setEnabled(false);
+        tertiaryButton.addThemeVariants(ButtonVariant.TERTIARY);
+        // end::snippet[]
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout(primaryButton,
+                secondaryButton, tertiaryButton);
+        add(horizontalLayout);
+    }
+
+}
+
+[React: button-disabled.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Button theme="primary" disabled>
+        Primary
+      </Button>
+
+      <Button theme="secondary" disabled>
+        Secondary
+      </Button>
+
+      <Button theme="tertiary" disabled>
+        Tertiary
+      </Button>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: button-disabled.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-button theme="primary" disabled>Primary</vaadin-button>
+        <vaadin-button theme="secondary" disabled>Secondary</vaadin-button>
+        <vaadin-button theme="tertiary" disabled>Tertiary</vaadin-button>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Focus & Hover
+
+By default, disabled buttons are not focusable and cannot react to hover events. This can cause accessibility issues by making them entirely invisible to assistive technologies, and prevents the use of Tooltips to explain why the action is not available. This can be addressed by enabling the feature flag accessibleDisabledButtons, which allows you to focus and hover on disabled buttons, while preventing them from being triggered:
+
+[Flow]
+# Add this line to src/main/resources/vaadin-featureflags.properties
+com.vaadin.experimental.accessibleDisabledButtons=true
+
+[Lit & React]
+// Set before any button is added to the DOM
+window.Vaadin.featureFlags.accessibleDisabledButtons = true;
+
+Alternatives to Disabling
+
+The most obvious alternative to disabling a button is to hide it. This reduces UI clutter, but can cause confusion since the user won’t know where to watch for the button once the action it represents becomes available. There’s also a risk of undesired layout shifts in the UI when the button appears.
+
+Another option is to keep the button visible and enabled, but show an error, e.g. using a Notification, when it’s clicked. This option is best combined with some custom styling of the button to give the user a hint that the action is unavailable.
+
+Prevent Multiple Clicks
+
+Buttons can be configured to be disabled when clicked. This can be useful especially for actions that take a bit longer to perform. Not only does this avoid the need for special handling of additional clicks while the action is in progress, but it also communicates to the user that the action was received successfully and is being processed.
+
+[Flow: ButtonDisableLongAction.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("button-disable-long-action")
+public class ButtonDisableLongAction extends Div {
+    public ButtonDisableLongAction() {
+        // tag::snippet[]
+        Button button = new Button("Perform Action");
+        FakeProgressBar progressBar = new FakeProgressBar();
+        button.setDisableOnClick(true);
+        button.addClickListener(event -> progressBar.simulateProgress());
+
+        progressBar.addProgressEndListener(event -> {
+            button.setEnabled(true);
+        });
+        // end::snippet[]
+
+        button.getStyle().set("flex", "none");
+        HorizontalLayout horizontalLayout = new HorizontalLayout(button,
+                progressBar);
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        add(horizontalLayout);
+    }
+
+}
+
+[React: button-disable-long-action.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { ProgressBar } from '@vaadin/react-components/ProgressBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const progress = useSignal(-1);
+
+  useEffect(() => {
+    if (progress.value >= 1) {
+      progress.value = -1;
+    } else if (progress.value >= 0) {
+      setTimeout(() => {
+        progress.value += 0.005;
+      }, 25);
+    }
+  }, [progress.value]);
+
+  return (
+    <HorizontalLayout theme="spacing" style={{ alignItems: 'center' }}>
+      <Button
+        disabled={progress.value >= 0}
+        onClick={() => {
+          progress.value = 0;
+        }}
+      >
+        Perform Action
+      </Button>
+
+      <ProgressBar value={progress.value} />
+    </HorizontalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: button-disable-long-action.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/progress-bar';
+import './fake-progress-bar';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import type { FakeProgressBar } from './fake-progress-bar';
+
+@customElement('button-disable-long-action')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private isDisabled = false;
+
+  @query('fake-progress-bar')
+  private fakeProgressBar!: FakeProgressBar;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+        <vaadin-button
+          ?disabled=${this.isDisabled}
+          @click=${() => {
+            this.isDisabled = true;
+            this.fakeProgressBar.simulateProgress();
+          }}
+          style="flex: none;"
+          >Perform Action</vaadin-button
+        >
+        <fake-progress-bar
+          @progress-end=${() => {
+            this.isDisabled = false;
+          }}
+        ></fake-progress-bar>
+      </vaadin-horizontal-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Focus
+
+As with other components, the focus ring is only rendered when the button is focused by keyboard or programmatically.
+
+[React: button-focus.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Button focus-ring>Keyboard focus</Button>
+    // end::snippet[]
+  );
+}
+
+[Lit: button-focus.ts]
+import '@vaadin/button';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-focus')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-button focus-ring>Keyboard focus</vaadin-button>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Auto Focus
+
+Buttons can receive keyboard focus automatically when the UI in which they appear is rendered.
+
+[Flow: Java]
+Button button = new Button("Button");
+button.setAutofocus(true);
+
+[Flow: Java]
+
+[React: HTML]
+<Button autofocus>Button</Button>
+
+[React: HTML]
+
+[Lit: HTML]
+<vaadin-button autofocus>Button</vaadin-button>
+
+[Lit: HTML]
+
+Keyboard Usage
+
+A focused button can be triggered with Enter or Space.
+
+Best Practices
+
+Below are some best practice recommendations related to buttons and their labels.
+
+Button Labels
+
+A label should describe the action, preferably using active verbs, such as "View Details" rather than "Details". To avoid ambiguity, also specify the object of the verb, such as "Save Changes" instead of "Save". They also should be brief, ideally less than three words or twenty-five characters.
+
+Button groups representing options, such as the buttons of a Confirm Dialog, should state what each option represents (e.g., "Save Changes"). Don’t label a button "Yes" since that requires the user to read the question being asked. It’ll increase the risk of selecting the wrong option.
+
+Use ellipsis (i.e., …) when an action is not immediate, but requires more steps to complete. This is useful, for example, for destructive actions like "Delete…​" when a Confirm Dialog is used to confirm the action before it’s executed.
+
+ARIA Labels
+
+The aria-label attribute can be used to provide a separate label for accessibility technologies (AT), such as screen readers. This is important, for example, for icon-only buttons that lack a visible label.
+
+A button with a regular, visible label can also benefit from a separate aria-label to provide more context that may otherwise be difficult for an AT user to perceive. In the example here, each button’s aria-label specifies which email address is removed:
+
+[Flow: ButtonLabels.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.router.Route;
+
+@Route("button-labels")
+public class ButtonLabels extends FormLayout {
+    public ButtonLabels() {
+        setAutoResponsive(true);
+
+        EmailField emailField = new EmailField("Primary email address");
+        emailField.setValue("foo@example.com");
+
+        EmailField secondaryEmailField = new EmailField(
+                "Secondary email address");
+        secondaryEmailField.setValue("bar@example.com");
+
+        // tag::snippet[]
+        Button clearPrimaryEmail = new Button("Remove", event -> {
+            emailField.setValue("");
+        });
+        clearPrimaryEmail.setAriaLabel("Remove primary email address");
+
+        Button clearSecondaryEmail = new Button("Remove", event -> {
+            secondaryEmailField.setValue("");
+        });
+        clearSecondaryEmail.setAriaLabel("Remove secondary email address");
+        // end::snippet[]
+
+        HorizontalLayout horizontalLayout1 = new HorizontalLayout(emailField,
+                clearPrimaryEmail);
+        HorizontalLayout horizontalLayout2 = new HorizontalLayout(
+                secondaryEmailField, clearSecondaryEmail);
+        horizontalLayout1.setAlignItems(FlexComponent.Alignment.BASELINE);
+        horizontalLayout2.setAlignItems(FlexComponent.Alignment.BASELINE);
+        horizontalLayout2.getStyle().set("margin-top", "0");
+
+        add(horizontalLayout1, horizontalLayout2);
+    }
+
+}
+
+[React: button-labels.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { EmailField } from '@vaadin/react-components/EmailField.js';
+import { FormLayout } from '@vaadin/react-components/FormLayout.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const primaryEmail = useSignal('foo@example.com');
+  const secondaryEmail = useSignal('bar@example.com');
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <FormLayout autoResponsive>
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'baseline' }}>
+          <EmailField
+            label="Primary email address"
+            value={primaryEmail.value}
+            onValueChanged={(event) => {
+              primaryEmail.value = event.detail.value;
+            }}
+          />
+          <Button
+            onClick={() => {
+              primaryEmail.value = '';
+            }}
+          >
+            Remove
+          </Button>
+        </HorizontalLayout>
+
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'baseline' }}>
+          <EmailField
+            label="Secondary email address"
+            value={secondaryEmail.value}
+            onValueChanged={(event) => {
+              secondaryEmail.value = event.detail.value;
+            }}
+          />
+          <Button
+            onClick={() => {
+              secondaryEmail.value = '';
+            }}
+          >
+            Remove
+          </Button>
+        </HorizontalLayout>
+      </FormLayout>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: button-labels.ts]
+import '@vaadin/button';
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/horizontal-layout';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { EmailFieldValueChangedEvent } from '@vaadin/email-field';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-labels')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-horizontal-layout {
+      align-items: baseline;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private primaryEmail = 'foo@example.com';
+
+  @state()
+  private secondaryEmail = 'bar@example.com';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-form-layout auto-responsive>
+        <vaadin-horizontal-layout theme="spacing">
+          <vaadin-email-field
+            id="primary-email"
+            label="Primary email address"
+            .value="${this.primaryEmail}"
+            @value-changed="${(event: EmailFieldValueChangedEvent) => {
+              this.primaryEmail = event.detail.value;
+            }}"
+          ></vaadin-email-field>
+          <vaadin-button
+            arial-label="Remove primary email address"
+            @click="${() => {
+              this.primaryEmail = '';
+            }}"
+          >
+            Remove
+          </vaadin-button>
+        </vaadin-horizontal-layout>
+
+        <vaadin-horizontal-layout theme="spacing">
+          <vaadin-email-field
+            id="secondary-email"
+            label="Secondary email address"
+            .value="${this.secondaryEmail}"
+            @value-changed="${(event: EmailFieldValueChangedEvent) => {
+              this.secondaryEmail = event.detail.value;
+            }}"
+          ></vaadin-email-field>
+          <vaadin-button
+            arial-label="Remove secondary email address"
+            @click="${() => {
+              this.secondaryEmail = '';
+            }}"
+          >
+            Remove
+          </vaadin-button>
+        </vaadin-horizontal-layout>
+      </vaadin-form-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Buttons in Forms
+
+Buttons in forms should be placed below the form with which they’re associated. They should be aligned left, with the primary action first, followed by other actions, in order of importance.
+
+[Flow: ButtonForm.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("button-form")
+public class ButtonForm extends VerticalLayout {
+    public ButtonForm() {
+        // tag::snippet[]
+        TextField firstNameField = new TextField("First name", "John", "");
+        TextField lastNameField = new TextField("Last name", "Smith", "");
+        EmailField emailField = new EmailField("Email address");
+        emailField.setValue("john.smith@example.com");
+        FormLayout formLayout = new FormLayout(firstNameField, lastNameField,
+                emailField);
+        formLayout.setResponsiveSteps(new ResponsiveStep("0", 2));
+        formLayout.setColspan(emailField, 2);
+
+        Button createAccount = new Button("Create account");
+        createAccount.addThemeVariants(ButtonVariant.PRIMARY);
+        Button cancel = new Button("Cancel");
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(createAccount,
+                cancel);
+        // end::snippet[]
+
+        setPadding(false);
+        add(formLayout, buttonLayout);
+    }
+
+}
+
+[React: button-form.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { EmailField } from '@vaadin/react-components/EmailField.js';
+import { FormLayout } from '@vaadin/react-components/FormLayout.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <VerticalLayout theme="spacing">
+      <FormLayout responsiveSteps={[{ columns: 2 }]}>
+        <TextField label="First name" value="John" />
+        <TextField label="Last name" value="Smith" />
+        <EmailField label="Email address" value="john.smith@example.com" data-colspan="2" />
+      </FormLayout>
+
+      <HorizontalLayout theme="spacing">
+        <Button theme="primary">Create account</Button>
+        <Button theme="secondary">Cancel</Button>
+      </HorizontalLayout>
+    </VerticalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: button-form.ts]
+import '@vaadin/button';
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/horizontal-layout';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-form')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-form-layout .responsiveSteps="${[{ columns: 2 }]}">
+          <vaadin-text-field label="First name" value="John"></vaadin-text-field>
+          <vaadin-text-field label="Last name" value="Smith"></vaadin-text-field>
+          <vaadin-email-field
+            label="Email address"
+            value="john.smith@example.com"
+            colspan="2"
+          ></vaadin-email-field>
+        </vaadin-form-layout>
+
+        <vaadin-horizontal-layout theme="spacing">
+          <vaadin-button theme="primary">Create account</vaadin-button>
+          <vaadin-button theme="secondary">Cancel</vaadin-button>
+        </vaadin-horizontal-layout>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Buttons in Dialogs
+
+Buttons in dialogs should be placed at the bottom of the dialog and aligned right. Primary action should be last, preceded by other actions. Dangerous actions should be aligned left, to avoid accidental clicks, especially if no confirmation step is included.
+
+[Flow: ButtonDialog.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("button-dialog")
+public class ButtonDialog extends VerticalLayout {
+    public ButtonDialog() {
+        // tag::snippet[]
+        TextField firstNameField = new TextField("First name", "John", "");
+        TextField lastNameField = new TextField("Last name", "Smith", "");
+        EmailField emailField = new EmailField("Email address");
+        emailField.setValue("john.smith@example.com");
+        FormLayout formLayout = new FormLayout(firstNameField, lastNameField,
+                emailField);
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2));
+        formLayout.setColspan(emailField, 2);
+
+        Button delete = new Button("Delete");
+        delete.addThemeVariants(ButtonVariant.ERROR);
+        delete.getStyle().set("margin-inline-end", "auto");
+
+        Button cancel = new Button("Cancel");
+
+        Button createAccount = new Button("Create account");
+        createAccount.addThemeVariants(ButtonVariant.PRIMARY);
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(delete);
+        buttonLayout.addToEnd(cancel, createAccount);
+        buttonLayout.addThemeNames("wrap");
+        // end::snippet[]
+
+        setPadding(false);
+        setAlignItems(Alignment.STRETCH);
+        add(formLayout, buttonLayout);
+    }
+
+}
+
+[React: button-dialog.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { EmailField } from '@vaadin/react-components/EmailField.js';
+import { FormLayout } from '@vaadin/react-components/FormLayout.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <VerticalLayout theme="spacing" style={{ alignItems: 'stretch' }}>
+      <FormLayout responsiveSteps={[{ columns: 2 }]}>
+        <TextField label="First name" value="John" />
+        <TextField label="Last name" value="Smith" />
+        <EmailField label="Email address" value="john.smith@example.com" data-colspan="2" />
+      </FormLayout>
+
+      <HorizontalLayout theme="spacing wrap">
+        <Button theme="error">Delete</Button>
+        <Button slot="end">Cancel</Button>
+        <Button slot="end" theme="primary">
+          Create account
+        </Button>
+      </HorizontalLayout>
+    </VerticalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: button-dialog.ts]
+import '@vaadin/button';
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/horizontal-layout';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('button-dialog')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-vertical-layout theme="spacing" style="align-items: stretch;">
+        <vaadin-form-layout .responsiveSteps="${[{ columns: 2 }]}">
+          <vaadin-text-field label="First name" value="John"></vaadin-text-field>
+          <vaadin-text-field label="Last name" value="Smith"></vaadin-text-field>
+          <vaadin-email-field
+            label="Email address"
+            value="john.smith@example.com"
+            colspan="2"
+          ></vaadin-email-field>
+        </vaadin-form-layout>
+
+        <vaadin-horizontal-layout theme="spacing wrap">
+          <vaadin-button theme="error">Delete</vaadin-button>
+          <vaadin-button slot="end">Cancel</vaadin-button>
+          <vaadin-button slot="end" theme="primary">Create account</vaadin-button>
+        </vaadin-horizontal-layout>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Global vs. Selection-Specific Actions
+
+In lists of selectable items — such as in a Grid — that provide actions applicable to the selected item, buttons for selection-specific actions should be placed apart from global actions that aren’t selection-specific. They should be located below the list of selectable items.
+
+In the example below, the global Add User action is separated from the selection-specific actions below the Grid:
+
+[Flow: ButtonGrid.java]
+package com.vaadin.demo.component.button;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("button-grid")
+public class ButtonGrid extends VerticalLayout {
+    public ButtonGrid() {
+        // tag::snippet[]
+        H2 users = new H2("Users");
+        Button addUser = new Button("Add user");
+        HorizontalLayout header = new HorizontalLayout(users);
+        header.addToEnd(addUser);
+        header.setAlignItems(Alignment.CENTER);
+        header.getThemeList().clear();
+
+        Button editProfile = new Button("Edit profile");
+        editProfile.setEnabled(false);
+
+        Button managePermissions = new Button("Manage permissions");
+        managePermissions.setEnabled(false);
+
+        Button resetPassword = new Button("Reset password");
+        resetPassword.setEnabled(false);
+
+        Button delete = new Button("Delete");
+        delete.setEnabled(false);
+        delete.addThemeVariants(ButtonVariant.ERROR);
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addSelectionListener(selection -> {
+            int size = selection.getAllSelectedItems().size();
+            boolean isSingleSelection = size == 1;
+            editProfile.setEnabled(isSingleSelection);
+            managePermissions.setEnabled(isSingleSelection);
+            resetPassword.setEnabled(isSingleSelection);
+
+            delete.setEnabled(size != 0);
+        });
+
+        HorizontalLayout footer = new HorizontalLayout(editProfile,
+                managePermissions, resetPassword);
+        footer.addToEnd(delete);
+        footer.addThemeNames("wrap");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        setPadding(false);
+        setAlignItems(Alignment.STRETCH);
+        add(header, grid, footer);
+    }
+
+}
+
+[React: button-grid.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridSelectionColumn } from '@vaadin/react-components/GridSelectionColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Person[]>([]);
+  const selectedItems = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <VerticalLayout theme="spacing" style={{ alignItems: 'stretch' }}>
+      <HorizontalLayout style={{ alignItems: 'center' }}>
+        <h2>Users</h2>
+        <Button slot="end">Add user</Button>
+      </HorizontalLayout>
+      <Grid
+        items={items.value}
+        selectedItems={selectedItems.value}
+        onSelectedItemsChanged={({ detail: { value } }) => {
+          selectedItems.value = value;
+        }}
+      >
+        <GridSelectionColumn />
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+      </Grid>
+
+      <HorizontalLayout theme="spacing wrap">
+        <Button disabled={selectedItems.value.length !== 1}>Edit profile</Button>
+        <Button disabled={selectedItems.value.length !== 1}>Manage permissions</Button>
+        <Button disabled={selectedItems.value.length !== 1}>Reset password</Button>
+        <Button slot="end" theme="error" disabled={selectedItems.value.length === 0}>
+          Delete
+        </Button>
+      </HorizontalLayout>
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: button-grid.ts]
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-selection-column';
+import '@vaadin/horizontal-layout';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridSelectedItemsChangedEvent } from '@vaadin/grid';
+import type { GridSelectionColumnSelectAllChangedEvent } from '@vaadin/grid/vaadin-grid-selection-column';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('button-grid')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private selectedItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-vertical-layout theme="spacing" style="align-items: stretch;">
+        <vaadin-horizontal-layout style="align-items: center;">
+          <h2>Users</h2>
+          <vaadin-button slot="end">Add user</vaadin-button>
+        </vaadin-horizontal-layout>
+
+        <vaadin-grid
+          .items="${this.items}"
+          @selected-items-changed="${(event: GridSelectedItemsChangedEvent<Person>) => {
+            this.selectedItems = event.target ? [...event.detail.value] : this.selectedItems;
+          }}"
+        >
+          <vaadin-grid-selection-column
+            auto-select
+            @select-all-changed="${(event: GridSelectionColumnSelectAllChangedEvent) => {
+              this.selectedItems = event.detail.value ? this.items : this.selectedItems;
+            }}"
+          ></vaadin-grid-selection-column>
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+        </vaadin-grid>
+
+        <vaadin-horizontal-layout theme="spacing wrap">
+          <vaadin-button ?disabled="${this.selectedItems.length !== 1}">Edit profile</vaadin-button>
+          <vaadin-button ?disabled="${this.selectedItems.length !== 1}">
+            Manage permissions
+          </vaadin-button>
+          <vaadin-button ?disabled="${this.selectedItems.length !== 1}">
+            Reset password
+          </vaadin-button>
+          <vaadin-button slot="end" theme="error" ?disabled="${this.selectedItems.length === 0}">
+            Delete
+          </vaadin-button>
+        </vaadin-horizontal-layout>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Related Components
+
+Component | Usage Recommendation
+Anchor | Use anchor elements instead of buttons for navigation links.
+Menu Bar | Overlay menus with items that trigger actions. This can also be used for single "menu buttons" and "button groups" without overlay menus.

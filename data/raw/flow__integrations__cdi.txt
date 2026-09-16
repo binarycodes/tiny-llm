@@ -1,0 +1,65 @@
+Using CDI with Vaadin
+
+CDI is a framework for injecting dependency objects in different contexts.
+
+Contexts and dependency injection (CDI) is a framework for injecting dependency objects in different contexts. It’s part of the Java EE platform, but its purpose is similar to autowiring in Spring.
+
+The Vaadin CDI add-on allows you to use Vaadin with CDI.
+
+Tutorial
+
+A tutorial application which showcases the basic usage of a Vaadin CDI application is available at https://github.com/vaadin/flow-cdi-tutorial. You can use this application example to test the different concepts and features presented in the documentation.
+
+Starting a Project
+
+To start a new project with CDI and Vaadin, you can get a project base for Vaadin and CDI from vaadin.com/hello-world-starters. This is a project template with the necessary configuration and dependencies included for starting to build your own application. This starter is also available for cloning from GitHub.
+
+Add Dependencies
+
+The vaadin-cdi add-on should be packaged in your application and deployed to an application server that’s compliant with Jakarta EE 10 or later.
+
+If you are a vaadin-platform user, add the following dependencies in your pom.xml. Below is an example of this:
+
+[pom.xml]
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-bom</artifactId>
+            <version>${vaadin.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+         <groupId>com.vaadin</groupId>
+         <artifactId>vaadin-cdi</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-web-api</artifactId>
+        <version>11.0.0</version>
+        <scope>provided</scope>
+    </dependency>
+<dependencies>
+
+Vaadin Version Compatibility
+
+The version for vaadin-cdi is managed by vaadin-bom.
+
+You need the Jakarta CDI API version 4.0.1 and a provided implementation. In practice, because other Jakarta EE features are used together with CDI, the simplest way to ensure compatibility is to use a Jakarta EE 10 or later container.
+
+Configure Vaadin CDI Add-On
+
+No specific CDI configuration options exist.
+
+An instance of the CDI-enabled Vaadin servlet, com.vaadin.cdi.CdiVaadinServlet, is deployed automatically, provided you don’t setup a Vaadin servlet in your web.xml or use the @WebServlet annotation. You can also customize CdiVaadinServlet to suit your setup.
+
+Note: See Configuration Properties for more information about Vaadin servlet configuration.
+
+Limitations
+
+The Vaadin CDI add-on doesn’t support Hilla, because Hilla requires the use of Spring.

@@ -1,0 +1,246 @@
+Geolocation
+
+Using the Geolocation API to access device location from the server.
+
+The Geolocation API gives server-side Java code access to the browser Geolocation API. It exposes two static entry points: Geolocation.getPosition() for a single reading and Geolocation.watchPosition() for a continuous stream.
+
+Note: The browser shows its own permission dialog the first time the application asks for a location. The dialog is controlled by the browser — Vaadin can’t style it, suppress it, or detect when it’s shown. Geolocation also requires a secure context (HTTPS), except on localhost during development.
+
+Getting the Current Position
+
+Use Geolocation.getPosition() to request the device’s current position once — the typical pattern for a "Use my location" button. The call takes two consumers, one for the GeolocationPosition and one for the GeolocationError; whichever the browser produces is delivered on the UI thread:
+
+[Java]
+Button locate = new Button("Use my location", e -> Geolocation.getPosition(
+        pos -> {
+            double lat = pos.coords().latitude();
+            double lon = pos.coords().longitude();
+            map.setCenter(new Coordinate(lon, lat));
+        },
+        err -> Notification.show("Could not determine your location.")));
+
+The call returns immediately. Exactly one of the consumers is invoked once the browser reports a result. See Handling Errors for the full set of error reasons.
+
+Options
+
+GeolocationOptions controls three knobs on a request:
+
+highAccuracy(boolean)
+    Asks for the most accurate reading the device can produce — typically GPS on mobile devices. Uses more battery and can take longer. Default: false.
+timeout(Duration)
+    Maximum time the browser may spend before failing with a TIMEOUT error. Default: no timeout.
+maximumAge(Duration)
+    How old a cached reading may be while still acceptable. Duration.ZERO (the default) refuses cached readings. Larger values save battery.
+
+Pass an instance as the last argument to Geolocation.getPosition(). A setter that’s never called leaves the corresponding field at the browser default.
+
+[Java]
+GeolocationOptions opts = GeolocationOptions.builder()
+        .highAccuracy(true)
+        .timeout(Duration.ofSeconds(10))
+        .maximumAge(Duration.ZERO)
+        .build();
+
+Geolocation.getPosition(pos -> { /* ... */ }, err -> { /* ... */ }, opts);
+
+Use the builder rather than the canonical constructor — it accepts Duration for the time-based fields and gives every option a named setter. There are also int overloads on timeout() and maximumAge() if you already have a millisecond value on hand.
+
+Watching Position Changes
+
+Geolocation.watchPosition(Component) starts a continuous watch and returns a GeolocationWatcher tied to the owner component. The owner determines the watch’s lifecycle: the watch activates as soon as the owner is attached to a UI and is cancelled automatically when the component detaches. Pass the view itself in most cases — the watch then lives exactly as long as the view is open, and you don’t have to remember to clean up. The browser reports new positions as the device moves. There are two ways to consume them — pick the one that fits the destination.
+
+The same GeolocationOptions described above can be passed as a second argument to control accuracy, timeout, and cache-age:
+
+[Java]
+GeolocationWatcher watcher = Geolocation.watchPosition(this,
+        GeolocationOptions.builder().highAccuracy(true).build());
+
+Listener Style
+
+Use addPositionListener() when every reading needs to be processed in order — for example, persisting each point to a database, appending to a route log, or forwarding to an external service. The position consumer fires for every successful reading and the error consumer fires for every error.
+
+[Java]
+GeolocationWatcher watcher = Geolocation.watchPosition(this);
+watcher.addPositionListener(
+        pos -> repository.save(pos),
+        err -> log.warn("location error: {}", err.debugInfo()));
+
+Both consumers are required. To opt out of one side, pass an empty lambda explicitly. Add multiple listeners if needed; the returned Registration removes both at once. Listeners stay attached across stop()/resume() cycles.
+
+Signal Style
+
+Use positionSignal() when the goal is to reflect the current position in the UI — the signal always holds the latest reading, so subscribers naturally show the most recent value and the listener-style "process every point" semantics don’t get in the way. The signal value is one of three sealed GeolocationResult subtypes, so a switch is exhaustive at compile time:
+
+[Java]
+GeolocationWatcher watcher = Geolocation.watchPosition(this);
+
+status.bindText(watcher.positionSignal().map(result -> switch (result) {
+    case GeolocationPending p -> "Waiting for first reading…";
+    case GeolocationPosition pos -> "";
+    case GeolocationError err -> "Couldn't read location.";
+}));
+
+Signal.effect(this, () -> {
+    if (watcher.positionSignal().get() instanceof GeolocationPosition pos) {
+        map.setCenter(new Coordinate(pos.coords().longitude(),
+                pos.coords().latitude()));
+    }
+});
+
+GeolocationPending
+    Initial state, held until the browser reports the first reading.
+GeolocationPosition
+    A successful reading. Replaces the previous value on every update.
+GeolocationError
+    The browser reported an error.
+
+Stopping and Resuming
+
+Call stop() on the GeolocationWatcher to end tracking from application code — for instance, behind a "Stop tracking" button. The handle stays usable: watcher.resume() installs a fresh browser watch on the same watcher and any signal subscribers and listeners keep working. resume() requires the owner to be attached to a UI; calling it after the owner has detached throws IllegalStateException.
+
+activeSignal() reports whether the watcher is currently receiving updates. You can use it, for instance, to drive separate Start and Stop buttons:
+
+[Java]
+Button start = new Button("Start tracking", e -> watcher.resume());
+start.bindVisible(watcher.activeSignal().map(active -> !active));
+
+Button stop = new Button("Stop tracking", e -> watcher.stop());
+stop.bindVisible(watcher.activeSignal());
+
+positionSignal() is reset to GeolocationPending on each resume().
+
+Note: Permission revoke caveat
+
+If the user revokes location permission while a watch is active and then grants it again, the browser silently stops delivering updates to the existing watch. To recover, call stop() followed by resume(). To do this automatically, subscribe to Geolocation.availabilityHintSignal() and trigger the cycle when availability returns to GRANTED.
+
+Handling Errors
+
+Switch on errorCode() on the GeolocationError to get a typed GeolocationErrorCode enum — the switch is exhaustive at compile time and unknown future codes from the browser surface as UNKNOWN:
+
+[Java]
+Geolocation.getPosition(pos -> showOnMap(pos), err -> {
+    String userMessage = switch (err.errorCode()) {
+        case PERMISSION_DENIED ->
+            "Location is blocked. Please enable it in your browser settings.";
+        case POSITION_UNAVAILABLE ->
+            "Could not determine your location.";
+        case TIMEOUT ->
+            "Location request took too long. Please try again.";
+        case UNKNOWN ->
+            "Couldn't read location.";
+    };
+    Notification.show(userMessage);
+});
+
+For diagnostics, log err.debugInfo() alongside the raw code() — it’s a free-form browser string and isn’t meant for end users.
+
+Checking Availability
+
+Geolocation.availabilityHintSignal() is a reactive signal of GeolocationAvailability reporting whether the feature is usable and what permission state the origin has. It’s called a hint mainly because of UNKNOWN: some browsers (notably Safari) never expose permission state, so the signal can’t tell you anything meaningful. The other values are reliable enough to act on, with one footnote covered below.
+
+Reading the signal does not trigger a permission dialog — it tells you whether one would appear on the next getPosition() or watchPosition() call.
+
+UNSUPPORTED
+    The browser cannot do geolocation in this context (insecure origin or a blocking iframe policy) and no user action will change that. Hide the request UI entirely.
+GRANTED
+    Permission has already been granted; a subsequent call should proceed silently. Reasonable default: auto-fetch on attach.
+DENIED
+    Permission has already been denied; a subsequent call will fail with PERMISSION_DENIED without prompting. Reasonable default: skip the request button or show a "blocked" message.
+PROMPT
+    No decision has been recorded yet; the next call will show the browser’s permission dialog. Render the request button.
+UNKNOWN
+    The browser doesn’t expose permission state — the signal has no useful guess. Render the default request button and let the user click it.
+
+Always handle the error consumer of getPosition() and the watcher anyway. Even with a GRANTED hint, the call can still fail for unrelated reasons (timeout, no position fix), or the user can revoke permission mid-session faster than the signal catches up.
+
+Typical use is to decide how to render before the user clicks anything — for example, auto-fetching on return visits when permission is already granted, or hiding the location button entirely when the feature is unsupported:
+
+[Java]
+@Override
+protected void onAttach(AttachEvent event) {
+    if (Geolocation.availabilityHintSignal()
+            .peek() == GeolocationAvailability.GRANTED) {
+        Geolocation.getPosition(this::populateLocalContent,
+                err -> { /* ignore */ });
+    }
+}
+
+Subscribe with Signal.effect() to react to changes — for instance, if the user revokes permission while the view is open.
+
+Calling From Background Threads
+
+The static methods above resolve the target UI through UI.getCurrent(), which only works on a request-handling thread. Background threads (executors, scheduled tasks, push handlers) need to pass the UI explicitly. Every entry point has an overload accepting a UI argument:
+
+[Java]
+@Override
+protected void onAttach(AttachEvent event) {
+    UI ui = event.getUI();
+    ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(
+            () -> Geolocation.getPosition(this::updateMap, this::showError,
+                    ui),
+            0, 5, TimeUnit.MINUTES);
+    addDetachListener(e -> task.cancel(false));
+}
+
+The callbacks themselves are still invoked on the UI thread, so they can update components directly without an ui.access() wrapper. Geolocation.availabilityHintSignal(ui) and the four-argument getPosition(onSuccess, onError, options, ui) overload follow the same pattern. watchPosition(Component) already resolves the UI through the owner component, so it works from any thread without a special overload.
+
+Position Data
+
+A GeolocationPosition contains GeolocationCoordinates and a timestamp() (milliseconds since the Unix epoch — use timestampAsInstant() for an Instant).
+
+Field | Type | Description
+latitude() | double | Decimal degrees, positive north. Always present.
+longitude() | double | Decimal degrees, positive east. Always present.
+accuracy() | double | 1-sigma horizontal accuracy in meters — the true position lies within this distance with about 68% probability. Always present.
+altitude() | Double | Meters above the WGS 84 ellipsoid, or null when the device can’t measure it.
+altitudeAccuracy() | Double | 1-sigma vertical accuracy in meters, or null when altitude isn’t available.
+heading() | Double | Direction of travel in degrees clockwise from true north (0 = north, 90 = east), or null when the device can’t measure it or the user is stationary.
+speed() | Double | Ground speed in meters per second, or null when the device can’t measure it.
+
+Boxed Double fields can be null. A laptop without GPS typically reports null for altitude, heading, and speed; a mobile phone with GPS typically reports all of them.
+
+Testing
+
+Views that use geolocation can be tested without a browser. In browserless tests, GeolocationSimulator provides a state-based simulation of the browser’s geolocation: the test describes the world — the user’s permission decision and the sensor’s reading — and then exercises application code that observes it through the regular Geolocation API. The simulator is installed automatically whenever browserless mocking is active; obtain it with GeolocationSimulator.current() for the current UI, or GeolocationSimulator.forUI(UI).
+
+Two orthogonal axes drive the simulation:
+
+Permission
+    grantPermission(), denyPermission(), resetPermission(), and simulateUnsupported(). The default state is PROMPT, equivalent to a fresh page where the user hasn’t yet responded to the permission dialog — getPosition() calls stay pending until the test decides the permission.
+Sensor reading
+    setLocation(latitude, longitude) — with overloads taking an accuracy or a full GeolocationPosition — plus clearLocation(), setUnavailable(GeolocationErrorCode, String), and clearUnavailable(). The default state is no fix.
+
+When permission is granted and a location is set, position requests resolve with that fix, and active watches receive it on every setLocation() call:
+
+[Java]
+@Test
+void useMyLocation_centersMapOnPosition() {
+    LocateView view = navigate(LocateView.class);
+
+    GeolocationSimulator geo = GeolocationSimulator.current();
+    geo.grantPermission();
+    geo.setLocation(60.1699, 24.9384);
+
+    test(view.locateButton).click();
+
+    Assertions.assertEquals(60.1699, view.map.getCenter().getY(), 0.001);
+}
+
+Denying permission resolves pending requests with a PERMISSION_DENIED error, delivers the same error to active watches, and stops them — so the error path is just as easy to cover:
+
+[Java]
+@Test
+void permissionDenied_showsErrorNotification() {
+    LocateView view = navigate(LocateView.class);
+
+    GeolocationSimulator.current().denyPermission();
+    test(view.locateButton).click();
+
+    Notification notification = find(Notification.class).single();
+    Assertions.assertEquals("Could not determine your location.",
+            test(notification).getText());
+}
+
+Sensor failures are simulated with setUnavailable() — for example, setUnavailable(GeolocationErrorCode.TIMEOUT, "no fix") exercises the timeout branch of an error handler.
+
+For finer-grained control, requests() and lastRequest() expose pending one-shot GeolocationRequest instances that can be resolved individually with respondWith(), and activeTrackers() lists the active GeolocationTrackerSession instances created by watchPosition(), including their owner component and options.

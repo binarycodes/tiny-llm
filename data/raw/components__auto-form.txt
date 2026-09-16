@@ -1,0 +1,826 @@
+Auto Form Hilla React
+
+Auto Form is a component that renders a form for editing, updating and deleting items from a backend service.
+
+Auto Form is a component that automatically renders a form for editing, updating and deleting items from a backend service.
+
+Important: Scaled down examples
+
+The examples on this page are scaled down so that their viewport-size-dependent behavior can be demonstrated. Some examples also change their behavior based on your browser viewport size.
+
+Basic Usage
+
+Auto Form requires a Java service that implements the CrudService<T, ID> interface. In the example here, the EmployeeService class extends CrudRepositoryService<T, ID, R>, which in turn implements the CrudService<T, ID>:
+
+[EmployeeService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.CrudRepositoryService;
+
+@BrowserCallable
+@AnonymousAllowed
+public class EmployeeService
+        extends CrudRepositoryService<Employee, Long, EmployeeRepository> {
+}
+
+[Employee.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.hilla.Nullable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Entity
+public class Employee {
+
+    public enum Gender {
+        FEMALE, MALE, NON_BINARY, OTHER
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    private String firstName;
+
+    @NotBlank
+    private String lastName;
+
+    @NotNull
+    private Gender gender;
+
+    @NotNull
+    private LocalDate startDate;
+
+    private LocalTime shiftStartsAt;
+
+    private boolean active;
+
+    private String description;
+
+    @Version
+    @Nullable
+    private long version;
+
+    // getters and setters omitted for brevity
+
+    public Employee() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalTime getShiftStartsAt() {
+        return shiftStartsAt;
+    }
+
+    public void setShiftStartsAt(LocalTime shiftStartAt) {
+        this.shiftStartsAt = shiftStartAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
+    }
+
+}
+
+[EmployeeRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface EmployeeRepository extends JpaRepository<Employee, Long>,
+        JpaSpecificationExecutor<Employee> {
+}
+
+Hilla generates TypeScript objects for each @BrowserCallable service implementing the CrudService<T, ID> interface. These TypeScript objects have callable methods that execute the corresponding Java service methods, enabling the Add, Update, and Delete operations, as well as lazy data loading with sorting and filtering.
+
+For the example above, you can import the generated TypeScript objects in your React view and configure the component like so:
+
+[tsx]
+<AutoForm service={EmployeeService} model={EmployeeModel} />
+
+Here’s how the rendered form would look:
+
+[auto-form-basic.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm service={EmployeeService} model={EmployeeModel} />
+    // end::snippet[]
+  );
+}
+
+As you can see, Auto Form component renders a form with fields for all properties of the Employee entity. When submitting the form, the data is automatically submitted to the save method of the configured CrudService.
+
+Auto Form supports working with plain, non-JPA classes. This can be useful, for example, if you want to use the Data Transfer Object (DTO) pattern. See the Working with Plain Java Classes section for more on this.
+
+Note: Default Responsive Breakpoints
+
+Auto Form uses the Form Layout component's default responsive breakpoints. To learn how to customize them, see the Customizing Form Layout section.
+
+Customizing Visibility & Order
+
+Auto Form renders by default input fields for all properties of the entity in a Form Layout with a two-column layout, except for the properties annotated by @Id and @Version. You can customize the visibility and the order of fields using visibleFields property:
+
+[auto-form-field-visibility.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      visibleFields={['firstName', 'lastName', 'startDate', 'shiftStartsAt', 'gender', 'version']}
+    />
+    // end::snippet[]
+  );
+}
+
+Alternatively, you can also use the hiddenFields property to specify which fields should be hidden.
+
+Caution: Don’t Expose Sensitive Data on Client-Side
+
+When using Auto Form, it’s important to check that you don’t expose sensitive data to the client-side. For example, if you have a password property in your entity, hiding it using visibleFields or hiddenFields doesn’t prevent the data from being sent to the client-side. Make sure your service implementation doesn’t expose sensitive data to the client-side. You could do this by using a @JsonIgnore annotation on the property.
+
+Customizing Field Properties
+
+You can customize the properties of the fields rendered by Auto Form by using the fieldOptions property.
+
+Overriding Field Options
+
+You can customize some options of the automatically rendered fields by Auto Form by using the fieldOptions property.
+
+Customizing Field Label
+
+To customize the label of a field, use the label property of the fieldOptions property as follows:
+
+[auto-form-field-custom-label.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      fieldOptions={{
+        firstName: { label: 'Employee First name' },
+        lastName: { label: 'Employee Last name' },
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+The previous example shows how to customize the label of the firstName and lastName fields.
+
+Customizing Field Column Span
+
+As Auto Form component uses the Form Layout component as the layout, you can customize the colspan property of the fields rendered by Auto Form, with the fieldOptions property as follows:
+
+[auto-form-field-colspan.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      fieldOptions={{
+        description: { colspan: 2 },
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+Customizing Input Component
+
+You can use the renderer property of the fieldOptions to override the rendered field by Auto Form. The following example shows how to render a Text Area component for the description field:
+
+[auto-form-field-custom-renderer.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      fieldOptions={{
+        description: {
+          renderer: ({ field }) => <TextArea {...field} label="Full description" />,
+        },
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+Customizing Form Layout
+
+You can customize the Form Layout component used by Auto Form, with the formLayoutProps property. For example, you can set the responsiveSteps property to customize the responsive breakpoints of the Form Layout component:
+
+[auto-form-responsive-steps.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      formLayoutProps={{
+        responsiveSteps: [
+          { minWidth: '0', columns: 1 },
+          { minWidth: '800px', columns: 2 },
+          { minWidth: '1200px', columns: 3 },
+        ],
+      }}
+      fieldOptions={{
+        description: { colspan: 3 },
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+Using Custom Renderer
+
+To render a form in a completely different layout, you can use a custom renderer to define any arbitrary layout using the layoutRenderer property. Define a function that takes the AutoFormLayoutRendererProps as a parameter, that returns any React element. The parameter will contain the following properties:
+
+- children, the read-only list of bound fields; and
+- form, the form binder instance.
+
+Since the children property is a read-only list of bound fields, you can use them in your custom renderer. The following example shows how to use the children property to render the fields in separate sub-form sections using the Vertical and Horizontal layouts:
+
+[auto-form-custom-renderer-alt.tsx]
+import { AutoForm, type AutoFormLayoutRendererProps } from '@vaadin/hilla-react-crud';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+// tag::snippet[]
+function GroupingLayoutRenderer({ children }: AutoFormLayoutRendererProps<EmployeeModel>) {
+  const fieldsMapping = new Map<string, React.JSX.Element>();
+  children.forEach((field) => fieldsMapping.set(field.props?.propertyInfo?.name, field));
+  return (
+    <VerticalLayout>
+      <h4>Personal Information:</h4>
+      <HorizontalLayout theme="spacing" style={{ paddingBottom: '1.5rem' }}>
+        {fieldsMapping.get('firstName')}
+        {fieldsMapping.get('lastName')}
+        {fieldsMapping.get('gender')}
+      </HorizontalLayout>
+      <h4>Employment Information:</h4>
+      <HorizontalLayout theme="spacing" style={{ paddingBottom: '1.5rem', alignItems: 'baseline' }}>
+        {fieldsMapping.get('startDate')}
+        {fieldsMapping.get('shiftStartsAt')}
+        {fieldsMapping.get('active')}
+      </HorizontalLayout>
+      <h4>Other:</h4>
+      <HorizontalLayout theme="spacing">{fieldsMapping.get('description')}</HorizontalLayout>
+    </VerticalLayout>
+  );
+}
+// end::snippet[]
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      layoutRenderer={GroupingLayoutRenderer}
+    />
+    // end::snippet[]
+  );
+}
+
+Alternatively, you can manually create input fields, and use the form instance to connect them to the form.
+
+The following example shows how to render fields, manually:
+
+[auto-form-custom-renderer.tsx]
+import { AutoForm, type AutoFormLayoutRendererProps } from '@vaadin/hilla-react-crud';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Select } from '@vaadin/react-components/Select.js';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { TimePicker } from '@vaadin/react-components/TimePicker.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import Gender from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee/Gender';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+// tag::snippet[]
+function GroupingLayoutRenderer({ form }: AutoFormLayoutRendererProps<EmployeeModel>) {
+  const { field, model } = form;
+  return (
+    <VerticalLayout>
+      <h4>Personal Information:</h4>
+      <HorizontalLayout theme="spacing" style={{ paddingBottom: '1.5rem' }}>
+        <TextField label="First Name" {...field(model.firstName)} />
+        <TextField label="Last Name" {...field(model.lastName)} />
+        <Select
+          label="Gender"
+          {...field(model.gender)}
+          items={[
+            { label: 'Female', value: Gender.FEMALE },
+            { label: 'Male', value: Gender.MALE },
+            { label: 'Non-Binary', value: Gender.NON_BINARY },
+            { label: 'Prefer not to say', value: Gender.OTHER },
+          ]}
+        />
+      </HorizontalLayout>
+      <h4>Employment Information:</h4>
+      <HorizontalLayout theme="spacing" style={{ paddingBottom: '1.5rem', alignItems: 'baseline' }}>
+        <DatePicker label="Start Date" {...field(model.startDate)} />
+        <TimePicker label="Shift Starts At" {...field(model.shiftStartsAt)} />
+        <Checkbox label="Active" {...field(model.active)} />
+      </HorizontalLayout>
+      <h4>Other:</h4>
+      <HorizontalLayout theme="spacing">
+        <TextArea label="Description" {...field(model.description)} style={{ flexGrow: 1 }} />
+      </HorizontalLayout>
+    </VerticalLayout>
+  );
+}
+// end::snippet[]
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      layoutRenderer={GroupingLayoutRenderer}
+    />
+    // end::snippet[]
+  );
+}
+
+Managing Form State
+
+Auto Form component allows you to manage the form state in different scenarios. For instance, you can edit an item — versus creating a new one — by handling after submission events, and so on.
+
+The following properties are available for managing the form state or reacting to form events:
+
+- item is the item to be edited. If the item is null, the form is in new mode, otherwise it is in edit mode;
+- disabled disables the whole form; and
+- onSubmitSuccess is a callback function that’s called after the form is submitted successfully.
+
+The following example shows how to use the item property to manage switching between new and edit modes, and onSubmitSuccess for informing the user about the form submission success. Additionally, it uses disabled property to toggle the form’s disabled state:
+
+[auto-form-edit-new-modes.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import type Employee from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee';
+import Gender from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee/Gender';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  // tag::snippet[]
+  const existingItem: Employee = {
+    firstName: 'Jennifer',
+    lastName: 'Smith',
+    gender: Gender.NON_BINARY,
+    startDate: '2014-08-05',
+    active: true,
+    description: 'Customer Service Manager',
+  };
+  const editedItem = useSignal<Employee | null>(null);
+  const disabled = useSignal<boolean>(false);
+
+  const handleEdit = () => {
+    editedItem.value = existingItem;
+  };
+
+  const handleCreate = () => {
+    editedItem.value = null;
+  };
+
+  const toggleDisabled = () => {
+    disabled.value = !disabled.value;
+  };
+
+  const handleSubmitSuccess = ({ item }: { item: Employee }) => {
+    const json = JSON.stringify(item);
+    Notification.show(`Form was submitted: ${json}`);
+  };
+
+  return (
+    <VerticalLayout>
+      <HorizontalLayout theme="spacing">
+        <Button onClick={handleEdit}>Edit item</Button>
+        <Button onClick={handleCreate}>Create item</Button>
+        <Button onClick={toggleDisabled}>{disabled.value ? 'Enable Form' : 'Disable Form'}</Button>
+      </HorizontalLayout>
+      <AutoForm
+        service={EmployeeService}
+        model={EmployeeModel}
+        item={editedItem.value}
+        disabled={disabled.value}
+        onSubmitSuccess={handleSubmitSuccess}
+      />
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+Auto Form component supports Deletion functionality, which is associated with calling the delete method from the CrudService introduced to the Auto Form. The following properties are associated with managing this functionality:
+
+- deleteButtonVisible is to stipulate whether to show the delete button in the form, which is hidden by default. If enabled, the delete button is only shown when editing an existing item: that means that item property is not null.
+- onDeleteSuccess is a callback function that’s called after the item is deleted successfully.
+
+The following example shows how to use the deleteButtonVisible property to show the Delete button, and uses the onDeleteSuccess property to inform the user about the deletion success. You can toggle between the edit and new modes to see its effect on the visibility of the Delete button in action:
+
+[auto-form-delete-after-delete.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import type Employee from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee';
+import Gender from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee/Gender';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints.js';
+
+function Example() {
+  // tag::snippet[]
+  const existingItem: Employee = {
+    firstName: 'Jennifer',
+    lastName: 'Smith',
+    gender: Gender.NON_BINARY,
+    startDate: '2014-08-05',
+    active: true,
+    description: 'Customer Service Manager',
+  };
+  const editedItem = useSignal<Employee | null>(null);
+  const showDeleteButton = useSignal<boolean>(false);
+
+  const handleEdit = () => {
+    editedItem.value = existingItem;
+  };
+
+  const handleCreate = () => {
+    editedItem.value = null;
+  };
+
+  const toggleDeleteButtonVisibility = () => {
+    showDeleteButton.value = !showDeleteButton.value;
+  };
+
+  const handleDeleteSuccess = ({ item }: { item: Employee }) => {
+    const json = JSON.stringify(item);
+    Notification.show(`Item deleted: ${json}`);
+  };
+
+  return (
+    <VerticalLayout>
+      <HorizontalLayout theme="spacing">
+        <Button onClick={handleEdit}>Edit item</Button>
+        <Button onClick={handleCreate}>Create item</Button>
+        <Button onClick={toggleDeleteButtonVisibility}>
+          {showDeleteButton.value ? 'Hide Delete Button' : 'Show Delete Button'}
+        </Button>
+      </HorizontalLayout>
+      <AutoForm
+        service={EmployeeService}
+        model={EmployeeModel}
+        item={editedItem.value}
+        deleteButtonVisible={showDeleteButton.value}
+        onDeleteSuccess={handleDeleteSuccess}
+      />
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+The following properties are associated with managing the form actions error handling:
+
+- onSubmitError is a callback that’s called if an unexpected error occurs while submitting the form. The callback receives the error as a parameter.
+- onDeleteError is a callback that’s called if an unexpected error occurs while deleting the item. The callback receives the error as a parameter.
+
+The next example shows how to use the onSubmitError and onDeleteError callbacks to inform the user about their respective errors:
+
+[auto-form-on-errors.tsx]
+import { AutoForm } from '@vaadin/hilla-react-crud';
+import { Notification } from '@vaadin/react-components/Notification.js';
+import type Employee from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee';
+import Gender from 'Frontend/generated/com/vaadin/demo/fusion/crud/Employee/Gender';
+import EmployeeModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/EmployeeModel';
+import { EmployeeService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  const existingItem: Employee = {
+    firstName: 'Jennifer',
+    lastName: 'Smith',
+    gender: Gender.NON_BINARY,
+    startDate: '2014-08-05',
+    active: true,
+    description: 'Customer Service Manager',
+  };
+
+  const handleOnSubmitError = ({ error }: { error: unknown }) => {
+    const json = JSON.stringify(error);
+    Notification.show(`Error while submitting: ${json}`);
+  };
+
+  const handleOnDeleteError = ({ error }: { error: unknown }) => {
+    const json = JSON.stringify(error);
+    Notification.show(`Error while deleting: ${json}`);
+  };
+
+  return (
+    <AutoForm
+      service={EmployeeService}
+      model={EmployeeModel}
+      item={existingItem}
+      deleteButtonVisible
+      onSubmitError={handleOnSubmitError}
+      onDeleteError={handleOnDeleteError}
+    />
+  );
+}
+
+Note: On Submit Error Not Called
+
+Note that onSubmitError callback is not be called for form validation errors, which are handled automatically.
+
+Validation
+
+Auto Form uses the same validation mechanism as default Hilla Forms. You can add Bean validation annotations to your entity classes, and the form automatically validates the input values on both client and server.
+
+In the following example, annotations are added to the Employee class to ensure that firstName is neither null nor an empty string:
+
+[Using Bean Validation Annotations]
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public class Employee {
+    @NotNull
+    @NotBlank
+    private String firstName;
+
+    // ...
+}
+
+For further information on using validation, refer to the Forms documentation.
+
+One notable difference to default forms is adding custom client-side validators. With Auto Form, custom client-side validators are added using the validators property in the fieldOptions. The following example shows how to add a custom validator to the firstName field:
+
+[Using Custom Client-Side Validators in Auto Form]
+<AutoForm
+  service={EmployeeService}
+  model={EmployeeModel}
+  fieldOptions={{
+    firstName: {
+      validators: [
+        {
+          message: 'First name must be longer than 3 characters',
+          validate: (value: string) => value.length > 3,
+        },
+      ],
+    },
+  }}
+/>
+
+Working with Plain Java Classes
+
+Auto Form supports working with plain, non-JPA Java classes. This can be useful, for example if you want to use the Data Transfer Object (DTO) pattern to decouple your domain from your presentation logic, or you want to avoid serializing your JPA entities to the client due to performance concerns.
+
+Implementing a Custom Service
+
+To use plain Java classes, you need to provide a custom implementation of the FormService<T> interface. The following methods need to be implemented:
+
+- T save(T value): Either creates a new item or updates an existing one, depending on whether the item has an ID or not. Returns the saved item.
+- void delete(ID id): Deletes the item with the given ID.
+
+The following example shows a basic implementation of a custom FormService that wraps a JPA repository. The service only accepts DTO instances from the client and maps between the DTO instances and JPA entities internally.
+
+[ProductDtoFormService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.Nullable;
+import com.vaadin.hilla.crud.FormService;
+
+@BrowserCallable
+@AnonymousAllowed
+public class ProductDtoFormService implements FormService<ProductDto, Long> {
+    private final ProductRepository productRepository;
+
+    public ProductDtoFormService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    @Override
+    public @Nullable ProductDto save(ProductDto value) {
+        Product product = value.id() != null && value.id() > 0
+                ? productRepository.getReferenceById(value.id())
+                : new Product();
+        product.setName(value.name());
+        product.setCategory(value.category());
+        product.setPrice(value.price());
+
+        return ProductDto.fromEntity(productRepository.save(product));
+    }
+
+    @Override
+    public void delete(Long id) {
+        productRepository.deleteById(id);
+    }
+}
+
+[ProductDto.java]
+package com.vaadin.demo.fusion.crud;
+
+public record ProductDto(Long id, String name, String category, double price) {
+    public static ProductDto fromEntity(Product product) {
+        return new ProductDto(product.getId(), product.getName(),
+                product.getCategory(), product.getPrice());
+    }
+}
+
+[Product.java]
+package com.vaadin.demo.fusion.crud;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+import java.time.LocalDate;
+
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String category;
+    private double price;
+    private LocalDate dateAdded;
+    @OneToOne
+    private Supplier supplier;
+
+    // getters and setters omitted for brevity
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public LocalDate getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(LocalDate dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+}
+
+[ProductRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface ProductRepository extends JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product> {
+}

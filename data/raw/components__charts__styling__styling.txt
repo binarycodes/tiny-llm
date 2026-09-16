@@ -1,0 +1,77 @@
+Styling
+
+Styling API reference for the Vaadin Charts.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+Apply them in a CSS block using the vaadin-chart {…​} selector, or a CSS class name on the chart. Unlike other components, they can’t be applied from an html {…​} block. The Lumo theme sets most of them on the chart element, and an inherited value doesn’t override that. See Component Style Properties for more information on style properties.
+
+Important: Flow Requires Styled Mode
+
+In Flow, these properties have no effect until styled mode is enabled with configuration.getChart().setStyledMode(true). See CSS Styling Mode for Flow. In Lit and React, styled mode is enabled by default.
+
+The chart’s own styles read these properties, so they work with the Aura theme, with Lumo, and with neither. The themes differ in what they set by default. Aura makes the plot background transparent and restyles the range selector buttons. Lumo gives most of the properties a --lumo-* value, and is the only theme with chart variants.
+
+Common Properties
+
+Feature | Property | Supported by
+Background | --vaadin-charts-background | Aura, Lumo
+Surface the chart draws against | --vaadin-charts-surface | Aura, Lumo
+Font size | --vaadin-charts-font-size | Aura, Lumo
+Axis line | --vaadin-charts-axis-line | Aura, Lumo
+X-axis line width | --vaadin-charts-xaxis-line-width | Aura, Lumo
+Grid line | --vaadin-charts-grid-line | Aura, Lumo
+Minor grid line | --vaadin-charts-minor-grid-line | Aura, Lumo
+Point border | --vaadin-charts-point-border | Aura, Lumo
+Contrast | --vaadin-charts-contrast | Aura, Lumo
+Candlestick line | --vaadin-charts-candlestick-line | Aura, Lumo
+
+Data Series Colors
+
+Feature | Property | Supported by
+Charts color 0 | --vaadin-charts-color-0 | Aura, Lumo
+Charts color 1 | --vaadin-charts-color-1 | Aura, Lumo
+Charts color 2 | --vaadin-charts-color-2 | Aura, Lumo
+Charts color 3 | --vaadin-charts-color-3 | Aura, Lumo
+Charts color 4 | --vaadin-charts-color-4 | Aura, Lumo
+Charts color 5 | --vaadin-charts-color-5 | Aura, Lumo
+Charts color 6 | --vaadin-charts-color-6 | Aura, Lumo
+Charts color 7 | --vaadin-charts-color-7 | Aura, Lumo
+Charts color 8 | --vaadin-charts-color-8 | Aura, Lumo
+Charts color 9 | --vaadin-charts-color-9 | Aura, Lumo
+
+Text Colors
+
+Feature | Property | Supported by
+Label | --vaadin-charts-label | Aura, Lumo
+Chart title | --vaadin-charts-title-label | Aura, Lumo
+Axis title | --vaadin-charts-axis-title | Aura, Lumo
+Axis label | --vaadin-charts-axis-label | Aura, Lumo
+Data label | --vaadin-charts-data-label | Aura, Lumo
+Secondary label | --vaadin-charts-secondary-label | Aura, Lumo
+Disabled label | --vaadin-charts-disabled-label | Aura, Lumo
+
+Button
+
+Style properties for range selector buttons and inputs.
+
+Feature | Property | Supported by
+Button label | --vaadin-charts-button-label | Aura, Lumo
+Button background | --vaadin-charts-button-background | Aura, Lumo
+Button hover background | --vaadin-charts-button-hover-background | Aura, Lumo
+Button active label | --vaadin-charts-button-active-label | Aura, Lumo
+Button active background | --vaadin-charts-button-active-background | Aura, Lumo
+Button disabled label | --vaadin-charts-button-disabled-label | Aura, Lumo
+Button border radius | --vaadin-charts-button-border-radius | Aura, Lumo
+Range input background | --vaadin-charts-range-input-background | Aura, Lumo
+Range input hover background | --vaadin-charts-range-input-background-hover | Aura, Lumo
+
+Tooltips
+
+Tooltips within a chart.
+
+Feature | Property | Supported by
+Tooltip background | --vaadin-charts-tooltip-background | Aura, Lumo
+Tooltip shadow | --vaadin-charts-tooltip-shadow | Aura, Lumo

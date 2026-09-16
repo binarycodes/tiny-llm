@@ -1,0 +1,28 @@
+Welcome to the Vaadin Tutorial!
+
+A comprehensive step-by-step tutorial to get started with Vaadin and learn best practices along the way.
+
+This tutorial guides you through the basics of building a web application using Vaadin. You’ll start with an empty project and gradually add features to create a functional web application step by step.
+
+You’ll be building parts of the back office of a fictional Click & Collect service for a retail company. The application allows employees to manage the product catalog, process customer orders and track deliveries.
+
+In each step, you’ll explore different aspects of Vaadin, including UI components, data binding, navigation, and more. Each step builds upon the previous one. If you are interested in learning how to do a particular task in Vaadin, see the Building Apps guides instead.
+
+Tip: Fast Lane
+
+If you are in a hurry and have never used Vaadin before, check out the Quick Start tutorial. You can always return to this comprehensive tutorial later.
+
+Setup Project
+    Set up a new Vaadin project with the necessary dependencies and configuration.
+List Data
+    Build your first Vaadin view that displays a product catalog using a grid component and data from a database.
+Sort & Filter
+    Enhance the product catalog view by adding sorting and filtering capabilities.
+Show Details
+    Build your first Vaadin form and turn the product catalog view into a master-detail view.
+Edit Details
+    Add support for editing and saving items in the product catalog.
+Add Data
+    Build your first Vaadin dialog and implement support for adding new items to the product catalog.
+Deep Link
+    Use a route parameter to store the product item selection.

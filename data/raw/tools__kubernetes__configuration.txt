@@ -1,0 +1,95 @@
+Configuring Kubernetes Kit
+
+Configuration options for Kubernetes Kit.
+
+Common Settings
+
+Property | Description | Default Value
+vaadin.kubernetes.auto-configure | Enables or disables the Kit auto configuration | true
+vaadin.kubernetes.cluster-key-cookie-name | Sets the name of the distributed storage session key cookie. | clusterKey
+vaadin.kubernetes.cluster-key-cookie-same-site | Sets the value of the distributed storage session key cookie’s SameSite attribute. (Strict, Lax, None) | Strict
+vaadin.kubernetes.backend-session-expiration-tolerance | Amount of time to be added to the HTTP session timeout to determine the expiration of the backend session. If not set, backend session never expires. See Backend Session Expiration Policy for details. | 
+vaadin.kubernetes.rolling-updates | Enables or disables rolling update support, which handles version update notifications and sticky session cookie removal. | true
+vaadin.kubernetes.sticky-session-cookie-name | The name of the cookie used by the ingress controller or gateway implementation for sticky sessions (session affinity). Must match the cookie name configured in the infrastructure. For the Gateway API, this should match the sessionName field in the HTTPRoute session persistence configuration. | INGRESSCOOKIE
+vaadin.kubernetes.update-version-header-name | The name of the HTTP request header used to detect a new application version during rolling updates. With the Gateway API, this header is set via a RequestHeaderModifier filter in the HTTPRoute resource. | X-AppUpdate
+
+Serialization Properties
+
+Property | Description | Default Value
+vaadin.serialization.timeout | Sets the timeout in milliseconds to wait for the serialization to be completed. | 30000 (30 seconds)
+vaadin.serialization.optimistic-timeout | Sets the timeout in milliseconds to wait for the optimistic serialization to be completed. | 30000 (30 seconds)
+vaadin.serialization.optimistic-delay | Sets the delay in milliseconds to wait between optimistic serialization attempts. | 10
+vaadin.serialization.deserialization-lock-timeout | Sets the timeout in milliseconds to wait for the deserialization lock to be released if the deserialization is not completed. | 10000 (10 seconds)
+
+Packages Inspected during Serialization
+
+When a session is serialized, Kubernetes Kit inspects classes for transient fields that can be injected during deserialization (see session replication).
+
+Kubernetes Kit provides two properties to limit the packages to be inspected. The include-package property defines all of the packages that should be inspected. If this is undefined, all packages are assessed. For this reason, it’s recommended that you specify the top-level package for your application in the include-packages property.
+
+The exclude-package property lists packages that should not be assessed.
+
+[application.properties]
+vaadin.serialization.include-packages=com.example.application
+vaadin.serialization.exclude-packages=com.example.application.service
+
+[application.yaml]
+vaadin:
+  serialization:
+    include-packages: com.example.application
+    exclude-packages: com.example.application.service
+
+Hazelcast for Session Replication
+
+The service-name and service-port properties defines the endpoint of the Hazelcast service deployment within a cluster. If service-port is specified with a value greater than 0, it overrides the default Hazelcast port (5701).
+
+The optional namespace property is used when the Hazelcast service is deployed in a namespace other than default.
+
+[application.properties]
+vaadin.kubernetes.hazelcast.service-name=hazelcast-service
+vaadin.kubernetes.hazelcast.namespace=namespace
+
+[application.yaml]
+vaadin:
+  kubernetes:
+    hazelcast:
+      service-name: hazelcast-service
+      namespace: namespace
+
+Note: By default, Hazelcast installs a shutdown hook to stop the instance when the JVM shuts down. Kubernetes Kit requires the shutdown hook to be disabled to ensure that the latest session state can be persisted when the application stops. The Kit automatically applies the configuration; however, if the application provides a custom HazelcastInstance bean, it is important that it is configured with hazelcast.shutdownhook.enabled=false. A warning message is printed on the console at startup if the shutdown hook is enabled. Spring takes care of automatically gracefully stop the Hazelcast instance when the bean is destroyed.
+
+Redis for Session Replication
+
+This property defines the name of the Redis service deployment within a cluster.
+
+[application.properties]
+spring.data.redis.host: redis-service
+
+[application.yaml]
+spring:
+  redis:
+    host: redis-service
+
+Backend Session Expiration Policy
+
+The backend session expiration policy allows you to define an expiration timeout for the backend stored session. By default, no expiration is set. However, expiration can be activated by setting the vaadin.kubernetes.backend-session-expiration-tolerance property. The property defines the amount of time to be added to the HTTP session timeout to determine the expiration of the backend session. If a time unit is not given, milliseconds is assumed. Another option is to provide a custom SessionExpirationPolicy bean, which allows you to define a custom expiration timeout, independent of the HTTP session timeout value.
+
+[application.properties: properties]
+vaadin.kubernetes.backend-session-expiration-tolerance: 5m
+
+[application.properties: properties]
+
+[application.yaml: yaml]
+vaadin:
+  kubernetes:
+    backend-session-expiration-tolerance: 5m
+
+[application.yaml: yaml]
+
+[Java bean: Java]
+@Bean
+SessionExpirationPolicy sessionExpirationPolicy() {
+    return sessionTimeout -> Duration.ofMinutes(35);
+}
+
+[Java bean: Java]

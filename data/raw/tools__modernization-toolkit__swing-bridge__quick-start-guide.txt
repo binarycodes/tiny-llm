@@ -1,0 +1,47 @@
+Quick Start
+
+Run a Swing application in the browser in minutes with the SwingBridge skeleton starter.
+
+This page walks through the fastest path to a running SwingBridge application. The goal is to get the bundled sample Swing app rendering in your browser, so you can see what SwingBridge does end‑to‑end before adapting it to your own code.
+
+For a from‑scratch Maven project (no skeleton), see Installation from Scratch. To replace the sample app with your own JAR, see Adding Your Swing Application.
+
+Before You Start
+
+You need:
+
+- Java 21 or later. SwingBridge requires the same minimum JDK as Vaadin.
+- A Vaadin commercial subscription or trial license installed in your home directory (~/.vaadin/proKey on macOS or Linux, %userprofile%\.vaadin\proKey on Windows). The first execution prompts you to log in and downloads the license automatically; for the manual route see License Installation.
+
+Maven is not required separately — the skeleton starter ships with Maven Wrapper.
+
+Clone the Skeleton Starter
+
+[terminal]
+git clone https://github.com/vaadin/skeleton-starter-vaadin-swing-bridge.git
+cd skeleton-starter-vaadin-swing-bridge
+
+The starter ships with a sample Swing application in the applibs directory, a Vaadin view that wraps it, and the Maven configuration with the JVM flags SwingBridge needs.
+
+Run the Application
+
+[macOS/Linux: terminal]
+./mvnw spring-boot:run
+
+[macOS/Linux: terminal]
+
+[Windows: terminal]
+mvnw.cmd spring-boot:run
+
+[Windows: terminal]
+
+Open http://localhost:8888 in your browser. The sample Swing application renders inside a Vaadin view; mouse, keyboard, dialogs, and popups all work as they would on the desktop.
+
+Note: SwingBridge needs special JVM flags to access internal Java modules, so the IDE’s default launch configurations needs extra configuration. Always launch through Maven from the terminal — see Running and Debugging for details and remote‑debug setup.
+
+Next Steps
+
+- Replace the sample with your own application: Adding Your Swing Application.
+- Tune system properties (JAR locations, error reporting): Configuration.
+- Set up remote debugging from your IDE: Running and Debugging.
+- If something goes wrong: Troubleshooting.

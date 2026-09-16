@@ -1,0 +1,30 @@
+Install an IDE
+
+Install a Java IDE for Vaadin development if you don’t have one already.
+
+Different IDEs have different levels of support for Java and TypeScript. The following table gives a rough evaluation of language support in the most commonly used IDEs.
+
+IDE | Java | TypeScript
+IntelliJ IDEA Ultimate | ☆☆☆ | ☆☆☆
+IntelliJ IDEA Community Edition | ☆☆☆ | –
+Visual Studio Code | ☆☆ | ☆☆☆
+Eclipse IDE | ☆☆☆ | ☆☆
+NetBeans | ☆☆☆ | ☆
+
+☆ – Supported with a commercial add-on or a very limited free add-on
+
+☆☆ – Limited built-in support or a free add-on with some limitations
+
+☆☆☆ – Good built-in support or a good free add-on easy to install
+
+Each IDE has installation packages for Windows, macOS, and Linux.
+
+Tip: IntelliJ IDEA Ultimate gives the best developer experience.
+
+IDE Extensions & Plugins
+
+If you are using IntelliJ IDEA, install the Vaadin plugin.
+
+If you are using Visual Studio Code, install the Vaadin extension, the Extension Pack for Java, and the Spring Boot Extension Pack.
+
+If you are using Eclipse IDE, you should use the Eclipse IDE for Enterprise Java and Web Developers. Install the Vaadin plugin for Copilot integration.

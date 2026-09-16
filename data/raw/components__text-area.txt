@@ -1,0 +1,813 @@
+Text Area
+
+Text Area is an input field component that allows entry of multiple lines of text.
+
+Text Area is an input field component that allows entry of multiple lines of text.
+
+[Flow: TextAreaBasic.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("text-area-basic")
+public class TextAreaBasic extends Div {
+
+    public TextAreaBasic() {
+        int charLimit = 140;
+
+        // tag::snippet[]
+        TextArea textArea = new TextArea();
+        textArea.setLabel("Comment");
+        textArea.setMaxLength(charLimit);
+        textArea.setValueChangeMode(ValueChangeMode.EAGER);
+        textArea.addValueChangeListener(e -> {
+            e.getSource()
+                    .setHelperText(e.getValue().length() + "/" + charLimit);
+        });
+        textArea.setValue("Great job. This is excellent!");
+        add(textArea);
+        // end::snippet[]
+    }
+
+}
+
+[React: text-area-basic.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+
+function Example() {
+  const charLimit = 140;
+  const text = useSignal('Great job. This is excellent!');
+
+  return (
+    // tag::snippet[]
+    <TextArea
+      label="Comment"
+      maxlength={charLimit}
+      value={text.value}
+      helperText={`${text.value.length}/${charLimit}`}
+      onValueChanged={(event) => {
+        text.value = event.detail.value;
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: text-area-basic.ts]
+import '@vaadin/text-area';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { TextAreaValueChangedEvent } from '@vaadin/text-area';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-area-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private charLimit = 140;
+
+  @state()
+  private text = 'Great job. This is excellent!';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-area
+        label="Comment"
+        .maxlength="${this.charLimit}"
+        .value="${this.text}"
+        .helperText="${`${this.text.length}/${this.charLimit}`}"
+        @value-changed="${(event: TextAreaValueChangedEvent) => {
+          this.text = event.detail.value;
+        }}"
+      ></vaadin-text-area>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Text Area is typically used for descriptions, comments, and other longer free-form content.
+
+Automatic Height Adjustment
+
+Unless set to a fixed height, Text Area adjusts its height automatically based on its content. The default and minimum height is two rows of text.
+
+[Flow: TextAreaAutoHeight.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("text-area-auto-height")
+public class TextAreaAutoHeight extends Div {
+
+    public TextAreaAutoHeight() {
+        String loremIpsum = DataService.getTemplates().getLoremIpsum();
+
+        // tag::snippet[]
+        TextArea textArea = new TextArea();
+        textArea.setWidthFull();
+        textArea.setLabel("Description");
+        textArea.setValue(loremIpsum);
+        add(textArea);
+        // end::snippet[]
+    }
+
+}
+
+[React: text-area-auto-height.tsx]
+import React from 'react';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import templates from '../../../../../src/main/resources/data/templates.json';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TextArea label="Description" value={templates.loremIpsum} style={{ width: '100%' }} />
+    // end::snippet[]
+  );
+}
+
+[Lit: text-area-auto-height.ts]
+import '@vaadin/text-area';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import templates from '../../../../src/main/resources/data/templates.json';
+
+@customElement('text-area-auto-height')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-text-area {
+      width: 100%;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-area label="Description" value="${templates.loremIpsum}"></vaadin-text-area>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Minimum & Maximum Height
+
+The automatic resizing can be restricted to a minimum and maximum height like so:
+
+[Flow: TextAreaHeight.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("text-area-height")
+public class TextAreaHeight extends Div {
+
+    public TextAreaHeight() {
+        String loremIpsum = DataService.getTemplates().getLoremIpsum();
+
+        // tag::snippet[]
+        TextArea textArea = new TextArea();
+        textArea.setWidthFull();
+        textArea.setMinHeight("100px");
+        textArea.setMaxHeight("150px");
+        textArea.setLabel("Description");
+        textArea.setValue(loremIpsum);
+        add(textArea);
+        // end::snippet[]
+    }
+
+}
+
+[React: text-area-height.tsx]
+import React from 'react';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import templates from '../../../../../src/main/resources/data/templates.json';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TextArea
+      label="Description"
+      value={templates.loremIpsum}
+      style={{ width: '100%', minHeight: '100px', maxHeight: '150px' }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: text-area-height.ts]
+import '@vaadin/text-area';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import templates from '../../../../src/main/resources/data/templates.json';
+
+@customElement('text-area-height')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <style>
+        vaadin-text-area {
+          width: 100%;
+          min-height: 100px;
+          max-height: 150px;
+        }
+      </style>
+
+      <vaadin-text-area label="Description" value="${templates.loremIpsum}"></vaadin-text-area>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Minimum & Maximum Rows
+
+Alternatively, the minimum and maximum height can be constrained to a specific number of text rows like so:
+
+[Flow: Java]
+TextArea textArea = new TextArea();
+textArea.setMinRows(4);
+textArea.setMaxRows(8);
+
+[Flow: Java]
+
+[React: tsx]
+<TextArea minRows={4} maxRows={8} />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-text-area min-rows="4" max-rows="8"></vaadin-text-area>
+
+[Lit: HTML]
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+The placeholder is text that’s displayed when the field is empty. Its primary purpose is to provide a short input hint (e.g., the expected format) in situations where a Helper cannot be used.
+
+Placeholders should not be used as a replacement for a visible label. They can be mistaken for a manually entered value. See Label for alternatives to the built-in field label.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+The clear button — which is displayed when the field is not empty — clears the field’s current value. Although the button itself is not keyboard focusable, the clear action can be taken with the Esc key, when the field has focus. The clear button can be especially useful in search and filter fields, where users often need to clear the value. They’re less useful, however, in regular forms.
+
+Prefix and suffix elements — rendered at either end of the field — can be used to display units, icons, and similar visual cues to the field’s purpose or format.
+
+Prefix and suffix elements typically don’t work well with assistive technologies like screen readers. Therefore, the information communicated by them should also be conveyed through other means, such as in a Label, a Helper, or through ARIA attributes on the field itself.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-text-area accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-text-area accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: TextAreaBasicFeatures.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.router.Route;
+
+@Route("text-area-basic-features")
+public class TextAreaBasicFeatures extends HorizontalLayout {
+
+    public TextAreaBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        TextArea field = new TextArea();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setPlaceholder("Placeholder");
+        field.setTooltipText("Tooltip text");
+        field.setClearButtonVisible(true);
+        field.setPrefixComponent(VaadinIcon.VAADIN_H.create());
+        field.setSuffixComponent(new Span(":)"));
+        // end::snippet[]
+        field.setWidthFull();
+        add(field);
+    }
+
+}
+
+[React: text-area-basic-features.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TextArea
+      label="Label"
+      helperText="Helper text"
+      placeholder="Placeholder"
+      clearButtonVisible
+      style={{ width: '100%' }}
+    >
+      <Tooltip slot="tooltip" text="Tooltip text" />
+      <Icon slot="prefix" icon="vaadin:vaadin-h" />
+      <span slot="suffix">:)</span>
+    </TextArea>
+    // end::snippet[]
+  );
+}
+
+[Lit: text-area-basic-features.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-area';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-area-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-area
+        label="Label"
+        helper-text="Helper text"
+        placeholder="Placeholder"
+        clear-button-visible
+        style="width:100%"
+      >
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <vaadin-icon slot="prefix" icon="vaadin:vaadin-h"></vaadin-icon>
+        <span slot="suffix">:)</span>
+      </vaadin-text-area>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Validation
+
+Text Area provides a validation mechanism based on constraints. Constraints allow you to define criteria that the value must meet to be considered valid. Validation occurs typically when the user initiates a value change, for example by entering input and pressing Enter. If the value is invalid, the field is highlighted in red, and an error message appears underneath the input. Certain constraints, however, can proactively prevent users from entering characters that would result in an invalid value.
+
+Below is a list of supported constraints with more detailed information:
+
+Required fields are marked with an indicator next to the label, and become invalid if their value is first entered and then cleared.
+
+An instruction text at the top of the form explaining the required indicator is recommended. The indicator itself can be customized with the --vaadin-input-field-required-indicator style property.
+
+The minimum and maximum input length value constraints dictate the smallest, and the largest number of characters a field accepts. It triggers a validation error if a value shorter than the minimum length is entered, and limits text entered to the maximum length. They can be used to enforce specific formats, or to cap the value to the length supported by the underlying database schema.
+
+In cases where the length requirements may not be clear to the user, it’s recommended to provide this information, for example by using a Helper.
+
+The pattern is a regular expression used to validate the full value entered into the field. Any value that doesn’t match the pattern, invalidates the field.
+
+A separate single-character, regular expression can be used to restrict the characters that can be entered into the field. Characters that don’t match the expression are rejected. However, values set programmatically are not subject to this restriction, even if they contain disallowed characters.
+
+[Flow: TextAreaValidation.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextArea.TextAreaI18n;
+import com.vaadin.flow.router.Route;
+
+@Route("text-area-validation")
+public class TextAreaValidation extends HorizontalLayout {
+
+    public TextAreaValidation() {
+        setPadding(false);
+
+        // tag::snippet[]
+        TextArea field = new TextArea("Sentence");
+        field.setRequiredIndicatorVisible(true);
+        field.setPattern("^[A-Z]([A-Za-z0-9,\\-\\s])*\\.$");
+        field.setAllowedCharPattern("[A-Za-z0-9,.\\-\\s]");
+        field.setMinLength(5);
+        field.setMaxLength(50);
+
+        field.setI18n(new TextAreaI18n()
+                .setRequiredErrorMessage("Field is required")
+                .setMinLengthErrorMessage("Minimum length is 5 characters")
+                .setMaxLengthErrorMessage("Maximum length is 50 characters")
+                .setPatternErrorMessage(
+                        "Must be one complete sentence ending in a period"));
+        // end::snippet[]
+        field.setHelperText(
+                "Must be one complete sentence ending in a period, between 5 and 50 characters long");
+        field.setWidthFull();
+        add(field);
+    }
+
+}
+
+[React: text-area-validation.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { TextArea, type TextAreaElement } from '@vaadin/react-components/TextArea.js';
+
+function Example() {
+  const errorMessage = useSignal('');
+
+  return (
+    // tag::snippet[]
+    <TextArea
+      required
+      minlength={5}
+      maxlength={50}
+      pattern="^[A-Z]([A-Za-z0-9,-\s])*\.$"
+      allowedCharPattern="[A-Za-z0-9,.\-\s]"
+      label="Sentence"
+      helperText="Must be one complete sentence ending in a period, between 5 and 50 characters long"
+      style={{ width: '100%' }}
+      errorMessage={errorMessage.value}
+      onValidated={(event) => {
+        const field = event.target as TextAreaElement;
+        const { validity } = field.inputElement as HTMLTextAreaElement;
+        if (validity.valueMissing) {
+          errorMessage.value = 'Field is required';
+        } else if (validity.tooShort) {
+          errorMessage.value = `Minimum length is ${field.minlength} characters`;
+        } else if (validity.tooLong) {
+          errorMessage.value = `Maximum length is ${field.maxlength} characters`;
+        } else if (!new RegExp(field.pattern).test(field.value)) {
+          errorMessage.value = 'Must be one complete sentence ending in a period';
+        } else {
+          errorMessage.value = '';
+        }
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: text-area-validation.ts]
+import '@vaadin/text-area';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { TextArea, TextAreaValidatedEvent } from '@vaadin/text-area';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-area-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private errorMessage = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-area
+        required
+        minlength="5"
+        maxlength="50"
+        pattern="^[A-Z]([A-Za-z0-9,-\\s])*\\.$"
+        allowed-char-pattern="[A-Za-z0-9,.\\-\\s]"
+        label="Sentence"
+        helper-text="Must be one complete sentence ending in a period, between 5 and 50 characters long"
+        style="width:100%"
+        .errorMessage="${this.errorMessage}"
+        @validated="${(event: TextAreaValidatedEvent) => {
+          const field = event.target as TextArea;
+          const { validity } = field.inputElement as HTMLTextAreaElement;
+          if (validity.valueMissing) {
+            field.errorMessage = 'Field is required';
+          } else if (validity.tooShort) {
+            field.errorMessage = `Minimum length is ${field.minlength} characters`;
+          } else if (validity.tooLong) {
+            field.errorMessage = `Maximum length is ${field.maxlength} characters`;
+          } else if (!new RegExp(field.pattern).test(field.value)) {
+            field.errorMessage = 'Must be one complete sentence ending in a period';
+          } else {
+            field.errorMessage = '';
+          }
+        }}"
+      ></vaadin-text-area>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+It’s important to ensure an appropriate error message is configured for each constraint violation to provide users with clear feedback.
+
+Note: Data Binding & Custom Validation
+
+Flow and Hilla offer an advanced API called Binder that allows you to bind data and add custom validation rules for multiple fields, creating forms. You can learn more about Binder from the corresponding Flow and Hilla articles.
+
+Read-Only & Disabled
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers. They can display tooltips. Their values can be selected and copied.
+
+Fields that are currently unavailable should be disabled. The reduced contrast of disabled fields makes them inappropriate for displaying information. They can’t be focused or display tooltips. They’re invisible to screen readers, and their values cannot be selected and copied.
+
+Disabled fields can be useful in situations where they can become enabled based on some user action. Consider hiding fields entirely if there’s nothing the user can do to make them editable.
+
+[Flow: TextAreaReadonlyAndDisabled.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.router.Route;
+
+@Route("text-area-readonly-and-disabled")
+public class TextAreaReadonlyAndDisabled extends FormLayout {
+
+    public TextAreaReadonlyAndDisabled() {
+        setAutoResponsive(true);
+        setAutoRows(true);
+
+        // tag::snippet[]
+        TextArea readonlyArea = new TextArea();
+        readonlyArea.setReadOnly(true);
+        readonlyArea.setLabel("Read-only");
+        readonlyArea.setValue("Value");
+
+        TextArea disabledArea = new TextArea();
+        disabledArea.setEnabled(false);
+        disabledArea.setLabel("Disabled");
+        // end::snippet[]
+        add(readonlyArea, disabledArea);
+    }
+
+}
+
+[React: text-area-readonly-and-disabled.tsx]
+import React from 'react';
+import { FormLayout, TextArea } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <FormLayout autoResponsive autoRows>
+      {/* tag::snippet[] */}
+      <TextArea readonly label="Read-only" value="Value" />
+
+      <TextArea disabled label="Disabled" />
+      {/* end::snippet[] */}
+    </FormLayout>
+  );
+}
+
+[Lit: text-area-readonly-and-disabled.ts]
+import '@vaadin/text-area';
+import '@vaadin/form-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-area-readonly-and-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout auto-responsive auto-rows>
+        <!-- tag::snippet[] -->
+        <vaadin-text-area readonly label="Read-only" value="Value"></vaadin-text-area>
+
+        <vaadin-text-area disabled label="Disabled"></vaadin-text-area>
+        <!-- end::snippet[] -->
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+Character Counter
+
+Longer free-form inputs are often capped at a certain character limit. The current character count and upper limit should be displayed to the user, for example by using the Helper feature:
+
+[Flow: TextAreaHelper.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("text-area-helper")
+public class TextAreaHelper extends Div {
+
+    public TextAreaHelper() {
+        String loremIpsum = DataService.getTemplates().getLoremIpsum();
+        int charLimit = 600;
+
+        // tag::snippet[]
+        TextArea textArea = new TextArea();
+        textArea.setWidthFull();
+        textArea.setLabel("Description");
+        textArea.setMaxLength(charLimit);
+        textArea.setValueChangeMode(ValueChangeMode.EAGER);
+        textArea.addValueChangeListener(e -> {
+            e.getSource()
+                    .setHelperText(e.getValue().length() + "/" + charLimit);
+        });
+        textArea.setValue(loremIpsum);
+        add(textArea);
+        // end::snippet[]
+    }
+
+}
+
+[React: text-area-helper.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import templates from '../../../../../src/main/resources/data/templates.json';
+
+function Example() {
+  const charLimit = 600;
+  const text = useSignal(templates.loremIpsum);
+
+  return (
+    // tag::snippet[]
+    <TextArea
+      label="Description"
+      maxlength={charLimit}
+      value={text.value}
+      helperText={`${text.value.length}/${charLimit}`}
+      onValueChanged={(event) => {
+        text.value = event.detail.value;
+      }}
+      style={{ width: '100%' }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: text-area-helper.ts]
+import '@vaadin/text-area';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { TextAreaValueChangedEvent } from '@vaadin/text-area';
+import { applyTheme } from 'Frontend/demo/theme';
+import templates from '../../../../src/main/resources/data/templates.json';
+
+@customElement('text-area-helper-2')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-text-area {
+      width: 100%;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private charLimit = 600;
+
+  @state()
+  private text = templates.loremIpsum;
+
+  protected override render() {
+    return html`
+      <vaadin-text-area
+        label="Description"
+        .maxlength="${this.charLimit}"
+        .value="${this.text}"
+        .helperText="${`${this.text.length}/${this.charLimit}`}"
+        @value-changed="${(event: TextAreaValueChangedEvent) => {
+          this.text = event.detail.value;
+        }}"
+      ></vaadin-text-area>
+    `;
+  }
+  // end::snippet[]
+}
+
+Value Change Modes Flow
+
+With the Flow Java API, you can define when client-side value changes are synchronized to the server. The ValueChangeMode enum provides the following modes:
+
+Mode | Synchronization timing | Custom timeout interval
+EAGER | Synchronizes the value whenever it changes on the client side, for example on each keystroke. | No
+LAZY | Synchronizes the value after a defined interval has passed without further changes. If another change occurs before the interval ends, the timeout is restarted. | Yes
+TIMEOUT | Synchronizes the value at defined intervals while the value continues to change. | Yes
+ON_CHANGE (default) | Synchronizes the value on the change event, when the component value is committed. | No
+
+For the modes that support a custom timeout interval, you can change the interval with the setValueChangeTimeout() method. The default interval is 400 milliseconds.
+
+[Flow: TextAreaValueChangeMode.java]
+package com.vaadin.demo.component.textarea;
+
+import com.vaadin.demo.DemoExporter;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+import static com.vaadin.demo.component.Constants.valueChangeModes;
+
+@Route("text-area-value-change-mode")
+public class TextAreaValueChangeMode extends VerticalLayout {
+
+    public TextAreaValueChangeMode() {
+        setPadding(false);
+
+        // tag::snippet[]
+        var textArea = new TextArea("Text Area");
+        var modeSelector = new Select<>("Value Change Mode", valueChangeModes);
+        modeSelector.setValue(textArea.getValueChangeMode());
+        modeSelector.addValueChangeListener(e -> {
+            textArea.clear();
+            textArea.setValueChangeMode(e.getValue());
+        });
+        var serverSideContent = new Span();
+        textArea.addValueChangeListener(
+                e -> serverSideContent.setText(e.getValue()));
+        // end::snippet[]
+
+        modeSelector.setItemLabelGenerator(ValueChangeMode::name);
+
+        var horizontalLayout = new HorizontalLayout(textArea, modeSelector);
+        horizontalLayout.setAlignItems(Alignment.BASELINE);
+
+        var serverSideLayout = new HorizontalLayout(new Span("Server side:"),
+                serverSideContent);
+
+        add(horizontalLayout, serverSideLayout);
+    }
+
+}
+
+Related Components
+
+Component | Usage Recommendation
+Text Field | Basic single-line text input.
+Rich Text Editor | Multi-line text entry with rich formatting support.

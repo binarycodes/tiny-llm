@@ -1,0 +1,1131 @@
+Grid Pro
+
+Grid Pro, an extension of Grid, provides inline editing with full keyboard navigation.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Grid Pro in your project.
+
+- Start Free Trial
+- See Pricing
+
+Grid Pro is an extension of the Grid component that provides inline editing with full keyboard navigation.
+
+[Flow: GridProBasic.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+import java.util.List;
+
+@Route("grid-pro-basic")
+public class GridProBasic extends Div {
+
+    public GridProBasic() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        grid.addEditColumn(Person::getLastName).text(Person::setLastName)
+                .setHeader("Last name");
+
+        grid.addEditColumn(Person::getEmail).text(Person::setEmail)
+                .setHeader("Email");
+
+        grid.addEditColumn(Person::getProfession).text(Person::setProfession)
+                .setHeader("Profession");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value}>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn path="lastName" />
+      <GridProEditColumn path="email" />
+      <GridProEditColumn path="profession" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-basic.ts]
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}">
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="lastName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="email"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="profession"></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Features Shared with Grid
+
+Grid Pro is an extension of the Grid component. As a result, all of Grid’s features are also available with Grid Pro.
+
+Usage
+
+To use Grid Pro, begin by double-clicking on an editable cell. Then press Enter, Space, or type an alphanumeric character when an editable cell is focused.
+
+When editing, there are a few keyboard shortcuts available:
+
+- Esc discards the changes and exits edit mode.
+- Enter and Shift+Enter save changes and exit edit mode.
+- Tab and Shift+Tab save changes and move focus to the next or previous editable cell, respectively, while remaining in edit mode.
+
+Modes
+
+Grid Pro has a few modes: edit on single-click; single cell edit; and enter next row. These are described in the sub-sections that follow.
+
+Edit on Single-Click
+
+Single-Click Edit is a mode that enables the user to begin editing by single-clicking on an editable cell.
+
+[Flow: GridProSingleClick.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.util.List;
+
+@Route("grid-pro-single-click")
+public class GridProSingleClick extends Div {
+
+    public GridProSingleClick() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+        grid.setEditOnClick(true);
+        // end::snippet[]
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        grid.addEditColumn(Person::getLastName).text(Person::setLastName)
+                .setHeader("Last name");
+
+        grid.addEditColumn(Person::getEmail).text(Person::setEmail)
+                .setHeader("Email");
+
+        grid.addEditColumn(Person::getProfession).text(Person::setProfession)
+                .setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-single-click.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value} editOnClick>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn path="lastName" />
+      <GridProEditColumn path="email" />
+      <GridProEditColumn path="profession" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-single-click.ts]
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-single-click')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}" edit-on-click>
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="lastName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="email"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="profession"></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Single Cell Edit
+
+By default, when in edit mode, Tab moves the focus to the next cell and Shift+Tab moves the focus to the previous editable cell — while remaining in edit mode. With Single Cell Edit, tabbing from one cell to another will exit from edit mode.
+
+[Flow: GridProSingleCellEdit.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+import java.util.List;
+
+@Route("grid-pro-single-cell-edit")
+public class GridProSingleCellEdit extends Div {
+    public GridProSingleCellEdit() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+        grid.setSingleCellEdit(true);
+        // end::snippet[]
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        grid.addEditColumn(Person::getLastName).text(Person::setLastName)
+                .setHeader("Last name");
+
+        grid.addEditColumn(Person::getEmail).text(Person::setEmail)
+                .setHeader("Email");
+
+        grid.addEditColumn(Person::getProfession).text(Person::setProfession)
+                .setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-single-cell-edit.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value} singleCellEdit>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn path="lastName" />
+      <GridProEditColumn path="email" />
+      <GridProEditColumn path="profession" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-single-cell-edit.ts]
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-single-cell-edit')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}" single-cell-edit>
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="lastName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="email"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="profession"></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Enter Next Row
+
+Pressing Enter or Shift+Enter saves any changes and exits edit mode, by default. However, Enter can be made to move focus to the editable cell in the next row, by using the Enter Next Row mode. The same can be done for Shift+Enter, but to move the focus to the editable cell in the previous row.
+
+[Flow: GridProEnterNextRow.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.util.List;
+
+@Route("grid-pro-enter-next-row")
+public class GridProEnterNextRow extends Div {
+
+    public GridProEnterNextRow() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+        grid.setEnterNextRow(true);
+        // end::snippet[]
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        grid.addEditColumn(Person::getLastName).text(Person::setLastName)
+                .setHeader("Last name");
+
+        grid.addEditColumn(Person::getEmail).text(Person::setEmail)
+                .setHeader("Email");
+
+        grid.addEditColumn(Person::getProfession).text(Person::setProfession)
+                .setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-enter-next-row.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value} enterNextRow>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn path="lastName" />
+      <GridProEditColumn path="email" />
+      <GridProEditColumn path="profession" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-enter-next-row.ts]
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-enter-next-row')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}" enter-next-row>
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="lastName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="email"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="profession"></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Edit Column
+
+Editing is enabled on a per-column basis.
+
+[Flow: GridProEditColumn.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.util.List;
+
+@Route("grid-pro-edit-column")
+public class GridProEditColumn extends Div {
+
+    public GridProEditColumn() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+
+        grid.addColumn(Person::getFullName).setHeader("Name (read-only)");
+
+        grid.addEditColumn(Person::getProfession).text(Person::setProfession)
+                .setHeader("Profession (editable)");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-edit-column.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function fullNameRenderer({ item }: { item: Person }) {
+  return (
+    <>
+      {item.firstName} {item.lastName}
+    </>
+  );
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value} enterNextRow>
+      <GridColumn header="Name (read-only)" renderer={fullNameRenderer} />
+      <GridProEditColumn header="Profession (editable)" path="profession" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-edit-column.ts]
+import '@vaadin/grid/vaadin-grid-column.js';
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-edit-column')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}" enter-next-row>
+        <vaadin-grid-column
+          header="Name (read-only)"
+          ${columnBodyRenderer<Person>(
+            (person) => html`${person.firstName} ${person.lastName}`,
+            []
+          )}
+        ></vaadin-grid-column>
+        <vaadin-grid-pro-edit-column
+          header="Profession (editable)"
+          path="profession"
+        ></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Recommended Built-in Editors
+
+Grid Pro features three recommended built-in editors: Text Field; Checkbox; and Select. They’re described in the table here.
+
+Editor | Usage Recommendation
+Text | Editing basic text.
+Checkbox | Editing boolean (binary) values.
+Select | Selecting a single value from a set of options.
+
+Although Grid Pro can be configured to use any input field for editing, the built-in editors have better keyboard usability and rendering.
+
+[Flow: GridProEditor.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+@Route("grid-pro-editors")
+public class GridProEditor extends Div {
+
+    public GridProEditor() {
+        Renderer<Person> birthdayDateRenderer = new TextRenderer<>(
+                person -> getBirthdayAsLocalDate(person)
+                        .format(birthdayFormatter));
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        List<String> membershipOptions = Arrays.asList("Regular", "Premium",
+                "VIP");
+        grid.addEditColumn(Person::getMembership)
+                .select(Person::setMembership, membershipOptions)
+                .setHeader("Membership");
+
+        grid.addEditColumn(Person::isSubscriber).checkbox(Person::setSubscriber)
+                .setHeader("Subscriber");
+
+        DatePicker datePicker = new DatePicker();
+        datePicker.setWidthFull();
+
+        grid.addEditColumn(GridProEditor::getBirthdayAsLocalDate,
+                birthdayDateRenderer)
+                .custom(datePicker,
+                        (person, newValue) -> person
+                                .setBirthday(dateFromLocalDate(newValue)))
+                .setHeader("Birthday");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static final DateTimeFormatter birthdayFormatter = DateTimeFormatter
+            .ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault());
+
+    private static LocalDate getBirthdayAsLocalDate(Person person) {
+        return person.getBirthday().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+    public static Date dateFromLocalDate(LocalDate localDate) {
+        return Date.from(
+                localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+}
+
+[React: grid-pro-editors.tsx]
+import React, { useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function birthdayRenderer({ item: { birthday } }: { item: Person }) {
+  return format(parseISO(birthday), 'MM/dd/yyyy');
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value} enterNextRow>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn
+        path="membership"
+        editorType="select"
+        editorOptions={['Regular', 'Premium', 'VIP']}
+      />
+      <GridProEditColumn path="subscriber" editorType="checkbox" />
+      <GridProEditColumn
+        path="birthday"
+        renderer={birthdayRenderer}
+        editModeRenderer={({ item: { birthday } }) => (
+          <DatePicker style={{ width: '100%' }} value={birthday} />
+        )}
+      />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-editors.ts]
+import '@vaadin/date-picker';
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { format, parseISO } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { columnEditModeRenderer } from '@vaadin/grid-pro/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-editors')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}" enter-next-row>
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column
+          path="membership"
+          editor-type="select"
+          .editorOptions="${['Regular', 'Premium', 'VIP']}"
+        ></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="subscriber" editor-type="checkbox">
+        </vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column
+          path="birthday"
+          ${columnBodyRenderer<Person>(
+            ({ birthday }) => html`${format(parseISO(birthday), 'MM/dd/yyyy')}`,
+            []
+          )}
+          ${columnEditModeRenderer<Person>(
+            ({ birthday }) => html`
+              <vaadin-date-picker style="width: 100%" .value="${birthday}"></vaadin-date-picker>
+            `,
+            []
+          )}
+        ></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Prevent Saving Changes
+
+Whenever you enter incorrect or invalid data, it’s possible to rollback changes.
+
+[Flow: GridProPreventSave.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
+@Route("grid-pro-prevent-save")
+public class GridProPreventSave extends Div {
+
+    public GridProPreventSave() {
+        // tag::snippet[]
+        GridPro<Person> grid = new GridPro<>();
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        grid.addEditColumn(Person::getLastName).text(Person::setLastName)
+                .setHeader("Last name");
+
+        grid.addEditColumn(Person::getEmail).text((person, newValue) -> {
+            if (isValidEmail(newValue)) {
+                person.setEmail(newValue);
+            } else {
+                showErrorNotification("Enter a valid email address");
+            }
+        }).setHeader("Email");
+
+        grid.addEditColumn(person -> person.getAddress().getPhone())
+                .text((person, newValue) -> {
+                    if (isValidPhoneNumber(newValue)) {
+                        person.getAddress().setPhone(newValue);
+                    } else {
+                        showErrorNotification("Enter a valid phone number");
+                    }
+                }).setHeader("Phone");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static boolean isValidPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null)
+            return false;
+
+        return Pattern.compile("^[0-9-]+$").matcher(phoneNumber).matches();
+    }
+
+    private static boolean isValidEmail(String email) {
+        if (email == null)
+            return false;
+
+        String regex = "^" + "([a-zA-Z0-9_.\\-+])+" // local
+                + "@" + "[a-zA-Z0-9-.]+" // domain
+                + "\\." + "[a-zA-Z0-9-]{2,}" // tld
+                + "$";
+
+        return Pattern.compile(regex).matcher(email).matches();
+    }
+
+    private static void showErrorNotification(String msg) {
+        Notification notification = new Notification(msg, 5000,
+                Notification.Position.BOTTOM_CENTER);
+        notification.addThemeVariants(NotificationVariant.ERROR);
+        notification.open();
+    }
+
+}
+
+[React: grid-pro-prevent-save.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Notification } from '@vaadin/notification';
+import {
+  GridPro,
+  type GridProItemPropertyChangedEvent,
+} from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  const showErrorNotification = (msg: string) => {
+    Notification.show(msg, { position: 'bottom-center', theme: 'error' });
+  };
+
+  const itemPropertyListener = (event: GridProItemPropertyChangedEvent<Person>) => {
+    switch (event.detail.path) {
+      case 'address.phone':
+        if (typeof event.detail.value === 'string' && !/^[0-9-]+$/.test(event.detail.value)) {
+          // Incorrect phone
+          event.preventDefault();
+          showErrorNotification('Enter a valid phone number');
+        }
+        break;
+      case 'email':
+        if (
+          typeof event.detail.value === 'string' &&
+          !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(event.detail.value)
+        ) {
+          // Incorrect email
+          event.preventDefault();
+          showErrorNotification('Enter a valid email address');
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value} onItemPropertyChanged={itemPropertyListener}>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn path="lastName" />
+      <GridProEditColumn path="email" />
+      <GridProEditColumn path="address.phone" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-prevent-save.ts]
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-prevent-save')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  private showErrorNotification(msg: string) {
+    const notification = Notification.show(msg, { position: 'bottom-center' });
+    notification.setAttribute('theme', 'error');
+  }
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}" @item-property-changed="${this.itemPropertyListener}">
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="lastName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="email"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="address.phone"></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private itemPropertyListener(event: CustomEvent<{ value: string; path: string }>) {
+    switch (event.detail.path) {
+      case 'address.phone':
+        if (!/^[0-9-]+$/.test(event.detail.value)) {
+          // Incorrect phone
+          event.preventDefault();
+          this.showErrorNotification('Enter a valid phone number');
+        }
+        break;
+      case 'email':
+        if (!/^[\w-.]+@([\w-]+.)+[\w-]{2,4}$/.test(event.detail.value)) {
+          // Incorrect email
+          event.preventDefault();
+          this.showErrorNotification('Enter a valid email address');
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+Conditional Editability
+
+In some situations you may need to disable editing of specific cells in an edit column. This can be done through a function that determines the editability of each cell. This function is automatically re-evaluated when an item in the Grid is modified. As a result, modifying the value in one cell can immediately affect the editability of other cells.
+
+[Flow: GridProCellEditability.java]
+package com.vaadin.demo.component.gridpro;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.gridpro.GridPro;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+import java.util.List;
+
+@Route("grid-pro-cell-editability")
+public class GridProCellEditability extends Div {
+    public GridProCellEditability() {
+        GridPro<Person> grid = new GridPro<>();
+
+        grid.addEditColumn(Person::getFirstName).text(Person::setFirstName)
+                .setHeader("First name");
+
+        grid.addEditColumn(Person::getLastName).text(Person::setLastName)
+                .setHeader("Last name");
+
+        // tag::snippet[]
+        grid.addEditColumn(Person::getEmail)
+                .withCellEditableProvider(item -> item.isSubscriber())
+                .text(Person::setEmail).setHeader("Email");
+        // end::snippet[]
+
+        grid.addEditColumn(Person::isSubscriber).checkbox(Person::setSubscriber)
+                .setHeader("Subscriber");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        add(grid);
+    }
+
+}
+
+[React: grid-pro-cell-editability.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import type { GridItemModel } from '@vaadin/react-components/Grid.js';
+import { GridPro } from '@vaadin/react-components-pro/GridPro.js';
+import { GridProEditColumn } from '@vaadin/react-components-pro/GridProEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  const isSubscriber = (model: GridItemModel<Person>) => model.item.subscriber;
+
+  return (
+    // tag::snippet[]
+    <GridPro items={items.value}>
+      <GridProEditColumn path="firstName" />
+      <GridProEditColumn path="lastName" />
+      <GridProEditColumn path="email" isCellEditable={isSubscriber} />
+      <GridProEditColumn path="subscriber" editorType="checkbox" />
+    </GridPro>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-pro-cell-editability.ts]
+import '@vaadin/grid-pro';
+import '@vaadin/grid-pro/vaadin-grid-pro-edit-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridItemModel } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-pro-cell-editability')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid-pro .items="${this.items}">
+        <vaadin-grid-pro-edit-column path="firstName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column path="lastName"></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column
+          path="email"
+          .isCellEditable="${this.isSubscriber}"
+        ></vaadin-grid-pro-edit-column>
+        <vaadin-grid-pro-edit-column
+          path="subscriber"
+          editor-type="checkbox"
+        ></vaadin-grid-pro-edit-column>
+      </vaadin-grid-pro>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  protected isSubscriber(model: GridItemModel<Person>) {
+    return model.item.subscriber;
+  }
+}
+
+Best Practices
+
+Inline vs. Non-Inline Editing
+
+Inline editing is recommended when the user will usually need to make many small changes to different items, and when quick editing is essential.
+
+Non-inline editing is preferable when there are plenty of columns or fields, and when users typically need to edit only one item at a time. It’s also preferred when adding new items is common, as you might want to have edit and create modes work the same way, and creating new items with inline editing isn’t recommended with Grid Pro.
+
+Use non-inline editing when any of the editors need to be larger than a simple field (e.g., Text Area and multi-select fields), or when fields alone may be insufficient (e.g., when helpers, validation errors or other features are needed). Also, use it when explicit save or cancel actions are beneficial, for example, to prevent accidental edits.
+
+Incidentally, if your situation would benefit more from non-inline editing, consider using CRUD.
+
+Related Components
+
+Component | Usage Recommendations
+CRUD | Component for creating, displaying, updating and deleting tabular data.
+Grid | Component for showing tabular data.

@@ -1,0 +1,90 @@
+App Layout Styling
+
+Styling API reference for the App Layout component.
+
+Style Variants
+
+The following Button variants are supported by the Drawer Toggle:
+
+Variant | Description | Supported by
+primary | Used to make the drawer toggle more prominent | Aura
+tertiary | Used to make the drawer toggle less prominent | Aura
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+App Layout Properties
+
+Property | Supported by
+--vaadin-app-layout-drawer-background | Aura
+--vaadin-app-layout-drawer-width | Aura, Lumo
+--vaadin-app-layout-navbar-background | Aura
+--vaadin-app-layout-navbar-gap | Aura
+--vaadin-app-layout-navbar-padding-bottom | Aura
+--vaadin-app-layout-navbar-padding-inline-end | Aura
+--vaadin-app-layout-navbar-padding-inline-start | Aura
+--vaadin-app-layout-navbar-padding-top | Aura
+--vaadin-app-layout-transition-duration | Aura, Lumo
+--vaadin-overlay-backdrop-background | Aura
+--vaadin-overlay-shadow | Aura
+
+Drawer Toggle Properties
+
+Property | Supported by
+--vaadin-button-background | Aura, Lumo
+--vaadin-button-border | Lumo
+--vaadin-button-border-color | Aura
+--vaadin-button-border-radius | Aura, Lumo
+--vaadin-button-border-width | Aura
+--vaadin-button-font-size | Aura, Lumo
+--vaadin-button-height | Aura, Lumo
+--vaadin-button-line-height | Aura
+--vaadin-button-margin | Aura, Lumo
+--vaadin-button-min-width | Lumo
+--vaadin-button-padding | Aura, Lumo
+--vaadin-button-text-color | Aura, Lumo
+--vaadin-icon-size | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-app-layout
+
+Parts
+
+Navbar
+    vaadin-app-layout::part(navbar)
+Top navbar
+    vaadin-app-layout::part(navbar-top)
+Bottom "touch optimized" navbar
+    vaadin-app-layout::part(navbar-bottom)
+Content area
+    vaadin-app-layout::part(content)
+Drawer
+    vaadin-app-layout::part(drawer)
+Drawer toggle
+    vaadin-drawer-toggle
+Drawer toggle icon wrapper
+    vaadin-drawer-toggle::part(icon)
+Drawer toggle icon
+    vaadin-drawer-toggle::part(icon)::before
+
+States
+
+Navbar on top of drawer
+    vaadin-app-layout[primary-section="navbar"]
+Navbar next to drawer
+    vaadin-app-layout[primary-section="drawer"]
+Drawer opened
+    vaadin-app-layout[drawer-opened]
+Overlay drawer (small screen) mode
+    vaadin-app-layout[overlay]

@@ -1,0 +1,2322 @@
+Combo Box
+
+Combo Box allows the user to choose a value from a filterable list of options presented in an overlay.
+
+Combo Box allows the user to choose a value from a filterable list of options presented in an overlay. It supports lazy loading and can be configured to accept custom typed values.
+
+[Flow: ComboBoxBasic.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+
+@Route("combo-box-basic")
+public class ComboBoxBasic extends Div {
+
+    public ComboBoxBasic() {
+        // tag::snippet[]
+        ComboBox<Country> comboBox = new ComboBox<>("Country");
+        comboBox.setItems(DataService.getCountries());
+        comboBox.setItemLabelGenerator(Country::getName);
+        add(comboBox);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: Country.java]
+package com.vaadin.demo.domain;
+
+import java.util.Objects;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Country {
+
+    @Nonnull
+    private String name;
+
+    @Nonnull
+    private String abbreviation;
+
+    @Nonnull
+    private Integer id;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Country)) {
+            return false;
+        }
+        Country other = (Country) obj;
+        return Objects.equals(id, other.id);
+    }
+}
+// end::snippet[]
+
+[React: combo-box-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+  useEffect(() => {
+    getCountries().then((data) => {
+      items.value = data;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <ComboBox label="Country" itemLabelPath="name" itemValuePath="id" items={items.value} />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-basic.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('combo-box-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        label="Country"
+        item-label-path="name"
+        item-value-path="id"
+        .items="${this.items}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: Country.ts]
+interface Country {
+    name: string;
+    abbreviation: string;
+    id: number;
+}
+export default Country;
+
+[Lit: Country.ts]
+
+The overlay opens when the user clicks the field using a pointing device. Using the Up/Down arrow keys or typing a character — found in at least one of the options — when the field is focused also opens the popup.
+
+Note: Selection Uses equals() and hashCode()
+
+Combo Box matches the selected value to its items using equals() and hashCode(), not reference identity. So setValue() preselects an item only if the value you pass is equal to one of the items given to setItems(). The Country class above overrides both methods (based on its id), which is why a matching value is preselected.
+
+This matters for entity types: a JPA entity that doesn’t override equals() and hashCode() won’t preselect, because a freshly loaded instance isn’t equal to the option instance the component holds�� — so the field silently stays empty. Either override both methods (for example, based on the entity’s ID), or pass the exact item instances the component already holds.
+
+Custom Value Entry
+
+Combo Box can be configured to allow entering custom values that aren’t included in the list of options.
+
+[Flow: ComboBoxCustomEntry1.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-custom-entry-1")
+public class ComboBoxCustomEntry1 extends Div {
+
+    public ComboBoxCustomEntry1() {
+        // tag::snippet[]
+        ComboBox<String> comboBox = new ComboBox<>("Browser");
+        comboBox.setAllowCustomValue(true);
+        add(comboBox);
+        // end::snippet[]
+        comboBox.setItems("Chrome", "Edge", "Firefox", "Safari");
+        comboBox.setHelperText("Select or type a browser");
+    }
+
+}
+
+[React: combo-box-custom-entry-1.tsx]
+import React from 'react';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+
+function Example() {
+  const items = ['Chrome', 'Edge', 'Firefox', 'Safari'];
+
+  return (
+    // tag::snippet[]
+    <ComboBox
+      allowCustomValue
+      label="Browser"
+      helperText="Select or type a browser"
+      items={items}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-custom-entry-1.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-custom-entry-1')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = ['Chrome', 'Edge', 'Firefox', 'Safari'];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        allow-custom-value
+        label="Browser"
+        helper-text="Select or type a browser"
+        .items="${this.items}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Allowing custom entry is useful when you need to present the most common choices, but still give users the freedom to enter their own options.
+
+Custom values can also be stored and added to the list of options:
+
+[Flow: ComboBoxCustomEntry2.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+@Route("combo-box-custom-entry-2")
+public class ComboBoxCustomEntry2 extends Div {
+
+    private List<String> items = new ArrayList<>(
+            Arrays.asList("Chrome", "Edge", "Firefox", "Safari"));
+
+    public ComboBoxCustomEntry2() {
+        // tag::snippet[]
+        ComboBox<String> comboBox = new ComboBox<>("Browser");
+        comboBox.setAllowCustomValue(true);
+        comboBox.addCustomValueSetListener(e -> {
+            String customValue = e.getDetail();
+            items.add(customValue);
+            comboBox.setItems(items);
+            comboBox.setValue(customValue);
+        });
+        add(comboBox);
+        // end::snippet[]
+        comboBox.setItems(items);
+        comboBox.setHelperText("Select or type a browser");
+    }
+
+}
+
+[React: combo-box-custom-entry-2.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+
+function Example() {
+  const items = useSignal(['Chrome', 'Edge', 'Firefox', 'Safari']);
+
+  return (
+    // tag::snippet[]
+    <ComboBox
+      allowCustomValue
+      label="Browser"
+      helperText="Select or type a browser"
+      items={items.value}
+      onCustomValueSet={(event) => {
+        items.value = [...items.value, event.detail];
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-custom-entry-2.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ComboBoxCustomValueSetEvent } from '@vaadin/combo-box';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-custom-entry-2')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = ['Chrome', 'Edge', 'Firefox', 'Safari'];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        allow-custom-value
+        label="Browser"
+        helper-text="Select or type a browser"
+        .items="${this.items}"
+        @custom-value-set="${(event: ComboBoxCustomValueSetEvent) => {
+          this.items = [...this.items, event.detail];
+        }}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Custom Item Presentation
+
+See Select, Custom Item Presentation.
+
+Items can be customized to display more information than a single line of text.
+
+[Flow: ComboBoxPresentation.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBox.ItemFilter;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-presentation")
+public class ComboBoxPresentation extends Div {
+
+    public ComboBoxPresentation() {
+        ItemFilter<Person> filter = (person,
+                filterString) -> (person.getFirstName() + " "
+                        + person.getLastName() + " " + person.getProfession())
+                        .toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+
+        // tag::combobox[]
+        ComboBox<Person> comboBox = new ComboBox<>("Choose doctor");
+        comboBox.setItems(filter, DataService.getPeople());
+        comboBox.setItemLabelGenerator(
+                person -> person.getFirstName() + " " + person.getLastName());
+        comboBox.setRenderer(createRenderer());
+        comboBox.getStyle().set("--vaadin-combo-box-overlay-width", "16em");
+        add(comboBox);
+        // end::combobox[]
+    }
+
+    private Renderer<Person> createRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <div class="person-item">
+                                  <img src="${item.pictureUrl}" alt="Portrait of ${item.firstName} ${item.lastName}" style="width: 2.25rem;" />
+                                  <span>${item.firstName} ${item.lastName}</span>
+                                  <span>${item.profession}</span>
+                                </div>
+                                """)
+                .withProperty("pictureUrl", Person::getPictureUrl)
+                .withProperty("firstName", Person::getFirstName)
+                .withProperty("lastName", Person::getLastName)
+                .withProperty("profession", Person::getProfession);
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: combo-box-presentation.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import type { ComboBoxFilterChangedEvent } from '@vaadin/react-components/ComboBox.js';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+function renderPerson({ item: person }: { item: Person }) {
+  return (
+    <div className="person-item">
+      <img
+        src={person.pictureUrl}
+        alt={`Portrait of ${person.firstName} ${person.lastName}`}
+        style={{ width: '2.25rem' }}
+      />
+      <span>
+        {person.firstName} {person.lastName}
+      </span>
+      <span>{person.profession}</span>
+    </div>
+  );
+}
+
+function Example() {
+  const allItems = useSignal<Person[]>([]);
+  const filteredItems = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      const items = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+      allItems.value = items;
+      filteredItems.value = items;
+    });
+  }, []);
+
+  const filterChanged = (e: ComboBoxFilterChangedEvent) => {
+    const filter = e.detail.value;
+    filteredItems.value = allItems.value.filter(({ firstName, lastName, profession }) =>
+      `${firstName} ${lastName} ${profession}`.toLowerCase().includes(filter.toLowerCase())
+    );
+  };
+
+  return (
+    <ComboBox
+      label="Choose doctor"
+      itemLabelPath="displayName"
+      filteredItems={filteredItems.value}
+      style={{ '--vaadin-combo-box-overlay-width': '16em' } as React.CSSProperties}
+      onFilterChanged={filterChanged}
+      renderer={renderPerson}
+    />
+  );
+}
+// end::snippet[]
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: combo-box-presentation.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ComboBoxFilterChangedEvent } from '@vaadin/combo-box';
+import type { ComboBoxLitRenderer } from '@vaadin/combo-box/lit.js';
+import { comboBoxRenderer } from '@vaadin/combo-box/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('combo-box-presentation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private allItems: Person[] = [];
+
+  @state()
+  private filteredItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    const items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+
+    this.allItems = items;
+    this.filteredItems = items;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::combobox[] -->
+      <vaadin-combo-box
+        label="Choose doctor"
+        item-label-path="displayName"
+        .filteredItems="${this.filteredItems}"
+        style="--vaadin-combo-box-overlay-width: 16em"
+        @filter-changed="${this.filterChanged}"
+        ${comboBoxRenderer(this.renderer, [])}
+      ></vaadin-combo-box>
+      <!-- end::combobox[] -->
+    `;
+  }
+
+  private filterChanged(e: ComboBoxFilterChangedEvent) {
+    const filter = e.detail.value;
+    this.filteredItems = this.allItems.filter(({ firstName, lastName, profession }) =>
+      `${firstName} ${lastName} ${profession}`.toLowerCase().includes(filter.toLowerCase())
+    );
+  }
+
+  private renderer: ComboBoxLitRenderer<Person> = (person) => html`
+    <div class="person-item">
+      <img
+        src="${person.pictureUrl}"
+        alt="Portrait of ${person.firstName} ${person.lastName}"
+        style="width: 2.25rem;"
+      />
+      <span>${person.firstName} ${person.lastName}</span>
+      <span>${person.profession}</span>
+    </div>
+  `;
+}
+
+[Lit: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[Lit: Person.ts]
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Use a custom filter to allow the user to search by the rendered properties. It’s recommended to make filtering case insensitive.
+
+Item Class Names
+
+Items can be styled dynamically, based on application logic and the data in the combo box, through custom class names.
+
+[Flow: ComboBoxItemClassName.java]
+package com.vaadin.demo.component.combobox;
+
+import java.util.List;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-item-class-name")
+public class ComboBoxItemClassName extends Div {
+
+    public ComboBoxItemClassName() {
+        // tag::snippet[]
+        ComboBox<String> comboBox = new ComboBox<>("Fruit");
+        comboBox.setItems(List.of("Apple", "Banana", "Orange", "Pear"));
+        comboBox.setClassNameGenerator((item) -> {
+            switch (item) {
+            case "Apple":
+                return "coral";
+            case "Banana":
+                return "gold";
+            case "Orange":
+                return "orange";
+            case "Pear":
+                return "yellowgreen";
+            default:
+                return "";
+            }
+        });
+        // end::snippet[]
+        add(comboBox);
+    }
+
+}
+
+[Flow: combo-box-item-class-name.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-combo-box-item.coral {
+  color: coral;
+}
+
+vaadin-combo-box-item.gold {
+  color: gold;
+}
+
+vaadin-combo-box-item.orange {
+  color: orange;
+}
+
+vaadin-combo-box-item.yellowgreen {
+  color: yellowgreen;
+}
+
+[Flow: combo-box-item-class-name.css]
+
+[React: combo-box-item-class-name.tsx]
+import React from 'react';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+
+function Example() {
+  // tag::snippet[]
+  const items = ['Apple', 'Banana', 'Orange', 'Pear'];
+
+  const classNameGenerator = (item: string) => {
+    switch (item) {
+      case 'Apple':
+        return 'coral';
+      case 'Banana':
+        return 'gold';
+      case 'Orange':
+        return 'orange';
+      case 'Pear':
+        return 'yellowgreen';
+      default:
+        return '';
+    }
+  };
+
+  return <ComboBox label="Fruit" items={items} itemClassNameGenerator={classNameGenerator} />;
+  // end::snippet[]
+}
+
+[React: combo-box-item-class-name.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-combo-box-item.coral {
+  color: coral;
+}
+
+vaadin-combo-box-item.gold {
+  color: gold;
+}
+
+vaadin-combo-box-item.orange {
+  color: orange;
+}
+
+vaadin-combo-box-item.yellowgreen {
+  color: yellowgreen;
+}
+
+[React: combo-box-item-class-name.css]
+
+[Lit: combo-box-item-class-name.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-item-class-name')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = ['Apple', 'Banana', 'Orange', 'Pear'];
+
+  // tag::snippet[]
+  protected override render() {
+    return html`
+      <vaadin-combo-box
+        label="Fruit"
+        .items="${this.items}"
+        .itemClassNameGenerator="${this.classNameGenerator}"
+      ></vaadin-combo-box>
+    `;
+  }
+
+  protected classNameGenerator(item: string): string {
+    switch (item) {
+      case 'Apple':
+        return 'coral';
+      case 'Banana':
+        return 'gold';
+      case 'Orange':
+        return 'orange';
+      case 'Pear':
+        return 'yellowgreen';
+      default:
+        return '';
+    }
+  }
+  // end::snippet[]
+}
+
+[Lit: combo-box-item-class-name.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-combo-box-item.coral {
+  color: coral;
+}
+
+vaadin-combo-box-item.gold {
+  color: gold;
+}
+
+vaadin-combo-box-item.orange {
+  color: orange;
+}
+
+vaadin-combo-box-item.yellowgreen {
+  color: yellowgreen;
+}
+
+[Lit: combo-box-item-class-name.css]
+
+Auto Open
+
+The overlay opens automatically when the field is focused using a pointer (i.e., mouse or touch), or when the user types in the field. You can disable this so that the overlay opens only when the toggle button or the Up/Down arrow keys are pressed.
+
+[Flow: ComboBoxAutoOpen.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+
+@Route("combo-box-auto-open")
+public class ComboBoxAutoOpen extends Div {
+
+    public ComboBoxAutoOpen() {
+        // tag::snippet[]
+        ComboBox<Country> comboBox = new ComboBox<>("Country");
+        comboBox.setAutoOpen(false);
+        add(comboBox);
+        // end::snippet[]
+        comboBox.setItems(DataService.getCountries());
+        comboBox.setItemLabelGenerator(Country::getName);
+    }
+
+}
+
+[Flow: Country.java]
+package com.vaadin.demo.domain;
+
+import java.util.Objects;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Country {
+
+    @Nonnull
+    private String name;
+
+    @Nonnull
+    private String abbreviation;
+
+    @Nonnull
+    private Integer id;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Country)) {
+            return false;
+        }
+        Country other = (Country) obj;
+        return Objects.equals(id, other.id);
+    }
+}
+// end::snippet[]
+
+[React: combo-box-auto-open.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <ComboBox
+      autoOpenDisabled
+      label="Country"
+      itemLabelPath="name"
+      itemValuePath="id"
+      items={items.value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-auto-open.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('combo-box-auto-open')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        auto-open-disabled
+        label="Country"
+        item-label-path="name"
+        item-value-path="id"
+        .items="${this.items}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: Country.ts]
+interface Country {
+    name: string;
+    abbreviation: string;
+    id: number;
+}
+export default Country;
+
+[Lit: Country.ts]
+
+Popup Width
+
+The width of the popup is, by default, the same width as the input field. The popup width can be overridden to any fixed width in cases where the default width is too narrow.
+
+[Flow: ComboBoxPopupWidth.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBox.ItemFilter;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+
+@Route("combo-box-popup-width")
+public class ComboBoxPopupWidth extends Div {
+
+    public ComboBoxPopupWidth() {
+        // tag::snippet[]
+        ComboBox<Person> comboBox = new ComboBox<>("Employee");
+        comboBox.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
+        add(comboBox);
+        // end::snippet[]
+
+        ItemFilter<Person> filter = (person,
+                filterString) -> (person.getProfession() + " "
+                        + person.getFirstName() + " " + person.getLastName())
+                        .toLowerCase().indexOf(filterString.toLowerCase()) > -1;
+        comboBox.setItems(filter, DataService.getPeople());
+        comboBox.setItemLabelGenerator(person -> person.getProfession() + " "
+                + person.getFirstName() + " " + person.getLastName());
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[React: combo-box-popup-width.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.profession} - ${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <ComboBox
+      style={{ '--vaadin-combo-box-overlay-width': '350px' } as React.CSSProperties}
+      label="Employee"
+      itemLabelPath="displayName"
+      itemValuePath="id"
+      items={items.value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-popup-width.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('combo-box-popup-width')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.profession} - ${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        style="--vaadin-combo-box-overlay-width: 350px"
+        label="Employee"
+        item-label-path="displayName"
+        item-value-path="id"
+        .items="${this.items}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[Lit: Person.ts]
+
+Custom Filtering
+
+Combo Box’s filtering, by default, is configured to show only items that contain the entered value:
+
+[React: combo-box-filtering-1.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <ComboBox label="Country" itemLabelPath="name" itemValuePath="id" items={items.value} />
+    // end::snippet[]
+  );
+}
+
+[React: combo-box-filtering-1.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('combo-box-filtering-1')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        label="Country"
+        item-label-path="name"
+        item-value-path="id"
+        .items="${this.items}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Custom filtering is also possible. For example, if you only want to show items that start with the user’s input you could do something like this:
+
+[Flow: ComboBoxFiltering2.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBox.ItemFilter;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+
+@Route("combo-box-filtering-2")
+public class ComboBoxFiltering2 extends Div {
+
+    public ComboBoxFiltering2() {
+        // tag::snippet[]
+        ComboBox<Country> comboBox = new ComboBox<>("Country");
+
+        ItemFilter<Country> filter = (country, filterString) -> country
+                .getName().toLowerCase().startsWith(filterString.toLowerCase());
+        comboBox.setItems(filter, DataService.getCountries());
+
+        add(comboBox);
+        // end::snippet[]
+        comboBox.setItemLabelGenerator(Country::getName);
+    }
+
+}
+
+[React: combo-box-filtering-2.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox, type ComboBoxFilterChangedEvent } from '@vaadin/react-components/ComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const allItems = useSignal<Country[]>([]);
+  const filteredItems = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      allItems.value = countries;
+      filteredItems.value = countries;
+    });
+  }, []);
+
+  function filterChanged(event: ComboBoxFilterChangedEvent) {
+    const filter = event.detail.value;
+    filteredItems.value = allItems.value.filter(({ name }) =>
+      name.toLowerCase().startsWith(filter.toLowerCase())
+    );
+  }
+
+  return (
+    // tag::snippet[]
+    <ComboBox
+      label="Country"
+      itemLabelPath="name"
+      itemValuePath="id"
+      filteredItems={filteredItems.value}
+      onFilterChanged={filterChanged}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-filtering-2.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ComboBoxFilterChangedEvent } from '@vaadin/combo-box';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+// tag::snippet[]
+@customElement('combo-box-filtering-2')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private allItems: Country[] = [];
+
+  @state()
+  private filteredItems: Country[] = [];
+
+  protected override async firstUpdated() {
+    const countries = await getCountries();
+    this.allItems = countries;
+    this.filteredItems = countries;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-combo-box
+        label="Country"
+        item-label-path="name"
+        item-value-path="id"
+        .filteredItems="${this.filteredItems}"
+        @filter-changed="${this.filterChanged}"
+      ></vaadin-combo-box>
+    `;
+  }
+
+  private filterChanged(event: ComboBoxFilterChangedEvent) {
+    const filter = event.detail.value;
+    this.filteredItems = this.allItems.filter(({ name }) =>
+      name.toLowerCase().startsWith(filter.toLowerCase())
+    );
+  }
+}
+// end::snippet[]
+
+Lazy Loading
+
+Combo Box supports lazy loading, which is useful when dealing with large datasets. This avoids loading the whole dataset into memory and only fetches data for the current filter and viewport.
+
+[Flow: ComboBoxLazyLoading.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-lazy-loading")
+// tag::snippet[]
+public class ComboBoxLazyLoading extends Div {
+    public ComboBoxLazyLoading(ComboBoxCountryService countryService) {
+        ComboBox<Country> comboBox = new ComboBox<>("Country");
+        comboBox.setItemLabelGenerator(Country::getName);
+        // Connect the combo box to a Spring service that fetches data based
+        // on a Spring Data pageable and the current combo box filter
+        comboBox.setItemsPageable(countryService::list);
+        add(comboBox);
+    }
+
+}
+// end::snippet[]
+
+[Flow: ComboBoxCountryService.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+// tag::snippet[]
+// @BrowserCallable and @AnonymousAllowed are only required if you want
+// to use the service from a Hilla view
+@BrowserCallable
+@AnonymousAllowed
+public class ComboBoxCountryService {
+    private final ComboBoxCountryRepository repository;
+
+    public ComboBoxCountryService(ComboBoxCountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public @NonNull List<@NonNull Country> list(Pageable pageable,
+            String filter) {
+        // Implement your data fetching and filtering logic here
+        // For this example, we're using a Spring Data repository
+        return repository.findByNameContainingIgnoreCase(filter, pageable);
+    }
+}
+// end::snippet[]
+
+[Flow: ComboBoxCountryRepository.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+// tag::snippet[]
+public interface ComboBoxCountryRepository extends JpaRepository<Country, Long> {
+    List<Country> findByNameContainingIgnoreCase(String name, Pageable pageable);
+}
+    // end::snippet[]
+
+    List<Country> findByNameContainingIgnoreCase(String name,
+
+[React: combo-box-lazy-loading.tsx]
+import React from 'react';
+import { useComboBoxDataProvider } from '@vaadin/hilla-react-crud';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { ComboBoxCountryService } from 'Frontend/generated/endpoints';
+
+// tag::snippet[]
+function Example() {
+  // Create a data provider that calls a backend service with a
+  // Spring Data pageable and the current combo box filter
+  const dataProvider = useComboBoxDataProvider(
+    ComboBoxCountryService.list.bind(ComboBoxCountryService)
+  );
+
+  return (
+    <ComboBox dataProvider={dataProvider} label="Country" itemLabelPath="name" itemValuePath="id" />
+  );
+}
+
+// end::snippet[]
+
+[React: ComboBoxCountryService.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+// tag::snippet[]
+// @BrowserCallable and @AnonymousAllowed are only required if you want
+// to use the service from a Hilla view
+@BrowserCallable
+@AnonymousAllowed
+public class ComboBoxCountryService {
+    private final ComboBoxCountryRepository repository;
+
+    public ComboBoxCountryService(ComboBoxCountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public @NonNull List<@NonNull Country> list(Pageable pageable,
+            String filter) {
+        // Implement your data fetching and filtering logic here
+        // For this example, we're using a Spring Data repository
+        return repository.findByNameContainingIgnoreCase(filter, pageable);
+    }
+}
+// end::snippet[]
+
+[React: ComboBoxCountryRepository.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+// tag::snippet[]
+public interface ComboBoxCountryRepository extends JpaRepository<Country, Long> {
+    List<Country> findByNameContainingIgnoreCase(String name, Pageable pageable);
+}
+    // end::snippet[]
+
+    List<Country> findByNameContainingIgnoreCase(String name,
+
+[Lit: combo-box-lazy-loading.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type {
+  ComboBoxDataProviderCallback,
+  ComboBoxDataProviderParams,
+} from '@vaadin/react-components';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+import { ComboBoxCountryService } from 'Frontend/generated/endpoints';
+
+@customElement('combo-box-lazy-loading')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  async dataProvider(
+    params: ComboBoxDataProviderParams,
+    callback: ComboBoxDataProviderCallback<Country>
+  ) {
+    // Convert the params to Spring Data Pageable
+    const { filter } = params;
+    const pageable = {
+      pageNumber: params.page,
+      pageSize: params.pageSize,
+      sort: { orders: [] },
+    };
+    // Call backend service with pageable and current combo box filter
+    const pageItems = await ComboBoxCountryService.list(pageable, filter);
+
+    // Estimate the total count of filtered items
+    let filteredCount;
+    if (pageItems.length === params.pageSize) {
+      filteredCount = (params.page + 1) * params.pageSize + 1;
+    } else {
+      filteredCount = params.page * params.pageSize + pageItems.length;
+    }
+
+    callback(pageItems, filteredCount);
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-combo-box
+        .dataProvider="${this.dataProvider}"
+        label="Country"
+        item-label-path="name"
+        item-value-path="id"
+      ></vaadin-combo-box>
+    `;
+  }
+  // end::snippet[]
+}
+
+[Lit: ComboBoxCountryService.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+// tag::snippet[]
+// @BrowserCallable and @AnonymousAllowed are only required if you want
+// to use the service from a Hilla view
+@BrowserCallable
+@AnonymousAllowed
+public class ComboBoxCountryService {
+    private final ComboBoxCountryRepository repository;
+
+    public ComboBoxCountryService(ComboBoxCountryRepository repository) {
+        this.repository = repository;
+    }
+
+    public @NonNull List<@NonNull Country> list(Pageable pageable,
+            String filter) {
+        // Implement your data fetching and filtering logic here
+        // For this example, we're using a Spring Data repository
+        return repository.findByNameContainingIgnoreCase(filter, pageable);
+    }
+}
+// end::snippet[]
+
+[Lit: ComboBoxCountryRepository.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+// tag::snippet[]
+public interface ComboBoxCountryRepository extends JpaRepository<Country, Long> {
+    List<Country> findByNameContainingIgnoreCase(String name, Pageable pageable);
+}
+    // end::snippet[]
+
+    List<Country> findByNameContainingIgnoreCase(String name,
+
+Focus Selected Item Flow
+
+By default, the overlay always opens at the top of the list. For long lists with the selected item far down, this makes it hard to see what’s selected without scrolling. To address this, you can enable setFocusSelectedItem(true) so the overlay opens scrolled to and focused on the selected item instead.
+
+[ComboBoxFocusSelectedItem.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-focus-selected-item")
+public class ComboBoxFocusSelectedItem extends Div {
+
+    public ComboBoxFocusSelectedItem() {
+        // tag::snippet[]
+        ComboBox<Country> comboBox = new ComboBox<>("Country");
+        comboBox.setItems(DataService.getCountries());
+        comboBox.setItemLabelGenerator(Country::getName);
+        comboBox.setFocusSelectedItem(true);
+        // end::snippet[]
+        add(comboBox);
+    }
+
+    public static class Exporter
+}
+
+For lazy data providers, the lazy data view must also have an ItemIndexProvider configured so the selected item’s index can be resolved against the current sorting and filter. In-memory data works out of the box.
+
+[ComboBoxFocusSelectedItemLazy.java]
+package com.vaadin.demo.component.combobox;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.dataview.ComboBoxLazyDataView;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-focus-selected-item-lazy")
+public class ComboBoxFocusSelectedItemLazy extends Div {
+
+    public ComboBoxFocusSelectedItemLazy() {
+        // tag::snippet[]
+        ComboBox<Country> comboBox = new ComboBox<>("Country");
+        comboBox.setItemLabelGenerator(Country::getName);
+
+        ComboBoxLazyDataView<Country> dataView = comboBox.setItems(
+                query -> filteredCountries(query.getFilter())
+                        .skip(query.getOffset()).limit(query.getLimit()),
+                query -> (int) filteredCountries(query.getFilter()).count());
+
+        // Resolves the selected item's index against the current filter so
+        // setFocusSelectedItem can scroll the overlay to it on open.
+        dataView.setItemIndexProvider((item, query) -> {
+            int index = filteredCountries(
+                    query.getFilter().map(Object::toString)).toList()
+                    .indexOf(item);
+            return index >= 0 ? index : null;
+        });
+
+        comboBox.setFocusSelectedItem(true);
+        // end::snippet[]
+        add(comboBox);
+    }
+
+    private static Stream<Country> filteredCountries(Optional<String> filter) {
+        return DataService.getCountries().stream().filter(country -> filter.map(
+                f -> country.getName().toLowerCase().contains(f.toLowerCase()))
+                .orElse(true));
+    }
+
+    public static class Exporter
+}
+
+See Callback for an Item Index for more on ItemIndexProvider.
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+The placeholder is text that’s displayed when the field is empty. Its primary purpose is to provide a short input hint (e.g., the expected format) in situations where a Helper cannot be used.
+
+Placeholders should not be used as a replacement for a visible label. They can be mistaken for a manually entered value. See Label for alternatives to the built-in field label.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+The clear button — which is displayed when the field is not empty — clears the field’s current value. Although the button itself is not keyboard focusable, the clear action can be taken with the Esc key, when the field has focus. The clear button can be especially useful in search and filter fields, where users often need to clear the value. They’re less useful, however, in regular forms.
+
+A prefix element — rendered at the start of the field — can be used to display units, icons, and similar visual cues to the field’s purpose or format.
+
+Prefix elements typically don’t work well with assistive technologies like screen readers. Therefore, the information communicated by them should also be conveyed through other means, such as in a Label, a Helper or through ARIA attributes on the field itself.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-combo-box accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-combo-box accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: ComboBoxBasicFeatures.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-basic-features")
+public class ComboBoxBasicFeatures extends HorizontalLayout {
+
+    public ComboBoxBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        ComboBox<String> field = new ComboBox<>();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setPlaceholder("Placeholder");
+        field.setTooltipText("Tooltip text");
+        field.setClearButtonVisible(true);
+        field.setPrefixComponent(VaadinIcon.SEARCH.create());
+        // end::snippet[]
+        field.setItems("Value");
+
+        add(field);
+    }
+
+}
+
+[React: combo-box-basic-features.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ComboBox
+      label="Label"
+      helperText="Helper text"
+      placeholder="Placeholder"
+      clearButtonVisible
+      items={['Value']}
+    >
+      <Tooltip slot="tooltip" text="Tooltip text" />
+      <Icon slot="prefix" icon="vaadin:search" />
+    </ComboBox>
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-basic-features.ts]
+import '@vaadin/combo-box';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        label="Label"
+        helper-text="Helper text"
+        placeholder="Placeholder"
+        clear-button-visible
+        .items="${['Value']}"
+      >
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <vaadin-icon slot="prefix" icon="vaadin:search"></vaadin-icon>
+      </vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Validation
+
+Combo Box provides a validation mechanism based on constraints. Constraints allow you to define criteria that the value must meet to be considered valid. Validation occurs typically when the user initiates a value change, for example by selecting an item from the overlay or through text input followed by Enter. If the value is invalid, the field is highlighted in red, and an error message appears underneath the input. Certain constraints, however, can proactively prevent users from entering characters that would result in an invalid value.
+
+Below is a list of supported constraints with more detailed information:
+
+Required fields are marked with an indicator next to the label, and become invalid if their value is first entered and then cleared.
+
+An instruction text at the top of the form explaining the required indicator is recommended. The indicator itself can be customized with the --vaadin-input-field-required-indicator style property.
+
+A separate single-character, regular expression can be used to restrict the characters that can be entered into the field. Characters that don’t match the expression are rejected. However, values set programmatically are not subject to this restriction, even if they contain disallowed characters.
+
+[Flow: ComboBoxValidation.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBox.ComboBoxI18n;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-validation")
+public class ComboBoxValidation extends HorizontalLayout {
+
+    public ComboBoxValidation() {
+        setPadding(false);
+
+        // tag::snippet[]
+        ComboBox<String> field = new ComboBox<>();
+        field.setRequiredIndicatorVisible(true);
+        field.setAllowedCharPattern("[A-Z]");
+        field.setI18n(new ComboBoxI18n()
+                .setRequiredErrorMessage("Field is required"));
+        // end::snippet[]
+        field.setLabel("Country code");
+        field.setHelperText("2-letter uppercase ISO country code");
+        field.setItems("DE", "FI", "US");
+        field.setAllowCustomValue(true);
+
+        add(field);
+    }
+
+}
+
+[React: combo-box-validation.tsx]
+import React from 'react';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ComboBox
+      required
+      allowedCharPattern="[A-Z]"
+      label="Country code"
+      helperText="2-letter uppercase ISO country code"
+      errorMessage="Field is required"
+      allowCustomValue
+      items={['DE', 'FI', 'US']}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-validation.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        required
+        allowed-char-pattern="[A-Z]"
+        label="Country code"
+        helper-text="2-letter uppercase ISO country code"
+        error-message="Field is required"
+        allow-custom-value
+        .items="${['DE', 'FI', 'US']}"
+      ></vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Data Binding & Custom Validation
+
+Flow and Hilla offer an advanced API called Binder that allows you to bind data and add custom validation rules for multiple fields, creating forms. You can learn more about Binder from the corresponding Flow and Hilla articles.
+
+Read-Only & Disabled
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers. They can display tooltips. Their values can be selected and copied.
+
+Fields that are currently unavailable should be disabled. The reduced contrast of disabled fields makes them inappropriate for displaying information. They can’t be focused or display tooltips. They’re invisible to screen readers, and their values cannot be selected and copied.
+
+Disabled fields can be useful in situations where they can become enabled based on some user action. Consider hiding fields entirely if there’s nothing the user can do to make them editable.
+
+[Flow: ComboBoxReadonlyAndDisabled.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-readonly-and-disabled")
+public class ComboBoxReadonlyAndDisabled extends HorizontalLayout {
+
+    public ComboBoxReadonlyAndDisabled() {
+        setPadding(false);
+
+        // tag::snippet[]
+        ComboBox<String> readonlyField = new ComboBox<>();
+        readonlyField.setReadOnly(true);
+        readonlyField.setLabel("Read-only");
+        readonlyField.setItems("Value");
+        readonlyField.setValue("Value");
+
+        ComboBox<String> disabledField = new ComboBox<>();
+        disabledField.setEnabled(false);
+        disabledField.setLabel("Disabled");
+        // end::snippet[]
+        add(readonlyField, disabledField);
+    }
+
+}
+
+[React: combo-box-readonly-and-disabled.tsx]
+import React from 'react';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <ComboBox readonly label="Read-only" items={['Value']} value="Value" />
+
+      <ComboBox disabled label="Disabled" />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: combo-box-readonly-and-disabled.ts]
+import '@vaadin/combo-box';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-readonly-and-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-combo-box readonly label="Read-only" .items="${['Value']}" value="Value">
+        </vaadin-combo-box>
+
+        <vaadin-combo-box disabled label="Disabled"></vaadin-combo-box>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Usage as Autocomplete Field
+
+As the user is typing, the Combo Box filters out the options that don’t match. Once the correct value has been found, the user can use the Up/Down arrow keys to navigate the list and the Enter key to set the value, essentially using the Combo Box as an autocomplete field.
+
+Best Practices
+
+Combo Box supports lazy loading for large datasets. It reduces the initial load time, and consumes less bandwidth and resources.
+
+Note: Don’t use as a menu.
+
+Combo Box is an input field component, not a generic menu component. Use the Menu Bar component to create overlays for actions.
+
+Related Components
+
+Component | Usage Recommendation
+Select | Simpler overlay selection field without filtering, lazy loading or custom value entry.
+Radio Button Group | Better accessibility than Combo Box, as all options are visible without user interaction.
+List Box | Scrollable inline list of options. Supports single and multi-select.
+Menu Bar | Overlay menus for items that trigger actions.

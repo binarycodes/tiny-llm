@@ -1,0 +1,210 @@
+Split Layout Styling
+
+Styling API reference for the Split Layout component.
+
+Style Variants
+
+Split Layout supports the following style variants:
+
+Variant | Description | Supported by
+small | Makes the visual divider smaller | Aura, Lumo
+minimal | Hides the visual divider completely | Lumo
+
+Small
+
+The small theme variant makes the visual divider smaller, giving more space to the content areas.
+
+Please note that this variant shows the split handle only on hover, which isn’t ideal for touch devices.
+
+[Flow: SplitLayoutThemeVariants.java]
+package com.vaadin.demo.component.splitlayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("split-layout-theme-variants")
+public class SplitLayoutThemeVariants extends Div {
+
+    public SplitLayoutThemeVariants() {
+        // tag::snippet[]
+        MasterContent master = new MasterContent();
+        DetailContent detail = new DetailContent();
+
+        SplitLayout splitLayout = new SplitLayout(master, detail);
+        splitLayout.addThemeVariants(SplitLayoutVariant.SMALL);
+        // end::snippet[]
+
+        splitLayout.setMaxHeight("280px");
+        add(splitLayout);
+    }
+
+}
+
+[React: split-layout-theme-small.tsx]
+import React from 'react';
+import { SplitLayout } from '@vaadin/react-components/SplitLayout.js';
+import DetailContent from './detail-content';
+import MasterContent from './master-content';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <SplitLayout style={{ maxHeight: '280px' }} theme="small">
+      <MasterContent />
+      <DetailContent />
+    </SplitLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: split-layout-theme-small.ts]
+import '@vaadin/split-layout';
+import './master-content';
+import './detail-content';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('split-layout-theme-small')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-split-layout style="max-height: 280px;" theme="small">
+        <master-content></master-content>
+        <detail-content></detail-content>
+      </vaadin-split-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Minimal
+
+The minimal style variant hides the visual divider completely. When using this variant, it’s still recommended to somehow indicate the split between the two sides, for example by styling one side as a layer on top of the other.
+
+Please note that this variant shows the split handle only on hover, which isn’t ideal for touch devices.
+
+[Flow: SplitLayoutMinimalThemeVariants.java]
+package com.vaadin.demo.component.splitlayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("split-layout-minimal-theme-variants")
+public class SplitLayoutMinimalThemeVariants extends Div {
+
+    public SplitLayoutMinimalThemeVariants() {
+        // tag::snippet[]
+        MasterContent master = new MasterContent();
+        DetailContent detail = new DetailContent();
+
+        SplitLayout splitLayout = new SplitLayout(master, detail);
+        splitLayout.addThemeVariants(SplitLayoutVariant.LUMO_MINIMAL);
+        // end::snippet[]
+
+        splitLayout.setMaxHeight("280px");
+        add(splitLayout);
+    }
+
+}
+
+[React: split-layout-theme-minimal.tsx]
+import React from 'react';
+import { SplitLayout } from '@vaadin/react-components/SplitLayout.js';
+import DetailContent from './detail-content';
+import MasterContent from './master-content';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <SplitLayout style={{ maxHeight: '280px' }} theme="minimal">
+      <MasterContent />
+      <DetailContent />
+    </SplitLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: split-layout-theme-minimal.ts]
+import '@vaadin/split-layout';
+import './master-content';
+import './detail-content';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('split-layout-theme-minimal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-split-layout style="max-height: 280px;" theme="minimal">
+        <master-content></master-content>
+        <detail-content></detail-content>
+      </vaadin-split-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-split-layout-handle-background | Aura, Lumo
+--vaadin-split-layout-handle-size | Aura, Lumo
+--vaadin-split-layout-handle-target-size | Aura, Lumo
+--vaadin-split-layout-splitter-background | Aura, Lumo
+--vaadin-split-layout-splitter-size | Aura, Lumo
+--vaadin-split-layout-splitter-target-size | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-split-layout
+
+States
+
+Horizontal split
+    vaadin-split-layout[orientation="horizontal"]
+Vertical split
+    vaadin-split-layout[orientation="vertical"]
+
+Parts
+
+Splitter bar
+    vaadin-split-layout::part(splitter)
+Splitter drag handle
+    vaadin-split-layout::part(handle)
+Splitter visual handle
+    vaadin-split-layout::part(handle)::after
+First content
+    vaadin-split-layout > [slot="primary"]
+Second content
+    vaadin-split-layout > [slot="secondary"]

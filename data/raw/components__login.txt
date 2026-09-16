@@ -1,0 +1,1020 @@
+Login
+
+Login is a component that contains a log-in form. You can use it to authenticate the user with a username and password.
+
+Login is a component that contains a log-in form. You can use it to authenticate the user with a username and password. It’s compatible with password managers, supports internationalization, and works on all device sizes.
+
+[Flow: LoginBasic.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-basic")
+public class LoginBasic extends Div {
+
+    public LoginBasic() {
+        // Demo purposes only
+        getStyle().set("display", "flex").set("justify-content", "center");
+
+        // tag::snippet[]
+        LoginForm loginForm = new LoginForm();
+        add(loginForm);
+        // end::snippet[]
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginForm.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-basic.tsx]
+import React from 'react';
+import { LoginForm } from '@vaadin/react-components/LoginForm.js';
+
+function Example() {
+  return (
+    <>
+      {/* tag::snippet[] */}
+      {/* no-autofocus is used to prevent the example from stealing focus when browsing the
+      documentation */}
+      <LoginForm no-autofocus />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: login-basic.ts]
+import '@vaadin/login/vaadin-login-form.js';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-basic')
+export class Example extends LitElement {
+  static override styles = css`
+    :host {
+      display: flex !important;
+      justify-content: center;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-form no-autofocus></vaadin-login-form>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Basic Login Component
+
+The basic Login component consists of a title (i.e., "Log In"), two input fields ("Username" and "Password"), and two buttons ("Log In" and "Forgot Password").
+
+You can customize the form’s title and labels using internationalization.
+
+[Flow: LoginInternationalization.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-internationalization")
+public class LoginInternationalization extends Div {
+
+    public LoginInternationalization() {
+        // Demo purposes only
+        getStyle().set("display", "flex").set("justify-content", "center");
+
+        // tag::snippet[]
+        LoginI18n i18n = LoginI18n.createDefault();
+
+        LoginI18n.Form i18nForm = i18n.getForm();
+        i18nForm.setTitle("Kirjaudu sisään");
+        i18nForm.setUsername("Käyttäjänimi");
+        i18nForm.setPassword("Salasana");
+        i18nForm.setSubmit("Kirjaudu sisään");
+        i18nForm.setForgotPassword("Unohtuiko salasana?");
+        i18n.setForm(i18nForm);
+
+        LoginI18n.ErrorMessage i18nErrorMessage = i18n.getErrorMessage();
+        i18nErrorMessage.setTitle("Väärä käyttäjätunnus tai salasana");
+        i18nErrorMessage.setMessage(
+                "Tarkista että käyttäjätunnus ja salasana ovat oikein ja yritä uudestaan.");
+        i18n.setErrorMessage(i18nErrorMessage);
+
+        LoginForm loginForm = new LoginForm();
+        loginForm.setI18n(i18n);
+        // end::snippet[]
+        add(loginForm);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginForm.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-internationalization.tsx]
+import React from 'react';
+import { LoginForm } from '@vaadin/react-components/LoginForm.js';
+
+// tag::snippet[]
+const i18n = {
+  form: {
+    title: 'Kirjaudu sisään',
+    username: 'Käyttäjänimi',
+    password: 'Salasana',
+    submit: 'Kirjaudu sisään',
+    forgotPassword: 'Unohtuiko salasana?',
+  },
+  errorMessage: {
+    title: 'Väärä käyttäjätunnus tai salasana',
+    message: 'Tarkista että käyttäjätunnus ja salasana ovat oikein ja yritä uudestaan.',
+    username: 'Käyttäjätunnus vaaditaan',
+    password: 'Salasana vaaditaan',
+  },
+};
+
+function Example() {
+  return (
+    <>
+      {/* no-autofocus is used to prevent the example from stealing focus when browsing the documentation */}
+      <LoginForm i18n={i18n} no-autofocus />
+    </>
+  );
+}
+// end::snippet[]
+
+[Lit: login-internationalization.ts]
+import '@vaadin/login/vaadin-login-form.js';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { LoginI18n } from '@vaadin/login';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-internationalization')
+export class Example extends LitElement {
+  static override styles = css`
+    :host {
+      display: flex !important;
+      justify-content: center;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private i18n: LoginI18n = {
+    form: {
+      title: 'Kirjaudu sisään',
+      username: 'Käyttäjänimi',
+      password: 'Salasana',
+      submit: 'Kirjaudu sisään',
+      forgotPassword: 'Unohtuiko salasana?',
+    },
+    errorMessage: {
+      title: 'Väärä käyttäjätunnus tai salasana',
+      message: 'Tarkista että käyttäjätunnus ja salasana ovat oikein ja yritä uudestaan.',
+      username: 'Käyttäjätunnus vaaditaan',
+      password: 'Salasana vaaditaan',
+    },
+  };
+
+  protected override render() {
+    return html`
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-form .i18n="${this.i18n}" no-autofocus></vaadin-login-form>
+    `;
+  }
+  // end::snippet[]
+}
+
+The basic Login component can be used to create log-in pages featuring rich content.
+
+[Flow: LoginRichContent.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-rich-content")
+public class LoginRichContent extends Div {
+
+    public LoginRichContent() {
+        // tag::snippet[]
+        // See login-rich-content.css
+        addClassName("login-rich-content");
+
+        LoginForm loginForm = new LoginForm();
+        loginForm.getElement().getThemeList().add("dark");
+        // end::snippet[]
+        add(loginForm);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginForm.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[Flow: login-rich-content.css]
+.login-rich-content {
+  background-image: url("../../../src/main/resources/images/earth.jpg");
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  height: 500px;
+}
+.login-rich-content vaadin-login-form {
+  align-items: center;
+  display: flex;
+  max-width: 300px;
+  background: var(--vaadin-background-color);
+}
+.login-rich-content vaadin-login-form::part(form) {
+  height: 100%;
+  justify-content: center;
+}
+
+[Flow: login-rich-content.css]
+
+[React: login-rich-content.tsx]
+import React from 'react';
+import { LoginForm } from '@vaadin/react-components/LoginForm.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <div className="login-rich-content">
+      <LoginForm theme="dark" no-autofocus />
+    </div>
+    // end::snippet[]
+  );
+}
+
+const hostStyles = css`
+  :host {
+    color-scheme: dark;
+  }
+`;
+
+[React: login-rich-content.css]
+.login-rich-content {
+  background-image: url("../../../src/main/resources/images/earth.jpg");
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  height: 500px;
+}
+.login-rich-content vaadin-login-form {
+  align-items: center;
+  display: flex;
+  max-width: 300px;
+  background: var(--vaadin-background-color);
+}
+.login-rich-content vaadin-login-form::part(form) {
+  height: 100%;
+  justify-content: center;
+}
+
+[React: login-rich-content.css]
+
+[Lit: login-rich-content.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/login/vaadin-login-form.js';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-rich-content')
+export class Example extends LitElement {
+  static override styles = css`
+    :host {
+      color-scheme: dark;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- See login-rich-content.css -->
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <div class="login-rich-content">
+        <vaadin-login-form theme="dark" no-autofocus></vaadin-login-form>
+      </div>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: login-rich-content.css]
+.login-rich-content {
+  background-image: url("../../../src/main/resources/images/earth.jpg");
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  height: 500px;
+}
+.login-rich-content vaadin-login-form {
+  align-items: center;
+  display: flex;
+  max-width: 300px;
+  background: var(--vaadin-background-color);
+}
+.login-rich-content vaadin-login-form::part(form) {
+  height: 100%;
+  justify-content: center;
+}
+
+[Lit: login-rich-content.css]
+
+Note: Password Managers
+
+Login is incompatible with password managers if placed inside another component’s shadow root. [1]
+
+Modal Overlay
+
+Login features its own modal overlay which is also modal on server side. Use it to create simple log-in pages — which are full-screen on mobile devices — or to handle authentication without a dedicated log-in page. You can also use it to handle re-authentication when the user’s session has expired.
+
+The overlay can be opened programmatically or through user interaction (e.g., by using a log-in button).
+
+[Flow: LoginOverlayBasic.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-overlay-basic")
+public class LoginOverlayBasic extends Div {
+
+    public LoginOverlayBasic() {
+        // tag::snippet[]
+        LoginOverlay loginOverlay = new LoginOverlay();
+        add(loginOverlay);
+
+        Button login = new Button("Log in");
+        login.addClickListener(event -> loginOverlay.setOpened(true));
+        // end::snippet[]
+        login.addThemeVariants(ButtonVariant.PRIMARY);
+        add(login);
+    }
+
+}
+
+[React: login-overlay-basic.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+
+function Example() {
+  const loginOpened = useSignal(false);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Button
+        theme="primary"
+        onClick={() => {
+          loginOpened.value = true;
+        }}
+      >
+        Log in
+      </Button>
+
+      <LoginOverlay
+        opened={loginOpened.value}
+        onLogin={() => {
+          loginOpened.value = false;
+        }}
+      />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: login-overlay-basic.ts]
+import '@vaadin/button';
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-overlay-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private loginOpened = false;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-button
+        theme="primary"
+        @click="${() => {
+          this.loginOpened = true;
+        }}"
+      >
+        Log in
+      </vaadin-button>
+      <vaadin-login-overlay
+        .opened="${this.loginOpened}"
+        @login="${() => {
+          this.loginOpened = false;
+        }}"
+      ></vaadin-login-overlay>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Header
+
+The overlay has a header and the log-in form. By default, the header contains placeholders for the application’s title and description. Both properties are configurable.
+
+[Flow: LoginOverlayHeader.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-overlay-header")
+public class LoginOverlayHeader extends Div {
+
+    public LoginOverlayHeader() {
+        // tag::snippet[]
+        LoginOverlay loginOverlay = new LoginOverlay();
+        loginOverlay.setTitle("TaskMob");
+        loginOverlay.setDescription("Built with ♥ by Vaadin");
+        // end::snippet[]
+        add(loginOverlay);
+        loginOverlay.setOpened(true);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginOverlay.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-overlay-header.tsx]
+import React from 'react';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <LoginOverlay title="TaskMob" description="Built with ♥ by Vaadin" opened no-autofocus />
+    // end::snippet[]
+  );
+}
+
+[Lit: login-overlay-header.ts]
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-overlay-header')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-overlay
+        title="TaskMob"
+        description="Built with ♥ by Vaadin"
+        opened
+        no-autofocus
+      ></vaadin-login-overlay>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Custom Form Area
+
+The overlay provides a custom form area for adding fields in addition to username and password. This area is placed above the "Submit" button. Use the name attribute to ensure the custom field’s value is submitted with the form.
+
+[Flow: LoginOverlayCustomFormArea.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.router.Route;
+
+@Route("login-overlay-custom-form-area")
+public class LoginOverlayCustomFormArea extends Div {
+
+    public LoginOverlayCustomFormArea() {
+        // tag::snippet[]
+        LoginOverlay loginOverlay = new LoginOverlay();
+        IntegerField code = new IntegerField("One-time code");
+        code.getElement().setAttribute("name", "code");
+        loginOverlay.getCustomFormArea().add(code);
+        // end::snippet[]
+        add(loginOverlay);
+        loginOverlay.setOpened(true);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginOverlay.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-overlay-custom-form-area.tsx]
+import React from 'react';
+import { IntegerField } from '@vaadin/react-components/IntegerField.js';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <LoginOverlay opened no-autofocus>
+      <IntegerField slot="custom-form-area" name="code" label="One-time code" />
+    </LoginOverlay>
+    // end::snippet[]
+  );
+}
+
+[Lit: login-overlay-custom-form-area.ts]
+import '@vaadin/integer-field';
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-overlay-custom-form-area')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-overlay opened no-autofocus>
+        <vaadin-integer-field
+          slot="custom-form-area"
+          name="code"
+          label="One-time code"
+        ></vaadin-integer-field>
+      </vaadin-login-overlay>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Footer
+
+The footer area can be used for placing additional custom content, such as text, buttons, etc.
+
+[Flow: LoginOverlayFooter.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.router.Route;
+
+@Route("login-overlay-footer")
+public class LoginOverlayFooter extends Div {
+
+    public LoginOverlayFooter() {
+        // tag::snippet[]
+        LoginOverlay loginOverlay = new LoginOverlay();
+        Paragraph text = new Paragraph("Never tell your password to anyone");
+        text.getStyle().set("text-align", "center");
+        loginOverlay.getFooter().add(text);
+        // end::snippet[]
+        add(loginOverlay);
+        loginOverlay.setOpened(true);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginOverlay.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-overlay-footer.tsx]
+import React from 'react';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <LoginOverlay opened no-autofocus>
+      <p slot="footer" style={{ textAlign: 'center' }}>
+        Never tell your password to anyone
+      </p>
+    </LoginOverlay>
+    // end::snippet[]
+  );
+}
+
+[Lit: login-overlay-footer.ts]
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-overlay-footer')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-overlay opened no-autofocus>
+        <p slot="footer" style="text-align: center">Never tell your password to anyone</p>
+      </vaadin-login-overlay>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Validation
+
+Login shows an error message when authentication fails. The error message includes a title in addition to the message. It’s displayed directly below the title of the form.
+
+[Flow: LoginValidation.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-validation")
+public class LoginValidation extends Div {
+
+    public LoginValidation() {
+        LoginOverlay loginOverlay = new LoginOverlay();
+        // tag::snippet[]
+        loginOverlay.setError(true);
+        // end::snippet[]
+        add(loginOverlay);
+        loginOverlay.setOpened(true);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginOverlay.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-validation.tsx]
+import React from 'react';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+
+// tag::snippet[]
+function Example() {
+  return <LoginOverlay opened error no-autofocus />;
+}
+// end::snippet[]
+
+[Lit: login-validation.ts]
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-overlay opened error no-autofocus></vaadin-login-overlay>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The error message is customizable using internationalization. It should contain instructions on how to resolve the problem.
+
+More information can be provided to the user, for example, by linking to a page with helpful material or by displaying contact information.
+
+[Flow: LoginAdditionalInformation.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-additional-information")
+public class LoginAdditionalInformation extends Div {
+
+    public LoginAdditionalInformation() {
+        // tag::snippet[]
+        LoginI18n i18n = LoginI18n.createDefault();
+        i18n.setAdditionalInformation(
+                "Contact admin@company.com if you're experiencing issues logging into your account");
+
+        LoginOverlay loginOverlay = new LoginOverlay();
+        loginOverlay.setI18n(i18n);
+        // end::snippet[]
+        add(loginOverlay);
+        loginOverlay.setOpened(true);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginOverlay.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-additional-information.tsx]
+import React, { useEffect, useRef } from 'react';
+import { LoginOverlay, type LoginOverlayElement } from '@vaadin/react-components/LoginOverlay.js';
+
+function Example() {
+  // tag::snippet[]
+  const loginRef = useRef<LoginOverlayElement>(null);
+
+  useEffect(() => {
+    if (loginRef.current) {
+      loginRef.current.i18n = {
+        ...loginRef.current.i18n,
+        additionalInformation: `Contact admin@company.com if you're experiencing issues logging into your account`,
+      };
+    }
+  }, [loginRef.current]);
+
+  return <LoginOverlay ref={loginRef} opened />;
+  // end::snippet[]
+}
+
+[Lit: login-additional-information.ts]
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import type { LoginOverlay } from '@vaadin/login';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-additional-information')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @query('vaadin-login-overlay')
+  private login!: LoginOverlay;
+
+  protected override firstUpdated() {
+    this.login.i18n = {
+      ...this.login.i18n,
+      additionalInformation: `Contact admin@company.com if you're experiencing issues logging into your account`,
+    };
+  }
+
+  protected override render() {
+    return html`<vaadin-login-overlay opened></vaadin-login-overlay>`;
+  }
+  // end::snippet[]
+}
+
+Internationalization (i18n)
+
+Login’s titles, descriptions, labels, and messages are all customizable using internationalization.
+
+[Flow: LoginOverlayInternationalization.java]
+package com.vaadin.demo.component.login;
+
+import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.login.LoginOverlay;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("login-overlay-internationalization")
+public class LoginOverlayInternationalization extends Div {
+
+    public LoginOverlayInternationalization() {
+        // tag::snippet[]
+        LoginI18n i18n = LoginI18n.createDefault();
+
+        LoginI18n.Header i18nHeader = new LoginI18n.Header();
+        i18nHeader.setTitle("Sovelluksen nimi");
+        i18nHeader.setDescription("Sovelluksen kuvaus");
+        i18n.setHeader(i18nHeader);
+
+        LoginI18n.Form i18nForm = i18n.getForm();
+        i18nForm.setTitle("Kirjaudu sisään");
+        i18nForm.setUsername("Käyttäjänimi");
+        i18nForm.setPassword("Salasana");
+        i18nForm.setSubmit("Kirjaudu sisään");
+        i18nForm.setForgotPassword("Unohtuiko salasana?");
+        i18n.setForm(i18nForm);
+
+        LoginI18n.ErrorMessage i18nErrorMessage = i18n.getErrorMessage();
+        i18nErrorMessage.setTitle("Väärä käyttäjätunnus tai salasana");
+        i18nErrorMessage.setMessage(
+                "Tarkista että käyttäjätunnus ja salasana ovat oikein ja yritä uudestaan.");
+        i18n.setErrorMessage(i18nErrorMessage);
+
+        i18n.setAdditionalInformation("Jos tarvitset lisätietoja käyttäjälle.");
+
+        LoginOverlay loginOverlay = new LoginOverlay();
+        loginOverlay.setI18n(i18n);
+        // end::snippet[]
+        add(loginOverlay);
+        loginOverlay.setOpened(true);
+        // Prevent the example from stealing focus when browsing the
+        // documentation
+        loginOverlay.getElement().setAttribute("no-autofocus", "");
+    }
+
+}
+
+[React: login-overlay-internationalization.tsx]
+import React from 'react';
+import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
+
+function Example() {
+  // tag::snippet[]
+  const i18n = {
+    header: {
+      title: 'Sovelluksen nimi',
+      description: 'Sovelluksen kuvaus',
+    },
+    form: {
+      title: 'Kirjaudu sisään',
+      username: 'Käyttäjänimi',
+      password: 'Salasana',
+      submit: 'Kirjaudu sisään',
+      forgotPassword: 'Unohtuiko salasana?',
+    },
+    errorMessage: {
+      title: 'Väärä käyttäjätunnus tai salasana',
+      message: 'Tarkista että käyttäjätunnus ja salasana ovat oikein ja yritä uudestaan.',
+      username: 'Käyttäjätunnus vaaditaan',
+      password: 'Salasana vaaditaan',
+    },
+    additionalInformation: 'Jos tarvitset lisätietoja käyttäjälle.',
+  };
+
+  return (
+    <>
+      {/* no-autofocus is used to prevent the example from stealing focus when browsing the documentation */}
+      <LoginOverlay i18n={i18n} opened no-autofocus />
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: login-overlay-internationalization.ts]
+import '@vaadin/login';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { LoginI18n } from '@vaadin/login';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('login-overlay-internationalization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private i18n: LoginI18n = {
+    header: {
+      title: 'Sovelluksen nimi',
+      description: 'Sovelluksen kuvaus',
+    },
+    form: {
+      title: 'Kirjaudu sisään',
+      username: 'Käyttäjänimi',
+      password: 'Salasana',
+      submit: 'Kirjaudu sisään',
+      forgotPassword: 'Unohtuiko salasana?',
+    },
+    errorMessage: {
+      title: 'Väärä käyttäjätunnus tai salasana',
+      message: 'Tarkista että käyttäjätunnus ja salasana ovat oikein ja yritä uudestaan.',
+      username: 'Käyttäjätunnus vaaditaan',
+      password: 'Salasana vaaditaan',
+    },
+    additionalInformation: 'Jos tarvitset lisätietoja käyttäjälle.',
+  };
+
+  protected override render() {
+    return html`
+      <!-- no-autofocus is used to prevent the example from stealing focus when browsing the documentation -->
+      <vaadin-login-overlay .i18n="${this.i18n}" opened no-autofocus></vaadin-login-overlay>
+    `;
+  }
+  // end::snippet[]
+}
+
+Header
+
+The header is only shown for modal log-in forms.
+
+Property | Default Value
+Title | "App name"
+Description | "Application description"
+
+Form
+
+Customize the form’s title, input field and button labels.
+
+Property | Default Value
+Title | "Log in"
+Username | "Username"
+Password | "Password"
+Submit | "Log in"
+Forgot password | "Forgot password"
+
+Error Message
+
+Login’s error message is shown when authentication fails. It includes a title in addition to the message.
+
+Property | Default Value
+Title | "Incorrect username or password"
+Message | "Check that you have entered the correct username and password and try again."
+
+Additional Information
+
+This property is hidden unless its value is explicitly set.
+
+Property | Default Value
+Additional information | -
+
+Technical
+
+Handling Events
+
+Login Event
+
+You can add a listener to log-in events or define an action for which a POST request is fired. From the event, you can prevent the POST request.
+
+The log-in button is disabled when clicked, to prevent multiple submissions. To restore it, call component.setEnabled(true).
+
+Forgotten Password
+
+You can add an event listener, which gives you the opportunity to provide your users with instructions for password recovery.
+
+Cross-Site Request Forgery (CSRF) Tokens
+
+If the page contains the following meta tags with a CSRF token, the token is automatically included in a form POST request:
+
+[HTML]
+<meta name="_csrf_parameter" content="_csrf">
+<meta name="_csrf" content="71dac59f-34ee-4b31-b478-2891cbd0c55d">
+
+This token is submitted as _csrf=71dac59f-34ee-4b31-b478-2891cbd0c55d, that is, using the _csrf_parameter content as the variable name and the _csrf content as the value.
+
+1. When added to a web component that uses shadow root, password managers are unable to find the input fields and therefore won’t work.

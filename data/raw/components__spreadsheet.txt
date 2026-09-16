@@ -1,0 +1,583 @@
+Spreadsheet Flow
+
+Spreadsheet allows displaying and interacting with the contents of an Excel file.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Spreadsheet in your project.
+
+- Start Free Trial
+- See Pricing
+
+Vaadin Spreadsheet allows displaying and interacting with the contents of an Excel file. You can directly modify cell data in an active worksheet by entering textual and numerical values, as well as using Excel formulas for spreadsheet calculations.
+
+Vaadin Spreadsheet supports Excel XLSX files and has limited support for XLS files. In large spreadsheets, cell data is loaded on demand from the server. This allows the component to handle large files without performance issues.
+
+Cell data can be copied and pasted between a spreadsheet and the clipboard. The clipboard can also be used to copy and paste data between Vaadin Spreadsheet and other spreadsheet applications, such as Microsoft Excel or Google Sheets.
+
+Note: Spreadsheet is only available for Vaadin Flow
+
+Spreadsheet is not available for Hilla applications.
+
+[SpreadsheetBasic.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-basic")
+public class SpreadsheetBasic extends Div {
+
+    public SpreadsheetBasic() {
+        // tag::snippet[]
+        Spreadsheet spreadsheet = new Spreadsheet();
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+        // end::snippet[]
+    }
+
+}
+
+Maven Dependency
+
+Install Spreadsheet by adding the dependency to your project, like in the following example with Maven:
+
+[pom.xml]
+<dependency>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-spreadsheet-flow</artifactId>
+</dependency>
+
+Loading XLSX
+
+To open an existing Excel file in Vaadin Spreadsheet, you need to pass an Excel file to the Spreadsheet constructor. You can load an Excel file from the local filesystem with a File reference or from memory or other sources with an InputStream.
+
+[SpreadsheetLoading.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-loading")
+public class SpreadsheetLoading extends Div {
+
+    public SpreadsheetLoading() throws IOException, URISyntaxException {
+        // tag::snippet[]
+        InputStream stream = getClass()
+                .getResourceAsStream("/testsheets/simple-invoice.xlsx");
+
+        Spreadsheet spreadsheet = new Spreadsheet(stream);
+        // end::snippet[]
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+
+    }
+
+}
+
+Add & Delete Sheets
+
+A spreadsheet is actually a workbook, which contains one or more worksheets. You can create new sheets and delete existing ones with createNewSheet() and deleteSheet(), respectively.
+
+When a sheet is deleted, the index of the sheets with a higher index is decremented by one. When an active worksheet is deleted, the next one by index is set as active or, if there are none, the previous one is set instead.
+
+All operations on the spreadsheet content are processed through the currently active worksheet. You can set an existing sheet as active with setActiveSheetIndex().
+
+Toggling Features
+
+The Spreadsheet object provides the following configuration of various UI elements:
+
+Element | Description
+Grid Lines | Cells are by default separated by grid lines. You can control their visibility with setGridlinesVisible().
+Row and Column Headings | Row and column headings display the row and column indexes, and allow selecting and resizing the rows and columns. You can control their visibility with setRowColHeadingsVisible().
+Top Bar | The top bar displays the address of the currently selected cell and an editor for cell content. You can control its visibility with setFunctionBarVisible().
+Bottom Bar | The bottom bar displays sheet names and buttons for navigating between them. You can control its visibility with setSheetSelectionBarVisible().
+
+Frozen Panes
+
+You can define panes of rows and columns that are frozen when scrolling. You can create the pane for the current worksheet with createFreezePane(), which takes the number of frozen rows and columns as parameters.
+
+[SpreadsheetFrozenPanes.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-frozen-panes")
+public class SpreadsheetFrozenPanes extends Div {
+
+    public SpreadsheetFrozenPanes() {
+        Spreadsheet spreadsheet = new Spreadsheet();
+        spreadsheet.setHeight("400px");
+        // tag::snippet[]
+        spreadsheet.createFreezePane(2, 1);
+        // end::snippet[]
+        add(spreadsheet);
+    }
+
+}
+
+Configuring Cells
+
+There are a few aspects of cells that you can configure: data, formulas, format, etc. They’re listed and described below.
+
+Data
+
+A cell may contain a variety of types, like string, number, and date. To set a cell value programmatically, the reference needs to be retrieved from the getCell() method. If a cell with the given coordinates exists, use the setCellValue() method to update the cell value. Otherwise, it can be created from the createCell() method, which takes the row and column coordinates and the cell value.
+
+Note: Don’t forget to refresh the cells.
+
+If cells that are changed in the active sheet that is currently being displayed in the browser, you need to call refreshCells() passing the cells changed to get them updated on the client side, as well.
+
+Formulas
+
+You can use Excel formulas in the cells of the spreadsheet. The formulas are evaluated on the server, and the result is displayed in the cell.
+
+Format
+
+Formatting cell values can be accomplished by using cell styles. A cell style must be created in the workbook by using createCellStyle(). Cell data format is set for the style with setDataFormat().
+
+[SpreadsheetFormat.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import java.util.GregorianCalendar;
+
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-format")
+public class SpreadsheetFormat extends Div {
+
+    public SpreadsheetFormat() {
+        Spreadsheet spreadsheet = new Spreadsheet();
+        spreadsheet.setHeight("400px");
+        // tag::snippet[]
+        // Define a cell style for dates
+        CellStyle dateStyle = spreadsheet.getWorkbook().createCellStyle();
+        DataFormat format = spreadsheet.getWorkbook().createDataFormat();
+        dateStyle.setDataFormat(format.getFormat("yyyy-mm-dd"));
+
+        // Add some data rows
+        spreadsheet.createCell(1, 0, "Nicolaus");
+        spreadsheet.createCell(1, 1, "Copernicus");
+        spreadsheet.createCell(1, 2,
+                new GregorianCalendar(1999, 2, 19).getTime());
+
+        // Style the date cell
+        spreadsheet.getCell(1, 2).setCellStyle(dateStyle);
+        // end::snippet[]
+        add(spreadsheet);
+    }
+
+}
+
+Conditional Formatting
+
+Applying conditional formatting to cells can help in highlighting patterns in the data. The formatting is applied to the cells that match the specified condition. The condition can be based on the value of the cell, or on the value of another cell.
+
+Fonts
+
+Cells can be styled by different fonts. A font definition not only includes a particular typeface, but also weight (e.g., bold or normal), emphasis, underlining, and other such font attributes.
+
+A font definition is managed by Font class in the Apache POI API. A new font can be created with createFont() in the workbook.
+
+[SpreadsheetFonts.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-fonts")
+public class SpreadsheetFonts extends Div {
+
+    public SpreadsheetFonts() {
+
+        Spreadsheet spreadsheet = new Spreadsheet();
+        spreadsheet.setHeight("400px");
+
+        // tag::snippet[]
+        // Create a cell
+        Cell cell = spreadsheet.createCell(2, 2, "Styled");
+
+        // Create and configure a cell style
+        CellStyle cellStyle = spreadsheet.getWorkbook().createCellStyle();
+        // Add a blue bottom border
+        cellStyle.setBorderBottom(BorderStyle.THICK);
+        cellStyle.setBottomBorderColor(IndexedColors.BLUE.getIndex());
+        // Set the text to bold
+        Font font = spreadsheet.getWorkbook().createFont();
+        font.setBold(true);
+        cellStyle.setFont(font);
+
+        // Apply the cell style to the cell
+        cell.setCellStyle(cellStyle);
+
+        // Request spreadsheet to refresh the cell
+        spreadsheet.refreshCells(cell);
+        // end::snippet[]
+        add(spreadsheet);
+    }
+
+}
+
+Comments
+
+Cells may include comments, which are shown when the mouse is hovered over the cells. They’re indicated by ticks in the corner of the cells. The SpreadsheetDefaultActionHandler enables adding comments from the context menu.
+
+A new comment can be added through the POI API of a cell, with addComment(). For a detailed example on managing cell comments, refer to the InsertDeleteCellCommentAction and EditCellCommentAction classes employed by the default action handler.
+
+[SpreadsheetComments.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-comments")
+public class SpreadsheetComments extends Div {
+
+    public SpreadsheetComments() {
+        Spreadsheet spreadsheet = new Spreadsheet();
+
+        // tag::snippet[]
+        Drawing<?> drawing = spreadsheet.getActiveSheet()
+                .createDrawingPatriarch();
+        CreationHelper factory = spreadsheet.getActiveSheet().getWorkbook()
+                .getCreationHelper();
+
+        ClientAnchor anchor = factory.createClientAnchor();
+        Comment comment = drawing.createCellComment(anchor);
+        comment.setString(new XSSFRichTextString("First cell comment"));
+
+        spreadsheet.createCell(0, 0, "cell").setCellComment(comment);
+        // end::snippet[]
+
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+
+    }
+
+}
+
+Merging Cells
+
+You can merge spreadsheet cells with any variant of the addMergedRegion() method in Spreadsheet. The SpreadsheetDefaultActionHandler enables merging selected cells from the context menu.
+
+Merged cells can be unmerged with removeMergedRegion(). This method takes a region index as its parameter. You can search for a particular region through the POI Sheet API for the active sheet, which you can obtain with getActiveSheet().
+
+The getMergedRegion() returns a merged region by index. You can iterate through them by knowing the number of regions, which you can find with getNumMergedRegions().
+
+Components in Cells
+
+You can have Vaadin components in spreadsheet cells and bind field components to the cell data. The components can be shown continuously, or function similar to editors that appear when a cell is activated for editing.
+
+Components in a spreadsheet must be generated by a SpreadsheetComponentFactory, which you need to implement.
+
+[Flow: SpreadsheetComponents.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+import com.vaadin.flow.component.spreadsheet.SpreadsheetComponentFactory;
+import com.vaadin.flow.component.textfield.TextField;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
+
+@Route("spreadsheet-components")
+public class SpreadsheetComponents extends Div {
+
+    private Button customComponent;
+    private TextField customEditor;
+
+    public SpreadsheetComponents() {
+        Spreadsheet spreadsheet = new Spreadsheet();
+
+        spreadsheet.setColumnWidth(1, 120);
+        spreadsheet.createCell(1, 1, "Button");
+
+        spreadsheet.setColumnWidth(2, 120);
+        spreadsheet.createCell(1, 2, "Text Field");
+
+        // tag::snippet[]
+        spreadsheet.setSpreadsheetComponentFactory(
+                new SpreadsheetComponentFactory() {
+
+                    @Override
+                    public Component getCustomComponentForCell(Cell cell,
+                            int rowIndex, int columnIndex,
+                            Spreadsheet spreadsheet, Sheet sheet) {
+                        if (spreadsheet.getActiveSheetIndex() == 0
+                                && rowIndex == 2 && columnIndex == 1) {
+                            if (customComponent == null) {
+                                initCustomComponent();
+                            }
+                            return customComponent;
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public Component getCustomEditorForCell(Cell cell,
+                            int rowIndex, int columnIndex,
+                            Spreadsheet spreadsheet, Sheet sheet) {
+                        if (spreadsheet.getActiveSheetIndex() == 0
+                                && rowIndex == 2 && columnIndex == 2) {
+                            if (customEditor == null) {
+                                initCustomEditor(rowIndex, columnIndex,
+                                        spreadsheet);
+                            }
+                            return customEditor;
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public void onCustomEditorDisplayed(Cell cell, int rowIndex,
+                            int columnIndex, Spreadsheet spreadsheet,
+                            Sheet sheet, Component editor) {
+                        if (cell == null) {
+                            return;
+                        }
+                        ((TextField) editor)
+                                .setValue(cell.getStringCellValue());
+                    }
+                });
+        // end::snippet[]
+
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+    }
+
+    private void initCustomComponent() {
+        customComponent = new Button("Click");
+        customComponent.setSizeFull();
+        customComponent.getElement().getStyle().set("color-scheme", "light")
+                .set("--vaadin-button-background", "hsl(0, 0%, 95%)")
+                .set("--vaadin-button-text-color", "hsl(0, 0%, 10%)")
+                .set("--vaadin-button-border-color", "hsl(0, 0%, 80%)");
+    }
+
+    private void initCustomEditor(int rowIndex, int columnIndex,
+            Spreadsheet spreadsheet) {
+        customEditor = new TextField();
+        customEditor.setSizeFull();
+        customEditor.getElement().getStyle().set("color-scheme", "light")
+                .set("--vaadin-input-field-background", "hsl(0, 0%, 95%)")
+                .set("--vaadin-input-field-value-color", "hsl(0, 0%, 10%)")
+                .set("--vaadin-input-field-border-color", "hsl(0, 0%, 80%)");
+        customEditor.addValueChangeListener(e -> spreadsheet.refreshCells(
+                spreadsheet.createCell(rowIndex, columnIndex, e.getValue())));
+    }
+
+}
+
+Hyperlinks
+
+Hyperlinks in cells can point to other worksheets in the current workbook — or to external URLs. Links must be added through the POI API.
+
+Vaadin Spreadsheet provides default handling for hyperlink clicks. These can be overridden with a custom HyperlinkCellClickHandler, which you assign with setHyperlinkCellClickHandler().
+
+Pop-Up Buttons
+
+You can add a pop-up button in a cell, which will open a drop-down, pop-up overlay when clicked. The overlay can contain any Vaadin components. You can add a pop-up button with any of the setPopup() methods for different cell addressing forms.
+
+You can create pop-up buttons for a row of cells in a cell range by defining a table, as described in "Tables & Filters".
+
+Grouping
+
+Multiple rows or multiple columns can be grouped together in a sheet. A grouping is indicated by a line with a collapse or expand button in the row or column heading. Rows and columns that are part of a group can be hidden or shown by clicking the button.
+
+[SpreadsheetGrouping.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-grouping")
+public class SpreadsheetGrouping extends Div {
+
+    public SpreadsheetGrouping() throws IOException, URISyntaxException {
+        // tag::snippet[]
+        InputStream stream = getClass()
+                .getResourceAsStream("/testsheets/grouping.xlsx");
+
+        Spreadsheet spreadsheet = new Spreadsheet(stream);
+        // end::snippet[]
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+
+    }
+
+}
+
+Tables & Filters
+
+A cell range in a worksheet can be configured as a table, which adds pop-up menu buttons in the header row of the range. The pop-up menus contain Vaadin components, which you can use to implement various functionalities in the table, such as sorting or filtering. Vaadin Spreadsheet does not include any implementations of such features, merely the UI elements to enable them.
+
+Such a table is defined by a SpreadsheetTable or a SpreadsheetFilterTable added to the spreadsheet.
+
+SpreadsheetFilterTable is a spreadsheet table that allows filtering of the rows in the table in the pop-up menus. The menu is filled with checkboxes for each unique value in the column. Deselecting the items causes hiding of the respective rows in the spreadsheet.
+
+[SpreadsheetFiltering.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+import com.vaadin.flow.component.spreadsheet.SpreadsheetFilterTable;
+import com.vaadin.flow.component.spreadsheet.SpreadsheetTable;
+
+@Route("spreadsheet-filtering")
+public class SpreadsheetFiltering extends Div {
+
+    public SpreadsheetFiltering() {
+        Spreadsheet spreadsheet = new Spreadsheet();
+        // tag::snippet[]
+        int maxColumns = 5;
+        int maxRows = 5;
+
+        for (int column = 1; column < maxColumns + 1; column++) {
+            spreadsheet.createCell(1, column, "Column " + column);
+        }
+
+        for (int row = 2; row < maxRows + 2; row++) {
+            for (int col = 1; col < maxColumns + 1; col++) {
+                spreadsheet.createCell(row, col, row + col);
+            }
+        }
+        CellRangeAddress range = new CellRangeAddress(1, maxRows, 1,
+                maxColumns);
+        SpreadsheetTable table = new SpreadsheetFilterTable(spreadsheet, range);
+        spreadsheet.registerTable(table);
+        spreadsheet.refreshAllCellValues();
+        // end::snippet[]
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+
+    }
+
+}
+
+Report Mode
+
+In report mode, both the top and bottom bars are hidden. You can enable report mode with setReportStyle().
+
+[SpreadsheetReportMode.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-report-mode")
+public class SpreadsheetReportMode extends Div {
+
+    public SpreadsheetReportMode() throws IOException, URISyntaxException {
+        InputStream stream = getClass()
+                .getResourceAsStream("/testsheets/simple-invoice.xlsx");
+
+        Spreadsheet spreadsheet = new Spreadsheet(stream);
+        // tag::snippet[]
+        spreadsheet.setReportStyle(true);
+        spreadsheet.setActiveSheetProtected("");
+        spreadsheet.setRowColHeadingsVisible(false);
+        // end::snippet[]
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+
+    }
+
+}
+
+Charts Within Spreadsheets
+
+Vaadin Spreadsheet supports Vaadin Charts, making it possible to open Excel files with charts in them. Spreadsheet depends on Vaadin Charts so there is no need to add the Charts dependency in addition to the Spreadsheet dependency.
+
+The Vaadin Spreadsheet Charts integration package does not allow editing the chart. To change chart parameters such as type, categories, or legend inside the spreadsheet, you need to edit the original Excel file.
+
+Vaadin Charts integration allows changing the values of the data points in a chart. However, it does not allow changing the range of cells that are used for rendering the chart.
+
+Changing the position of charts within a spreadsheet is not supported.
+
+Vaadin charts are shown in the spreadsheet by default. You can disable showing them by using spreadsheet.setChartsEnabled(false).
+
+[SpreadsheetCharts.java]
+package com.vaadin.demo.component.spreadsheet;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.spreadsheet.Spreadsheet;
+
+@Route("spreadsheet-charts")
+public class SpreadsheetCharts extends Div {
+
+    public SpreadsheetCharts() throws IOException, URISyntaxException {
+        // tag::snippet[]
+        // The example file rainfall.xlsx contains a pre-configured chart
+        InputStream stream = getClass()
+                .getResourceAsStream("/testsheets/rainfall.xlsx");
+
+        Spreadsheet spreadsheet = new Spreadsheet(stream);
+        // end::snippet[]
+        spreadsheet.setHeight("400px");
+        add(spreadsheet);
+
+    }
+
+}
+
+Limitations
+
+The Vaadin Spreadsheet has a few inherent limitations. Below is a list of them:
+
+- No provided toolbars, menus, or other controls for formatting cells.
+- Limited support for the older XSL formats.
+- Constraints related to Apache POI, such as importing and exporting Excel files.
+- The component is not serializable due to the internal usage of Apache POI. The @PreserveOnRefresh annotation is not supported when using Spreadsheet. Session replication with Kubernetes Kit requires to use UnserializableComponentWrapper.
+- The SUBTOTAL formula is limited to aggregate functions that do not ignore hidden values (i.e., function codes from 1 to 7, as well as 9) because they are not implemented in Apache POI.
+- Strict OOXML format is not supported by Apache POI.
+- No support for theming the component the same way as other Vaadin components.
+- Right-to-left languages are not supported.
+- There is limited support for accessibility features.

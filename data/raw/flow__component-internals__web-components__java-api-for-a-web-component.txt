@@ -1,0 +1,58 @@
+Creating a Java API for a Web Component
+
+Reference for the APIs used to create a Java wrapper for a web component.
+
+For a step-by-step guide to wrapping a web component, see Wrap a Web Component. This page is a reference for the APIs involved.
+
+There are several ways to interact with a Web Component from Java: set properties on the element to define how it should behave, listen to events to be notified when the user does something, call functions on the element to perform specific tasks, or add sub-elements to define child content.
+
+Setting & Reading Properties
+
+Use getElement().setProperty() and getElement().getProperty() to read and write properties on the element. Use PropertyDescriptor and PropertyDescriptors to avoid repeating property names in getters and setters. Use @Synchronize to keep server-side property values in sync when they change on the client.
+
+See Component Properties for the full reference.
+
+Synchronizing the Value
+
+To make a value-based component work automatically as a field, it should implement the HasValue interface. See Binding Data to Forms for more information on this.
+
+The value needs to be synchronized automatically from the client to the server when the user changes it, as well as from the server to the client when it’s updated programmatically. Additionally, a value-change event should be fired on the server whenever the value changes.
+
+Typically, when the getValue() method is based on a single-element property, the AbstractSinglePropertyField base class takes care of everything related to the value.
+
+As an example, the following extends the AbstractSinglePropertyField base class:
+
+[Java]
+public class MwcSlider extends AbstractSinglePropertyField<MwcSlider, Integer> {
+
+    public MwcSlider() {
+        super("value", 0, false);
+    }
+
+}
+
+The type parameters define the component type (MwcSlider) returned by the getSource() method in value change events, and the value type (Integer). The constructor parameters define the name of the element property that contains the value ("value"), the default value to use if the property isn’t set (0), and it determines whether setValue(null) should be allowed or throw an exception (i.e., false means that null isn’t allowed).
+
+For more advanced cases that are still based on a one-element property, there is an alternative constructor that defines callbacks that convert between the low-level element property type and the high-level getValue() type. In cases where the value can’t be derived based on a single-element property, you can use the more generic AbstractField base class.
+
+Note: Properties not related to the HasValue interface
+
+For some Web Components, you need to update other properties that aren’t related to the HasValue interface. See Component Properties for how to use the @Synchronize annotation to synchronize property values without automatically firing a value-change event.
+
+Listening to Events
+
+Use the @DomEvent annotation to connect a server-side ComponentEvent to a client-side DOM event. Use @EventData to extract data from the DOM event object. Define an addXxxListener() method that calls addListener() to let callers register listeners.
+
+See Events for the full reference, including event data expressions, filtering, and debouncing.
+
+Calling Element Functions
+
+Use getElement().callJsFunction() to invoke JavaScript methods on the element. Supported parameter types are String, Boolean, Integer, Double, the corresponding primitive types, JsonValue, and Element and Component references. The method returns a server-side promise for the return value.
+
+See Remote Procedure Calls for the full reference.
+
+Adding Child Content
+
+If the component accepts child elements, implement HasComponents for a standard add/remove API. For more control, use getElement().appendChild() directly.
+
+See Component Containers for the full reference.

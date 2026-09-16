@@ -1,0 +1,6 @@
+Integration
+
+Learn how to integrate Vaadin applications with other systems.
+
+REST API
+    Integration of REST API within the Vaadin application.

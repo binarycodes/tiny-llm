@@ -1,0 +1,168 @@
+Binding Data to Custom Components
+
+How to create a form with a custom web component.
+
+While Vaadin components are supported out-of-the-box, the client-side Form binder can be configured to support any web component. This article explains how to create a form with a custom <my-text-field> web component.
+
+Using a custom web component in a form requires two steps:
+
+- Create a field strategy that tells the form binder how to get and set the component value and other properties, such as required and errorMessage; and
+- Create a custom binder subclass that associates the new custom field strategy with the custom web component tag.
+
+Web Component Example
+
+Consider the following LitElement component for use in form binding. It doesn’t expose properties such as required, invalid and errorMessage. This is why the default field strategy that works for all Vaadin components would not work here.
+
+[Custom field web component]
+import '@vaadin/custom-field';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import type { CustomFieldValueChangedEvent } from '@vaadin/custom-field';
+
+@customElement('my-text-field')
+export class MyTextField extends LitElement {
+  @property({ type: String }) label = '';
+  @property({ type: String }) value = '';
+
+  // custom properties that do not work with the default Binder
+  @property({ type: Boolean }) mandatory = false;
+  @property({ type: Boolean }) hasError = false;
+  @property({ type: String }) error = '';
+
+  // ...
+
+  render() {
+    return html`
+      <vaadin-custom-field
+        .label="${this.label}"
+        .value="${this.value}"
+        @value-changed="${this.onValueChanged}"
+        .required="${this.mandatory}"
+        .invalid="${this.hasError}"
+        .errorMessage="${this.error}"
+      >
+        <vaadin-text-field></vaadin-text-field>
+      </vaadin-custom-field>
+    `;
+  }
+
+  onValueChanged(event: CustomFieldValueChangedEvent) {
+    this.value = event.detail.value;
+  }
+}
+
+Defining a Field Strategy
+
+The first step towards using a web component as a field is to define a field strategy. You need to implement the FieldStrategy interface, as in the following example:
+
+[Example field strategy]
+import type { FieldStrategy } from '@vaadin/hilla-lit-form';
+import type { MyTextField } from './my-text-field';
+
+export class MyTextFieldStrategy implements FieldStrategy {
+  element: MyTextField;
+
+  constructor(element: MyTextField) {
+    this.element = element;
+  }
+
+  set required(required: boolean) {
+    this.element.mandatory = required;
+  }
+
+  set invalid(invalid: boolean) {
+    this.element.hasError = invalid;
+  }
+
+  set errorMessage(errorMessage: string) {
+    this.element.error = errorMessage;
+  }
+
+  // ...
+  validate = async () => [];
+
+  get value() {
+    return this.element.value;
+  }
+
+  set value(value) {
+    this.element.value = value;
+  }
+
+  setAttribute(key: string, val: unknown) {
+    if (val) {
+      this.element.setAttribute(key, '');
+    } else {
+      this.element.removeAttribute(key);
+    }
+  }
+
+  get validity() {
+    return new ValidityState();
+  }
+
+  checkValidity() {
+    return true;
+  }
+
+  removeEventListeners() {}
+}
+
+Using a Field Strategy
+
+The second step in using a custom web component is to make the Binder class a subclass and override the getFieldStrategy(element) method to use a custom field strategy for any my-text-field components it finds in a form. This method receives as arguments the element which is mapped to the component and the model, which can in turn affect the binding strategy. For example, the Combo Box component has specialized support for objects and arrays.
+
+[Using a Custom Field Strategy in Binder]
+import type {
+  FieldStrategy,
+  ProvisionalModel,
+  ProvisionalModelConstructor,
+} from '@vaadin/hilla-lit-form';
+import { Binder, StringModel } from '@vaadin/hilla-lit-form';
+import { MyTextFieldStrategy } from './my-text-field-strategy';
+
+export class MyBinder<M extends ProvisionalModel> extends Binder<M> {
+  constructor(context: Element, model: ProvisionalModelConstructor<M>) {
+    super(context, model);
+  }
+
+  override getFieldStrategy(element: any, model?: ProvisionalModel): FieldStrategy {
+    if (element.localName === 'my-text-field' && model instanceof StringModel) {
+      return new MyTextFieldStrategy(element);
+    }
+    return super.getFieldStrategy(element);
+  }
+}
+
+[Using a Custom Field Strategy in Binder]
+
+You can now use my-text-field components in a form, provided that you use the extended MyBinder class to handle data binding in that form.
+
+[Using a Field Web Component in a Form]
+import './my-text-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { field } from '@vaadin/hilla-lit-form';
+import SamplePersonModel from 'Frontend/generated/com/vaadin/demo/fusion/forms/fieldstrategy/SamplePersonModel';
+import { MyBinder } from './my-binder';
+
+@customElement('person-form-view')
+export class PersonFormViewElement extends LitElement {
+  private binder = new MyBinder(this, SamplePersonModel);
+
+  render() {
+    return html`
+      <h3>Personal information</h3>
+      <vaadin-form-layout>
+        <my-text-field
+          label="First name"
+          ...="${field(this.binder.model.firstName)}"
+        ></my-text-field>
+      </vaadin-form-layout>
+    `;
+  }
+  // ...
+}
+
+[Using a Field Web Component in a Form]

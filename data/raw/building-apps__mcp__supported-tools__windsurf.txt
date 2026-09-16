@@ -1,0 +1,32 @@
+Windsurf
+
+Learn how to configure Windsurf IDE to access Vaadin documentation through the Model Context Protocol server
+
+Windsurf is Codeium’s AI-native IDE with built-in HTTP MCP support. Configuration is straightforward through the settings interface.
+
+Configuration
+
+1. Open Windsurf Settings
+2. Navigate to AI → MCP Servers
+3. Add a new server with the following configuration:
+   - Name: Vaadin
+   - URL: https://mcp.vaadin.com/docs
+4. Save the configuration
+
+Windsurf automatically loads the MCP server after saving.
+
+Tip: You can manage multiple MCP servers in Windsurf. Each server can be enabled or disabled individually from the MCP Servers settings panel.
+
+Verify the Setup
+
+After saving the configuration:
+
+1. Open the AI assistant panel in Windsurf
+2. Ask a question about Vaadin (e.g., "How to implement routing in Vaadin?")
+3. The assistant uses the Vaadin MCP server to provide accurate, documentation-based responses
+
+You can view active MCP servers in the AI settings panel.
+
+Resources
+
+- Windsurf MCP Documentation

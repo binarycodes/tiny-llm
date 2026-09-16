@@ -1,0 +1,294 @@
+Date Picker Formats
+
+Configuring date formats for Date Picker.
+
+Date Picker can be configured to display dates and parse user input in a specific format. In Flow, you can control the date format using Java locales or custom date format patterns. The default format is based on the user’s locale. In React and Lit, you can customize the date format with custom functions. The default format is US English.
+
+Two-digit year formats are supported, and you can set the reference date for determining the century of the 2-digit year in Flow, React, and Lit.
+
+Using Java Locales in Flow
+
+By default, Date Picker displays and parses dates using the user’s locale (reference). Setting a specific locale ensures that all users see the same format.
+
+In the example here, the Date Picker is set to the date format used in Finland:
+
+[DatePickerLocale.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Locale;
+
+@Route("date-picker-locale")
+public class DatePickerLocale extends Div {
+    public DatePickerLocale() {
+        // tag::snippet[]
+        Locale finnishLocale = new Locale("fi", "FI");
+
+        DatePicker datePicker = new DatePicker("Select a date:");
+        datePicker.setLocale(finnishLocale);
+        // end::snippet[]
+        datePicker.setValue(LocalDate.now(ZoneId.systemDefault()));
+        datePicker.setHelperText(
+                "Date picker configured to use Finnish date format");
+
+        add(datePicker);
+    }
+
+}
+
+The date format that’s used based on the locale depends on the specific browser implementation. It might not be reliable when expecting a specific pattern. For finer control over the date format, see the next section.
+
+Using Custom Date Formats in Flow
+
+Date Picker allows you to configure a custom date format pattern that defines exactly how dates should be displayed and how user input should be parsed. Additional parsing formats can be provided to support entering dates in different formats.
+
+Parsing is first tried with the primary format, then the additional parsing formats in the order that they’re provided.
+
+The Date Picker below displays and parses dates in ISO 8601 format yyyy-MM-dd, and also accepts dates entered in MM/dd/yyyy or dd.MM.yyyy format:
+
+[DatePickerCustomFormat.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+@Route("date-picker-custom-format")
+public class DatePickerCustomFormat extends Div {
+    public DatePickerCustomFormat() {
+        // tag::snippet[]
+        // Setup date picker with a primary format and additional parsing
+        // formats
+        // Date is always displayed using the primary format `yyyy-MM-dd`.
+        // When parsing user input, the date picker first attempts to match the
+        // input with the primary format `yyyy-MM-dd`, then `MM/dd/yyyy`, and
+        // finally `dd.MM.yyyy`.
+        // You can also use DatePickerI18n#setDateFormat() if you need to
+        // support only a single format.
+        DatePicker.DatePickerI18n datePickerI18n = new DatePicker.DatePickerI18n();
+        datePickerI18n.setDateFormats("yyyy-MM-dd", "MM/dd/yyyy", "dd.MM.yyyy");
+
+        DatePicker datePicker = new DatePicker("Select a date:");
+        datePicker.setI18n(datePickerI18n);
+        // end::snippet[]
+        datePicker.setValue(LocalDate.now(ZoneId.systemDefault()));
+        add(datePicker);
+    }
+
+}
+
+A custom date format pattern is a string that consists of specific symbols that specify how and where a part of the date (i.e., day, month, or year) should be displayed. The following symbols are recognized as parts of the date in a pattern:
+
+Code | Description
+d | Day of the month, as one or two digits (e.g., 1, 31).
+dd | Day of the month, padded to two digits (e.g., 01, 31).
+M | Month, as one or two digits (e.g., 1, 12).
+MM | Month, padded to two digits (e.g., 01, 12).
+yy | Year, using two digits (e.g., 23).
+yyyy | Year, using four digits (e.g., 2023).
+
+Other characters, such as separators (e.g., /, ., -) or spaces may be used in a pattern. Below are some examples of how you might use these date format codes:
+
+Pattern | Example Value | Description
+M/d/yyyy | 8/26/2021 | United States date format.
+yyyy-MM-dd | 2021-08-26 | ISO 8601 date format.
+d. M. yyyy | 26. 8. 2021 | Croatian date format using spaces.
+M/d | 8/26 | Date format using only day and month.
+
+Custom date patterns take precedence over the configured locale. When using both at the same time, the custom date pattern is used to display and parse dates.
+
+Server-Side Parsing in Flow
+
+The Flow version of Date Picker also allows you to provide a server-side parser that may be used as a fallback when user input can’t be parsed using the methods described previously. The parser is a function that receives the user entered string and returns either a parsed date or an error message. Successfully parsed dates are displayed in the field using the same pattern as other dates.
+
+The server-side parser can be used to support shortcuts for quickly entering dates (e.g., +1 or tomorrow). In the following example, try entering +1, -2, and foobar to see the server-side parser in action:
+
+[DatePickerFallbackParser.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.binder.Result;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+
+@Route("date-picker-fallback-parser")
+public class DatePickerFallbackParser extends VerticalLayout {
+    public DatePickerFallbackParser() {
+        DatePicker datePicker = new DatePicker("Select a date:");
+        // tag::snippet[]
+        datePicker.setFallbackParser((s) -> {
+            LocalDate now = LocalDate.now();
+            if (s.matches("\\+\\d+")) {
+                // Handle input such as "+1"
+                return Result
+                        .ok(now.plusDays(Integer.parseInt(s.substring(1))));
+            }
+            if (s.matches("-\\d+")) {
+                // Handle input such as "-1"
+                return Result
+                        .ok(now.minusDays(Integer.parseInt(s.substring(1))));
+            }
+            return Result.error("Invalid date format");
+        });
+        // end::snippet[]
+        datePicker.setHelperText("Format: +1, -2 for relative days");
+        add(datePicker);
+    }
+
+    public static class Exporter
+}
+
+Using Custom Functions in React & Lit
+
+When using the web component stand-alone, custom functions can be configured to display and parse the date. The default format is US English.
+
+[React: date-picker-custom-functions.tsx]
+import React, { useEffect, useRef } from 'react';
+import { format as dateFnsFormat } from 'date-fns/format';
+import { parse as dateFnsParse } from 'date-fns/parse';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  DatePicker,
+  type DatePickerDate,
+  type DatePickerElement,
+} from '@vaadin/react-components/DatePicker.js';
+
+// tag::snippet[]
+function formatDateIso8601(dateParts: DatePickerDate) {
+  const { year, month, day } = dateParts;
+  const date = new Date(year, month, day);
+
+  return dateFnsFormat(date, 'yyyy-MM-dd');
+}
+
+function parseDateIso8601(inputValue: string) {
+  const date = dateFnsParse(inputValue, 'yyyy-MM-dd', new Date());
+
+  return { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() };
+}
+
+function Example() {
+  const selectedDateValue = useSignal(dateFnsFormat(new Date(), 'yyyy-MM-dd'));
+
+  const datePickerRef = useRef<DatePickerElement>(null);
+  useEffect(() => {
+    const datePicker = datePickerRef.current;
+    if (datePicker) {
+      datePicker.i18n = {
+        ...datePicker.i18n,
+        formatDate: formatDateIso8601,
+        parseDate: parseDateIso8601,
+      };
+    }
+  }, [datePickerRef.current]);
+
+  return (
+    <DatePicker
+      ref={datePickerRef}
+      label="Select a date:"
+      value={selectedDateValue.value}
+      helperText="Date picker configured to use ISO 8601 format"
+      onValueChanged={(event) => {
+        selectedDateValue.value = event.detail.value;
+      }}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: date-picker-custom-functions.ts]
+import '@vaadin/date-picker';
+import { format as dateFnsFormat } from 'date-fns/format';
+import { parse as dateFnsParse } from 'date-fns/parse';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type { DatePicker, DatePickerChangeEvent, DatePickerDate } from '@vaadin/date-picker';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-custom-functions')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-date-picker')
+  private datePicker!: DatePicker;
+
+  @state()
+  private selectedDateValue: string = dateFnsFormat(new Date(), 'yyyy-MM-dd');
+
+  // tag::snippet[]
+  protected override firstUpdated() {
+    const formatDateIso8601 = (dateParts: DatePickerDate): string => {
+      const { year, month, day } = dateParts;
+      const date = new Date(year, month, day);
+
+      return dateFnsFormat(date, 'yyyy-MM-dd');
+    };
+
+    const parseDateIso8601 = (inputValue: string): DatePickerDate => {
+      const date = dateFnsParse(inputValue, 'yyyy-MM-dd', new Date());
+
+      return { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() };
+    };
+
+    this.datePicker.i18n = {
+      ...this.datePicker.i18n,
+      formatDate: formatDateIso8601,
+      parseDate: parseDateIso8601,
+    };
+  }
+
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <vaadin-date-picker
+        label="Select a date:"
+        value="${this.selectedDateValue}"
+        helper-text="Date picker configured to use ISO 8601 format"
+        @change="${(event: DatePickerChangeEvent) => {
+          this.selectedDateValue = event.target.value;
+        }}"
+      ></vaadin-date-picker>
+    `;
+  }
+}
+
+The previous example uses the third-party library date-fns to implement the custom formatting and parsing functions. It needs to be added as a separate dependency to the project.
+
+Two-Digit Year Formats
+
+Date Picker supports date formats with 2-digit years (e.g., dd.MM.yy). When parsing a 2-digit year, the component must decide as to which century the year belongs. For example, a year entered as 62 could be interpreted either as 1862, 1962, or 2062.
+
+Two-digit years are interpreted as being within a one-hundred year range whose midpoint is called the reference date. For example, a reference date of 2000-01-01 means that the date entered is interpreted as being within the range 1950-01-01 to 2049-12-31. Given that parameter, the year 50 is parsed to 1950 while 49 is parsed to 2049.
+
+The reference date defaults to the current date, but you can set it to a different date with the internationalization API:
+
+[Java]
+DatePicker.DatePickerI18n i18n = new DatePicker.DatePickerI18n();
+i18n.setDateFormat("yy-MM-dd");
+i18n.setReferenceDate(LocalDate.of(1980, 2, 2));
+datePicker.setI18n(i18n);
+
+[TypeScript]
+datePicker.i18n = {
+  ...this.datePicker.i18n,
+  referenceDate: '1980-02-02'
+};
+
+When using a display format with a 4-digit year, years prior to 1000 are displayed padded with leading zeroes to avoid ambiguity.
+
+Note: Display formats with 2-digit years should only be used with 2-digit parsing formats. Using a display format with 2-digit years (yy), together with parsing formats with 4-digit years (yyyy) can cause unexpected behavior, and should be avoided.

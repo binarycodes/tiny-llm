@@ -1,0 +1,36 @@
+Multiplatform Runtime Flow
+
+Note: Commercial Feature
+
+Multiplatform Runtime only works with the Extended Maintenance versions of Vaadin 7 and Vaadin 8.
+
+- Learn More
+- See Pricing
+
+Multiplatform Runtime (MPR) makes it possible to run applications and components written with Vaadin 7/8 inside a Vaadin Flow application.
+
+Issues can be reported on the public Multiplatform Runtime repository.
+
+Step-by-Step Guide
+
+Follow the Step-by-Step Guide to configure your project to use MPR and migrate your legacy application to a newer version.
+
+Configuration & Advanced Topics
+
+- Legacy Theme in MPR
+- Custom Widget Set and MPR
+- Push and MPR
+- Using Sessions
+- Using Custom Legacy UIs (advanced)
+
+Using Legacy Components In a Flow Application
+
+Adding Legacy Components in a Flow Layout
+
+Production Mode
+
+Setting up production mode
+
+Known Limitations
+
+Limitations of MPR

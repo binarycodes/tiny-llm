@@ -1,0 +1,198 @@
+Component Testers
+
+Using built-in testers and building custom ones for your own components.
+
+Component testers simulate user interactions in browserless tests. Each tester wraps a specific component type and provides methods that mirror what a real user can do — clicking, typing, and selecting items.
+
+Testers focus on actions that simulate user behavior, such as setValue(), click(), and selectItem(). To read component state — like getting a value or checking visibility — use the component’s Java API directly. This separation keeps tester methods focused on simulating real user interactions that also perform usability checks.
+
+Using Component Testers
+
+Wrap any component with test() to get a tester for it:
+
+[Java]
+test(textField).setValue("Jane");
+test(button).click();
+
+// Reading state is done via the component API directly
+String value = textField.getValue();
+
+The test() method returns a tester matched to the component’s type. You can also request a specific tester type explicitly:
+
+[Java]
+TextFieldTester tester = test(TextFieldTester.class, textField);
+
+Usability Checks
+
+Before performing any action, testers verify that the component is in a usable state. An action fails with a clear error message if the component is:
+
+- Not visible
+- Not enabled
+- Not attached to the UI
+- Behind a modal overlay
+
+This catches common issues where a test passes by calling the Java API directly, but the corresponding user action would be impossible in a browser.
+
+Common Testers
+
+The following table shows frequently used testers and their key methods:
+
+Component | Key Tester Methods
+TextField | setValue(String), clear()
+Button | click()
+Checkbox | click() (toggles checked state)
+NumberField | setValue(double)
+Select | selectItem(String), selectItem(int)
+ComboBox | selectItem(String), getSuggestionItems()
+Grid | getRow(index), size(), getCellText(row, column)
+Notification | getText()
+Dialog | open(), close()
+ConfirmDialog | open(), confirm(), cancel(), reject()
+Upload | upload(File), uploadAll(File…​)
+Breadcrumbs | BreadcrumbsTester: getItemTexts(), clickItem(String), clickItem(int)
+MasterDetailLayout | MasterDetailLayoutTester: getMaster(), getDetail(), getDetailPlaceholder(), isDetailPlaceholderVisible()
+IntegerSlider | IntegerSliderTester: setValue(Integer), increment(), decrement(), incrementBy(int), decrementBy(int)
+IntegerRangeSlider | IntegerRangeSliderTester: setValue(IntegerRangeSliderValue), setStart(Integer), setEnd(Integer), incrementStart(), decrementEnd(), …​
+DecimalSlider | DecimalSliderTester: setValue(Double), increment(), decrement(), incrementBy(int), decrementBy(int)
+DecimalRangeSlider | DecimalRangeSliderTester: setValue(DecimalRangeSliderValue), setStart(Double), setEnd(Double), incrementStart(), decrementEnd(), …​
+
+Tip: selectItem Takes String Labels
+
+The selectItem() method on SelectTester and ComboBoxTester takes the display label as a String, not the typed item value. When using enums or other objects, pass the label that the user would see in the dropdown:
+
+[Java]
+// Enum-backed Select
+Select<ExpenseCategory> categorySelect = new Select<>();
+categorySelect.setItems(ExpenseCategory.values());
+categorySelect.setItemLabelGenerator(ExpenseCategory::getLabel);
+
+// In the test, use the display label, not the enum value
+test(categorySelect).selectItem("Meals & Entertainment");
+
+Constraint Enforcement
+
+Testers enforce the same constraints that apply to user input in a browser. If a component has constraints like minimum or maximum values, required fields, or step intervals, the tester rejects values that violate them. This ensures your tests reflect actual user behavior.
+
+For example, a NumberField with a minimum of 0 rejects negative values through the tester:
+
+[Java]
+NumberField amount = new NumberField("Amount");
+amount.setMin(0);
+amount.setStep(0.01);
+
+// This throws an exception — the value violates the minimum constraint
+test(amount).setValue(-5.0);
+
+To test that your application handles invalid input correctly, set values directly through the component’s Java API instead of the tester:
+
+[Java]
+// Bypass tester constraints to test validation logic
+amount.setValue(-5.0);
+// Now verify that your application reacts appropriately
+
+Base Methods
+
+All testers inherit from ComponentTester, which provides methods useful across component types:
+
+Method | Description
+click(), rightClick(), middleClick() | Click the component. All variants accept optional MetaKeys for modifier keys.
+isUsable() | Returns true if the component is visible, enabled, and attached. Use this to check state without throwing an exception.
+roundTrip() | Simulates a server round-trip, processing any pending client-server communication.
+fireDomEvent(String) | Fires a DOM event on the component, such as "blur" or "focus".
+find(Class) | Creates a component query scoped to the children of the wrapped component.
+
+Testing a Component Without a View
+
+A single component — for example, a form or a custom field — can be tested in isolation, without wrapping it in an @Route view. BrowserlessUIContext.forComponent() builds a self-contained, route-free test environment, attaches the component to a window’s UI, and tears everything down when the window closes, so a single try-with-resources is enough:
+
+[Java]
+try (var window = BrowserlessUIContext.forComponent(new MyForm())) {
+    window.findTextField().withLabel("Name").setValue("Ada");
+    window.findButton().withText("Save").click();
+}
+
+The returned window is a BrowserlessUIContext, so the full testing DSL is available: find(), test(), and the typed locator entry points such as findButton(). See Multi-User and Multi-Window Testing for the context API.
+
+If the component’s constructor needs UI.getCurrent() or the session, pass a factory instead: BrowserlessUIContext.forComponent(MyForm::new). The factory runs after the Vaadin thread-locals are installed, so the constructor observes the live environment.
+
+For tests that need the same standalone component in several windows or for several users, use BrowserlessApplicationContext.forComponent(Supplier). It returns the application context, and every window created from it gets a fresh component instance from the factory:
+
+[Java]
+try (var app = BrowserlessApplicationContext.forComponent(MyForm::new)) {
+    var w1 = app.newUser().newWindow();
+    var w2 = app.newUser().newWindow();
+
+    w1.findTextField().withLabel("Name").setValue("Ada");
+    // w2 holds its own MyForm instance
+    Assertions.assertEquals("", w2.findTextField().withLabel("Name")
+            .component().getValue());
+}
+
+Building Custom Testers
+
+When you create custom components, you can build testers for them too. Custom testers extend ComponentTester and use the @Tests annotation to declare which component they test.
+
+Defining a Custom Tester
+
+[Java]
+// Tests defines the components this tester should be used for automatically
+@Tests(PersonFormView.PhoneNumberField.class)
+public class PhoneNumberFieldTester extends ComponentTester<PersonFormView.PhoneNumberField> {
+    // Other testers can be used inside the custom tester
+    final ComboBoxTester<ComboBox<String>, String> combo_;
+    final TextFieldTester<TextField, String> number_;
+
+    public PhoneNumberFieldWrap(PersonFormView.PhoneNumberField component) {
+        super(component);
+        combo_ = new ComboBoxTester<>(
+                getComponent().countryCode);
+        number_ = new TextFieldTester<>(getComponent().number);
+    }
+
+    public List<String> getCountryCodes() {
+        return combo_.getSuggestionItems();
+    }
+
+    public void setCountryCode(String code) {
+        ensureComponentIsUsable();
+        if(!getCountryCodes().contains(code)) {
+            throw new IllegalArgumentException("Given code isn't available for selection");
+        }
+        combo_.selectItem(code);
+    }
+
+    public void setNumber(String number) {
+        ensureComponentIsUsable();
+        number_.setValue(number);
+    }
+
+    public String getValue() {
+        return getComponent().generateModelValue();
+    }
+
+}
+
+[PhoneNumberField.java]
+static class PhoneNumberField extends CustomField<String> {
+    ComboBox<String> countryCode = new ComboBox<>();
+    TextField number = new TextField();
+
+    // ...
+}
+
+Custom testers can use other testers internally, as shown above with ComboBoxTester and TextFieldTester.
+
+Tip: Generic Components
+
+The @Tests annotation also has an fqn attribute that accepts fully qualified class names as strings. Use this when the component type uses generics that prevent it from being passed as a class literal: @Tests(fqn = "com.example.MyField").
+
+Registering Custom Testers
+
+By default, tester implementations are scanned from the com.vaadin.flow.component package, so adding a custom tester to that package makes it immediately available.
+
+To place custom testers in another package, annotate the test class with @ComponentTesterPackages:
+
+[Java]
+@ComponentTesterPackages("com.example.application.views.personform")
+class PersonFormViewTest extends BrowserlessTest {
+}

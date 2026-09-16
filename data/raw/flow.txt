@@ -1,0 +1,34 @@
+Flow Reference
+
+Build web applications with only Java.
+
+What is Flow?
+    Basics of creating an application using Vaadin Flow.
+UI State
+    Using signals in Flow to manage UI state reactively in Vaadin applications.
+Routing & Navigation
+    Explains routing, how URLs are mapped to views, and navigating applications.
+Forms & Data Binding
+    Learn how to bind data to forms and selection components in Vaadin Flow.
+Browser APIs
+    Server-side Java APIs for accessing browser and web-platform features.
+Localization
+    Translate strings, switch languages, and localize numbers and dates.
+Security
+    Documentation on better security with Vaadin products and related software.
+Testing
+    Vaadin provides browserless testing and end-to-end testing approaches for your applications.
+Integrations
+    List of various Java application technologies that may be integrated with Vaadin.
+Configuration
+    Instructions on how to configure your application and development environment.
+Deploying to Production
+    How to to compile and package an application to deploy to a production server.
+AI Integration
+    Vaadin provides UI interfaces and an AI orchestrator for building AI-powered UIs with Vaadin, handling streaming, history, attachments, and tool calling.
+Component Internals
+    Technical reference for Vaadin's component architecture and client-server communication model. Covers properties, events, RPC, the Element API, and other low-level mechanisms used when building custom components.
+Advanced Topics
+    A collection of miscellaneous important topics and features that you may need in Vaadin applications.
+API Reference
+    Links to Application Programming Interface documentation.

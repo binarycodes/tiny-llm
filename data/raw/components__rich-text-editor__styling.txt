@@ -1,0 +1,307 @@
+Rich Text Editor Styling
+
+Styling API reference for the Rich Text Editor component.
+
+Style Variants
+
+The following variants are supported:
+
+Variant | Description | Supported by
+compact | Makes the toolbar more compact | Lumo
+no-border | Removes the border around the editor | Lumo
+
+Compact
+
+Apply the compact style variant to make the toolbar more compact.
+
+[Flow: RichTextEditorThemeCompact.java]
+package com.vaadin.demo.component.richtexteditor;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.richtexteditor.RichTextEditor;
+import com.vaadin.flow.component.richtexteditor.RichTextEditorVariant;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("rich-text-editor-theme-compact")
+public class RichTextEditorThemeCompact extends Div {
+
+    public RichTextEditorThemeCompact() {
+        // tag::snippet[]
+        RichTextEditor rte = new RichTextEditor();
+        rte.getStyle().set("max-height", "400px");
+        String valueAsHtml = DataService.getTemplates().getRichTextHtml();
+        rte.setValue(valueAsHtml);
+        rte.addThemeVariants(RichTextEditorVariant.LUMO_COMPACT);
+        add(rte);
+        // end::snippet[]
+    }
+
+}
+
+[React: rich-text-editor-theme-compact.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { RichTextEditor } from '@vaadin/react-components-pro/RichTextEditor.js';
+import templates from '../../../../../src/main/resources/data/templates.json';
+
+function Example() {
+  const richText = useSignal(templates.richTextDelta);
+
+  return (
+    // tag::snippet[]
+    <RichTextEditor style={{ height: '400px' }} theme="compact" value={richText.value} />
+    // end::snippet[]
+  );
+}
+
+[Lit: rich-text-editor-theme-compact.ts]
+import '@vaadin/rich-text-editor';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import templates from '../../../../src/main/resources/data/templates.json';
+
+@customElement('rich-text-editor-theme-compact')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private richText = templates.richTextDelta;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-rich-text-editor
+        style="height: 400px;"
+        theme="compact"
+        .value="${this.richText}"
+      ></vaadin-rich-text-editor>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+No Border
+
+Apply the no-border style variant to remove Rich Text Editor’s border. An example of this is when the component is wrapped in a container with its own borders.
+
+[Flow: RichTextEditorThemeNoBorder.java]
+package com.vaadin.demo.component.richtexteditor;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.richtexteditor.RichTextEditor;
+import com.vaadin.flow.component.richtexteditor.RichTextEditorVariant;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("rich-text-editor-theme-no-border")
+public class RichTextEditorThemeNoBorder extends Div {
+
+    public RichTextEditorThemeNoBorder() {
+        // tag::snippet[]
+        RichTextEditor rte = new RichTextEditor();
+        rte.getStyle().set("max-height", "400px");
+        String valueAsHtml = DataService.getTemplates().getRichTextHtml();
+        rte.setValue(valueAsHtml);
+        rte.addThemeVariants(RichTextEditorVariant.LUMO_NO_BORDER);
+        add(rte);
+        // end::snippet[]
+    }
+
+}
+
+[React: rich-text-editor-theme-no-border.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { RichTextEditor } from '@vaadin/react-components-pro/RichTextEditor.js';
+import templates from '../../../../../src/main/resources/data/templates.json';
+
+function Example() {
+  const richText = useSignal(templates.richTextDelta);
+
+  return (
+    // tag::snippet[]
+    <RichTextEditor
+      style={{ height: '400px' }}
+      theme="no-border"
+      value={richText.value}
+      onValueChanged={(event) => {
+        richText.value = event.detail.value;
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: rich-text-editor-theme-no-border.ts]
+import '@vaadin/rich-text-editor';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+import templates from '../../../../src/main/resources/data/templates.json';
+
+@customElement('rich-text-editor-no-border')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private richText = templates.richTextDelta;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-rich-text-editor
+        style="height: 400px;"
+        theme="no-border"
+        .value="${this.richText}"
+      ></vaadin-rich-text-editor>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Common Properties
+
+Property | Supported by
+--vaadin-rich-text-editor-background | Aura, Lumo
+--vaadin-rich-text-editor-content-color | Aura, Lumo
+--vaadin-rich-text-editor-content-font-size | Aura, Lumo
+--vaadin-rich-text-editor-content-line-height | Aura, Lumo
+--vaadin-rich-text-editor-content-padding | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-background | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-gap | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-padding | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-button-background | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-button-border-color | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-button-border-radius | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-button-border-width | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-button-padding | Aura, Lumo
+--vaadin-rich-text-editor-toolbar-button-text-color | Aura, Lumo
+
+Overlay Properties
+
+CSS Property | Supported by
+--vaadin-rich-text-editor-overlay-gap | Aura
+--vaadin-rich-text-editor-overlay-padding | Aura
+--vaadin-rich-text-editor-overlay-color-option-border-color | Aura
+--vaadin-rich-text-editor-overlay-color-option-border-radius | Aura
+--vaadin-rich-text-editor-overlay-color-option-border-width | Aura
+--vaadin-rich-text-editor-overlay-color-option-height | Aura
+--vaadin-rich-text-editor-overlay-color-option-width | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-rich-text-editor
+
+States
+
+Read-only
+    vaadin-rich-text-editor[readonly]
+Disabled
+    vaadin-rich-text-editor[disabled]
+Hovered
+    vaadin-rich-text-editor:hover
+
+Toolbar
+
+Toolbar
+    vaadin-rich-text-editor::part(toolbar)
+Toolbar button groups
+    vaadin-rich-text-editor::part(toolbar-group)
+History button group
+    vaadin-rich-text-editor::part(toolbar-group-history)
+Toolbar buttons
+    vaadin-rich-text-editor::part(toolbar-button)
+Toolbar button toggled on
+    vaadin-rich-text-editor::part(toolbar-button-pressed)
+Undo button
+    vaadin-rich-text-editor::part(toolbar-button-undo)
+Redo button
+    vaadin-rich-text-editor::part(toolbar-button-redo)
+Emphasis button group
+    vaadin-rich-text-editor::part(toolbar-group-emphasis)
+Bold button
+    vaadin-rich-text-editor::part(toolbar-button-bold)
+Italic button
+    vaadin-rich-text-editor::part(toolbar-button-italic)
+Underline button
+    vaadin-rich-text-editor::part(toolbar-button-underline)
+Strikeout button
+    vaadin-rich-text-editor::part(toolbar-button-strike)
+Style button group
+    vaadin-rich-text-editor::part(toolbar-group-style)
+Text color button
+    vaadin-rich-text-editor::part(toolbar-button-color)
+Background button
+    vaadin-rich-text-editor::part(toolbar-button-background)
+Heading button group
+    vaadin-rich-text-editor::part(toolbar-group-heading)
+H1 button
+    vaadin-rich-text-editor::part(toolbar-button-h1)
+H2 button
+    vaadin-rich-text-editor::part(toolbar-button-h2)
+H3 button
+    vaadin-rich-text-editor::part(toolbar-button-h3)
+Glyph transformation button group
+    vaadin-rich-text-editor::part(toolbar-group-glyph-transformation)
+Subscript button
+    vaadin-rich-text-editor::part(toolbar-button-subscript)
+Superscript button
+    vaadin-rich-text-editor::part(toolbar-button-superscript)
+List button group
+    vaadin-rich-text-editor::part(toolbar-group-list)
+Ordered list button
+    vaadin-rich-text-editor::part(toolbar-button-list-ordered)
+Bullet list button
+    vaadin-rich-text-editor::part(toolbar-button-list-bullet)
+Alignment button group
+    vaadin-rich-text-editor::part(toolbar-group-alignment)
+Align left button
+    vaadin-rich-text-editor::part(toolbar-button-align-left)
+Align center button
+    vaadin-rich-text-editor::part(toolbar-button-align-center)
+Align right button
+    vaadin-rich-text-editor::part(toolbar-button-align-right)
+Rich content button group
+    vaadin-rich-text-editor::part(toolbar-group-rich-text)
+Image button
+    vaadin-rich-text-editor::part(toolbar-button-image)
+Link button
+    vaadin-rich-text-editor::part(toolbar-button-link)
+Text block button group
+    vaadin-rich-text-editor::part(toolbar-group-block)
+Block quote button
+    vaadin-rich-text-editor::part(toolbar-button-blockquote)
+Code block button
+    vaadin-rich-text-editor::part(toolbar-button-code-block)
+Format button group
+    vaadin-rich-text-editor::part(toolbar-group-format)
+Clean formatting button
+    vaadin-rich-text-editor::part(toolbar-button-clean)
+
+Content
+
+Content area
+    vaadin-rich-text-editor::part(content)

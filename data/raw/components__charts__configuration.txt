@@ -1,0 +1,333 @@
+Chart Configuration
+
+How to configure the various types of charts.
+
+All the chart content configuration of charts is defined in a chart model in a Configuration object. You can access the model with the getConfiguration() method.
+
+The configuration properties in the Configuration class are summarized in the following:
+
+- credits: Credits (text, position, href, enabled)
+- labels: HTMLLabels (html, style)
+- legend: Legend (see Legend)
+- pane: Pane
+- plotoptions: PlotOptions (see Plot Options)
+- series: Series
+- subtitle: Subtitle
+- title: Title
+- tooltip: Tooltip
+- xAxis: XAxis (see Axes)
+- yAxis: YAxis (see Axes)
+
+For data configuration, see "Chart Data". For styling, see "Chart Styling".
+
+Series and Configuration
+
+A series doesn’t know about the chart until it’s added to the chart’s Configuration. The link is created by addSeries() and setSeries(), which are the only methods that set the configuration on a series.
+
+Because of this, getConfiguration() on a series returns null until the series has been added. Calling it earlier — for example, to reach an axis while building the series — throws a NullPointerException, and setyAxis(YAxis) throws an IllegalStateException.
+
+[Reading the configuration too early]
+ListSeries series = new ListSeries("Sales", 49.9, 71.5, 106.4);
+// Throws NullPointerException: the series isn't linked to a
+// configuration yet.
+series.getConfiguration().getyAxis().setTitle("Value");
+configuration.addSeries(series);
+
+[Adding the series first]
+ListSeries series = new ListSeries("Sales", 49.9, 71.5, 106.4);
+configuration.addSeries(series);
+// The series is now linked, so the axis can be reached through it.
+series.getConfiguration().getyAxis().setTitle("Value");
+
+Axes belong to the configuration rather than to an individual series, so a helper method that configures axes should take the Configuration as a parameter instead of reading it back from a series:
+
+[Java]
+private void configureAxes(Configuration configuration) {
+    configuration.getyAxis().setTitle("Value");
+    configuration.getxAxis().setTitle("Month");
+}
+
+Plot Options
+
+Plot options are used to configure the data series in a chart. They control how series are displayed (color, border, opacity, …​), and how they behave (stacking, grouping, tooltips, …​).
+
+Plot options can be set for the entire chart, or for individual data series, using setPlotOptions(). When the plot options are set for the entire chart, they are applied to all the series in the chart. For the Chart itself, multiple plot options can be added using addPlotOptions().
+
+For example, to disable animations for all series, the plot options are set for the chart:
+
+[Java]
+Chart chart = new Chart();
+Configuration configuration = chart.getConfiguration();
+PlotOptionsSeries plotOptions = new PlotOptionsSeries();
+plotOptions.setAnimation(false);
+configuration.setPlotOptions(plotOptions);
+
+Alternatively, to disable animations for a specific series:
+
+[Java]
+ListSeries series = new ListSeries(50, 60, 70, 80);
+PlotOptionsSeries plotOptions = new PlotOptionsSeries();
+plotOptions.setAnimation(false);
+series.setPlotOptions(plotOptions);
+
+The general PlotOptionsSeries class can be used to apply common options that are valid for all types of charts. To apply options that are specific to a certain type of chart, for example an area chart, specific options classes, such as PlotOptionsArea, can be used. Setting a specific options class for a series makes that series render as that type of chart. For example, setting a PlotOptionsLine on a series makes that series render as a line chart, setting a PlotOptionsSpine renders the series as a spline chart, and so on. This allows to create mixed type charts.
+
+The following table gives an overview of the available types of plot options classes, and their common base classes:
+
+Base class | Sub-classes
+AreaOptions | PlotOptionsArea
+PlotOptionsArearange
+PlotOptionsAreaspline
+PlotOptionsAreasplinerange
+ColumnOptions | PlotOptionsBar
+PlotOptionsColumn
+PlotOptionsColumnrange
+GaugeOptions | PlotOptionsGauge
+PlotOptionsSolidgauge
+PointOptions | PlotOptionsLine
+PlotOptionsSpline
+PlotOptionsScatter
+PyramidOptions | PlotOptionsPyramid
+PlotOptionsFunnel
+OhlcOptions | PlotOptionsOhlc
+PlotOptionsCandlestick
+
+Note: GaugeOptions shouldn’t be combined with other plot options.
+
+Note: Gauge and solid gauge series shouldn’t be combined with series of other types.
+
+Note: A bar series inverts the entire chart; combine with care.
+
+Common options for specific types of charts are extracted into base classes, which allows defining options for a range of chart types. For example, to set the same lineWidth for PlotOptionsLine and PlotOptionsSpline, the common PointOptions base class can be used:
+
+[Java]
+private void setCommonProperties(PointOptions options) {
+    options.setLineWidth(5);
+    options.setAnimation(false);
+}
+...
+PlotOptionsSpline splineOptions = new PlotOptionsSpline();
+PlotOptionsLine lineOptions = new PlotOptionsLine();
+setCommonProperties(lineOptions);
+setCommonProperties(splineOptions);
+configuration.setPlotOptions(lineOptions, splineOptions);
+
+See the API documentation of the individual plot options classes for more information about chart-specific options.
+
+Practical Examples
+
+[Dynamically setting the color of a series]
+ListSeries series = new ListSeries("Tokyo", 49.9, 71.5, 106.4);
+
+PlotOptionsSeries options = new PlotOptionsSeries();
+options.setColor(SolidColor.CORNFLOWERBLUE);
+series.setPlotOptions(options);
+
+[Custom series tooltip as JavaScript function]
+ListSeries series = new ListSeries("Tokyo", 49.9, 71.5, 106.4);
+
+SeriesTooltip seriesTooltip = new SeriesTooltip();
+seriesTooltip.setPointFormatter("function() { return this.x + ' km²' }");
+
+PlotOptionsSeries options = new PlotOptionsSeries();
+options.setTooltip(seriesTooltip);
+series.setPlotOptions(options);
+
+// Tooltip element needs to be configured on chart
+chart.getConfiguration().setTooltip(new Tooltip());
+
+Axes
+
+Different chart types may have one, two, or three axes; in addition to X and Y axes, some chart types may have a color axis. These are represented by XAxis, YAxis, and ColorAxis, respectively. The X axis is usually horizontal, representing the iteration over the data series, and Y vertical, representing the values in the data series. Some chart types invert the axes and they can be explicitly inverted with getChart().setInverted() in the chart configuration. An axis has a caption and tick marks at intervals indicating either numeric values or symbolic categories. Some chart types, such as gauge, have only Y-axis, which is circular in the gauge, and some such as a pie chart have none.
+
+The basic elements of X and Y axes are illustrated in Chart Axis Elements.
+
+[image: charts axes lo]
+
+Chart Axis Elements
+
+Axis objects are created and added to the configuration object with addxAxis() and addyAxis().
+
+[Java]
+XAxis xaxis = new XAxis();
+xaxis.setTitle("Axis title");
+conf.addxAxis(xaxis);
+
+A chart can have more than one Y-axis, usually when different series displayed in a graph have different units or scales. The association of a data series with an axis is done in the data series object with setyAxis().
+
+For a complete reference of the many configuration parameters for the axes, see the Charts Javadoc API documentation.
+
+Axis Type
+
+Axes can be one of the following types, which you can set with setType(). The axis types are enumerated under AxisType. LINEAR is the default.
+
+LINEAR (default)
+    For numeric values in linear scale.
+LOGARITHMIC
+    For numerical values, as in the linear axis, but the axis is scaled in the logarithmic scale. The minimum for the axis must be a positive non-zero value ( log(0) isn’t defined, as it has limit at negative infinity when the parameter approaches zero).
+DATETIME
+    Enables date/time mode in the axis. The date/time values are expected to be given either as a Date object or in milliseconds since the Java (or Unix) date epoch on January 1st 1970 at 00:00:00 GMT. You can get the millisecond representation of Java Date with getTime().
+CATEGORY
+    Enables using categorical data for the axis, as described in more detail later. With this axis type, the category labels are determined from the labels of the data points in the data series, without need to set them explicitly with setCategories().
+
+Categories
+
+The axes display, in most chart types, tick marks and labels at some numeric interval by default. If the items in a data series have a symbolic meaning rather than numeric, you can associate categories with the data items. The category label is displayed between two axis tick marks and aligned with the data point. In certain charts, such as column chart, where the corresponding values in different data series are grouped under the same category. You can set the category labels with setCategories(), which takes the categories as (an ellipsis) parameter list, or as an iterable. The list should match the items in the data series.
+
+[Java]
+XAxis xaxis = new XAxis();
+xaxis.setCategories("Mercury", "Venus", "Earth",
+                    "Mars", "Jupiter", "Saturn",
+                    "Uranus", "Neptune");
+
+You can only set the category labels from the data point labels by setting the axis type to CATEGORY, as described earlier.
+
+Labels
+
+The axes display, in most chart types, tick marks and labels at some numeric interval by default. The format and style of labels in an axis is defined in a Labels object, which you can get with getLabels() from the axis.
+
+[Java]
+XAxis xaxis = new XAxis();
+...
+Labels xlabels = xaxis.getLabels();
+xlabels.setAlign(HorizontalAlign.CENTER); // Default
+xlabels.setRotation(-45);
+xlabels.setStep(2); // Every 2 major tick
+// The class highcharts-axis-labels can be used to style further with CSS.
+
+Axis labels have the following configuration properties:
+
+align
+    Defines the alignment of the labels relative to the centers of the ticks. On left alignment, the left edges of labels are aligned at the tick marks, and correspondingly the right side on right alignment. The default is determined automatically based on the direction of the axis and rotation of the labels.
+distance(only in polar charts)
+    Distance of labels from the perimeter of the plot area, in pixels.
+enabled
+    Whether labels are enabled or not. Defaults to true.
+format
+    Formatting string for labels, as described in Formatting Labels. Defaults to " `{value}`".
+formatter
+    A JavaScript formatter for the labels, as described in Formatting Labels. The value is available in the this.value property. The this object also has axis, chart, isFirst, and isLast properties. Defaults to:
+
+[Java]
+function() {return this.value;}
+
+rotation
+    Defines rotation of labels in degrees. A positive value means rotation in clockwise direction. Labels are rotated at their alignment point. Defaults to 0.
+
+[Java]
+Labels xlabels = xaxis.getLabels();
+xlabels.setAlign(HorizontalAlign.RIGHT);
+xlabels.setRotation(-45); // Tilt 45 degrees CCW
+
+staggerLines
+    Defines number of lines for placing the labels to avoid overlapping. By default undefined, and the number of lines is automatically determined up to maxStaggerLines.
+step
+    Defines tick interval for showing labels, so that labels are shown at every nth tick. The default step is automatically determined, along with staggering, to avoid overlap.
+
+[Java]
+Labels xlabels = xaxis.getLabels();
+xlabels.setStep(2); // Every 2 major tick
+
+useHTML
+    Allows using HTML in custom label formats. Otherwise, HTML is quoted. Defaults to false.
+x,y
+    Offsets for the label’s position, relative to the tick position. X offset defaults to 0, but Y to null, which enables automatic positioning based on font size.
+
+Gauge, pie, and polar charts allow additional properties.
+
+For a complete reference of the many configuration parameters for the labels, see the Charts Javadoc API documentation.
+
+Axis Range
+
+The axis range is normally set automatically to fit the data, but can also be set explicitly. The extremes property in the axis configuration defines the minimum and maximum values of the axis range. You can set them either individually with setMin() and setMax(), or together with setExtremes(). Changing the extremes programmatically requires redrawing the chart with drawChart().
+
+Legend
+
+The legend is a box that shows all series that are currently visible in the chart. Each series is displayed with a text label and a color dot. The label’s text is determined by the name set in the series object, and the color dot uses the color configured in the series' plot options, or a unique color from a predefined set of colors.
+
+The legend provides the following configuration options:
+
+align
+    Specifies the horizontal alignment of the legend box within the chart area. Defaults to HorizontalAlign.CENTER.
+enabled
+    Enables or disables the legend. Defaults to true.
+layout
+    Specifies the layout direction of the legend items. Defaults to LayoutDirection.HORIZONTAL.
+title
+    Specifies the title of the legend.
+verticalAlign
+    Specifies the vertical alignment of the legend box within the chart area. Defaults to VerticalAlign.BOTTOM.
+
+The following example demonstrates how to customize the legend:
+
+[Java]
+Legend legend = configuration.getLegend();
+legend.getTitle().setText("City");
+legend.setLayout(LayoutDirection.VERTICAL);
+legend.setAlign(HorizontalAlign.LEFT);
+legend.setVerticalAlign(VerticalAlign.TOP);
+
+[image: charts configuration legend]
+
+Legend example
+
+Formatting Labels
+
+Data point values, tooltips, and tick labels are formatted according to formatting configuration for the elements, with configuration properties described earlier for each element. Formatting can be set up in the general configuration, for a data series, or for individual data points. The format can be defined either by a format string or by JavaScript formatter, which are described in the following.
+
+Using Format Strings
+
+A formatting string contain free-form text mixed with variables. Variables are enclosed in brackets, such as " Here {point.y} is a value at {point.x}". In different contexts, you have at least the following variables available:
+
+- value in axis labels
+- point.x, point.x in data points and tooltips
+- series.name in data points and tooltips
+
+Values can be formatted according to a formatting string, separated from the variable name by a colon.
+
+For numeric values, a subset of C printf formatting specifiers is supported. For example, {point.y:%02.2f} would display a floating-point value with two decimals and two leading zeroes, such as 02.30.
+
+For dates, you can use a subset of PHP strftime() formatting specifiers. For example, {value:%Y-%m-%d %H:%M:%S} would format a date and time in the ISO 8601 format.
+
+Using a JavaScript Formatter
+
+A JavaScript formatter is given in a string that defines a JavaScript function that returns the formatted string. The value to be formatted is available in this.value for axis labels, or this.x, this.y for data points.
+
+For example, to format tick labels on a chart axis, you could have:
+
+[Java]
+YAxis yaxis = new YAxis();
+Labels ylabels = yaxis.getLabels();
+ylabels.setFormatter("function() {return this.value + ' km';}");
+
+Simplified Formatting
+
+Some contexts that display labels allow defining simple formatting for the labels. For example, data point tooltips allow defining prefix, suffix, and floating-point precision for the values.
+
+Chart Language
+
+The Lang class provides an API for chart localization. You can specify a custom decimal point, names of months, weekdays and their abbreviated forms. You can also specify the text to display when the chart contains no data.
+
+[Java]
+final Lang fi = new Lang();
+
+// Set language properties
+fi.setDecimalPoint(",");
+
+fi.setMonths(new String[] { "Tammikuu", "Helmikuu", "Maaliskuu",
+    "Huhtikuu", "Toukokuu", "Kesäkuu",
+    "Heinäkuu", "Elokuu", "Syyskuu",
+    "Lokakuu", "Marraskuu", "Joulukuu" });
+
+fi.setShortMonths(new String[] { "Tammi", "Helmi", "Maalis",
+    "Huhti", "Touko", "Kesä",
+    "Heinä", "Elo", "Syys",
+    "Loka", "Marras","Joulu" });
+
+fi.setWeekdays(new String[] { "Ma", "Ti", "Ke", "To", "Pe", "La", "Su" });
+fi.setNoData("Data puuttuu");
+
+The Lang instance is set globally for all charts through ChartOptions:
+
+[Java]
+ChartOptions.get().setLang(fi);

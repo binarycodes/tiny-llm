@@ -1,0 +1,39 @@
+Observable Vaadin Events
+
+List of published events to CDI.
+
+The Vaadin CDI add-on publishes many Vaadin events to contexts and dependency injection (CDI).
+
+It isn’t necessary to register a listener. It’s sufficient to handle these events using only an observer.
+
+Events published to CDI include:
+
+- ServiceInitEvent See VaadinServiceInitListener for more.
+- PollEvent.
+- BeforeEnterEvent. See Navigation Lifecycle for more.
+- BeforeLeaveEvent. See Navigation Lifecycle for more.
+- AfterNavigationEvent. See Navigation Lifecycle for more.
+- UIInitEvent. See Session and UI InitListener for more.
+- SessionInitEvent. See Handling Session Initialization and Destruction for more.
+- SessionDestroyEvent. See Handling Session Initialization and Destruction for more.
+- ServiceDestroyEvent.
+
+Warning: ServiceDestroyEvent support during application shutdown depends on each specific implementation.
+
+The example here uses the @Observes annotation to listen to ServiceInitEvent:
+
+[Java]
+public class BootstrapCustomizer {
+
+    private void onServiceInit(@Observes
+            ServiceInitEvent serviceInitEvent) {
+        serviceInitEvent.addIndexHtmlRequestListener(
+                this::modifyBootstrapPage);
+    }
+
+    private void modifyBootstrapPage(
+            IndexHtmlResponse response) {
+        response.getDocument().body().append(
+                "<p>By CDI add-on</p>");
+    }
+}

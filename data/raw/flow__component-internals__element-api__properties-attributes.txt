@@ -1,0 +1,701 @@
+Element Properties & Attributes
+
+Get and set DOM properties and attributes.
+
+The Element API contains methods to update and query parts of an element. You can use the Element API to change property and attribute values for server-side elements.
+
+About Attributes
+
+Attributes are used mainly for the initial configuration of elements.
+
+Attribute values are always stored as strings.
+
+Example 1. Setting attributes for the nameField element
+
+[AttributeTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+
+public class AttributeTest {
+
+    @Test
+    public void demonstrate_working_with_attributes() {
+        Element nameField = ElementFactory.createInput();
+        nameField.setAttribute("id", "nameField");
+        nameField.setAttribute("placeholder", "John Doe");
+        nameField.setAttribute("autofocus", "");
+
+        // Retrieve values of "placeholder" and "autofocus"
+        assertEquals("John Doe", nameField.getAttribute("placeholder"));
+        assertTrue(nameField.hasAttribute("autofocus"));
+
+        // Remove the "autofocus" attribute
+        assertEquals(List.of("autofocus", "id", "placeholder"),
+                nameField.getAttributeNames().toList());
+
+        nameField.removeAttribute("autofocus");
+
+        assertEquals(List.of("id", "placeholder"),
+                nameField.getAttributeNames().toList());
+    }
+}
+
+Example 2. The same example as the previous one, expressed as HTML
+
+[HTML]
+<input id="nameField" placeholder="John Doe" autofocus>
+
+You can also retrieve and manipulate attributes after they have been set.
+
+Example 3. Retrieving and changing attributes in the nameField element
+
+[AttributeTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+
+public class AttributeTest {
+
+    @Test
+    public void demonstrate_working_with_attributes() {
+        Element nameField = ElementFactory.createInput();
+        nameField.setAttribute("id", "nameField");
+        nameField.setAttribute("placeholder", "John Doe");
+        nameField.setAttribute("autofocus", "");
+
+        // Retrieve values of "placeholder" and "autofocus"
+        assertEquals("John Doe", nameField.getAttribute("placeholder"));
+        assertTrue(nameField.hasAttribute("autofocus"));
+
+        // Remove the "autofocus" attribute
+        assertEquals(List.of("autofocus", "id", "placeholder"),
+                nameField.getAttributeNames().toList());
+
+        nameField.removeAttribute("autofocus");
+
+        assertEquals(List.of("id", "placeholder"),
+                nameField.getAttributeNames().toList());
+    }
+}
+
+About Properties
+
+Properties are used mainly to dynamically change the settings of an element after it has been initialized.
+
+Any JavaScript value can be used as a property value in the browser.
+
+You can use different variations of the Element.setProperty() method to set a property value as a String, boolean, double, or Element.setPropertyJson() to use BaseJsonNode.
+
+Example 4. Setting a property value as a double
+
+[PropertyTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.internal.JacksonUtils;
+
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+
+public class PropertyTest {
+
+    @Test
+    public void demonstrate_setProperty_and_getProperty() {
+        Element input = ElementFactory.createInput();
+        input.setProperty("value", 42.2);
+        // The "value" property is 42.2
+        assertEquals("42.2", input.getProperty("value"));
+
+        // true, since any non-empty string is true in JavaScript
+        assertTrue(input.getProperty("value", true));
+
+        // 42, string is parsed to a JS number and truncated to an int
+        assertEquals(42, input.getProperty("value", 0));
+    }
+
+    @Test
+    public void demonstrate_setPropertyJson() {
+        Element element = ElementFactory.createDiv();
+
+        ObjectNode options = JacksonUtils.createObjectNode();
+        options.put("pageSize", 20);
+        options.put("sortable", true);
+        element.setPropertyJson("options", options);
+        assertEquals(options.toString(), element.getProperty("options"));
+
+        ArrayNode items = JacksonUtils.createArrayNode();
+        items.add("Option 1");
+        items.add("Option 2");
+        items.add("Option 3");
+        element.setPropertyJson("items", items);
+        assertEquals(items.toString(), element.getProperty("items"));
+    }
+
+    @Test
+    public void demonstrate_setPropertyBean() {
+        Element element = ElementFactory.createDiv();
+
+        MyConfig config = new MyConfig("default", 100);
+        element.setPropertyBean("config", config);
+        assertEquals(config, element.getPropertyBean("config", MyConfig.class));
+        assertNotSame(config,
+                element.getPropertyBean("config", MyConfig.class));
+    }
+
+    record MyConfig(String myBean, int myInt) {
+    }
+}
+
+Similarly, you can use different variations of the Element.getProperty() method to retrieve the value of a property as a String, boolean, double or Element.getPropertyBean() to get value deserialized to a bean.
+
+If you retrieve the value of a property as a different type from that used to set it, JavaScript type coercion rules are used to convert the value. For example, a property set as a non-empty String results as true if fetched as a boolean.
+
+Setting JSON Properties
+
+For complex property values such as objects or arrays, use the Element.setPropertyJson() method with Jackson’s BaseJsonNode types.
+
+Example 5. Setting a JSON object as a property
+
+[PropertyTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.internal.JacksonUtils;
+
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+
+public class PropertyTest {
+
+    @Test
+    public void demonstrate_setProperty_and_getProperty() {
+        Element input = ElementFactory.createInput();
+        input.setProperty("value", 42.2);
+        // The "value" property is 42.2
+        assertEquals("42.2", input.getProperty("value"));
+
+        // true, since any non-empty string is true in JavaScript
+        assertTrue(input.getProperty("value", true));
+
+        // 42, string is parsed to a JS number and truncated to an int
+        assertEquals(42, input.getProperty("value", 0));
+    }
+
+    @Test
+    public void demonstrate_setPropertyJson() {
+        Element element = ElementFactory.createDiv();
+
+        ObjectNode options = JacksonUtils.createObjectNode();
+        options.put("pageSize", 20);
+        options.put("sortable", true);
+        element.setPropertyJson("options", options);
+        assertEquals(options.toString(), element.getProperty("options"));
+
+        ArrayNode items = JacksonUtils.createArrayNode();
+        items.add("Option 1");
+        items.add("Option 2");
+        items.add("Option 3");
+        element.setPropertyJson("items", items);
+        assertEquals(items.toString(), element.getProperty("items"));
+    }
+
+    @Test
+    public void demonstrate_setPropertyBean() {
+        Element element = ElementFactory.createDiv();
+
+        MyConfig config = new MyConfig("default", 100);
+        element.setPropertyBean("config", config);
+        assertEquals(config, element.getPropertyBean("config", MyConfig.class));
+        assertNotSame(config,
+                element.getPropertyBean("config", MyConfig.class));
+    }
+
+    record MyConfig(String myBean, int myInt) {
+    }
+}
+
+Example 6. Setting a JSON array as a property
+
+[PropertyTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.internal.JacksonUtils;
+
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+
+public class PropertyTest {
+
+    @Test
+    public void demonstrate_setProperty_and_getProperty() {
+        Element input = ElementFactory.createInput();
+        input.setProperty("value", 42.2);
+        // The "value" property is 42.2
+        assertEquals("42.2", input.getProperty("value"));
+
+        // true, since any non-empty string is true in JavaScript
+        assertTrue(input.getProperty("value", true));
+
+        // 42, string is parsed to a JS number and truncated to an int
+        assertEquals(42, input.getProperty("value", 0));
+    }
+
+    @Test
+    public void demonstrate_setPropertyJson() {
+        Element element = ElementFactory.createDiv();
+
+        ObjectNode options = JacksonUtils.createObjectNode();
+        options.put("pageSize", 20);
+        options.put("sortable", true);
+        element.setPropertyJson("options", options);
+        assertEquals(options.toString(), element.getProperty("options"));
+
+        ArrayNode items = JacksonUtils.createArrayNode();
+        items.add("Option 1");
+        items.add("Option 2");
+        items.add("Option 3");
+        element.setPropertyJson("items", items);
+        assertEquals(items.toString(), element.getProperty("items"));
+    }
+
+    @Test
+    public void demonstrate_setPropertyBean() {
+        Element element = ElementFactory.createDiv();
+
+        MyConfig config = new MyConfig("default", 100);
+        element.setPropertyBean("config", config);
+        assertEquals(config, element.getPropertyBean("config", MyConfig.class));
+        assertNotSame(config,
+                element.getPropertyBean("config", MyConfig.class));
+    }
+
+    record MyConfig(String myBean, int myInt) {
+    }
+}
+
+Example 7. Setting a Java bean or record as a property
+
+[PropertyTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.internal.JacksonUtils;
+
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+
+public class PropertyTest {
+
+    @Test
+    public void demonstrate_setProperty_and_getProperty() {
+        Element input = ElementFactory.createInput();
+        input.setProperty("value", 42.2);
+        // The "value" property is 42.2
+        assertEquals("42.2", input.getProperty("value"));
+
+        // true, since any non-empty string is true in JavaScript
+        assertTrue(input.getProperty("value", true));
+
+        // 42, string is parsed to a JS number and truncated to an int
+        assertEquals(42, input.getProperty("value", 0));
+    }
+
+    @Test
+    public void demonstrate_setPropertyJson() {
+        Element element = ElementFactory.createDiv();
+
+        ObjectNode options = JacksonUtils.createObjectNode();
+        options.put("pageSize", 20);
+        options.put("sortable", true);
+        element.setPropertyJson("options", options);
+        assertEquals(options.toString(), element.getProperty("options"));
+
+        ArrayNode items = JacksonUtils.createArrayNode();
+        items.add("Option 1");
+        items.add("Option 2");
+        items.add("Option 3");
+        element.setPropertyJson("items", items);
+        assertEquals(items.toString(), element.getProperty("items"));
+    }
+
+    @Test
+    public void demonstrate_setPropertyBean() {
+        Element element = ElementFactory.createDiv();
+
+        MyConfig config = new MyConfig("default", 100);
+        element.setPropertyBean("config", config);
+        assertEquals(config, element.getPropertyBean("config", MyConfig.class));
+        assertNotSame(config,
+                element.getPropertyBean("config", MyConfig.class));
+    }
+
+    record MyConfig(String myBean, int myInt) {
+    }
+}
+
+Example 8. Converting retrieved value types
+
+[PropertyTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.internal.JacksonUtils;
+
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+
+public class PropertyTest {
+
+    @Test
+    public void demonstrate_setProperty_and_getProperty() {
+        Element input = ElementFactory.createInput();
+        input.setProperty("value", 42.2);
+        // The "value" property is 42.2
+        assertEquals("42.2", input.getProperty("value"));
+
+        // true, since any non-empty string is true in JavaScript
+        assertTrue(input.getProperty("value", true));
+
+        // 42, string is parsed to a JS number and truncated to an int
+        assertEquals(42, input.getProperty("value", 0));
+    }
+
+    @Test
+    public void demonstrate_setPropertyJson() {
+        Element element = ElementFactory.createDiv();
+
+        ObjectNode options = JacksonUtils.createObjectNode();
+        options.put("pageSize", 20);
+        options.put("sortable", true);
+        element.setPropertyJson("options", options);
+        assertEquals(options.toString(), element.getProperty("options"));
+
+        ArrayNode items = JacksonUtils.createArrayNode();
+        items.add("Option 1");
+        items.add("Option 2");
+        items.add("Option 3");
+        element.setPropertyJson("items", items);
+        assertEquals(items.toString(), element.getProperty("items"));
+    }
+
+    @Test
+    public void demonstrate_setPropertyBean() {
+        Element element = ElementFactory.createDiv();
+
+        MyConfig config = new MyConfig("default", 100);
+        element.setPropertyBean("config", config);
+        assertEquals(config, element.getPropertyBean("config", MyConfig.class));
+        assertNotSame(config,
+                element.getPropertyBean("config", MyConfig.class));
+    }
+
+    record MyConfig(String myBean, int myInt) {
+    }
+}
+
+Difference between Using Attributes and Properties
+
+Be cautious when using attributes and properties:
+
+- It’s often possible to use either an attribute or property with the same name for the same effect, and both work fine.
+- However, in certain cases:
+  - only one or the other works, or
+  - the attribute is considered only when the element is initialized, and the property is effective after initialization.
+
+You should always check the specific documentation for the element you are using to find out whether a feature should be configured using a property or an attribute.
+
+Using the textContent Property
+
+You can set an element’s textContent property using the Element.setText() method. This removes all the children of the element and replaces them with a single text node with the given value.
+
+The ElementFactory interface provides helpers that you can use to create an element with a given text content.
+
+Example 9. Using the createSpan() and createDiv() helper methods with the setText() method
+
+[TextContentTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+
+public class TextContentTest {
+
+    @Test
+    public void demonstrate_setText() {
+        // <div>Hello world</div>
+        Element element = ElementFactory.createDiv("Hello world");
+        assertEquals("<div>Hello world</div>", element.toString());
+
+        // <div>
+        // Hello world<span></span>
+        // </div>
+        element.appendChild(ElementFactory.createSpan());
+        assertEquals("<div>\n Hello world<span></span>\n</div>",
+                element.toString());
+
+        // <div>Replacement text</div> (the span is removed)
+        element.setText("Replacement text");
+        assertEquals("<div>Replacement text</div>", element.toString());
+    }
+
+    @Test
+    public void demonstrate_getText_and_getTextRecursively() {
+        // <div>Welcome back </div>
+        Element element = ElementFactory.createDiv("Welcome back ");
+
+        Element name = ElementFactory.createStrong("Rudolph Reindeer");
+        // <div>
+        // Welcome back <strong>Rudolph Reindeer</strong>
+        // </div>
+        element.appendChild(name);
+
+        assertEquals("Welcome back Rudolph Reindeer",
+                element.getTextRecursively());
+        assertEquals("Welcome back ", element.getText());
+    }
+
+}
+
+To retrieve the text of an element, you can use the:
+
+- Element.getText() method to return the text in the element itself. Text in child elements is ignored.
+- Element.getTextRecursively() method to return the text of the entire element tree, by recursively concatenating the text from all child elements.
+
+Example 10. Using the getText() and getTextRecursively() methods
+
+[TextContentTest.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+
+public class TextContentTest {
+
+    @Test
+    public void demonstrate_setText() {
+        // <div>Hello world</div>
+        Element element = ElementFactory.createDiv("Hello world");
+        assertEquals("<div>Hello world</div>", element.toString());
+
+        // <div>
+        // Hello world<span></span>
+        // </div>
+        element.appendChild(ElementFactory.createSpan());
+        assertEquals("<div>\n Hello world<span></span>\n</div>",
+                element.toString());
+
+        // <div>Replacement text</div> (the span is removed)
+        element.setText("Replacement text");
+        assertEquals("<div>Replacement text</div>", element.toString());
+    }
+
+    @Test
+    public void demonstrate_getText_and_getTextRecursively() {
+        // <div>Welcome back </div>
+        Element element = ElementFactory.createDiv("Welcome back ");
+
+        Element name = ElementFactory.createStrong("Rudolph Reindeer");
+        // <div>
+        // Welcome back <strong>Rudolph Reindeer</strong>
+        // </div>
+        element.appendChild(name);
+
+        assertEquals("Welcome back Rudolph Reindeer",
+                element.getTextRecursively());
+        assertEquals("Welcome back ", element.getText());
+    }
+
+}
+
+Synchronizing Properties to the Server
+
+By default, values updated in the browser aren’t sent to the server. To synchronize a property, use the Element.addPropertyChangeListener() method. The method takes three parameters:
+
+1. the name of the property to synchronize;
+2. the name of the DOM event that triggers the synchronization; and
+3. a listener that is invoked when the property value changes.
+
+After the property has been synchronized to the server, you can retrieve its value using the getProperty() method. If you don’t need to react to the property change directly when it occurs, you can use a NO-OP listener.
+
+Example 11. Using a NO-OP listener to synchronize the value property of a text input element whenever the change event occurs
+
+[UserInputExample.java]
+package com.vaadin.demo.reference.componentinternals.element;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Tag;
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.dom.ElementFactory;
+
+@Tag("div")
+public class UserInputExample extends Component {
+
+    public UserInputExample() {
+        Element textInput = ElementFactory.createInput();
+        textInput.setAttribute("placeholder", "Enter your name");
+        textInput.addPropertyChangeListener("value", "change", e -> {
+        });
+
+        Element button = ElementFactory.createButton("Say Hello");
+        button.addEventListener("click", e -> {
+            String responseText = "Hello " + textInput.getProperty("value"); 1
+            Element response = ElementFactory.createDiv(responseText);
+            getElement().appendChild(response);
+        });
+
+        getElement().appendChild(textInput, button);
+    }
+}
+
+Note: As an alternative, you can use the addEventData() method to transfer the value from the input to the server. See Listening to Element Events for more information.
+
+Example 12. Retrieving User Input
+
+This example demonstrates how to use the Element API to retrieve user input. The example adds a text input field that allows the user to enter their name.
+
+1. Create a text input element:
+   [UserInputExample.java]
+   package com.vaadin.demo.reference.componentinternals.element;
+
+   import com.vaadin.flow.component.Component;
+   import com.vaadin.flow.component.Tag;
+   import com.vaadin.flow.dom.Element;
+   import com.vaadin.flow.dom.ElementFactory;
+
+   @Tag("div")
+   public class UserInputExample extends Component {
+
+       public UserInputExample() {
+           Element textInput = ElementFactory.createInput();
+           textInput.setAttribute("placeholder", "Enter your name");
+           textInput.addPropertyChangeListener("value", "change", e -> {
+           });
+
+           Element button = ElementFactory.createButton("Say Hello");
+           button.addEventListener("click", e -> {
+               String responseText = "Hello " + textInput.getProperty("value"); 1
+               Element response = ElementFactory.createDiv(responseText);
+               getElement().appendChild(response);
+           });
+
+           getElement().appendChild(textInput, button);
+       }
+   }
+2. Transfer the value to the server by asking the client to update the server-side input element every time the value changes in the browser:
+   [UserInputExample.java]
+   package com.vaadin.demo.reference.componentinternals.element;
+
+   import com.vaadin.flow.component.Component;
+   import com.vaadin.flow.component.Tag;
+   import com.vaadin.flow.dom.Element;
+   import com.vaadin.flow.dom.ElementFactory;
+
+   @Tag("div")
+   public class UserInputExample extends Component {
+
+       public UserInputExample() {
+           Element textInput = ElementFactory.createInput();
+           textInput.setAttribute("placeholder", "Enter your name");
+           textInput.addPropertyChangeListener("value", "change", e -> {
+           });
+
+           Element button = ElementFactory.createButton("Say Hello");
+           button.addEventListener("click", e -> {
+               String responseText = "Hello " + textInput.getProperty("value"); 1
+               Element response = ElementFactory.createDiv(responseText);
+               getElement().appendChild(response);
+           });
+
+           getElement().appendChild(textInput, button);
+       }
+   }
+3. Retrieve the synchronized properties using Element.getProperty():
+   [UserInputExample.java]
+   package com.vaadin.demo.reference.componentinternals.element;
+
+   import com.vaadin.flow.component.Component;
+   import com.vaadin.flow.component.Tag;
+   import com.vaadin.flow.dom.Element;
+   import com.vaadin.flow.dom.ElementFactory;
+
+   @Tag("div")
+   public class UserInputExample extends Component {
+
+       public UserInputExample() {
+           Element textInput = ElementFactory.createInput();
+           textInput.setAttribute("placeholder", "Enter your name");
+           textInput.addPropertyChangeListener("value", "change", e -> {
+           });
+
+           Element button = ElementFactory.createButton("Say Hello");
+           button.addEventListener("click", e -> {
+               String responseText = "Hello " + textInput.getProperty("value"); 1
+               Element response = ElementFactory.createDiv(responseText);
+               getElement().appendChild(response);
+           });
+
+           getElement().appendChild(textInput, button);
+       }
+   }
+   1. The value property is null if the property wasn’t previously set and the user hasn’t typed text into the field.

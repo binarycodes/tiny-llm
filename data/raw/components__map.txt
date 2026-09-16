@@ -1,0 +1,1140 @@
+Map Flow
+
+Map is a component for displaying geographical maps from various sources.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Map in your project.
+
+- Start Free Trial
+- See Pricing
+
+Map is a component for displaying geographical maps from various sources. It supports multiple layers, tiled and full-image sources, displaying geographical features, and interaction through events.
+
+[Flow: MapBasic.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+
+@Route("map-basic")
+public class MapBasic extends Div {
+
+    public MapBasic() {
+        // tag::snippet[]
+        // Create a new map, this will use the OpenStreetMap service by default
+        Map map = new Map();
+        add(map);
+        // end::snippet[]
+    }
+
+}
+
+Important: Map Data Subscription Not Included
+
+The Map component uses OpenStreetMap as its default map data provider for testing and development purposes. The tile usage policy for OpenStreetMap only allows for light usage. This means it should not be used for production. A commercial map data service, or a self-hosted solution, should be arranged for production use. See the Map Sources section for a list of supported map data formats.
+
+Viewport
+
+Map provides interactions, controls, and APIs to control the viewport. This includes setting the center, the zoom level, and the rotation.
+
+By default, map coordinates such as the view’s center are specified in EPSG:4326 projection — also known as latitude and longitude — unless a custom user projection is configured. See Coordinate Systems for more information.
+
+The zoom level is a decimal number that starts at 0 as the most zoomed-out level, and then progressively increases to zoom further in. By default, the maximum zoom level is currently restricted to 28. In practical terms, the level of detail of the map data that a map service provides will determine the usefulness of higher zoom levels.
+
+[Flow: MapViewport.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+
+@Route("map-viewport")
+public class MapViewport extends VerticalLayout {
+
+    private final Icon zoomInIcon = VaadinIcon.SEARCH_PLUS.create();
+    private final Icon zoomOutIcon = VaadinIcon.SEARCH_MINUS.create();
+
+    public MapViewport() {
+        Map map = new Map();
+        add(map);
+
+        // tag::snippet1[]
+        MenuBar menuBar = new MenuBar();
+        SubMenu moveToSubMenu = menuBar.addItem("Move To...").getSubMenu();
+
+        // Add menu items for moving the viewport to different cities
+        moveToSubMenu.addItem("Berlin", e -> {
+            // For Vaadin 23.1, use Coordinate.fromLonLat to create coordinates
+            // from longitude and latitude
+            Coordinate coordinate = new Coordinate(13.404954, 52.520008);
+            map.setCenter(coordinate);
+            map.setZoom(10);
+        });
+        // end::snippet1[]
+
+        moveToSubMenu.addItem("Hong Kong", e -> {
+            Coordinate coordinate = new Coordinate(114.162813, 22.279328);
+            map.setCenter(coordinate);
+            map.setZoom(10);
+        });
+
+        moveToSubMenu.addItem("Moscow", e -> {
+            Coordinate coordinate = new Coordinate(37.617298, 55.755825);
+            map.setCenter(coordinate);
+            map.setZoom(10);
+        });
+
+        moveToSubMenu.addItem("New York", e -> {
+            Coordinate coordinate = new Coordinate(-74.005974, 40.712776);
+            map.setCenter(coordinate);
+            map.setZoom(10);
+        });
+
+        moveToSubMenu.addItem("Rio de Janeiro", e -> {
+            Coordinate coordinate = new Coordinate(-43.2093727, -22.9110137);
+            map.setCenter(coordinate);
+            map.setZoom(10);
+        });
+
+        // Add menu items for zooming
+        menuBar.addItem(zoomInIcon, e -> {
+            double zoom = map.getView().getZoom();
+            map.setZoom(zoom + 1);
+        });
+        menuBar.addItem(zoomOutIcon, e -> {
+            double zoom = map.getView().getZoom();
+            map.setZoom(zoom - 1);
+        });
+        add(menuBar);
+        setPadding(false);
+    }
+
+}
+
+Zoom to Fit
+
+The zoomToFit method can be used to automatically adjust the viewport so that a given list of features are visible within the viewport. The method takes an optional padding parameter that can be used to add some space between the features and the edge of the viewport, as well as a parameter for controlling the animation duration.
+
+[Java]
+List<Feature> features = ...; // Get a list of map features
+
+map.zoomToFit(features, 50, 1000); // 50px padding, 1 second animation
+
+Map Sources
+
+Web maps can be roughly categorized as being based on tiled images, full images or vector data. Each category comes with its own set of standards and formats that define how the map data is structured and how it should be used. Map services are applications — typically servers or cloud services — that provide map data in one or more of these formats.
+
+The Map component provides various sources for loading map data in a specific format from a map service. Each source requires the use of a specific type of layer that can render data from that source.
+
+The following table lists the sources that can be used with Map. An example usage of each source can be found in the demo that follows:
+
+Source | Requires | Description
+OSM | Tile layer | Loads image tiles from the OpenStreetMap service. This source is configured as the default. It doesn’t require further configuration, as it contains presets for URL and attributions. This source should be used only for development purposes. For applications in production, you should use a commercial map service or a self-hosted solution. Read and respect the OpenStreetMap tile usage policy.
+XYZ | Tile layer | Loads image tiles from a map service that supports the Slippy Map tile numbering scheme, also known as XYZ format. This source requires you to configure a URL pattern that contains placeholders for the x and y tile coordinates, as well as the z placeholder for the zoom level. For an example, see https://my-map-service.com/my-tileset/{z}/{x}/{y}.png. For the specific URL, consult the documentation of the map service that you intend to use.
+Tile WMS | Tile layer | Loads image tiles from a Web Map Service (WMS). This source requires you to configure the URL to the WMS, as well as the request parameters. At a minimum, the LAYERS request parameter must be configured. For other required parameters and available values, consult the documentation of the service itself.
+
+[Flow: MapSources.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.layer.TileLayer;
+import com.vaadin.flow.component.map.configuration.source.OSMSource;
+import com.vaadin.flow.component.map.configuration.source.TileWMSSource;
+import com.vaadin.flow.component.map.configuration.source.XYZSource;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+
+import java.util.HashMap;
+import java.util.List;
+
+@Route("map-sources")
+public class MapSources extends VerticalLayout {
+    private static final String OSM_SOURCE = "OpenStreetMap";
+    private static final String XYZ_SOURCE = "XYZ (using satellite map via mapbox.com)";
+    private static final String WMS_SOURCE = "WMS (using topographical map via mundialis.de)";
+
+    private final Map map;
+
+    public MapSources() {
+        map = new Map();
+        add(map);
+
+        RadioButtonGroup<String> sourceRadioGroup = new RadioButtonGroup<>();
+        sourceRadioGroup.setLabel("Source type");
+        sourceRadioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        sourceRadioGroup.setItems(OSM_SOURCE, XYZ_SOURCE, WMS_SOURCE);
+        sourceRadioGroup.addValueChangeListener(e -> {
+            if (OSM_SOURCE.equals(e.getValue())) {
+                setupOsmSource();
+            }
+            if (XYZ_SOURCE.equals(e.getValue())) {
+                setupXyzSource();
+            }
+            if (WMS_SOURCE.equals(e.getValue())) {
+                setupWmsSource();
+            }
+        });
+        sourceRadioGroup.setValue(OSM_SOURCE);
+        add(sourceRadioGroup);
+
+        setPadding(false);
+    }
+
+    // tag::snippet[]
+    private void setupOsmSource() {
+        // OSM does not require any further configuration,
+        // it contains presets for URL and attributions
+        OSMSource source = new OSMSource();
+        TileLayer tileLayer = new TileLayer();
+        tileLayer.setSource(source);
+        map.setBackgroundLayer(tileLayer);
+    }
+
+    private void setupXyzSource() {
+        XYZSource.Options sourceOptions = new XYZSource.Options();
+        // set the URL pattern for the map service containing x, y, and z
+        // parameters
+        // mapbox requires an access token, register on
+        // mapbox.com to get one, and place it in the line below
+        sourceOptions.setUrl(
+                "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg90?access_token=<your-access-token>");
+        // using a map service usually requires setting
+        // attributions with copyright notices
+        sourceOptions.setAttributions(List.of(
+                "<a href=\"https://www.mapbox.com/about/maps/\">© Mapbox</a>",
+                "<a href=\"https://www.openstreetmap.org/about/\">© OpenStreetMap</a>"));
+        sourceOptions.setAttributionsCollapsible(false);
+        XYZSource source = new XYZSource(sourceOptions);
+        TileLayer tileLayer = new TileLayer();
+        tileLayer.setSource(source);
+        map.setBackgroundLayer(tileLayer);
+    }
+
+    private void setupWmsSource() {
+        TileWMSSource.Options sourceOptions = new TileWMSSource.Options();
+        // set the URL for the WMS
+        sourceOptions.setUrl("https://ows.mundialis.de/services/service");
+        // WMS require configuration of request parameters,
+        // at least the LAYERS parameter must be specified.
+        // Required parameters and possible values can be
+        // found in the respective documentation of the service
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("LAYERS", "TOPO-WMS");
+        sourceOptions.setParams(params);
+        // using a map service usually requires setting
+        // attributions with copyright notices
+        sourceOptions.setAttributions(List.of(
+                "Contains modified SRTM data (2014)/NASA, processed by <a href=\"https://www.mundialis.de\">mundialis<a/>"));
+        sourceOptions.setAttributionsCollapsible(false);
+        TileWMSSource source = new TileWMSSource(sourceOptions);
+        TileLayer layer = new TileLayer();
+        layer.setSource(source);
+        map.setBackgroundLayer(layer);
+    }
+    // end::snippet[]
+
+}
+
+Layers
+
+The map component is preconfigured with a background layer showing a map from the OpenStreetMap service by default, as well as a feature layer for quickly adding geographical features, such as markers. The default background layer can be replaced, and additional layers added on top of it, such as to display overlays.
+
+By default, layers are rendered in the order that they were added to the map, with the first-added layer rendered first, and the last-added layer rendered last. For finer-grain control of the layer rendering order, a z-index can be defined for each layer. Layers with a higher z-index are rendered on top of layers with a lower z-index. The exceptions are the background layer, which is always rendered first, and the feature layer, which is rendered with a z-index of 100, by default.
+
+The visibility of layers can be toggled, which can be an alternative to adding and removing them, dynamically. For map overlays, a layer can be configured with a lowered opacity so that the background layer is still semi-visible below the overlay. Some map services may provide map data with a lowered opacity by default.
+
+The following example demonstrates how to replace the background layer, how to add several overlays to the map, and how to control their visibility:
+
+[Flow: MapLayers.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.layer.Layer;
+import com.vaadin.flow.component.map.configuration.layer.TileLayer;
+import com.vaadin.flow.component.map.configuration.source.XYZSource;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+
+import java.util.HashMap;
+import java.util.List;
+
+@Route("map-layers")
+public class MapLayers extends Div {
+
+    // NOTE: Several of the used services here require API keys, you can
+    // register for an account to get one,
+    // and then place it into the URLs below
+
+    // Background layers
+    private static final LayerOption OPEN_STREET_MAP_LAYER = new LayerOption(
+            "OpenStreetMap",
+            "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "&#169; <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a> contributors.");
+    private static final LayerOption OPEN_CYCLE_MAP_LAYER = new LayerOption(
+            "OpenCycleMap",
+            "https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=<your-api-key-here>",
+            "Maps © <a href=\"https://www.thunderforest.com\" target=\"_blank\">Thunderforest</a>, Data © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>");
+    private static final LayerOption TRANSPORT_MAP_LAYER = new LayerOption(
+            "Transport Map",
+            "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=<your-api-key-here>",
+            "Maps © <a href=\"https://www.thunderforest.com\" target=\"_blank\">Thunderforest</a>, Data © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>");
+
+    // Overlay layers
+    private static final LayerOption NONE_LAYER = new LayerOption("None", null,
+            null);
+    private static final LayerOption PRECIPITATION_LAYER = new LayerOption(
+            "Precipitation",
+            "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=<your-api-key-here>",
+            "<a href=\"https://openweathermap.org/\" target=\"_blank\">OpenWeather</a>");
+    private static final LayerOption AIR_TEMPERATURE_LAYER = new LayerOption(
+            "Air Temperature",
+            "https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=<your-api-key-here>",
+            "<a href=\"https://openweathermap.org/\" target=\"_blank\">OpenWeather</a>");
+    private static final LayerOption WIND_SPEED_LAYER = new LayerOption(
+            "Wind Speed",
+            "https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=<your-api-key-here>",
+            "<a href=\"https://openweathermap.org/\" target=\"_blank\">OpenWeather</a>");
+
+    private final HashMap<LayerOption, Layer> overlayLayerMap = new HashMap<>();
+    private Layer selectedOverlayLayer;
+
+    public MapLayers() {
+        Map map = new Map();
+        add(map);
+
+        RadioButtonGroup<LayerOption> backgroundLayerGroup = new RadioButtonGroup<>();
+        backgroundLayerGroup.setLabel("Background Layer");
+        backgroundLayerGroup.setItemLabelGenerator(LayerOption::getName);
+        backgroundLayerGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        backgroundLayerGroup.setItems(OPEN_STREET_MAP_LAYER,
+                OPEN_CYCLE_MAP_LAYER, TRANSPORT_MAP_LAYER);
+        backgroundLayerGroup.setValue(OPEN_STREET_MAP_LAYER);
+        // tag::snippet1[]
+        // Replace background layer when option changes
+        backgroundLayerGroup.addValueChangeListener(e -> {
+            LayerOption selectedOption = e.getValue();
+            XYZSource.Options sourceOptions = new XYZSource.Options();
+            sourceOptions.setUrl(selectedOption.getUrl());
+            sourceOptions
+                    .setAttributions(List.of(selectedOption.getAttributions()));
+            sourceOptions.setAttributionsCollapsible(false);
+            XYZSource source = new XYZSource(sourceOptions);
+            TileLayer layer = new TileLayer();
+            layer.setSource(source);
+            map.setBackgroundLayer(layer);
+        });
+        // end::snippet1[]
+
+        // Add all overlay layers at once, make them invisible initially
+        List.of(PRECIPITATION_LAYER, AIR_TEMPERATURE_LAYER, WIND_SPEED_LAYER)
+                .forEach(option -> {
+                    XYZSource.Options sourceOptions = new XYZSource.Options();
+                    sourceOptions.setUrl(option.getUrl());
+                    sourceOptions
+                            .setAttributions(List.of(option.getAttributions()));
+                    sourceOptions.setAttributionsCollapsible(false);
+                    XYZSource source = new XYZSource(sourceOptions);
+                    TileLayer layer = new TileLayer();
+                    layer.setSource(source);
+                    layer.setVisible(false);
+
+                    map.addLayer(layer);
+                    overlayLayerMap.put(option, layer);
+                });
+
+        RadioButtonGroup<LayerOption> overlayLayerGroup = new RadioButtonGroup<>();
+        overlayLayerGroup.setLabel("Overlay Layer");
+        overlayLayerGroup.setItemLabelGenerator(LayerOption::getName);
+        overlayLayerGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        overlayLayerGroup.setItems(NONE_LAYER, PRECIPITATION_LAYER,
+                AIR_TEMPERATURE_LAYER, WIND_SPEED_LAYER);
+        overlayLayerGroup.setValue(NONE_LAYER);
+        // Toggle visibility of overlay layer when option changes
+        overlayLayerGroup.addValueChangeListener(e -> {
+            LayerOption selectedOption = e.getValue();
+            // Make previously selected layer invisible
+            if (selectedOverlayLayer != null) {
+                selectedOverlayLayer.setVisible(false);
+            }
+            // Get next selected layer
+            selectedOverlayLayer = overlayLayerMap.get(selectedOption);
+            // Make selected layer visible, unless it's the none option
+            if (selectedOverlayLayer != null) {
+                selectedOverlayLayer.setVisible(true);
+            }
+        });
+
+        add(new HorizontalLayout(backgroundLayerGroup, overlayLayerGroup));
+    }
+
+}
+
+[Flow: LayerOption.java]
+package com.vaadin.demo.component.map;
+
+/**
+ * Helper class for representing options in radio buttons
+ */
+class LayerOption {
+    String name;
+    String url;
+    String attributions;
+
+    public LayerOption(String name, String url, String attributions) {
+        this.name = name;
+        this.url = url;
+        this.attributions = attributions;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getAttributions() {
+        return attributions;
+    }
+}
+
+[Flow: LayerOption.java]
+
+Markers
+
+Markers can be displayed on top of a map to show points of interest, such as addresses, buildings, vehicles, or any other entity. A marker is defined by a coordinate and an icon. Icons can be configured as either a URL or using a DownloadHandler. If no custom icon is provided, the marker uses a default icon.
+
+By default, map coordinates such as a marker’s location are specified in EPSG:4326 projection, also known as latitude and longitude, unless a custom user projection is configured. See Coordinate Systems for more information.
+
+[Flow: MapMarkers.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.feature.MarkerFeature;
+import com.vaadin.flow.component.map.configuration.style.Icon;
+import com.vaadin.flow.server.streams.DownloadHandler;
+
+@Route("map-markers")
+public class MapMarkers extends Div {
+
+    public MapMarkers() {
+        Span title = new Span("Map showing Vaadin office locations");
+        add(title);
+
+        Map map = new Map();
+        // For Vaadin 23.1, use Coordinate.fromLonLat to create coordinates
+        // from longitude and latitude
+        map.setCenter(new Coordinate(-3.9622642, 42.0395433));
+        add(map);
+
+        // tag::snippet[]
+        // For Vaadin 23.1, use Coordinate.fromLonLat to create coordinates
+        // from longitude and latitude
+        Coordinate vaadinHqCoordinates = new Coordinate(22.29985, 60.45234);
+        Coordinate germanOfficeCoordinates = new Coordinate(13.45489, 52.51390);
+        Coordinate usOfficeCoordinates = new Coordinate(-121.92163, 37.36821);
+
+        // Add marker for Vaadin HQ, using default marker image
+        MarkerFeature vaadinHq = new MarkerFeature(vaadinHqCoordinates);
+        map.getFeatureLayer().addFeature(vaadinHq);
+
+        // Add marker for Vaadin office in Germany, using image from URL
+        Icon.Options germanFlagIconOptions = new Icon.Options();
+        germanFlagIconOptions.setSrc("images/german_flag.png");
+        Icon germanFlagIcon = new Icon(germanFlagIconOptions);
+        MarkerFeature germanOffice = new MarkerFeature(germanOfficeCoordinates,
+                germanFlagIcon);
+        map.getFeatureLayer().addFeature(germanOffice);
+
+        // Add marker for Vaadin office in the US, using image from a
+        // DownloadHandler
+        DownloadHandler downloadHandler = DownloadHandler.forClassResource(
+                getClass(), "/META-INF/resources/images/us-flag.png",
+                "us-flag.png");
+        Icon.Options usFlagIconOptions = new Icon.Options();
+        usFlagIconOptions.setImg(downloadHandler);
+        Icon usFlagIcon = new Icon(usFlagIconOptions);
+        MarkerFeature usOffice = new MarkerFeature(usOfficeCoordinates,
+                usFlagIcon);
+        map.getFeatureLayer().addFeature(usOffice);
+        // end::snippet[]
+
+    }
+
+}
+
+Note: Performance considerations
+
+When using custom icons, ensure that you create only one icon instance per custom image that you want to use. For example, when adding multiple markers that use the same image, it’s sufficient to create one icon instance and use that for all markers. Creating a separate icon instance for each marker can increase memory usage and degrade performance in the browser.
+
+Marker Text
+
+Markers can be configured to show text, which is displayed below the marker icon by default. You can customize the position and style of the text by setting a custom text style for the marker.
+
+[Flow: MapMarkerText.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.feature.MarkerFeature;
+import com.vaadin.flow.component.map.configuration.style.TextStyle;
+import com.vaadin.flow.router.Route;
+
+@Route("map-marker-text")
+public class MapMarkerText extends Div {
+
+    public MapMarkerText() {
+        Map map = new Map();
+        add(map);
+
+        // tag::snippet[]
+        // Create a marker with a default text style
+        MarkerFeature marker = new MarkerFeature(new Coordinate(-25, 0));
+        marker.setText("Some text");
+        map.getFeatureLayer().addFeature(marker);
+
+        // Create a marker with a custom text style
+        TextStyle textStyle = new TextStyle();
+        // Customize font and color
+        textStyle.setFont("bold 16px sans-serif");
+        textStyle.setStroke("#fdf4ff", 3);
+        textStyle.setFill("#701a75");
+        // Position text to the right of the icon
+        textStyle.setTextAlign(TextStyle.TextAlign.LEFT);
+        textStyle.setOffset(22, -18);
+
+        MarkerFeature customizedMarker = new MarkerFeature(
+                new Coordinate(25, 0));
+        customizedMarker.setText("Customized text");
+        customizedMarker.setTextStyle(textStyle);
+        map.getFeatureLayer().addFeature(customizedMarker);
+        // end::snippet[]
+
+    }
+
+}
+
+Marker Drag & Drop
+
+Markers can be configured to be draggable, allowing users to pick them up and move them around the map. Use MapFeatureDropEvent to show a notification when a marker is dragged to a new location. The notification shows which marker was moved along with its start and end coordinates. The coordinates are automatically updated for the marker.
+
+The following example demonstrates how you can drag a marker on the map and get notified when dropping it into place:
+
+[Flow: MapMarkerDragDrop.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.feature.MarkerFeature;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.router.Route;
+
+@Route("map-marker-drag-drop")
+public class MapMarkerDragDrop extends Div {
+
+    public MapMarkerDragDrop() {
+        Map map = new Map();
+        add(map);
+
+        // tag::snippet[]
+        // Add draggable marker
+        MarkerFeature marker = new MarkerFeature();
+        marker.setId("draggable-marker");
+        marker.setDraggable(true);
+        marker.setText("Drag me");
+        map.getFeatureLayer().addFeature(marker);
+
+        // Listen to marker drop event
+        map.addFeatureDropListener(event -> {
+            MarkerFeature droppedMarker = (MarkerFeature) event.getFeature();
+            Coordinate startCoordinates = event.getStartCoordinate();
+            Coordinate endCoordinates = event.getCoordinate();
+
+            Notification.show(
+                    "Marker \"" + droppedMarker.getId() + "\" dragged from "
+                            + startCoordinates + " to " + endCoordinates);
+        });
+        // end::snippet[]
+    }
+
+}
+
+Polygons
+
+Polygons can be used to highlight areas on the map, such as geographical features, zones or corridors. A polygon is defined by a list of coordinates that form a linear ring, where the first and the last coordinate must be equivalent. Additional linear rings can be passed to define holes in the polygon. Polygons support the same features as markers, such as text labels, click events and drag-and-drop.
+
+Note: Polygon text labels are only rendered if they visually fit inside the polygon at the current zoom level.
+
+[Flow: MapPolygons.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.feature.PolygonFeature;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("map-polygons")
+public class MapPolygons extends Div {
+
+    public MapPolygons() {
+        Map map = new Map();
+        map.setCenter(new Coordinate(-3.9622642, 42.0395433));
+        add(map);
+
+        // tag::snippet[]
+        PolygonFeature polygon = new PolygonFeature(List.of(
+                new Coordinate(-50, 50),
+                new Coordinate(-10, 50),
+                new Coordinate(-10, 10),
+                new Coordinate(-50, 10),
+                new Coordinate(-50, 50) // Closing the polygon
+        ));
+        map.getFeatureLayer().addFeature(polygon);
+
+        PolygonFeature polygonWithHole = new PolygonFeature();
+        polygonWithHole.setCoordinates(new Coordinate[][] {
+                new Coordinate[]{
+                        new Coordinate(30, 50),
+                        new Coordinate(70, 50),
+                        new Coordinate(70, 10),
+                        new Coordinate(30, 10),
+                        new Coordinate(30, 50) // Closing the polygon
+                },
+                new Coordinate[]{
+                        new Coordinate(35, 45),
+                        new Coordinate(65, 45),
+                        new Coordinate(65, 15),
+                        new Coordinate(35, 15),
+                        new Coordinate(35, 45) // Closing the hole
+                }
+        });
+        map.getFeatureLayer().addFeature(polygonWithHole);
+        // end::snippet[]
+    }
+
+}
+
+Lines
+
+Line strings can be used to display routes, paths, or connections between points on the map. A line string is defined by a sequence of coordinates. Using only two coordinates renders a straight line between those coordinates, while more than two coordinates renders a multi-segment line that connects all coordinates in the sequence.
+
+[Flow: MapLines.java]
+package com.vaadin.demo.component.map;
+
+import java.io.InputStream;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.feature.LineStringFeature;
+import com.vaadin.flow.router.Route;
+
+import org.springframework.core.io.ClassPathResource;
+
+@Route("map-lines")
+public class MapLines extends Div {
+
+    public MapLines() {
+        Map map = new Map();
+        add(map);
+
+        // tag::snippet[]
+        List<Coordinate> routeCoordinates = loadRouteCoordinates();
+        LineStringFeature route = new LineStringFeature(routeCoordinates);
+        map.getFeatureLayer().addFeature(route);
+        map.zoomToFit(List.of(route), 100, 0);
+        // end::snippet[]
+    }
+
+    private List<Coordinate> loadRouteCoordinates() {
+        try {
+            InputStream stream = new ClassPathResource(
+                    "data/camino-frances-route.geojson").getInputStream();
+            ObjectMapper mapper = new ObjectMapper();
+            GeoJsonRoute geoJson = mapper.readValue(stream, GeoJsonRoute.class);
+            List<double[]> rawCoordinates = geoJson.getFeatures().get(0)
+                    .getGeometry().getCoordinates();
+            return rawCoordinates.stream()
+                    .map(coord -> new Coordinate(coord[0], coord[1])).toList();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+}
+
+[Flow: GeoJsonRoute.java]
+package com.vaadin.demo.component.map;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.util.List;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeoJsonRoute {
+    private List<GeoJsonFeature> features;
+
+    public List<GeoJsonFeature> getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(List<GeoJsonFeature> features) {
+        this.features = features;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeoJsonFeature {
+        private GeoJsonGeometry geometry;
+
+        public GeoJsonGeometry getGeometry() {
+            return geometry;
+        }
+
+        public void setGeometry(GeoJsonGeometry geometry) {
+            this.geometry = geometry;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeoJsonGeometry {
+        private List<double[]> coordinates;
+
+        public List<double[]> getCoordinates() {
+            return coordinates;
+        }
+
+        public void setCoordinates(List<double[]> coordinates) {
+            this.coordinates = coordinates;
+        }
+    }
+}
+
+[Flow: GeoJsonRoute.java]
+
+Styling Lines
+
+Lines strings use a default style of a 2-pixel blue stroke. You can customize the appearance by setting a custom style with a different stroke color and width.
+
+[Java]
+lineFeature.getStyle().setStroke(new Stroke("red", 4)); // Red color, 4px width
+
+Clusters
+
+When displaying a large number of markers on the map, it can be useful to group nearby markers into clusters to improve readability and performance. Clusters are represented by a single icon that shows the number of markers it contains. When zooming in, clusters are automatically expanded to show the individual markers.
+
+[Flow: MapClusters.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.Feature;
+import com.vaadin.flow.component.map.configuration.feature.MarkerFeature;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+import java.util.Random;
+
+@Route("map-clusters")
+public class MapClusters extends Div {
+
+    public MapClusters() {
+        Map map = new Map();
+        add(map);
+
+        // tag::snippet[]
+        // Create a large number of random markers
+        final int NUM_MARKERS = 200;
+        Random random = new Random(539561L);
+
+        for (int i = 0; i < NUM_MARKERS; i++) {
+            double lon = -60 + (120 * random.nextDouble());
+            double lat = -45 + (90 * random.nextDouble());
+            MarkerFeature marker = new MarkerFeature(new Coordinate(lon, lat));
+            map.getFeatureLayer().addFeature(marker);
+        }
+
+        // Enable clustering
+        map.getFeatureLayer().setClusteringEnabled(true);
+
+        // Zoom to cluster contents on click
+        map.addClusterClickListener(event -> {
+            List<Feature> features = event.getFeatures();
+            map.zoomToFit(features);
+        });
+        // end::snippet[]
+
+    }
+
+}
+
+The clustering behavior can be configured using the following properties on the FeatureLayer class:
+
+Property | Description
+clusterDistance | Sets the distance in pixels within which features should be clustered.
+clusterMinDistance | Minimum distance in pixels between generated clusters.
+
+Styling Clusters
+
+Clusters are rendered using a default icon of a circle that contains a text with the number of features in the cluster. The cluster icon and text can be customized by setting a custom cluster style like so:
+
+[Java]
+import com.vaadin.flow.component.map.configuration.style.Icon;
+import com.vaadin.flow.component.map.configuration.style.Style;
+import com.vaadin.flow.component.map.configuration.style.TextStyle;
+import com.vaadin.flow.server.streams.DownloadHandler;
+
+// Assuming the given image is in the JAR resources
+DownloadHandler downloadHandler = DownloadHandler.forClassResource(
+        getClass(), "/images/custom-cluster.png",
+        "custom-cluster.png").inline();
+Icon.Options iconOptions = new Icon.Options();
+iconOptions.setImg(downloadHandler);
+iconOptions.setImgSize(new Icon.ImageSize(88, 88));
+iconOptions.setScale(0.5f);
+Icon clusterIcon = new Icon(iconOptions);
+
+TextStyle textStyle = new TextStyle();
+textStyle.setFont("bold 14px sans-serif");
+textStyle.setOffset(0, 0);
+
+Style customStyle = new Style();
+customStyle.setImage(clusterIcon);
+customStyle.setTextStyle(textStyle);
+
+map.getFeatureLayer().setClusterStyle(customStyle);
+
+Events
+
+The Map component provides several events that can be used to make a map interactive. Currently, the following events are supported:
+
+Event | Description
+View Move End | Triggered after the user has changed the viewport, regardless of the input method. The event is triggered only after the user has finished manipulating the viewport. For example, it’s triggered after letting go of the mouse button after a mouse drag action. The event contains details about the current viewport, such as the center, the zoom level, and the current bounding box, the extent of the viewport.
+Map Click | Triggered when the user clicks on the map. The event contains information about the clicked coordinates and other details of the mouse event. It also contains a list of all features at that location to distinguish whether the click occurred on the map itself, or on a feature.
+Feature Click | Triggered when the user clicks on a feature, such as a marker or polygon. The event contains information about the clicked feature and other details of the mouse event. If there are overlapping features, the event is fired only for the top-level feature at that location. The term feature refers to geographical features in a general sense.
+Cluster Click | Triggered when the user clicks on a cluster. The event contains information about all features grouped into the cluster and other details of the mouse event.
+
+The following example demonstrates how to make use of events in general:
+
+[Flow: MapEvents.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.Coordinate;
+import com.vaadin.flow.component.map.configuration.Extent;
+import com.vaadin.flow.component.map.configuration.Feature;
+import com.vaadin.flow.component.map.configuration.feature.MarkerFeature;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+
+import java.util.HashMap;
+import java.util.List;
+
+@Route("map-events")
+public class MapEvents extends VerticalLayout {
+    // For Vaadin 23.1, use Coordinate.fromLonLat to create coordinates
+    // from longitude and latitude
+    private static final City BERLIN = new City("Berlin",
+            new Coordinate(13.404954, 52.520008));
+    private static final City HONG_KONG = new City("Hong Kong",
+            new Coordinate(114.162813, 22.279328));
+    private static final City MOSCOW = new City("Moscow",
+            new Coordinate(37.617298, 55.755825));
+    private static final City NEW_YORK = new City("New York",
+            new Coordinate(-74.005974, 40.712776));
+    private static final City RIO = new City("Rio de Janeiro",
+            new Coordinate(-43.2093727, -22.9110137));
+    private static final List<City> CITIES = List.of(BERLIN, HONG_KONG, MOSCOW,
+            NEW_YORK, RIO);
+
+    public MapEvents() {
+        Map map = new Map();
+        // For Vaadin 23.1, use Coordinate.fromLonLat to create coordinates
+        // from longitude and latitude
+        map.setCenter(new Coordinate(-3.9622642, 42.0395433));
+        add(map);
+
+        // Setup text areas for logging event data
+        TextArea viewEventInfo = new TextArea("View Move End Event");
+        viewEventInfo.setReadOnly(true);
+        viewEventInfo.setWidthFull();
+        viewEventInfo.addThemeName("monospace");
+        TextArea mapClickInfo = new TextArea("Map Click Event");
+        mapClickInfo.setReadOnly(true);
+        mapClickInfo.setWidthFull();
+        mapClickInfo.addThemeName("monospace");
+        TextArea featureClickInfo = new TextArea("Feature Click Event");
+        featureClickInfo.setReadOnly(true);
+        featureClickInfo.setWidthFull();
+        featureClickInfo.addThemeName("monospace");
+        add(viewEventInfo, mapClickInfo, featureClickInfo);
+
+        // Add markers for cities
+        HashMap<Feature, City> cityLookup = new HashMap<>();
+        CITIES.forEach(city -> {
+            MarkerFeature cityMarker = new MarkerFeature(city.coordinates);
+            map.getFeatureLayer().addFeature(cityMarker);
+            // Store relation between cities and markers in a hash map
+            cityLookup.put(cityMarker, city);
+        });
+
+        // tag::snippet[]
+        map.addViewMoveEndEventListener(e -> {
+            Coordinate center = e.getCenter();
+            Extent extent = e.getExtent();
+            String info = "";
+            info += String.format("Center = { x: %s, y: %s }%n", center.getX(),
+                    center.getY());
+            info += String.format("Zoom   = %s%n", e.getZoom());
+            info += String.format("Extent = { left: %s, top: %s,%n",
+                    extent.getMinX(), extent.getMinY());
+            info += String.format("           right: %s, bottom: %s }",
+                    extent.getMaxX(), extent.getMaxY());
+            viewEventInfo.setValue(info);
+        });
+
+        map.addClickEventListener(e -> {
+            Coordinate coordinates = e.getCoordinate();
+            String info = String.format("Coordinates = { x: %s, y: %s }",
+                    coordinates.getX(), coordinates.getY());
+            mapClickInfo.setValue(info);
+        });
+
+        map.addFeatureClickListener(e -> {
+            MarkerFeature feature = (MarkerFeature) e.getFeature();
+            Coordinate coordinates = feature.getCoordinates();
+            // Get city entity for event marker,
+            // see remaining example on how the markers are set up
+            City city = cityLookup.get(feature);
+            String info = "";
+            info += String.format("City        = %s%n", city.getName());
+            info += String.format("Coordinates = { x: %s, y: %s }",
+                    coordinates.getX(), coordinates.getY());
+            featureClickInfo.setValue(info);
+        });
+        // end::snippet[]
+        setSpacing(false);
+        setPadding(false);
+    }
+
+    private static class City {
+        private final String name;
+        private final Coordinate coordinates;
+
+        public String getName() {
+            return name;
+        }
+
+        public Coordinate getCoordinates() {
+            return coordinates;
+        }
+
+        public City(String name, Coordinate coordinates) {
+            this.name = name;
+            this.coordinates = coordinates;
+        }
+    }
+
+}
+
+Controls
+
+The Map component includes a set of built-in controls, either for user interaction or for displaying information. The following table lists the controls that are available out of the box:
+
+Control | Description | Visible by default
+Attributions | Displays the attributions of the map data, such as the name of the map service and copyright information. | Yes
+Zoom | Displays buttons for zooming in and out of the map. | Yes
+Scale | Displays a scale that allows to compare the distance on the map relative to real-world units. | No
+
+The visibility of controls can be toggled programmatically like so:
+
+[Java]
+map.getControls().getZoom().setVisible(false); // Hide zoom control
+map.getControls().getScale().setVisible(true); // Show scale control
+
+Scale Control
+
+The scale control provides additional configuration options for controlling how it is displayed:
+
+Property | Description
+units | The unit of measurement to use for the scale. The default is METRIC, which uses meters and kilometers. Other options are IMPERIAL (feet and miles), US (US-specific feet and miles), DEGREES (angular distance in degrees), and NAUTICAL (nautical miles).
+displayMode | When using LINE (default), displays a single line with a text that indicates how large that line is in the configured units. When using BAR, displays a bar with a configurable number of segments.
+scaleBarSteps | The number of segments to use when the display mode is set to BAR. The default is 4.
+scaleBarRatioVisible | Shows the ratio between the width of the scale and the real distance on the ground below the control when display mode is set to BAR. Not shown by default.
+
+[Flow: MapScaleControl.java]
+package com.vaadin.demo.component.map;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.map.Map;
+import com.vaadin.flow.component.map.configuration.controls.ScaleControl;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.slider.DecimalSlider;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("map-scale-control")
+public class MapScaleControl extends Div {
+
+    public MapScaleControl() {
+        Map map = new Map();
+        add(map);
+
+        // tag::snippet[]
+        ValueSignal<ScaleControl.Unit> units = new ValueSignal<>(
+                ScaleControl.Unit.METRIC);
+        ValueSignal<Boolean> showAsBar = new ValueSignal<>(false);
+        ValueSignal<Double> barSteps = new ValueSignal<>(4d);
+        ValueSignal<Boolean> showRatio = new ValueSignal<>(false);
+
+        ScaleControl scaleControl = map.getControls().getScale();
+        scaleControl.setVisible(true);
+        scaleControl.setMinWidth(175);
+
+        // Update control when data changes
+        Signal.effect(map, () -> {
+            scaleControl.setUnits(units.get());
+            scaleControl.setDisplayMode(
+                    showAsBar.get() ? ScaleControl.DisplayMode.BAR
+                            : ScaleControl.DisplayMode.LINE);
+            scaleControl.setScaleBarSteps(barSteps.get().intValue());
+            scaleControl.setScaleBarRatioVisible(showRatio.get());
+        });
+
+        // Configure unit of measurement
+        Select<ScaleControl.Unit> unitSelect = new Select<>("Units");
+        unitSelect.setItems(ScaleControl.Unit.values());
+        unitSelect.bindValue(units, units::set);
+
+        // Toggle bar mode
+        Checkbox barCheckbox = new Checkbox("Display as bar");
+        barCheckbox.bindValue(showAsBar, showAsBar::set);
+
+        // Configure number of bar segments
+        DecimalSlider stepsSlider = new DecimalSlider("Bar steps", 2, 8);
+        stepsSlider.setValue(4.0);
+        stepsSlider.setStep(2.0);
+        stepsSlider.setValueChangeMode(ValueChangeMode.EAGER);
+        stepsSlider.bindEnabled(showAsBar);
+        stepsSlider.bindValue(barSteps, barSteps::set);
+
+        // Toggle ratio text visibility
+        Checkbox ratioTextCheckbox = new Checkbox("Show ratio");
+        ratioTextCheckbox.bindEnabled(showAsBar);
+        ratioTextCheckbox.bindValue(showRatio, showRatio::set);
+        // end::snippet[]
+
+        HorizontalLayout layout = new HorizontalLayout(unitSelect, barCheckbox,
+                stepsSlider, ratioTextCheckbox);
+        layout.setWrap(true);
+        layout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        add(layout);
+    }
+
+}
+
+Coordinate Systems
+
+The default coordinate system, or projection, for all coordinates passed to or received from the component is EPSG:4326, also referred to as GPS coordinates or latitude and longitude. This is called the user projection as it affects all of the coordinates that the user of the component, in this case the developer, is working with. That means when setting coordinates, such as for the viewport or for a marker, coordinates must be specified in EPSG:4326 by default. Coordinates received from events are guaranteed to be in that projection.
+
+Internally, the component converts all of the coordinates into the projection that’s used by the map’s view. This is called the view projection. The default view projection is EPSG:3857, also known as Web Mercator Projection.
+
+Changing the User Projection
+
+The user projection can be changed, for example when working with coordinates that aren’t in the EPSG:4326 projection. Out of the box, the component only has support for the EPSG:4326 and EPSG:3857 projections. However, the component allows defining custom projections. As mentioned above, changing the user projection affects all coordinates. Using coordinates with different projections isn’t supported.
+
+[Java]
+// Set user projection to EPSG:3857
+Map.setUserProjection("EPSG:3857");
+
+// Create a map, center viewport on New York using
+// coordinates in EPSG:3857 projection
+Map map = new Map();
+map.setCenter(new Coordinate(-8235375.352932, 4967773.457877));
+map.setZoom(10);
+
+Note: User Projection Scope
+
+The user projection setting is valid for the lifetime of the current browser page. This means it stays defined when navigating using the router, but not when doing a hard location change, or reloading the page. In practice, it’s advisable to set the user projection on every page where it�’s used.
+
+The user projection affects all maps on the browser page, and should be set before creating any maps.
+
+Defining Custom Projections
+
+Custom projections can be defined when working with coordinates that are in neither EPSG:4326 nor EPSG:3857 projection. Defining a custom projection requires a name, which can later be referenced, as well as a projection definition in the Well Known Text (WKT) format. epsg.io is a handy resource for looking up WKT definitions of projections, as well as converting coordinates between specific projections. After a custom projection has been defined, it can be used as either user projection or view projection.
+
+[Java]
+// Define EPSG:3067, which is a projection specifically for use in Finland
+String wkt = ""
+    + "PROJCS[\"ETRS89 / TM35FIN(E,N)\",\n"
+    + "    GEOGCS[\"ETRS89\",\n"
+    + "        DATUM[\"European_Terrestrial_Reference_System_1989\",\n"
+    + "            SPHEROID[\"GRS 1980\",6378137,298.257222101,\n"
+    + "                AUTHORITY[\"EPSG\",\"7019\"]],\n"
+    + "            TOWGS84[0,0,0,0,0,0,0],\n"
+    + "            AUTHORITY[\"EPSG\",\"6258\"]],\n"
+    + "        PRIMEM[\"Greenwich\",0,\n"
+    + "            AUTHORITY[\"EPSG\",\"8901\"]],\n"
+    + "        UNIT[\"degree\",0.0174532925199433,\n"
+    + "            AUTHORITY[\"EPSG\",\"9122\"]],\n"
+    + "        AUTHORITY[\"EPSG\",\"4258\"]],\n"
+    + "    PROJECTION[\"Transverse_Mercator\"],\n"
+    + "    PARAMETER[\"latitude_of_origin\",0],\n"
+    + "    PARAMETER[\"central_meridian\",27],\n"
+    + "    PARAMETER[\"scale_factor\",0.9996],\n"
+    + "    PARAMETER[\"false_easting\",500000],\n"
+    + "    PARAMETER[\"false_northing\",0],\n"
+    + "    UNIT[\"metre\",1,\n"
+    + "        AUTHORITY[\"EPSG\",\"9001\"]],\n"
+    + "    AXIS[\"Easting\",EAST],\n"
+    + "    AXIS[\"Northing\",NORTH],\n"
+    + "    AUTHORITY[\"EPSG\",\"3067\"]]";
+Map.defineProjection("EPSG:3067", wkt);
+
+// Set user projection to EPSG:3067
+Map.setUserProjection("EPSG:3067");
+
+// Create a map, change view projection to EPSG:3067 as well
+Map map = new Map();
+map.setView(new View("EPSG:3067"));
+
+// Center viewport on Helsinki using
+// coordinates in EPSG:3067 projection
+map.setCenter(new Coordinate(385725.63, 6671616.89));
+map.setZoom(10);
+
+Note: Custom projection scope
+
+Custom projections are valid for the lifetime of the current browser page. This means they stay defined when navigating using the router, but not when doing a hard location change, or reloading the page. In practice, it’s advisable to define projections on every page where they are used.
+
+Custom projections must be defined before using them as either user projection or view projection.

@@ -1,0 +1,323 @@
+Notification Styling
+
+Styling API reference for the Notification component.
+
+Style Variants
+
+Notification supports the following style variants.
+
+Variant | Description | Supported by
+success | Used to display success messages | Lumo, Aura
+warning | Used to display warnings | Lumo, Aura
+error | Used to display errors | Lumo, Aura
+info | Used for informational messages | Lumo, Aura
+contrast | Used to distinguish the notification from the rest of the UI | Lumo
+
+Success
+
+The success variant can be used to display success messages, such as when a task or operation is completed.
+
+[Flow: NotificationSuccess.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-success")
+public class NotificationSuccess extends Div {
+
+    public NotificationSuccess() {
+        // tag::snippet[]
+        Notification notification = Notification.show("Application submitted!");
+        notification.addThemeVariants(NotificationVariant.SUCCESS);
+        // end::snippet[]
+        notification.setPosition(Notification.Position.MIDDLE);
+        notification.setDuration(0);
+    }
+
+}
+
+[React: notification-success.tsx]
+import React, { useEffect } from 'react';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  useEffect(() => {
+    // tag::snippet[]
+    const notification = Notification.show('Financial report generated', {
+      position: 'middle',
+      duration: 0,
+      theme: 'success',
+    });
+    // end::snippet[]
+  }, []);
+
+  return <></>;
+}
+
+[Lit: notification-success.ts]
+import { LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+
+@customElement('notification-success')
+export class Example extends LitElement {
+  firstUpdated() {
+    // tag::snippet[]
+    const notification = Notification.show('Application submitted!', {
+      position: 'middle',
+      duration: 0,
+      theme: 'success',
+    });
+    // end::snippet[]
+  }
+}
+
+Users shouldn’t be notified always, or even frequently, of successful operations. Too many notifications can be more distracting than helpful to users. Use success notifications only for operations whose successful completion may otherwise be difficult to discern.
+
+Warning
+
+The warning variant can be used to display warnings.
+
+[Flow: NotificationWarning.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-warning")
+public class NotificationWarning extends Div {
+
+    public NotificationWarning() {
+        // tag::snippet[]
+        Notification notification = Notification
+                .show("Your section is about to expire");
+        notification.addThemeVariants(NotificationVariant.WARNING);
+        // end::snippet[]
+        notification.setPosition(Notification.Position.MIDDLE);
+        notification.setDuration(0);
+    }
+
+}
+
+[React: notification-warning.tsx]
+import React, { useEffect } from 'react';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  useEffect(() => {
+    // tag::snippet[]
+    const notification = Notification.show('Your session is about to expire', {
+      position: 'middle',
+      duration: 0,
+      theme: 'warning',
+    });
+    // end::snippet[]
+  }, []);
+
+  return <></>;
+}
+
+[Lit: notification-warning.ts]
+import { LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+
+@customElement('notification-warning')
+export class Example extends LitElement {
+  firstUpdated() {
+    // tag::snippet[]
+    const notification = Notification.show('Your session is about to expire', {
+      position: 'middle',
+      duration: 0,
+      theme: 'warning',
+    });
+    // end::snippet[]
+  }
+}
+
+Warning notifications should be persistent, and provide the user with a button that closes the notification or allows the user to take appropriate action.
+
+Error
+
+The error variant can be used to display errors.
+
+[Flow: NotificationError.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-error")
+public class NotificationError extends Div {
+
+    public NotificationError() {
+        // tag::snippet[]
+        Notification notification = Notification
+                .show("Failed to generate report");
+        notification.addThemeVariants(NotificationVariant.ERROR);
+        // end::snippet[]
+        notification.setPosition(Notification.Position.MIDDLE);
+        notification.setDuration(0);
+    }
+
+}
+
+[React: notification-error.tsx]
+import React, { useEffect } from 'react';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  useEffect(() => {
+    // tag::snippet[]
+    const notification = Notification.show('Failed to generate report', {
+      position: 'middle',
+      duration: 0,
+      theme: 'error',
+    });
+    // end::snippet[]
+  }, []);
+
+  return <></>;
+}
+
+[Lit: notification-error.ts]
+import { LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+
+@customElement('notification-error')
+export class Example extends LitElement {
+  firstUpdated() {
+    // tag::snippet[]
+    const notification = Notification.show('Failed to generate report', {
+      position: 'middle',
+      duration: 0,
+      theme: 'error',
+    });
+    // end::snippet[]
+  }
+}
+
+Error notifications should be persistent, and provide the user with a button that closes the notification or allows the user to take appropriate action.
+
+Notifications are non-modal and can be ignored. Therefore, they’re usually inappropriate for displaying unexpected technical errors that prevent the application from functioning, or situations that require immediate user action. Use instead a modal Dialog in such situations.
+
+The built-in error message feature, included with input field components, should be used for field-specific input validation errors.
+
+Info
+
+The info variant can be used for informational messages or to draw extra attention to a notification.
+
+[Flow: NotificationInfo.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-info")
+public class NotificationInfo extends Div {
+
+    public NotificationInfo() {
+        // tag::snippet[]
+        // When creating a notification using the `show` static method,
+        // the duration is 5-sec by default.
+        Notification notification = Notification
+                .show("New project plan available");
+        notification.addThemeVariants(NotificationVariant.INFO);
+        // end::snippet[]
+        notification.setPosition(Notification.Position.MIDDLE);
+        notification.setDuration(0);
+    }
+
+}
+
+[React: notification-info.tsx]
+import React, { useEffect } from 'react';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  // tag::snippet[]
+  useEffect(() => {
+    const notification = Notification.show('New project plan available', {
+      position: 'middle',
+      duration: 0,
+      theme: 'info',
+    });
+    // end::snippet[]
+  }, []);
+
+  return <></>;
+}
+
+[Lit: notification-info.ts]
+import '@vaadin/button';
+import { LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+
+@customElement('notification-info')
+export class Example extends LitElement {
+  firstUpdated() {
+    // tag::snippet[]
+    const notification = Notification.show('New project plan available', {
+      position: 'middle',
+      duration: 0,
+      theme: 'info',
+    });
+    // end::snippet[]
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Notification Card Properties
+
+The following properties apply to the vaadin-notification-card element:
+
+Property | Supported by
+--vaadin-notification-background | Aura
+--vaadin-notification-border-color | Aura
+--vaadin-notification-border-radius | Aura
+--vaadin-notification-border-width | Aura
+--vaadin-notification-padding | Aura
+--vaadin-notification-shadow | Aura
+--vaadin-notification-width | Aura
+
+Notification Container Properties
+
+The following properties apply to the vaadin-notification-container element:
+
+Property | Supported by
+--vaadin-notification-container-gap | Aura
+--vaadin-notification-viewport-inset | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-notification-card
+
+Parts
+
+Notification card
+    vaadin-notification-card::part(overlay)
+Content wrapper
+    vaadin-notification-card::part(content)

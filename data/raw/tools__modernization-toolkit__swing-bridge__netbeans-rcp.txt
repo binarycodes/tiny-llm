@@ -1,0 +1,52 @@
+NetBeans RCP
+
+Run a pre-built NetBeans Platform application in the browser with SwingBridge, with no changes to the RCP source.
+
+NetBeansRcpBridge embeds a pre-built NetBeans Platform (RCP) application as a SwingBridge guest, rendering it in the browser. The whole platform shell — or a single TopComponent — runs on the server inside the Vaadin session, and users interact with it through their browser.
+
+NetBeansRcpBridge extends SwingBridge, so everything in the rest of this guide still applies: the project setup, the JVM flags, server push, the JAR-loading conventions, and per-session isolation. This section covers only what is specific to NetBeans Platform applications.
+
+You can point SwingBridge at your existing, pre-built distribution and mount the bridge in a view without changing NetBeans RCP sources.
+
+When to Use It
+
+Use NetBeansRcpBridge when:
+
+- An existing NetBeans Platform application should be reachable through a browser instead of installed as a desktop client.
+- Individual RCP views (a dashboard, an explorer, a grid) should appear as ordinary Vaadin views on their own routes, composed alongside native Vaadin UI.
+- A staged modernization is preferred: the RCP application keeps running unchanged while screens are migrated to Vaadin one at a time.
+
+For a plain Swing application (a main method that opens a JFrame, not a NetBeans Platform distribution), use the base SwingBridge component instead — see Quick Start.
+
+Prerequisites
+
+- A pre-built NetBeans Platform distribution. This is the directory the platform’s own launcher would run — it contains etc/<branding>.clusters, platform/lib/boot.jar, the branding cluster, and the feature module clusters. Bare .nbm files, without a host application, are not supported.
+- JDK 21. JDK 24 and later require a NetBeans Platform variant that has dropped the dependency on TopSecurityManager.
+- A working SwingBridge project, plus a small set of additional JVM flags. See Requirements and Configuration.
+
+Note: NetBeansRcpBridge is a commercial feature licensed under the same Vaadin subscription as the rest of SwingBridge. See License Installation.
+
+Embedding Modes
+
+A bridge instance embeds the application in one of two ways:
+
+Mode | What it renders
+Full shell | new NetBeansRcpBridge() renders the whole platform shell — the main window, menu bar, toolbar, and docked windows — exactly as the desktop application looks.
+Single TopComponent | new NetBeansRcpBridge().embedTopComponent("DashboardTopComponent") renders one TopComponent without the platform shell: no menu bar, toolbar, status bar, or docking — only the view’s content.
+
+A single-TopComponent view can also turn an RCP-side window open (such as a grid row double-click that opens a detail view) into Vaadin navigation, with no change to the RCP application. See Embedding Modes.
+
+Multi-Tenancy and Lifecycle
+
+Each Vaadin session that mounts the bridge runs the NetBeans Platform in its own isolated classloader, thread group, and AWT AppContext, with a per-session user directory. Two browser users never share platform state. When a session ends, the embedded tenant is stopped cleanly and its resources are reclaimed. See Multi-Tenancy and Lifecycle.
+
+Topics
+
+Quick Start
+    Embed a pre-built NetBeans Platform application in a Vaadin view in a few steps.
+Embedding Modes
+    Embed the whole NetBeans Platform shell, a single TopComponent, or drive Vaadin navigation from an RCP action.
+Requirements and Configuration
+    Cluster discovery, the additional JVM flags, and system properties for embedding a NetBeans Platform application.
+Multi-Tenancy and Lifecycle
+    How SwingBridge isolates NetBeans Platform tenants per session, the boot and teardown lifecycle, performance, and known limitations.

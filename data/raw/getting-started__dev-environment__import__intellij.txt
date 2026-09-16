@@ -1,0 +1,19 @@
+Import into IntelliJ IDEA
+
+Follow these steps to import a Vaadin project into IntelliJ IDEA using the Open project feature.
+
+To import a Vaadin project into IntelliJ IDEA, click Open on the Welcome to IntelliJ IDEA screen.
+
+[image: IntelliJ IDEA welcome screen]
+
+The welcome screen is only shown when you don’t have any projects open in IntelliJ IDEA. If you don’t want to close your open projects, you can select File › Open in the menu instead.
+
+Next, find the project directory and click Open.
+
+[image: IntelliJ IDEA open project dialog]
+
+If you are opening the project for the first time, IntelliJ IDEA may ask you whether you trust the project or not. Click Trust Project.
+
+[image: IntelliJ IDEA trust project confirmation dialog]
+
+Your project is now imported.

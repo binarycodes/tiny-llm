@@ -1,0 +1,97 @@
+Route Parameters
+
+How to pass extra information to a route using route parameters.
+
+Route parameters refer to the variable parts of a URL segment. These parameters provide a way to pass extra information to a given route.
+
+For example, if the application has a route named greet that accepts a string parameter, then users can call the greet route with the URL /greet/<some-string>. For example, users can use any of the following URLs to call the greet route:
+
+- /greet/John
+- /greet/Jane
+- /greet/World
+- and so on ..
+
+In these examples, the John, Jane, and World strings are route parameters that the greet route can use to respond to requests.
+
+Defining Route Parameters
+
+A route target (that is, a view) that accepts route parameters passed through the URL should:
+
+- implement the HasUrlParameter<T> interface, and
+- define the parameter type using generics.
+
+HasUrlParameter defines the setParameter() method that’s called by the Router, based on values extracted from the URL. This method is always invoked before a navigation target is activated (before the BeforeEnter event).
+
+Example: Defining a navigation target that takes a string parameter and produces a greeting string from it, which the target then sets as its own text content on navigation:
+
+[Java]
+@Route(value = "greet")
+public class GreetingComponent extends Div
+        implements HasUrlParameter<String> {
+
+    @Override
+    public void setParameter(BeforeEvent event, String parameter) {
+        setText(String.format("Hello, %s!", parameter));
+    }
+}
+
+On startup, the navigation target is automatically configured for every greet/<anything> path, except where a separate navigation target with the exact @Route is configured to match greet/<some specific path>. It’s worth noting that an exact navigation target always takes precedence over route parameters when resolving the URL.
+
+Note: HasUrlParameter<T> only supports a type argument of Long, Integer, String, and Boolean types.
+
+Optional Route Parameters
+
+Route parameters can be annotated as optional using @OptionalParameter.
+
+Example: Defining the route to match both greet and greet/<anything>:
+
+[Java]
+@Route("greet")
+public class OptionalGreeting extends Div
+        implements HasUrlParameter<String> {
+
+    @Override
+    public void setParameter(BeforeEvent event,
+            @OptionalParameter String parameter) {
+        if (parameter == null) {
+            setText("Welcome anonymous.");
+        } else {
+            setText(String.format("Welcome %s.", parameter));
+        }
+    }
+}
+
+A more specific route always takes precedence over an optionally parameterized route.
+
+Wildcard Route Parameters
+
+When more parameters are needed, the route parameter can also be annotated with @WildcardParameter.
+
+Example: Defining the route to match greet and anything after it, for instance greet/one/five/three:
+
+[Java]
+@Route("greet")
+public class WildcardGreeting extends Div
+        implements HasUrlParameter<String> {
+
+    @Override
+    public void setParameter(BeforeEvent event,
+            @WildcardParameter String parameter) {
+        if (parameter.isEmpty()) {
+            setText("Welcome anonymous.");
+        } else {
+            setText(String.format("Handling parameter %s.", parameter));
+        }
+    }
+}
+
+A more specific route always takes precedence over a wildcard route. If no value was passed to the wildcard route parameter, its value is an empty String.
+
+Alternatives to Route Parameters
+
+Route parameters, the approach described in this guide, is the easiest method to accept parameters, and it should work for most common use cases. It’s recommended to use this approach, if possible.
+
+However, if using route parameters isn’t appropriate for your use case, Vaadin Flow supports two additional techniques for accepting parameters:
+
+1. Query Parameters: this approach is suitable when it’s necessary to have explicit name-value pairs or when you need to accept several optional parameters. (See the Query Parameters guide).
+2. Route Templates: this is the most powerful, yet a complex, approach to accepting parameters. Because of its complexity, you are recommended not to choose this approach unless your specific use case can’t be addressed using route or query parameters. (See the Route Templates guide).

@@ -1,0 +1,2844 @@
+Popover
+
+Popover is a generic overlay whose position is anchored to an element in the UI.
+
+A generic overlay whose position is anchored to an element in the UI.
+
+[Flow: PopoverNotificationPanel.java]
+package com.vaadin.demo.component.popover;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.List;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.tabs.TabSheetVariant;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-notification-panel")
+public class PopoverNotificationPanel extends Div {
+
+    public PopoverNotificationPanel() {
+        Button button = new Button(LumoIcon.BELL.create());
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.setAriaLabel("Notifications");
+
+        // tag::snippet[]
+        Popover popover = new Popover();
+        popover.setTarget(button);
+        popover.setWidth("300px");
+        popover.addThemeVariants(PopoverVariant.ARROW,
+                PopoverVariant.NO_PADDING);
+        popover.setPosition(PopoverPosition.BOTTOM);
+        popover.setModal(true);
+        popover.setAriaLabelledBy("notifications-heading");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople(5);
+
+        MessageList unreadList = new MessageList();
+
+        MessageList allList = new MessageList();
+
+        MessageListItem message1 = new MessageListItem(
+                "Could you send me the latest TPS report from the ACME project?",
+                minutesAgo(20), people.get(0).getFullName(),
+                people.get(0).getPictureUrl());
+
+        MessageListItem message2 = new MessageListItem(
+                "Hey, are we on track for the trade show next month?",
+                minutesAgo(30), people.get(1).getFullName(),
+                people.get(1).getPictureUrl());
+
+        MessageListItem message3 = new MessageListItem(
+                "TPS reports look good! I'm going to pass it on to Alliyah next.",
+                minutesAgo(35), people.get(2).getFullName(),
+                people.get(2).getPictureUrl());
+
+        MessageListItem message4 = new MessageListItem(
+                "Hi, are you going to attend the brainstorming session tomorrow?",
+                minutesAgo(55), people.get(3).getFullName(),
+                people.get(3).getPictureUrl());
+
+        unreadList.setItems(Arrays.asList(message1, message2, message3));
+        allList.setItems(Arrays.asList(message1, message2, message3, message4));
+
+        TabSheet tabSheet = new TabSheet();
+        // Add style variants for Lumo theme
+        tabSheet.addThemeVariants(TabSheetVariant.LUMO_TABS_SMALL,
+                TabSheetVariant.LUMO_NO_PADDING);
+        // Add style variants for Aura theme
+        tabSheet.addThemeVariants(TabSheetVariant.AURA_NO_PADDING,
+                TabSheetVariant.AURA_NO_BORDER);
+
+        tabSheet.addClassName("notifications");
+
+        Div unreadContent = new Div();
+        unreadContent.add(unreadList);
+
+        tabSheet.add("Unread", unreadContent);
+        tabSheet.add("All", new Div(allList));
+
+        H4 heading = new H4("Notifications");
+        heading.setId("notifications-heading");
+
+        Button markRead = new Button("Mark all read", (e) -> {
+            unreadContent.removeAll();
+            unreadContent.add(new Div("No new notifications") {
+                {
+                    this.addClassName("no-notifications-msg");
+                }
+            });
+        });
+        markRead.addThemeVariants(ButtonVariant.SMALL);
+
+        HorizontalLayout layout = new HorizontalLayout(heading);
+        layout.addToEnd(markRead);
+        layout.setSpacing(false);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.getStyle().set("padding",
+                "var(--vaadin-padding-l) var(--vaadin-padding-l) var(--vaadin-padding-s)");
+
+        popover.add(layout, tabSheet);
+
+        add(button, popover);
+    }
+
+    private Instant minutesAgo(int minutes) {
+        return LocalDateTime.now(ZoneOffset.UTC).minusMinutes(minutes)
+                .toInstant(ZoneOffset.UTC);
+    }
+
+}
+
+[Flow: popover-notification-panel.css]
+#notifications-heading {
+  font-size: 1.125rem;
+}
+
+vaadin-tabsheet.notifications {
+  max-height: 350px;
+
+  & vaadin-message-list {
+    & vaadin-message {
+      padding: var(--vaadin-padding-s) 0 var(--vaadin-padding-l);
+      margin: 0 var(--vaadin-padding-l);
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--vaadin-border-color-secondary);
+
+      &::part(name) {
+        font-weight: 600;
+        margin-right: auto;
+      }
+      &::part(time) {
+        font-size: 0.75rem;
+      }
+      &::part(message) {
+        font-size: 0.875rem;
+        line-height: 1.25;
+        color: var(--vaadin-text-color-secondary);
+      }
+    }
+  }
+
+  .no-notifications-msg {
+    padding: var(--vaadin-padding-l);
+    color: var(--vaadin-text-color-secondary);
+  }
+}
+
+[Flow: popover-notification-panel.css]
+
+[React: popover-notification-panel.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import React, { useEffect } from 'react';
+import { format, subMinutes } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Button,
+  HorizontalLayout,
+  Icon,
+  MessageList,
+  type MessageListItem,
+  Popover,
+  TabSheet,
+  TabSheetTab,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+function Example() {
+  const unreadNotifications = useSignal<MessageListItem[]>([]);
+  const allNotifications = useSignal<MessageListItem[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 4 }).then(({ people }) => {
+      unreadNotifications.value = [
+        {
+          userName: `${people[0].firstName} ${people[0].lastName}`,
+          userImg: people[0].pictureUrl,
+          time: format(subMinutes(new Date(), 20), 'HH:mm'),
+          text: 'Could you send me the latest TPS report from the ACME project?',
+        },
+        {
+          userName: `${people[1].firstName} ${people[1].lastName}`,
+          userImg: people[1].pictureUrl,
+          time: format(subMinutes(new Date(), 30), 'HH:mm'),
+          text: 'Hey, are we on track for the trade show next month?',
+        },
+        {
+          userName: `${people[2].firstName} ${people[2].lastName}`,
+          userImg: people[2].pictureUrl,
+          time: format(subMinutes(new Date(), 35), 'HH:mm'),
+          text: `TPS reports look good! I'm going to pass it on to Alliyah next.`,
+        },
+      ];
+
+      allNotifications.value = [
+        ...unreadNotifications.value,
+        {
+          userName: `${people[3].firstName} ${people[3].lastName}`,
+          userImg: people[3].pictureUrl,
+          time: format(subMinutes(new Date(), 55), 'HH:mm'),
+          text: 'Hi, are you going to attend the brainstorming session tomorrow?',
+        },
+      ];
+    });
+  }, []);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Button id="show-notifications" aria-label="Notifications" theme="icon">
+        <Icon icon="lumo:bell" />
+      </Button>
+      <Popover
+        for="show-notifications"
+        theme="arrow no-padding"
+        modal
+        position="bottom"
+        width="300px"
+        aria-labelledby="notifications-heading"
+      >
+        <HorizontalLayout
+          style={{
+            alignItems: 'center',
+            padding: 'var(--vaadin-padding-l) var(--vaadin-padding-l) var(--vaadin-padding-s)',
+          }}
+        >
+          <h4 id="notifications-heading">
+            Notifications
+          </h4>
+          <Button
+            slot="end"
+            theme="small"
+            onClick={() => {
+              unreadNotifications.value = [];
+            }}
+          >
+            Mark all read
+          </Button>
+        </HorizontalLayout>
+        <TabSheet theme="small no-padding no-border" className="notifications">
+          <TabSheetTab label="Unread">
+            {unreadNotifications.value.length ? (
+              <MessageList items={unreadNotifications.value} />
+            ) : (
+              <div className="no-notifications-msg">No new notifications</div>
+            )}
+          </TabSheetTab>
+          <TabSheetTab label="All">
+            <MessageList items={allNotifications.value} />
+          </TabSheetTab>
+        </TabSheet>
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[React: popover-notification-panel.css]
+#notifications-heading {
+  font-size: 1.125rem;
+}
+
+vaadin-tabsheet.notifications {
+  max-height: 350px;
+
+  & vaadin-message-list {
+    & vaadin-message {
+      padding: var(--vaadin-padding-s) 0 var(--vaadin-padding-l);
+      margin: 0 var(--vaadin-padding-l);
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--vaadin-border-color-secondary);
+
+      &::part(name) {
+        font-weight: 600;
+        margin-right: auto;
+      }
+      &::part(time) {
+        font-size: 0.75rem;
+      }
+      &::part(message) {
+        font-size: 0.875rem;
+        line-height: 1.25;
+        color: var(--vaadin-text-color-secondary);
+      }
+    }
+  }
+
+  .no-notifications-msg {
+    padding: var(--vaadin-padding-l);
+    color: var(--vaadin-text-color-secondary);
+  }
+}
+
+[React: popover-notification-panel.css]
+
+[Lit: popover-notification-panel.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/message-list';
+import '@vaadin/popover';
+import '@vaadin/tabsheet';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { format, subMinutes } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MessageListItem } from '@vaadin/message-list';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-notifications-panel')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  allNotifications: MessageListItem[] = [];
+
+  @state()
+  unreadNotifications: MessageListItem[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 4 });
+
+    this.unreadNotifications = [
+      {
+        userName: `${people[0].firstName} ${people[0].lastName}`,
+        userImg: people[0].pictureUrl,
+        time: format(subMinutes(new Date(), 20), 'HH:mm'),
+        text: 'Could you send me the latest TPS report from the ACME project?',
+      },
+      {
+        userName: `${people[1].firstName} ${people[1].lastName}`,
+        userImg: people[1].pictureUrl,
+        time: format(subMinutes(new Date(), 30), 'HH:mm'),
+        text: 'Hey, are we on track for the trade show next month?',
+      },
+      {
+        userName: `${people[2].firstName} ${people[2].lastName}`,
+        userImg: people[2].pictureUrl,
+        time: format(subMinutes(new Date(), 35), 'HH:mm'),
+        text: `TPS reports look good! I'm going to pass it on to Alliyah next.`,
+      },
+    ];
+    this.allNotifications = [
+      ...this.unreadNotifications,
+      {
+        userName: `${people[3].firstName} ${people[3].lastName}`,
+        userImg: people[3].pictureUrl,
+        time: format(subMinutes(new Date(), 55), 'HH:mm'),
+        text: 'Hi, are you going to attend the brainstorming session tomorrow?',
+      },
+    ];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button id="show-notifications" aria-label="Notifications" theme="icon">
+        <vaadin-icon icon="lumo:bell"></vaadin-icon>
+      </vaadin-button>
+      <!-- tag::snippet[] -->
+      <vaadin-popover
+        for="show-notifications"
+        theme="arrow no-padding"
+        modal
+        aria-labelledby="notifications-heading"
+        width="300px"
+        position="bottom"
+      >
+        ${this.renderNotifications(this.unreadNotifications, this.allNotifications)}
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderNotifications(unread: MessageListItem[], all: MessageListItem[]) {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; padding: var(--vaadin-padding-l) var(--vaadin-padding-l) var(--vaadin-padding-s)"
+      >
+        <h4 id="notifications-heading">Notifications</h4>
+        <vaadin-button slot="end" theme="small" @click="${this.markAllRead}">
+          Mark all read
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+      <vaadin-tabsheet class="notifications" theme="small no-padding no-border">
+        <vaadin-tabs slot="tabs">
+          <vaadin-tab id="unread-tab">Unread</vaadin-tab>
+          <vaadin-tab id="all-tab">All</vaadin-tab>
+        </vaadin-tabs>
+        <div tab="unread-tab">
+          ${unread.length
+            ? html`<vaadin-message-list .items="${unread}"></vaadin-message-list>`
+            : html`<div class="no-notifications-msg">No unread notifications</div>`}
+        </div>
+        <div tab="all-tab">
+          <vaadin-message-list .items="${all}"></vaadin-message-list>
+        </div>
+      </vaadin-tabsheet>
+    `;
+  }
+
+  markAllRead() {
+    this.unreadNotifications = [];
+  }
+}
+
+[Lit: popover-notification-panel.css]
+#notifications-heading {
+  font-size: 1.125rem;
+}
+
+vaadin-tabsheet.notifications {
+  max-height: 350px;
+
+  & vaadin-message-list {
+    & vaadin-message {
+      padding: var(--vaadin-padding-s) 0 var(--vaadin-padding-l);
+      margin: 0 var(--vaadin-padding-l);
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--vaadin-border-color-secondary);
+
+      &::part(name) {
+        font-weight: 600;
+        margin-right: auto;
+      }
+      &::part(time) {
+        font-size: 0.75rem;
+      }
+      &::part(message) {
+        font-size: 0.875rem;
+        line-height: 1.25;
+        color: var(--vaadin-text-color-secondary);
+      }
+    }
+  }
+
+  .no-notifications-msg {
+    padding: var(--vaadin-padding-l);
+    color: var(--vaadin-text-color-secondary);
+  }
+}
+
+[Lit: popover-notification-panel.css]
+
+Popovers support focusable, interactive content, and can be used to build virtually any type of anchored overlays from custom drop-down fields and drop-down buttons to interactive tooltips.
+
+The popover’s position is anchored to an element in the UI, called the target element, by calling setTarget(). The actual content of the popover is added to it as with any other component container.
+
+Popovers differ from Dialogs in that they are visually anchored to a target element, and they differ from Tooltips in that they can be focused and support rich, interactive content.
+
+Opening and Closing
+
+Popovers can be configured to open and close based on different pointer and keyboard based triggers. See Typical Use Cases for examples.
+
+Opening Triggers
+
+Three target element triggers can be configured to open the popover:
+
+- Click: clicking the target element, or pressing Space when the target element has focus (default)
+- Hover: hovering over the target element
+- Focus: focusing the target element
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setOpenOnClick(false);
+popover.setOpenOnHover(true);
+popover.setOpenOnFocus(true);
+
+[Flow: Java]
+
+[React: tsx]
+<Popover trigger={['hover', 'focus']} />
+
+[React: tsx]
+
+[Lit: TypeScript]
+<vaadin-popover .trigger="${['hover', 'focus']}"></vaadin-popover>
+
+[Lit: TypeScript]
+
+All three triggers can be enabled simultaneously. If no opening trigger is enabled, the popover can only be opened programmatically.
+
+The hover and focus opening triggers have a configurable opening delay.
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setHoverDelay(500);
+popover.setFocusDelay(500);
+
+[Flow: Java]
+
+[React: tsx]
+<Popover hoverDelay={500} focusDelay={500} />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-popover hover-delay="500" focus-delay="500"></vaadin-popover>
+
+[Lit: HTML]
+
+Closing Triggers
+
+The following triggers close the popover by default:
+
+- Target click: Clicking the target element (non-modal popovers only)
+- Outside click: clicking anywhere outside the popover (can be disabled)
+- Esc: pressing Esc (can be disabled)
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setCloseOnEsc(false);
+popover.setCloseOnOutsideClick(false);
+
+[Flow: Java]
+
+[React: tsx]
+<Popover noCloseOnEsc noCloseOnOutsideClick />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-popover no-close-on-esc no-close-on-outside-click></vaadin-popover>
+
+[Lit: HTML]
+
+Additionally:
+
+- When opened on hover, the popover closes on mouseout, i.e. when the pointer leaves the target element and the popover.
+- When opened on focus, the popover closes on blur, i.e. when focus is no longer on the target element or in the popover.
+
+The mouseout closing trigger has a configurable delay.
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setHideDelay(500);
+
+[Flow: Java]
+
+[React: tsx]
+<Popover hideDelay={500} />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-popover hide-delay="500"></vaadin-popover>
+
+[Lit: HTML]
+
+Auto Focus
+
+Keyboard focus can be automatically moved to the Popover when it opens. This is recommended for popovers with interactive content that the user is expected to interact with. Modal popovers have auto-focus behavior by default. Popovers opened with hover or focus should not use auto-focus.
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setAutofocus(true);
+
+[Flow: Java]
+
+[React: tsx]
+<Popover autofocus />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-popover autofocus></vaadin-popover>
+
+[Lit: HTML]
+
+Tab Focus
+
+By default, the popover’s content can be reached with Tab from its target element. This can be disabled, so that pressing Tab on the target skips past the popover, and Shift+Tab doesn’t move focus into the popover’s last focusable element. Focus placed inside the popover programmatically still moves out of it on Tab and Shift+Tab.
+
+This setting has no effect on modal popovers, which use their own focus trap.
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setTabFocusEnabled(false);
+
+[Flow: Java]
+
+[React: tsx]
+<Popover noTabFocus />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-popover no-tab-focus></vaadin-popover>
+
+[Lit: HTML]
+
+Positioning
+
+By default, popovers open below their target element, horizontally centered to its midpoint, but the positioning options allow this to be changed to any edge or corner, depending on what is most appropriate for the use case.
+
+The popover’s position is automatically maintained if the target element scrolls within the viewport. If there is insufficient space in the viewport for the desired positioning, the popover automatically shifts to fit within the viewport.
+
+[Flow: PopoverPositioning.java]
+package com.vaadin.demo.component.popover;
+
+import java.util.Arrays;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-positioning")
+public class PopoverPositioning extends VerticalLayout {
+
+    public PopoverPositioning() {
+        setPadding(true);
+        setSpacing(true);
+        setAlignItems(Alignment.CENTER);
+
+        Button button = new Button("Open");
+        button.getStyle().set("--vaadin-button-height", "3rem");
+        button.getStyle().set("margin-top", "2rem");
+
+        Select<PopoverPosition> select = new Select<>();
+        select.setLabel("Position");
+        select.setItems(Arrays.asList(PopoverPosition.values()));
+        select.setValue(PopoverPosition.BOTTOM);
+
+        select.setItemLabelGenerator((item) -> {
+            String label = "";
+            String[] parts = item.toString().split("_");
+            for (String p : parts) {
+                label += p.substring(0, 1) + p.substring(1).toLowerCase() + " ";
+            }
+            return label.trim();
+        });
+
+        Popover popover = new Popover();
+        popover.setTarget(button);
+        Div content = new Div("Popover content");
+        popover.add(content);
+
+        // tag::snippet[]
+        select.addValueChangeListener(event -> {
+            PopoverPosition position = event.getValue();
+            popover.setPosition(position);
+        });
+        // end::snippet[]
+
+        add(button, select, popover);
+    }
+
+}
+
+[React: popover-positioning.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Button,
+  Popover,
+  type PopoverPosition,
+  Select,
+  VerticalLayout,
+} from '@vaadin/react-components';
+
+function Example() {
+  const position = useSignal<PopoverPosition>('bottom');
+  const items = [
+    { label: 'Top Start', value: 'top-start' },
+    { label: 'Top', value: 'top' },
+    { label: 'Top End', value: 'top-end' },
+    { label: 'Bottom Start', value: 'bottom-start' },
+    { label: 'Bottom', value: 'bottom' },
+    { label: 'Bottom End', value: 'bottom-end' },
+    { label: 'Start Top', value: 'start-top' },
+    { label: 'Start', value: 'start' },
+    { label: 'Start Bottom', value: 'start-bottom' },
+    { label: 'End Top', value: 'end-top' },
+    { label: 'End', value: 'end' },
+    { label: 'End Bottom', value: 'end-bottom' },
+  ];
+
+  return (
+    <>
+      <VerticalLayout theme="padding spacing" style={{ alignItems: 'center' }}>
+        <Button id="target" style={{ '--vaadin-button-height': '3rem', marginTop: '1rem' }}>
+          Open
+        </Button>
+        <Select
+          label="Position"
+          items={items}
+          value={position.value}
+          onChange={(e) => {
+            position.value = e.target.value as PopoverPosition;
+          }}
+        />
+      </VerticalLayout>
+
+      {/* tag::snippet[] */}
+      <Popover for="target" position={position.value}>
+        Popover content
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: popover-positioning.ts]
+import '@vaadin/button';
+import '@vaadin/popover';
+import '@vaadin/select';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { PopoverPosition } from '@vaadin/popover';
+import type { SelectChangeEvent } from '@vaadin/select';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-positioning')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  items = [
+    { label: 'Top Start', value: 'top-start' },
+    { label: 'Top', value: 'top' },
+    { label: 'Top End', value: 'top-end' },
+    { label: 'Bottom Start', value: 'bottom-start' },
+    { label: 'Bottom', value: 'bottom' },
+    { label: 'Bottom End', value: 'bottom-end' },
+    { label: 'Start Top', value: 'start-top' },
+    { label: 'Start', value: 'start' },
+    { label: 'Start Bottom', value: 'start-bottom' },
+    { label: 'End Top', value: 'end-top' },
+    { label: 'End', value: 'end' },
+    { label: 'End Bottom', value: 'end-bottom' },
+  ];
+
+  @state()
+  position: PopoverPosition = 'bottom';
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="padding spacing" style="align-items: center">
+        <vaadin-button id="target" style="--vaadin-button-height: 3rem; margin-top: 1rem">
+          Open
+        </vaadin-button>
+        <vaadin-select
+          label="Position"
+          .items="${this.items}"
+          .value="${this.position}"
+          @change="${this.onPositionChange}"
+        ></vaadin-select>
+      </vaadin-vertical-layout>
+      <!-- tag::snippet[] -->
+      <vaadin-popover for="target" .position="${this.position}">Popover content</vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  onPositionChange(event: SelectChangeEvent) {
+    this.position = event.target.value as PopoverPosition;
+  }
+}
+
+Target Gap
+
+The distance between the popover and the target element can be customized by setting the following CSS properties on the Popover component:
+
+- --vaadin-popover-offset-top
+- --vaadin-popover-offset-bottom
+- --vaadin-popover-offset-start
+- --vaadin-popover-offset-end
+
+Target Arrow
+
+Popovers can render a wedge-shaped arrow tip pointing at the target element.
+
+[Flow: PopoverArrow.java]
+package com.vaadin.demo.component.popover;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-arrow")
+public class PopoverArrow extends Div {
+
+    public PopoverArrow() {
+        Icon icon = LumoIcon.BELL.create();
+        Button button = new Button(icon);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.setAriaLabel("Notifications");
+
+        // tag::snippet[]
+        Popover popover = new Popover();
+        popover.addThemeVariants(PopoverVariant.ARROW);
+        // end::snippet[]
+
+        popover.setTarget(button);
+        Div content = new Div("No new notifications");
+        popover.add(content);
+
+        add(button, popover);
+    }
+
+}
+
+[React: popover-arrow.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import React from 'react';
+import { Button, Icon, Popover } from '@vaadin/react-components';
+
+function Example() {
+  // tag::snippet[]
+  return (
+    <>
+      <Button id="target" aria-label="Notifications" theme="icon">
+        <Icon icon="lumo:bell" />
+      </Button>
+      <Popover for="target" theme="arrow">
+        <div>No new notifications</div>
+      </Popover>
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: popover-arrow.ts]
+import '@vaadin/button';
+import '@vaadin/icon';
+import '@vaadin/popover';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-arrow')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button id="target" aria-label="notifications" theme="icon">
+        <vaadin-icon icon="lumo:bell"></vaadin-icon>
+      </vaadin-button>
+      <!-- tag::snippet[] -->
+      <vaadin-popover for="target" theme="arrow">
+        <div>No new notifications</div>
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Configuring Delays
+
+The delay before popover opens can be configured separately for hover and focus. There is no delay before the popover appears on click or when opening programmatically.
+
+The delay before popover closes — when the pointer leaves the target element — can also be configured separately. On blur, though, the popover is closed immediately to avoid confusion when focusing another element.
+
+[Java]
+// Global delay configuration:
+Popover.setDefaultFocusDelay(2000);
+Popover.setDefaultHoverDelay(1000);
+Popover.setDefaultHideDelay(1000);
+
+// Overriding delays for a particular popover:
+Popover popover = new Popover();
+popover.setHoverDelay(0);
+
+[TypeScript]
+import { Popover } from '@vaadin/popover';
+
+// Global delay configuration:
+Popover.setDefaultFocusDelay(2000);
+Popover.setDefaultHoverDelay(1000);
+Popover.setDefaultHideDelay(1000);
+
+// Overriding delays for a particular popover:
+<vaadin-popover .hoverDelay=${500}></vaadin-popover>
+
+[tsx]
+import { Popover } from '@vaadin/popover';
+
+// Global delay configuration:
+Popover.setDefaultFocusDelay(2000);
+Popover.setDefaultHoverDelay(1000);
+Popover.setDefaultHideDelay(1000);
+
+// Overriding delays for a particular popover:
+<Popover hoverDelay={500} />
+
+Dimensions
+
+By default, the Popover’s size is determined by its contents, but an explicit width and height can be set on the Popover itself.
+
+Contents that exceed the width of the popover will scroll.
+
+The maximum width of popovers is limited to the width of the viewport, minus a small margin that can be customized by the theme.
+
+Modality
+
+A modal Popover blocks the user from interacting with the rest of the user interface while open, automatically moves focus from the target element to the Popover, and traps keyboard focus within it.
+
+When combined with an outside click closing trigger, modality prevents accidentally triggering other UI elements when clicking outside the Popover to close it.
+
+By default, modal popovers do not render a modality curtain (or backdrop), but one can be enabled separately. A modality curtain can be useful for de-emphasizing the UI in the background and to give a visual indication that the rest of the UI is blocked from user interaction.
+
+[Flow: PopoverModal.java]
+package com.vaadin.demo.component.popover;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-modal")
+public class PopoverModal extends Div {
+
+    public PopoverModal() {
+        // tag::snippet[]
+        Popover popover = new Popover();
+        popover.setModal(true);
+        popover.setBackdropVisible(true);
+        // end::snippet[]
+        TextField code = new TextField("Discount code");
+        Button apply = new Button("Apply");
+        popover.add(code, apply);
+
+        Button button = new Button("Discount");
+        popover.setTarget(button);
+
+        add(button, popover);
+    }
+
+}
+
+[React: popover-modal.tsx]
+import React from 'react';
+import { Button, Popover, TextField } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <>
+      <Button id="target">Discount</Button>
+      {/* tag::snippet[] */}
+      <Popover for="target" modal withBackdrop>
+        <TextField label="Discount code" />
+        <Button>Apply</Button>
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: popover-modal.ts]
+import '@vaadin/button';
+import '@vaadin/popover';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-modal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button id="target">Discount</vaadin-button>
+      <!-- tag::snippet[] -->
+      <vaadin-popover for="target" modal with-backdrop>
+        <vaadin-text-field label="Discount code"></vaadin-text-field>
+        <vaadin-button>Apply</vaadin-button>
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Accessibility
+
+By default, the Popover has the ARIA role dialog. This can be changed to another role to provide appropriate semantics for the type of content and interaction in the popover (see Typical Use Cases for examples).
+
+- menu: when the content is a list of actions or links
+- listbox: when the content is a list form which you can select one or more items
+- grid: when the content is a tabular structure from which you select an item
+- tree: when the content is a hierarchical list
+
+Remember that, unlike Tooltip, the contents of a Popover are not automatically announced by screen readers when it opens. Consider using a live region to announce non-interactive popovers, and ensure keyboard access to interactive popovers.
+
+The target element is automatically applied aria-controls (with a reference to the Popover), aria-haspopup (with the overlay’s role as the value), and aria-expanded (set to true when open, and to false otherwise).
+
+An accessible name can be provided for the popover using the ARIA label API:
+
+[Flow: Java]
+Popover popover = new Popover();
+popover.setAriaLabel("Label");
+// OR
+popover.setAriaLabelledby("label-element-id");
+
+[Flow: Java]
+
+[React: tsx]
+<Popover aria-label="Label" />
+<Popover aria-labelledby="label-element-id" />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-popover aria-label="Label"></vaadin-popover>
+<vaadin-popover aria-labelledby="label-element-id"></vaadin-popover>
+
+[Lit: HTML]
+
+Typical Use Cases
+
+Here are a few examples of common use cases for the Popover component with recommended configurations.
+
+Drop-Down Field
+
+[Flow: PopoverDropdownField.java]
+package com.vaadin.demo.component.popover;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
+
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Shortcuts;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-dropdown-field")
+public class PopoverDropdownField extends Div {
+
+    private LocalDate from;
+    private LocalDate to;
+
+    private Select<String> rangeSelector;
+    private DatePicker fromPicker;
+    private DatePicker toPicker;
+    private Popover popover;
+
+    public PopoverDropdownField() {
+        // tag::snippet[]
+        TextField field = new TextField("Search date range");
+        field.setWidth("340px");
+        Icon icon = LumoIcon.DROPDOWN.create();
+        field.setSuffixComponent(icon);
+
+        popover = new Popover();
+        popover.setModal(true);
+        popover.setWidth("340px");
+        popover.setAriaLabel("Select a date range");
+        popover.setTarget(field);
+
+        Shortcuts.addShortcutListener(field, popover::open, Key.ARROW_DOWN)
+                .listenOn(field);
+        // end::snippet[]
+
+        rangeSelector = new Select<>();
+        rangeSelector.setLabel("Common ranges");
+        rangeSelector.setPlaceholder("Select preset");
+        rangeSelector.setWidth("100%");
+        rangeSelector.setItems("Today", "Last week", "Last month",
+                "Year to date", "Last year", "Past 5 years");
+        rangeSelector.addValueChangeListener((e) -> {
+            if (e.isFromClient()) {
+                updateRange(e.getValue());
+            }
+        });
+
+        fromPicker = new DatePicker("From");
+        fromPicker.setWidth("150px");
+        fromPicker.addValueChangeListener((e) -> {
+            from = e.getValue();
+            updateValue(field);
+            if (e.isFromClient()) {
+                rangeSelector.setValue("");
+            }
+        });
+
+        toPicker = new DatePicker("To");
+        toPicker.setWidth("150px");
+        toPicker.addValueChangeListener((e) -> {
+            to = e.getValue();
+            updateValue(field);
+            if (e.isFromClient()) {
+                rangeSelector.setValue("");
+            }
+        });
+
+        HorizontalLayout layout = new HorizontalLayout(fromPicker, new Div("−"),
+                toPicker);
+        layout.setSpacing("var(--vaadin-gap-s)");
+        layout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        popover.add(rangeSelector, layout);
+
+        add(field, popover);
+    }
+
+    private void updateValue(TextField field) {
+        field.setValue(from != null && to != null
+                ? from.toString() + " - " + to.toString()
+                : "");
+    }
+
+    private void updateRange(String value) {
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+        to = today;
+        toPicker.setValue(to);
+
+        switch (value) {
+        case "Today":
+            from = today;
+            break;
+        case "Last week":
+            from = today.minusWeeks(1);
+            break;
+        case "Last month":
+            from = today.minusMonths(1);
+            break;
+        case "Year to date":
+            from = today.with(TemporalAdjusters.firstDayOfYear());
+            break;
+        case "Last year":
+            from = today.minusYears(1);
+            break;
+        case "Past 5 years":
+            from = today.minusYears(5);
+            break;
+        }
+
+        fromPicker.setValue(from);
+        popover.setOpened(false);
+    }
+
+}
+
+[React: popover-dropdown-field.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import React from 'react';
+import { formatISO, subMonths, subWeeks, subYears } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  DatePicker,
+  HorizontalLayout,
+  Icon,
+  Popover,
+  Select,
+  type SelectChangeEvent,
+  TextField,
+} from '@vaadin/react-components';
+
+function Example() {
+  const opened = useSignal<boolean>(false);
+  const range = useSignal<string>('');
+  const from = useSignal<string>('');
+  const to = useSignal<string>('');
+
+  const formatDate = (date: Date) => formatISO(date, { representation: 'date' });
+
+  const presets = [
+    { label: 'Today', value: 'today' },
+    { label: 'Last week', value: 'last-week' },
+    { label: 'Last month', value: 'last-month' },
+    { label: 'Year to date', value: 'year-to-date' },
+    { label: 'Last year', value: 'last-year' },
+    { label: 'Past 5 years', value: 'past-5-years' },
+  ];
+
+  const onPresetChange = (event: SelectChangeEvent) => {
+    range.value = event.target.value;
+    to.value = formatDate(new Date());
+
+    switch (event.target.value) {
+      case 'today':
+        from.value = formatDate(new Date());
+        break;
+      case 'last-week':
+        from.value = formatDate(subWeeks(new Date(), 1));
+        break;
+      case 'last-month':
+        from.value = formatDate(subMonths(new Date(), 1));
+        break;
+      case 'year-to-date':
+        from.value = formatDate(new Date(new Date().getFullYear(), 0, 1));
+        break;
+      case 'last-year':
+        from.value = formatDate(subYears(new Date(), 1));
+        break;
+      case 'past-5-years':
+        from.value = formatDate(subYears(new Date(), 5));
+        break;
+      default:
+      // Do nothing
+    }
+
+    opened.value = false;
+  };
+
+  return (
+    <>
+      <TextField
+        id="range-field"
+        label="Search date range"
+        value={from.value && to.value ? `${from.value} − ${to.value}` : ''}
+        style={{ width: '340px' }}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') {
+            opened.value = true;
+          }
+        }}
+      >
+        <Icon slot="suffix" icon="lumo:dropdown" />
+      </TextField>
+      {/* tag::snippet[] */}
+      <Popover
+        for="range-field"
+        modal
+        width="340px"
+        position="bottom-start"
+        aria-label="Select a date range"
+        opened={opened.value}
+        onOpenedChanged={(e) => {
+          if (e.detail.value) {
+            opened.value = true;
+          }
+        }}
+        onClosed={() => {
+          opened.value = false;
+        }}
+      >
+        <Select
+          label="Common ranges"
+          placeholder="Select preset"
+          items={presets}
+          value={range.value}
+          style={{ width: '100%' }}
+          onChange={onPresetChange}
+        />
+        <HorizontalLayout style={{ alignItems: 'baseline', gap: 'var(--vaadin-gap-s)' }}>
+          <DatePicker
+            label="From"
+            value={from.value}
+            style={{ width: '150px' }}
+            onChange={(event) => {
+              range.value = '';
+              from.value = event.target.value;
+            }}
+          />
+          <div>−</div>
+          <DatePicker
+            label="To"
+            value={to.value}
+            style={{ width: '150px' }}
+            onChange={(event) => {
+              range.value = '';
+              to.value = event.target.value;
+            }}
+          />
+        </HorizontalLayout>
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: popover-dropdown-field.ts]
+import '@vaadin/date-picker';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/popover';
+import '@vaadin/select';
+import '@vaadin/text-field';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { formatISO, subMonths, subWeeks, subYears } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { DatePickerChangeEvent } from '@vaadin/date-picker';
+import type { SelectChangeEvent } from '@vaadin/select';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-dropdown-field')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  range = '';
+
+  @state()
+  from = '';
+
+  @state()
+  to = '';
+
+  @state()
+  opened = false;
+
+  @state()
+  presets = [
+    { label: 'Today', value: 'today' },
+    { label: 'Last week', value: 'last-week' },
+    { label: 'Last month', value: 'last-month' },
+    { label: 'Year to date', value: 'year-to-date' },
+    { label: 'Last year', value: 'last-year' },
+    { label: 'Past 5 years', value: 'past-5-years' },
+  ];
+
+  protected override render() {
+    return html`
+      <vaadin-text-field
+        id="range-field"
+        label="Search date range"
+        style="width: 340px"
+        .value="${this.from && this.to ? `${this.from} − ${this.to}` : ''}"
+        @keydown="${this.onKeyDown}"
+      >
+        <vaadin-icon icon="lumo:dropdown" slot="suffix"></vaadin-icon>
+      </vaadin-text-field>
+      <!-- tag::snippet[] -->
+      <vaadin-popover
+        for="range-field"
+        modal
+        width="340px"
+        position="bottom-start"
+        aria-label="Select a date range"
+        .opened="${this.opened}"
+        @closed="${this.onClosed}"
+      >
+        <vaadin-select
+          label="Common ranges"
+          .items="${this.presets}"
+          placeholder="Select preset"
+          style="width: 100%"
+          .value="${this.range}"
+          @change="${this.onRangeChange}"
+        ></vaadin-select>
+        <vaadin-horizontal-layout style="align-items: baseline; gap: var(--vaadin-gap-s);">
+          <vaadin-date-picker
+            label="From"
+            style="width: 150px"
+            .value="${this.from}"
+            @change="${this.onFromChange}"
+          ></vaadin-date-picker>
+          <div>−</div>
+          <vaadin-date-picker
+            label="To"
+            style="width: 150px"
+            .value="${this.to}"
+            @change="${this.onToChange}"
+          ></vaadin-date-picker>
+        </vaadin-horizontal-layout>
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'ArrowDown') {
+      this.opened = true;
+    }
+  }
+
+  onFromChange(event: DatePickerChangeEvent) {
+    this.range = '';
+    this.from = event.target.value;
+  }
+
+  onToChange(event: DatePickerChangeEvent) {
+    this.range = '';
+    this.to = event.target.value;
+  }
+
+  onClosed() {
+    this.opened = false;
+  }
+
+  onRangeChange(event: SelectChangeEvent) {
+    this.range = event.target.value;
+    this.to = this.formatDate(new Date());
+
+    switch (event.target.value) {
+      case 'today':
+        this.from = this.formatDate(new Date());
+        break;
+      case 'last-week':
+        this.from = this.formatDate(subWeeks(new Date(), 1));
+        break;
+      case 'last-month':
+        this.from = this.formatDate(subMonths(new Date(), 1));
+        break;
+      case 'year-to-date':
+        this.from = this.formatDate(new Date(new Date().getFullYear(), 0, 1));
+        break;
+      case 'last-year':
+        this.from = this.formatDate(subYears(new Date(), 1));
+        break;
+      case 'past-5-years':
+        this.from = this.formatDate(subYears(new Date(), 5));
+        break;
+      default:
+      // Do nothing
+    }
+
+    this.opened = false;
+  }
+
+  formatDate(date: Date) {
+    return formatISO(date, { representation: 'date' });
+  }
+}
+
+- Opens on click, focus
+- Closes on Esc, blur, outside click, target click, and programmatically upon selection
+- Modal, no modality curtain (drop-down fields typically don’t have curtains)
+- Auto-focused
+- ARIA role dialog
+- ARIA label “Select a date range”
+
+User Menu
+
+[Flow: PopoverUserMenu.java]
+package com.vaadin.demo.component.popover;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-user-menu")
+public class PopoverUserMenu extends HorizontalLayout {
+
+    private Person person = DataService.getPeople(1).get(0);
+
+    public PopoverUserMenu() {
+        setSpacing(false);
+        getStyle().set("background", "var(--vaadin-background-container)");
+
+        // tag::snippet[]
+        String name = person.getFirstName() + " " + person.getLastName();
+        String pictureUrl = person.getPictureUrl();
+
+        Avatar avatar = new Avatar(name);
+        avatar.setImage(pictureUrl);
+        avatar.getStyle().set("display", "block");
+        avatar.getStyle().set("cursor", "var(--vaadin-clickable-cursor)");
+        avatar.getElement().setAttribute("tabindex", "-1");
+
+        Button button = new Button(avatar);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                ButtonVariant.TERTIARY);
+        button.getStyle().set("margin", "var(--vaadin-gap-s)");
+        button.getStyle().set("margin-inline-start", "auto");
+        button.getStyle().set("padding", "0");
+        button.getStyle().set("border-radius", "50%");
+
+        Popover popover = new Popover();
+        popover.setModal(true);
+        popover.setRole("menu");
+        popover.setAriaLabel("User menu");
+        popover.setTarget(button);
+        popover.setPosition(PopoverPosition.BOTTOM_END);
+        popover.addThemeVariants(PopoverVariant.NO_PADDING);
+        // end::snippet[]
+
+        Avatar userAvatar = new Avatar(person.getFullName(),
+                person.getPictureUrl());
+        Span userName = new Span(person.getFullName());
+        Span userHandle = new Span("@" + person.getFirstName().toLowerCase()
+                + person.getLastName().toLowerCase());
+        Div personItem = new Div(userAvatar, userName, userHandle);
+        personItem.addClassName("person-item");
+        personItem.getStyle().setPadding("var(--vaadin-padding-s");
+
+        VerticalLayout linksLayout = new VerticalLayout();
+        linksLayout.setSpacing(false);
+        linksLayout.setPadding(false);
+        linksLayout.setAlignItems(Alignment.STRETCH);
+        linksLayout.addClassName("userMenuLinks");
+        linksLayout.setWidthFull();
+
+        Anchor profile = new Anchor("#", "User profile");
+        profile.getElement().setAttribute("role", "menuitem");
+
+        Anchor preferences = new Anchor("#", "Preferences");
+        preferences.getElement().setAttribute("role", "menuitem");
+
+        Anchor signOut = new Anchor("#", "Sign out");
+        signOut.getElement().setAttribute("role", "menuitem");
+
+        linksLayout.add(profile, preferences, signOut);
+
+        popover.add(personItem, linksLayout);
+
+        add(button, popover);
+    }
+
+}
+
+[Flow: popover-user-menu.css]
+.userMenuLinks {
+  padding-bottom: var(--vaadin-padding-xs);
+  border-top: 1px solid var(--vaadin-border-color-secondary);
+
+  & a {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--vaadin-background-container);
+    }
+  }
+}
+
+[Flow: popover-user-menu.css]
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: popover-user-menu.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Avatar,
+  Button,
+  HorizontalLayout,
+  Popover,
+  VerticalLayout,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  const { firstName, lastName, pictureUrl } = person.value ?? {};
+  const nickName = `@${firstName}${lastName}`.toLowerCase();
+
+  return (
+    <>
+      <HorizontalLayout style={{ background: 'var(--vaadin-background-container)' }}>
+        <Button
+          id="avatar"
+          theme="icon tertiary"
+          style={{
+            margin: 'var(--vaadin-gap-s)',
+            marginInlineStart: 'auto',
+            borderRadius: '50%',
+            padding: 0,
+          }}
+        >
+          <Avatar
+            tabIndex={-1}
+            style={{ display: 'block', cursor: 'var(--vaadin-clickable-cursor)' }}
+            img={pictureUrl}
+            name={`${firstName} ${lastName}`}
+          />
+        </Button>
+      </HorizontalLayout>
+      {/* tag::snippet[] */}
+      <Popover
+        for="avatar"
+        position="bottom-end"
+        role="menu"
+        modal
+        aria-label="User menu"
+        theme="no-padding"
+      >
+        <div className="person-item" style={{ padding: 'var(--vaadin-padding-s)' }}>
+          <Avatar img={pictureUrl} name={`${firstName} ${lastName}`} />
+          <span>
+            {firstName} {lastName}
+          </span>
+          <span>{nickName}</span>
+        </div>
+        <VerticalLayout className="userMenuLinks" style={{ alignItems: 'stretch', width: '100%' }}>
+          <a href="#" role="menuitem">
+            User profile
+          </a>
+          <a href="#" role="menuitem">
+            Preferences
+          </a>
+          <a href="#" role="menuitem">
+            Sign out
+          </a>
+        </VerticalLayout>
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[React: popover-user-menu.css]
+.userMenuLinks {
+  padding-bottom: var(--vaadin-padding-xs);
+  border-top: 1px solid var(--vaadin-border-color-secondary);
+
+  & a {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--vaadin-background-container);
+    }
+  }
+}
+
+[React: popover-user-menu.css]
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: popover-user-menu.ts]
+import '@vaadin/avatar';
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/popover';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('popover-user-menu')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private person: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    // eslint-disable-next-line
+    this.person = people[0];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout style="background: var(--vaadin-background-container);">
+        <vaadin-button
+          id="avatar"
+          theme="icon tertiary"
+          style="margin: var(--vaadin-gap-s); margin-inline-start: auto; padding: 0; border-radius: 50%;"
+        >
+          <vaadin-avatar
+            tabindex="-1"
+            style="display: block; cursor: var(--vaadin-clickable-cursor);"
+            .img="${this.person?.pictureUrl}"
+            .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+          ></vaadin-avatar>
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+      <!-- tag::snippet[] -->
+      <vaadin-popover
+        for="avatar"
+        position="bottom-end"
+        modal
+        role="menu"
+        aria-label="User menu"
+        theme="no-padding"
+      >
+        ${this.renderUserMenu(this.person)}
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderUserMenu(person?: Person) {
+    const { firstName, lastName, pictureUrl } = person ?? {};
+    const nickName = `@${firstName}${lastName}`.toLowerCase();
+
+    return html`
+      <div class="person-item" style="padding: var(--vaadin-padding-s);">
+        <vaadin-avatar .img="${pictureUrl}" .name="${`${firstName} ${lastName}`}"></vaadin-avatar>
+        <span>${firstName} ${lastName}</span>
+        <span>${nickName}</span>
+      </div>
+      <vaadin-vertical-layout class="userMenuLinks" style="align-items:stretch; width:100%;">
+        <a href="#" role="menuitem">User profile</a>
+        <a href="#" role="menuitem">Preferences</a>
+        <a href="#" role="menuitem">Sign out</a>
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+[Lit: popover-user-menu.css]
+.userMenuLinks {
+  padding-bottom: var(--vaadin-padding-xs);
+  border-top: 1px solid var(--vaadin-border-color-secondary);
+
+  & a {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--vaadin-background-container);
+    }
+  }
+}
+
+[Lit: popover-user-menu.css]
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+- Opens on click
+- Closes on Esc, outside click, target click
+- Modal, no modality curtain (small popovers like this usually don’t need them)
+- ARIA role menu (the overlay’s content is a menu; although there are non-list elements, they are not interactive, nor do they need to be announced by screen readers)
+- ARIA label “User menu”
+
+Note: if the popover only needs to contain menu items, consider using a Menu Bar or Context Menu instead.
+
+Notification Panel
+
+[Flow: PopoverNotificationPanel.java]
+package com.vaadin.demo.component.popover;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.List;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.tabs.TabSheetVariant;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-notification-panel")
+public class PopoverNotificationPanel extends Div {
+
+    public PopoverNotificationPanel() {
+        Button button = new Button(LumoIcon.BELL.create());
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.setAriaLabel("Notifications");
+
+        // tag::snippet[]
+        Popover popover = new Popover();
+        popover.setTarget(button);
+        popover.setWidth("300px");
+        popover.addThemeVariants(PopoverVariant.ARROW,
+                PopoverVariant.NO_PADDING);
+        popover.setPosition(PopoverPosition.BOTTOM);
+        popover.setModal(true);
+        popover.setAriaLabelledBy("notifications-heading");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople(5);
+
+        MessageList unreadList = new MessageList();
+
+        MessageList allList = new MessageList();
+
+        MessageListItem message1 = new MessageListItem(
+                "Could you send me the latest TPS report from the ACME project?",
+                minutesAgo(20), people.get(0).getFullName(),
+                people.get(0).getPictureUrl());
+
+        MessageListItem message2 = new MessageListItem(
+                "Hey, are we on track for the trade show next month?",
+                minutesAgo(30), people.get(1).getFullName(),
+                people.get(1).getPictureUrl());
+
+        MessageListItem message3 = new MessageListItem(
+                "TPS reports look good! I'm going to pass it on to Alliyah next.",
+                minutesAgo(35), people.get(2).getFullName(),
+                people.get(2).getPictureUrl());
+
+        MessageListItem message4 = new MessageListItem(
+                "Hi, are you going to attend the brainstorming session tomorrow?",
+                minutesAgo(55), people.get(3).getFullName(),
+                people.get(3).getPictureUrl());
+
+        unreadList.setItems(Arrays.asList(message1, message2, message3));
+        allList.setItems(Arrays.asList(message1, message2, message3, message4));
+
+        TabSheet tabSheet = new TabSheet();
+        // Add style variants for Lumo theme
+        tabSheet.addThemeVariants(TabSheetVariant.LUMO_TABS_SMALL,
+                TabSheetVariant.LUMO_NO_PADDING);
+        // Add style variants for Aura theme
+        tabSheet.addThemeVariants(TabSheetVariant.AURA_NO_PADDING,
+                TabSheetVariant.AURA_NO_BORDER);
+
+        tabSheet.addClassName("notifications");
+
+        Div unreadContent = new Div();
+        unreadContent.add(unreadList);
+
+        tabSheet.add("Unread", unreadContent);
+        tabSheet.add("All", new Div(allList));
+
+        H4 heading = new H4("Notifications");
+        heading.setId("notifications-heading");
+
+        Button markRead = new Button("Mark all read", (e) -> {
+            unreadContent.removeAll();
+            unreadContent.add(new Div("No new notifications") {
+                {
+                    this.addClassName("no-notifications-msg");
+                }
+            });
+        });
+        markRead.addThemeVariants(ButtonVariant.SMALL);
+
+        HorizontalLayout layout = new HorizontalLayout(heading);
+        layout.addToEnd(markRead);
+        layout.setSpacing(false);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.getStyle().set("padding",
+                "var(--vaadin-padding-l) var(--vaadin-padding-l) var(--vaadin-padding-s)");
+
+        popover.add(layout, tabSheet);
+
+        add(button, popover);
+    }
+
+    private Instant minutesAgo(int minutes) {
+        return LocalDateTime.now(ZoneOffset.UTC).minusMinutes(minutes)
+                .toInstant(ZoneOffset.UTC);
+    }
+
+}
+
+[Flow: popover-notification-panel.css]
+#notifications-heading {
+  font-size: 1.125rem;
+}
+
+vaadin-tabsheet.notifications {
+  max-height: 350px;
+
+  & vaadin-message-list {
+    & vaadin-message {
+      padding: var(--vaadin-padding-s) 0 var(--vaadin-padding-l);
+      margin: 0 var(--vaadin-padding-l);
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--vaadin-border-color-secondary);
+
+      &::part(name) {
+        font-weight: 600;
+        margin-right: auto;
+      }
+      &::part(time) {
+        font-size: 0.75rem;
+      }
+      &::part(message) {
+        font-size: 0.875rem;
+        line-height: 1.25;
+        color: var(--vaadin-text-color-secondary);
+      }
+    }
+  }
+
+  .no-notifications-msg {
+    padding: var(--vaadin-padding-l);
+    color: var(--vaadin-text-color-secondary);
+  }
+}
+
+[Flow: popover-notification-panel.css]
+
+[React: popover-notification-panel.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import React, { useEffect } from 'react';
+import { format, subMinutes } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Button,
+  HorizontalLayout,
+  Icon,
+  MessageList,
+  type MessageListItem,
+  Popover,
+  TabSheet,
+  TabSheetTab,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+function Example() {
+  const unreadNotifications = useSignal<MessageListItem[]>([]);
+  const allNotifications = useSignal<MessageListItem[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 4 }).then(({ people }) => {
+      unreadNotifications.value = [
+        {
+          userName: `${people[0].firstName} ${people[0].lastName}`,
+          userImg: people[0].pictureUrl,
+          time: format(subMinutes(new Date(), 20), 'HH:mm'),
+          text: 'Could you send me the latest TPS report from the ACME project?',
+        },
+        {
+          userName: `${people[1].firstName} ${people[1].lastName}`,
+          userImg: people[1].pictureUrl,
+          time: format(subMinutes(new Date(), 30), 'HH:mm'),
+          text: 'Hey, are we on track for the trade show next month?',
+        },
+        {
+          userName: `${people[2].firstName} ${people[2].lastName}`,
+          userImg: people[2].pictureUrl,
+          time: format(subMinutes(new Date(), 35), 'HH:mm'),
+          text: `TPS reports look good! I'm going to pass it on to Alliyah next.`,
+        },
+      ];
+
+      allNotifications.value = [
+        ...unreadNotifications.value,
+        {
+          userName: `${people[3].firstName} ${people[3].lastName}`,
+          userImg: people[3].pictureUrl,
+          time: format(subMinutes(new Date(), 55), 'HH:mm'),
+          text: 'Hi, are you going to attend the brainstorming session tomorrow?',
+        },
+      ];
+    });
+  }, []);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Button id="show-notifications" aria-label="Notifications" theme="icon">
+        <Icon icon="lumo:bell" />
+      </Button>
+      <Popover
+        for="show-notifications"
+        theme="arrow no-padding"
+        modal
+        position="bottom"
+        width="300px"
+        aria-labelledby="notifications-heading"
+      >
+        <HorizontalLayout
+          style={{
+            alignItems: 'center',
+            padding: 'var(--vaadin-padding-l) var(--vaadin-padding-l) var(--vaadin-padding-s)',
+          }}
+        >
+          <h4 id="notifications-heading">
+            Notifications
+          </h4>
+          <Button
+            slot="end"
+            theme="small"
+            onClick={() => {
+              unreadNotifications.value = [];
+            }}
+          >
+            Mark all read
+          </Button>
+        </HorizontalLayout>
+        <TabSheet theme="small no-padding no-border" className="notifications">
+          <TabSheetTab label="Unread">
+            {unreadNotifications.value.length ? (
+              <MessageList items={unreadNotifications.value} />
+            ) : (
+              <div className="no-notifications-msg">No new notifications</div>
+            )}
+          </TabSheetTab>
+          <TabSheetTab label="All">
+            <MessageList items={allNotifications.value} />
+          </TabSheetTab>
+        </TabSheet>
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[React: popover-notification-panel.css]
+#notifications-heading {
+  font-size: 1.125rem;
+}
+
+vaadin-tabsheet.notifications {
+  max-height: 350px;
+
+  & vaadin-message-list {
+    & vaadin-message {
+      padding: var(--vaadin-padding-s) 0 var(--vaadin-padding-l);
+      margin: 0 var(--vaadin-padding-l);
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--vaadin-border-color-secondary);
+
+      &::part(name) {
+        font-weight: 600;
+        margin-right: auto;
+      }
+      &::part(time) {
+        font-size: 0.75rem;
+      }
+      &::part(message) {
+        font-size: 0.875rem;
+        line-height: 1.25;
+        color: var(--vaadin-text-color-secondary);
+      }
+    }
+  }
+
+  .no-notifications-msg {
+    padding: var(--vaadin-padding-l);
+    color: var(--vaadin-text-color-secondary);
+  }
+}
+
+[React: popover-notification-panel.css]
+
+[Lit: popover-notification-panel.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/message-list';
+import '@vaadin/popover';
+import '@vaadin/tabsheet';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { format, subMinutes } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MessageListItem } from '@vaadin/message-list';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-notifications-panel')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  allNotifications: MessageListItem[] = [];
+
+  @state()
+  unreadNotifications: MessageListItem[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 4 });
+
+    this.unreadNotifications = [
+      {
+        userName: `${people[0].firstName} ${people[0].lastName}`,
+        userImg: people[0].pictureUrl,
+        time: format(subMinutes(new Date(), 20), 'HH:mm'),
+        text: 'Could you send me the latest TPS report from the ACME project?',
+      },
+      {
+        userName: `${people[1].firstName} ${people[1].lastName}`,
+        userImg: people[1].pictureUrl,
+        time: format(subMinutes(new Date(), 30), 'HH:mm'),
+        text: 'Hey, are we on track for the trade show next month?',
+      },
+      {
+        userName: `${people[2].firstName} ${people[2].lastName}`,
+        userImg: people[2].pictureUrl,
+        time: format(subMinutes(new Date(), 35), 'HH:mm'),
+        text: `TPS reports look good! I'm going to pass it on to Alliyah next.`,
+      },
+    ];
+    this.allNotifications = [
+      ...this.unreadNotifications,
+      {
+        userName: `${people[3].firstName} ${people[3].lastName}`,
+        userImg: people[3].pictureUrl,
+        time: format(subMinutes(new Date(), 55), 'HH:mm'),
+        text: 'Hi, are you going to attend the brainstorming session tomorrow?',
+      },
+    ];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button id="show-notifications" aria-label="Notifications" theme="icon">
+        <vaadin-icon icon="lumo:bell"></vaadin-icon>
+      </vaadin-button>
+      <!-- tag::snippet[] -->
+      <vaadin-popover
+        for="show-notifications"
+        theme="arrow no-padding"
+        modal
+        aria-labelledby="notifications-heading"
+        width="300px"
+        position="bottom"
+      >
+        ${this.renderNotifications(this.unreadNotifications, this.allNotifications)}
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderNotifications(unread: MessageListItem[], all: MessageListItem[]) {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; padding: var(--vaadin-padding-l) var(--vaadin-padding-l) var(--vaadin-padding-s)"
+      >
+        <h4 id="notifications-heading">Notifications</h4>
+        <vaadin-button slot="end" theme="small" @click="${this.markAllRead}">
+          Mark all read
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+      <vaadin-tabsheet class="notifications" theme="small no-padding no-border">
+        <vaadin-tabs slot="tabs">
+          <vaadin-tab id="unread-tab">Unread</vaadin-tab>
+          <vaadin-tab id="all-tab">All</vaadin-tab>
+        </vaadin-tabs>
+        <div tab="unread-tab">
+          ${unread.length
+            ? html`<vaadin-message-list .items="${unread}"></vaadin-message-list>`
+            : html`<div class="no-notifications-msg">No unread notifications</div>`}
+        </div>
+        <div tab="all-tab">
+          <vaadin-message-list .items="${all}"></vaadin-message-list>
+        </div>
+      </vaadin-tabsheet>
+    `;
+  }
+
+  markAllRead() {
+    this.unreadNotifications = [];
+  }
+}
+
+[Lit: popover-notification-panel.css]
+#notifications-heading {
+  font-size: 1.125rem;
+}
+
+vaadin-tabsheet.notifications {
+  max-height: 350px;
+
+  & vaadin-message-list {
+    & vaadin-message {
+      padding: var(--vaadin-padding-s) 0 var(--vaadin-padding-l);
+      margin: 0 var(--vaadin-padding-l);
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--vaadin-border-color-secondary);
+
+      &::part(name) {
+        font-weight: 600;
+        margin-right: auto;
+      }
+      &::part(time) {
+        font-size: 0.75rem;
+      }
+      &::part(message) {
+        font-size: 0.875rem;
+        line-height: 1.25;
+        color: var(--vaadin-text-color-secondary);
+      }
+    }
+  }
+
+  .no-notifications-msg {
+    padding: var(--vaadin-padding-l);
+    color: var(--vaadin-text-color-secondary);
+  }
+}
+
+[Lit: popover-notification-panel.css]
+
+- Opens on click
+- Closes on Esc, outside click, target click
+- Modal, no modality curtain (small popovers like this usually don’t need them)
+- ARIA role dialog (although mainly a list, there interactive non-list elements as well)
+- ARIA labelled-by pointing to heading in the popover
+- Arrow variant
+
+Rich, Interactive Tooltip
+
+[Flow: PopoverInteractiveTooltip.java]
+package com.vaadin.demo.component.popover;
+
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.AnchorTarget;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-interactive-tooltip")
+public class PopoverInteractiveTooltip extends Div {
+
+    public PopoverInteractiveTooltip() {
+        // tag::snippet[]
+        IntegerField cvv = new IntegerField("CVV");
+        cvv.setWidth("60px");
+
+        Popover popover = new Popover();
+        popover.addThemeVariants(PopoverVariant.ARROW);
+        popover.setPosition(PopoverPosition.TOP);
+        popover.setOpenOnClick(false);
+        popover.setOpenOnHover(true);
+        popover.setOpenOnFocus(true);
+
+        H3 header = new H3("Card Verification Value");
+        header.setId("cvv-heading");
+        header.getStyle().set("margin", "0");
+        header.getStyle().set("font-size", "1rem");
+
+        Div content = new Div(
+                "A three or four digit code, usually printed on the back of the card, "
+                        + "next to, or at the end of, the signature strip.");
+        content.getStyle().set("max-width", "300px");
+
+        Anchor link = new Anchor("https://www.cvvnumber.com/cvv.html",
+                "See where to find CVV on different cards", AnchorTarget.BLANK);
+
+        popover.add(header, content, link);
+        popover.setAriaLabelledBy("cvv-heading");
+        popover.setTarget(cvv);
+
+        add(cvv, popover);
+        // end::snippet[]
+    }
+
+}
+
+[React: popover-interactive-tooltip.tsx]
+import React from 'react';
+import { IntegerField, Popover } from '@vaadin/react-components';
+
+function Example() {
+  // tag::snippet[]
+  return (
+    <>
+      <IntegerField id="cvv-field" label="CVV" style={{ width: '60px' }} />
+      <Popover
+        for="cvv-field"
+        position="top"
+        trigger={['hover', 'focus']}
+        aria-labelledby="cvv-heading"
+        theme="arrow"
+      >
+        <h3 id="cvv-heading" style={{ margin: 0, fontSize: '1rem' }}>
+          Card Verification Value
+        </h3>
+        <div style={{ maxWidth: '300px' }}>
+          A three or four digit code, usually printed on the back of the card, next to, or at the
+          end of, the signature strip.
+        </div>
+        <a href="https://www.cvvnumber.com/cvv.html" target="_blank">
+          See where to find CVV on different cards
+        </a>
+      </Popover>
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: popover-interactive-tooltip.ts]
+import '@vaadin/button';
+import '@vaadin/integer-field';
+import '@vaadin/popover';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { PopoverTrigger } from '@vaadin/popover';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('popover-interactive-tooltip')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  trigger: PopoverTrigger[] = ['hover', 'focus'];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-integer-field id="cvv-field" label="CVV" style="width: 60px"></vaadin-integer-field>
+      <vaadin-popover
+        for="cvv-field"
+        .trigger="${this.trigger}"
+        position="top"
+        theme="arrow"
+        aria-labelledby="cvv-heading"
+      >
+        <h3 id="cvv-heading" style="margin: 0; font-size: 1rem">Card Verification Value</h3>
+        <div style="max-width: 300px">
+          A three or four digit code, usually printed on the back of the card, next to, or at the
+          end of, the signature strip.
+        </div>
+        <a href="https://www.cvvnumber.com/cvv.html" target="_blank">
+          See where to find CVV on different cards
+        </a>
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+- Opens on hover, focus
+- Closes on Esc, outside click (as well as mouseout and blur)
+- Non-modal
+- Not auto-focused
+- ARIA role dialog (tooltip would be invalid due to interactive contents)
+- ARIA labelled-by pointing to heading in the popover
+- Positioned above target
+- Arrow variant
+
+Anchored Modal Dialog
+
+[Flow: PopoverAnchoredDialog.java]
+package com.vaadin.demo.component.popover;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-anchored-dialog")
+public class PopoverAnchoredDialog extends Div {
+
+    public PopoverAnchoredDialog() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setKey("firstName")
+                .setHeader("First name");
+        grid.addColumn(Person::getLastName).setKey("lastName")
+                .setHeader("Last name");
+        grid.addColumn(Person::getEmail).setKey("email").setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone()).setKey("phone")
+                .setHeader("Phone");
+        grid.addColumn(new LocalDateRenderer<>(
+                PopoverAnchoredDialog::getPersonBirthday, "yyyy-MM-dd"))
+                .setKey("birthday").setHeader("Birthday");
+        grid.addColumn(Person::getProfession).setKey("profession")
+                .setHeader("Profession");
+
+        grid.getStyle().set("margin-top", "var(--vaadin-gap-s)");
+        grid.setItems(DataService.getPeople());
+
+        H3 title = new H3("Employees");
+
+        Button button = new Button(VaadinIcon.GRID_H.create());
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.setAriaLabel("Show / hide columns");
+
+        HorizontalLayout headerLayout = new HorizontalLayout(title);
+        headerLayout.addToEnd(button);
+        headerLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        // tag::snippet[]
+        Popover popover = new Popover();
+        popover.setModal(true);
+        popover.setBackdropVisible(true);
+        popover.setPosition(PopoverPosition.BOTTOM_END);
+        popover.setTarget(button);
+
+        Div heading = new Div("Configure columns");
+        heading.getStyle().set("font-weight", "600");
+
+        List<String> columns = List.of("firstName", "lastName", "email",
+                "phone", "birthday", "profession");
+
+        CheckboxGroup<String> group = new CheckboxGroup<>();
+        group.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+        group.getStyle().set("padding", "0").set("margin",
+                "var(--vaadin-gap-s) 0");
+        group.setItems(columns);
+        group.setItemLabelGenerator((item) -> {
+            String label = StringUtils
+                    .join(StringUtils.splitByCharacterTypeCamelCase(item), " ");
+            return StringUtils.capitalize(label.toLowerCase());
+        });
+        group.addValueChangeListener((e) -> {
+            columns.stream().forEach((key) -> {
+                grid.getColumnByKey(key).setVisible(e.getValue().contains(key));
+            });
+        });
+
+        Set<String> defaultColumns = Set.of("firstName", "lastName", "email",
+                "profession");
+        group.setValue(defaultColumns);
+
+        Button showAll = new Button("Show all", (e) -> {
+            group.setValue(new HashSet<String>(columns));
+        });
+        showAll.addThemeVariants(ButtonVariant.SMALL);
+
+        Button reset = new Button("Reset", (e) -> {
+            group.setValue(defaultColumns);
+        });
+        reset.addThemeVariants(ButtonVariant.SMALL);
+
+        HorizontalLayout footer = new HorizontalLayout(showAll, reset);
+        footer.setSpacing("var(--vaadin-gap-xs)");
+        footer.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+        popover.add(heading, group, footer);
+        // end::snippet[]
+
+        add(headerLayout, grid, popover);
+    }
+
+    private static LocalDate getPersonBirthday(Person person) {
+        return person.getBirthday().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+}
+
+[React: popover-anchored-dialog.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Button,
+  Checkbox,
+  CheckboxGroup,
+  Grid,
+  GridColumn,
+  HorizontalLayout,
+  Icon,
+  Popover,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type ColumnConfig = { label: string; key: string; visible: boolean };
+
+const DEFAULT_COLUMNS: ColumnConfig[] = [
+  { label: 'First name', key: 'firstName', visible: true },
+  { label: 'Last name', key: 'lastName', visible: true },
+  { label: 'Email', key: 'email', visible: true },
+  { label: 'Phone', key: 'address.phone', visible: false },
+  { label: 'Birthday', key: 'birthday', visible: false },
+  { label: 'Profession', key: 'profession', visible: true },
+];
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const columns = useSignal<ColumnConfig[]>([...DEFAULT_COLUMNS]);
+  const visibleColumns = useComputed(() =>
+    columns.value.filter((column) => column.visible).map((column) => column.key)
+  );
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <>
+      <HorizontalLayout style={{ alignItems: 'baseline' }}>
+        <h3>Employees</h3>
+        <Button id="toggle-columns" slot="end" theme="icon" aria-label="Show / hide columns">
+          <Icon icon="vaadin:grid-h" />
+        </Button>
+      </HorizontalLayout>
+
+      {/* tag::snippet[] */}
+      <Popover for="toggle-columns" modal withBackdrop position="bottom-end">
+        <div style={{ fontWeight: '600' }}>Configure columns</div>
+        <CheckboxGroup
+          theme="vertical"
+          value={visibleColumns.value}
+          style={{ padding: '0', margin: 'var(--vaadin-gap-s) 0' }}
+        >
+          {columns.value.map((item) => (
+            <Checkbox
+              label={item.label}
+              value={item.key}
+              onChange={(event) => {
+                const idx = columns.value.findIndex(({ key }) => key === event.target.value);
+                columns.value = columns.value.map((column, index) => ({
+                  ...column,
+                  visible: idx === index ? event.target.checked : column.visible,
+                }));
+              }}
+            />
+          ))}
+        </CheckboxGroup>
+        <HorizontalLayout style={{ justifyContent: 'space-between', gap: 'var(--vaadin-gap-s)' }}>
+          <Button
+            theme="small"
+            onClick={() => {
+              columns.value = columns.value.map((column) => ({ ...column, visible: true }));
+            }}
+          >
+            Show all
+          </Button>
+          <Button
+            theme="small"
+            onClick={() => {
+              columns.value = columns.value.map((column, idx) => ({
+                ...column,
+                visible: DEFAULT_COLUMNS[idx].visible,
+              }));
+            }}
+          >
+            Reset
+          </Button>
+        </HorizontalLayout>
+      </Popover>
+      {/* end::snippet[] */}
+
+      <Grid items={items.value} style={{ marginTop: 'var(--vaadin-gap-s)' }}>
+        {columns.value.map((item) => (
+          <GridColumn path={item.key} hidden={!item.visible} key={item.key} />
+        ))}
+      </Grid>
+    </>
+  );
+}
+
+[Lit: popover-anchored-dialog.ts]
+import '@vaadin/button';
+import '@vaadin/checkbox-group';
+import '@vaadin/grid';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/popover';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CheckboxChangeEvent } from '@vaadin/checkbox';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type ColumnConfig = { label: string; key: string; visible: boolean };
+
+const DEFAULT_COLUMNS = [
+  { label: 'First name', key: 'firstName', visible: true },
+  { label: 'Last name', key: 'lastName', visible: true },
+  { label: 'Email', key: 'email', visible: true },
+  { label: 'Phone', key: 'address.phone', visible: false },
+  { label: 'Birthday', key: 'birthday', visible: false },
+  { label: 'Profession', key: 'profession', visible: true },
+];
+
+@customElement('popover-anchored-dialog')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private gridColumns: ColumnConfig[] = [...DEFAULT_COLUMNS];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-horizontal-layout style="align-items: baseline">
+        <h3>Employees</h3>
+        <vaadin-button id="toggle-columns" slot="end" theme="icon" aria-label="Show / hide columns">
+          <vaadin-icon icon="vaadin:grid-h"></vaadin-icon>
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+
+      <vaadin-popover for="toggle-columns" modal with-backdrop position="bottom-end">
+        ${this.renderPopover(this.gridColumns)}
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+
+      <vaadin-grid .items="${this.items}" style="margin-top: var(--vaadin-gap-s);">
+        ${this.gridColumns.map(
+          (column) => html`
+            <vaadin-grid-column
+              path="${column.key}"
+              .hidden="${!column.visible}"
+            ></vaadin-grid-column>
+          `
+        )}
+      </vaadin-grid>
+    `;
+  }
+
+  // tag::snippet[]
+  renderPopover(columns: ColumnConfig[]) {
+    const visibleColumns = columns.filter((column) => column.visible).map((column) => column.key);
+
+    return html`
+      <div style="font-weight: 600;">Configure columns</div>
+      <vaadin-checkbox-group
+        theme="vertical"
+        .value="${visibleColumns}"
+        style="padding: 0; margin: var(--vaadin-gap-s) 0;"
+      >
+        ${columns.map(
+          (column) => html`
+            <vaadin-checkbox
+              .label="${column.label}"
+              .value="${column.key}"
+              @change="${this.onCheckboxChange}"
+            ></vaadin-checkbox>
+          `
+        )}
+      </vaadin-checkbox-group>
+      <vaadin-horizontal-layout style="justify-content: space-between; gap: var(--vaadin-gap-s);">
+        <vaadin-button theme="small" @click="${this.showAllColumns}">Show all</vaadin-button>
+        <vaadin-button theme="small" @click="${this.resetColumns}">Reset</vaadin-button>
+      </vaadin-horizontal-layout>
+    `;
+  }
+  // end::snippet[]
+
+  onCheckboxChange(event: CheckboxChangeEvent) {
+    const idx = this.gridColumns.findIndex(({ key }) => key === event.target.value);
+    this.gridColumns = this.gridColumns.map((column, index) => ({
+      ...column,
+      visible: idx === index ? event.target.checked : column.visible,
+    }));
+  }
+
+  showAllColumns() {
+    this.gridColumns = this.gridColumns.map((column) => ({ ...column, visible: true }));
+  }
+
+  resetColumns() {
+    this.gridColumns = this.gridColumns.map((column, idx) => ({
+      ...column,
+      visible: DEFAULT_COLUMNS[idx].visible,
+    }));
+  }
+}
+
+- Opens on click
+- Closes on Esc, outside click
+- Modal, with curtain
+- Auto-focused
+- ARIA role dialog
+- ARIA labelled-by pointing to heading in the popover
+
+Note: if the dialog doesn’t benefit from being anchored-positioned to another element, consider using a Dialog instead.
+
+Related Components
+
+Component | Usage Recommendation
+Dialog | Use instead of Popover if there is no need to visually associate it with another UI element. Modal dialogs are a better option for transactional operations. Modal dialogs provide full-stack modality (e.g. keyboard shortcuts defined in the UI behind are blocked while the Dialog is open)
+Tooltip | Use instead of Popover if the content is just text.
+Context Menu | Use instead of Popover if the content is a list of actions or toggles.
+Menu Bar | Same as Context Menu, but with built-in trigger buttons.

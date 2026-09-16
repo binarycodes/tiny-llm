@@ -1,0 +1,15 @@
+Import into NetBeans
+
+Learn how to import a Vaadin project into NetBeans using the Open Project option.
+
+To import a Vaadin project into NetBeans, click Open Project on the start screen.
+
+[image: NetBeans welcome screen]
+
+You can also select File › Open Project in the menu.
+
+Next, find the project directory. Check Trust Project Build Script, and click Open Project.
+
+[image: NetBeans open project dialog]
+
+Your project is now imported.

@@ -1,0 +1,305 @@
+Getting Started with Kubernetes Kit
+
+Step-by-step guide showing how to enable scalability, high availability, and non-disruptive rolling updates for your application using Kubernetes Kit.
+
+This tutorial guides you through setting up and deploying an application with Kubernetes Kit in a local Kubernetes cluster.
+
+Requirements
+
+This tutorial assumes that you have the following software installed on your local machine:
+
+- Docker Desktop
+- A local Kubernetes cluster such as minikube, kind, or Docker itself.
+
+Additionally, you’ll need to download a new Vaadin project from start.vaadin.com.
+
+Add Kubernetes Kit Dependency
+
+To get started, add Kubernetes Kit as a dependency to the project:
+
+[pom.xml]
+<dependency>
+  <groupId>com.vaadin</groupId>
+  <artifactId>kubernetes-kit-starter</artifactId>
+</dependency>
+
+Then add the following to the application configuration file:
+
+[application.properties]
+1
+vaadin.devmode.sessionSerialization.enabled=true
+2
+vaadin.serialization.transients.include-packages=com.example.application
+
+1. This property enables the session serialization debug tool during development.
+2. This property defines the classes which should be inspected for transient fields during session serialization. In this case, inspection is limited to classes within the starter project. For more information, see Session Replication.
+
+Session Replication Backend
+
+You don’t need to enable session replication if you only need rolling updates.
+
+High availability and the possibility to scale applications up and down in a cluster are enabled by storing session data in a backend that is accessible to the cluster. This tutorial uses Hazelcast for this purpose. However, Redis is also supported.
+
+You’ll need to add the Hazelcast dependency to the project:
+
+[pom.xml]
+<dependency>
+    <groupId>com.hazelcast</groupId>
+    <artifactId>hazelcast</artifactId>
+</dependency>
+
+Then add the following property to the application configuration file:
+
+[application.properties]
+vaadin.kubernetes.hazelcast.service-name=hazelcast-service
+
+Next, deploy the Hazelcast service to the cluster by running the following command:
+
+[terminal]
+kubectl apply -f https://raw.githubusercontent.com/hazelcast/hazelcast/master/kubernetes-rbac.yaml
+
+Note: Deploying to Another Namespace
+
+If you want to deploy to another namespace than default, you need to download the kubernetes-rbac.yaml file and edit the hard-coded namespace. Then deploy to your cluster like so:
+
+[terminal]
+kubectl apply -f path/to/custom/kubernetes-rbac.yaml
+
+Deploy a load balancer service to your cluster. Create the following Kubernetes manifest file:
+
+[hazelcast.yaml]
+apiVersion: v1
+kind: Service
+metadata:
+  name: hazelcast-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - name: hazelcast
+      port: 5701
+  type: LoadBalancer
+
+Then deploy the manifest to your cluster:
+
+[terminal]
+kubectl apply -f hazelcast.yaml
+
+Run the following command to see that the load balancer service is running:
+
+[terminal]
+kubectl get svc hazelcast-service
+
+You should see the following output (the IP number can be different):
+
+NAME                TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+hazelcast-service   LoadBalancer   10.96.178.190   <pending>     5701:31516/TCP   18h
+
+Build & Deploy the Application
+
+The next step is to build a container image of the application and deploy it to your Kubernetes cluster.
+
+To do this, clean the project and create a production build of the application:
+
+[terminal]
+mvn clean package
+
+Next, create the following Dockerfile file in the project directory:
+
+[Dockerfile]
+FROM eclipse-temurin:25-jre
+COPY target/*.jar /usr/app/app.jar
+RUN useradd -m myuser
+USER myuser
+EXPOSE 8080
+CMD java -jar /usr/app/app.jar
+
+Open a terminal to the project directory and use Docker to build a container image for the application. Tag it with version 1.0.0. Note the required period . at the end of the line:
+
+[terminal]
+docker build -t my-app:1.0.0 .
+
+Note: Image Not Found by Cluster
+
+Depending on the Kubernetes cluster you’re using, you may need to publish the image to a local registry or push the image to the cluster. Otherwise, the image will not be found. Refer to your cluster documentation for more information.
+
+If you’re using kind on a local machine, you need to load the image to the cluster like so:
+
+[terminal]
+kind load docker-image my-app:1.0.0
+
+In a production environment you can publish the image to a registry that is accessible by the cluster.
+
+Create a deployment manifest for the application:
+
+[app-v1.yaml]
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-v1
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: my-app
+      version: 1.0.0
+  template:
+    metadata:
+      labels:
+        app: my-app
+        version: 1.0.0
+    spec:
+      containers:
+        - name: my-app
+          image: my-app:1.0.0
+          # Sets the APP_VERSION environment variable for the container which is
+          # used during the version update to compare with the new version
+          env:
+            - name: APP_VERSION
+              value: 1.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: multicast
+              containerPort: 5701 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-v1
+spec:
+  selector:
+    app: my-app
+    version: 1.0.0
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+
+1. The multicast port 5701 is only used for session replication using Hazelcast.
+
+Now deploy the manifest to your cluster:
+
+[terminal]
+kubectl apply -f app-v1.yaml
+
+Run the following command to verify that you have four pods running:
+
+[terminal]
+kubectl get pods
+
+You should see output similar to the following:
+
+NAME                            READY   STATUS    RESTARTS      AGE
+my-app-v1-f87bfcbb4-5qjml       1/1     Running   0             22s
+my-app-v1-f87bfcbb4-czkzr       1/1     Running   0             22s
+my-app-v1-f87bfcbb4-gjqw6       1/1     Running   0             22s
+my-app-v1-f87bfcbb4-rxvjb       1/1     Running   0             22s
+
+Gateway
+
+To access the application from outside the cluster, you need to set up a gateway. This tutorial uses Envoy Gateway as the Gateway API implementation, which provides built-in support for session persistence — a requirement for Vaadin applications running with multiple replicas.
+
+Important: Ingress NGINX Retirement
+
+The Kubernetes community has announced that the Ingress NGINX controller is being retired, with best-effort maintenance only until March 2026. The Gateway API is the recommended replacement. This tutorial uses Envoy Gateway as the Gateway API implementation, but other implementations that support session persistence should also work.
+
+Install Envoy Gateway in your cluster using Helm:
+
+[terminal]
+helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.6.0 -n envoy-gateway-system --create-namespace
+
+Then create a gateway manifest:
+
+[gateway.yaml]
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public-gateway
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+
+Deploy it to your cluster:
+
+[terminal]
+kubectl apply -f gateway.yaml
+
+Next, create an HTTP route manifest to direct traffic to the application with cookie-based session persistence:
+
+[route-v1.yaml]
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+spec:
+  parentRefs:
+    - name: public-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: my-app-v1
+          port: 80
+      sessionPersistence:
+        sessionName: vaadin-session 1
+        type: Cookie
+
+1. The sessionName field sets the name of the session persistence cookie. Kubernetes Kit needs to know this name so it can remove the cookie when the user switches to a new version (see Rolling Updates). If sessionName is omitted, the gateway implementation generates an implementation-specific cookie name.
+
+Then add the following property to the application configuration to match the session cookie name:
+
+[application.properties]
+vaadin.kubernetes.sticky-session-cookie-name=vaadin-session
+
+Deploy the manifest to your cluster:
+
+[terminal]
+kubectl apply -f route-v1.yaml
+
+The application should now be available at localhost.
+
+Note: Accessing Application Locally
+
+To access the application from your local machine, it may be necessary to use the port-forward utility. First, find the Envoy proxy service:
+
+[terminal]
+export ENVOY_SERVICE=$(kubectl get svc -l gateway.envoyproxy.io/owning-gateway-name=public-gateway -o jsonpath='{.items[0].metadata.name}')
+
+Then forward a local port:
+
+[terminal]
+kubectl port-forward service/${ENVOY_SERVICE} 8080:80
+
+The application should now be available at localhost:8080.
+
+Scaling the Application
+
+You can use kubectl commands to increase or reduce the amount of pods used by the deployment. For example, the following command increases the number of pods to five:
+
+[terminal]
+kubectl scale deployment/my-app-v1 --replicas=5
+
+You can also simulate the failure of a specific pod by deleting it by name like so:
+
+[terminal]
+kubectl delete pod/<pod-name>
+
+Remember to substitute the name with your application pod’s name. You can see the names of all pods with the kubectl get pods command.
+
+If you’ve enabled session replication, this can be used to check that it’s performing as expected. If you open the application and then delete the pod to which it’s connected, you shouldn’t lose session data after the next user interaction.

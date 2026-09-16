@@ -1,0 +1,345 @@
+Details Styling
+
+Styling API reference for the Details component.
+
+Style Variants
+
+The following style variants are supported by Details:
+
+Variant | Description | Supported by
+filled | Makes the component’s boundaries visible | Aura, Lumo
+no-padding | Removes the padding from the content area | Aura
+small | Used for compact UIs | Aura, Lumo
+reverse | Places the toggle icon after the summary contents | Aura, Lumo
+
+Filled
+
+The filled variant makes the component’s boundaries visible, which helps tie its content together visually and distinguishes it from the surrounding UI.
+
+[Flow: DetailsFilled.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.router.Route;
+
+@Route("details-filled")
+public class DetailsFilled extends Div {
+
+    public DetailsFilled() {
+        // tag::snippet[]
+        UnorderedList content = new UnorderedList(new ListItem("Blake Martin"),
+                new ListItem("Caroline Clark"), new ListItem("Avery Torres"),
+                new ListItem("Khloe Scott"), new ListItem("Camila Fisher"),
+                new ListItem("Gavin Lewis"), new ListItem("Isabella Powell"),
+                new ListItem("Zoe Wilson"));
+
+        Details details = new Details("Members (8)", content);
+        details.setOpened(true);
+        details.addThemeVariants(DetailsVariant.FILLED);
+
+        add(details);
+        // end::snippet[]
+    }
+
+}
+
+[React: details-filled.tsx]
+import React from 'react';
+import { Details } from '@vaadin/react-components/Details.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Details summary="Members (8)" opened theme="filled">
+      <ul>
+        <li>Blake Martin</li>
+        <li>Caroline Clark</li>
+        <li>Avery Torres</li>
+        <li>Khloe Scott</li>
+        <li>Camila Fisher</li>
+        <li>Gavin Lewis</li>
+        <li>Isabella Powell</li>
+        <li>Zoe Wilson</li>
+      </ul>
+    </Details>
+    // end::snippet[]
+  );
+}
+
+[Lit: details-filled.ts]
+import '@vaadin/details';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('details-filled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details summary="Members (8)" opened theme="filled">
+        <ul>
+          <li>Blake Martin</li>
+          <li>Caroline Clark</li>
+          <li>Avery Torres</li>
+          <li>Khloe Scott</li>
+          <li>Camila Fisher</li>
+          <li>Gavin Lewis</li>
+          <li>Isabella Powell</li>
+          <li>Zoe Wilson</li>
+        </ul>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+Small
+
+Use the small variant for compact UIs.
+
+[Flow: DetailsSmall.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.router.Route;
+
+@Route("details-small")
+public class DetailsSmall extends Div {
+
+    public DetailsSmall() {
+        // tag::snippet[]
+        UnorderedList content = new UnorderedList(new ListItem("Blake Martin"),
+                new ListItem("Caroline Clark"), new ListItem("Avery Torres"),
+                new ListItem("Khloe Scott"), new ListItem("Camila Fisher"),
+                new ListItem("Gavin Lewis"), new ListItem("Isabella Powell"),
+                new ListItem("Zoe Wilson"));
+
+        Details details = new Details("Members (8)", content);
+        details.setOpened(true);
+        details.addThemeVariants(DetailsVariant.SMALL);
+
+        add(details);
+        // end::snippet[]
+    }
+
+}
+
+[React: details-small.tsx]
+import React from 'react';
+import { Details } from '@vaadin/react-components/Details.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Details summary="Members (8)" opened theme="small">
+      <ul>
+        <li>Blake Martin</li>
+        <li>Caroline Clark</li>
+        <li>Avery Torres</li>
+        <li>Khloe Scott</li>
+        <li>Camila Fisher</li>
+        <li>Gavin Lewis</li>
+        <li>Isabella Powell</li>
+        <li>Zoe Wilson</li>
+      </ul>
+    </Details>
+    // end::snippet[]
+  );
+}
+
+[Lit: details-small.ts]
+import '@vaadin/details';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('details-small')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details summary="Members (8)" opened theme="small">
+        <ul>
+          <li>Blake Martin</li>
+          <li>Caroline Clark</li>
+          <li>Avery Torres</li>
+          <li>Khloe Scott</li>
+          <li>Camila Fisher</li>
+          <li>Gavin Lewis</li>
+          <li>Isabella Powell</li>
+          <li>Zoe Wilson</li>
+        </ul>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+Reverse
+
+The reverse variant places the toggle icon after the summary contents, which can be useful for visually aligning the summary with other content.
+
+[Flow: DetailsReverse.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.router.Route;
+
+@Route("details-reverse")
+public class DetailsReverse extends Div {
+
+    public DetailsReverse() {
+        // tag::snippet[]
+        UnorderedList content = new UnorderedList(new ListItem("Blake Martin"),
+                new ListItem("Caroline Clark"), new ListItem("Avery Torres"),
+                new ListItem("Khloe Scott"), new ListItem("Camila Fisher"),
+                new ListItem("Gavin Lewis"), new ListItem("Isabella Powell"),
+                new ListItem("Zoe Wilson"));
+
+        Details details = new Details("Members (8)", content);
+        details.setOpened(true);
+        details.addThemeVariants(DetailsVariant.REVERSE);
+
+        add(details);
+        // end::snippet[]
+    }
+
+}
+
+[React: details-reverse.tsx]
+import React from 'react';
+import { Details } from '@vaadin/react-components/Details.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Details summary="Members (8)" opened theme="reverse">
+      <ul>
+        <li>Blake Martin</li>
+        <li>Caroline Clark</li>
+        <li>Avery Torres</li>
+        <li>Khloe Scott</li>
+        <li>Camila Fisher</li>
+        <li>Gavin Lewis</li>
+        <li>Isabella Powell</li>
+        <li>Zoe Wilson</li>
+      </ul>
+    </Details>
+    // end::snippet[]
+  );
+}
+
+[Lit: details-reverse.ts]
+import '@vaadin/details';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('details-reverse')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details summary="Members (8)" opened theme="reverse">
+        <ul>
+          <li>Blake Martin</li>
+          <li>Caroline Clark</li>
+          <li>Avery Torres</li>
+          <li>Khloe Scott</li>
+          <li>Camila Fisher</li>
+          <li>Gavin Lewis</li>
+          <li>Isabella Powell</li>
+          <li>Zoe Wilson</li>
+        </ul>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-details-summary-background | Aura
+--vaadin-details-summary-border-color | Aura
+--vaadin-details-summary-border-radius | Aura
+--vaadin-details-summary-border-width | Aura
+--vaadin-details-summary-font-size | Aura
+--vaadin-details-summary-font-weight | Aura
+--vaadin-details-summary-gap | Aura
+--vaadin-details-summary-height | Aura
+--vaadin-details-summary-padding | Aura
+--vaadin-details-summary-text-color | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-details
+
+States
+
+Opened panel
+    vaadin-details[opened]
+Disabled panel
+    vaadin-details[disabled]
+
+Summary
+
+Panel header (a.k.a. summary)
+    vaadin-details-summary
+Toggle
+    vaadin-details-summary::part(toggle)
+Toggle icon
+    vaadin-details-summary::part(toggle)::before
+Summary content wrapper
+    vaadin-details-summary::part(content)
+Opened details summary
+    vaadin-details-summary[opened]
+Disabled details summary
+    vaadin-details-summary[disabled]
+
+Content
+
+Collapsible content wrapper
+    vaadin-details::part(content)

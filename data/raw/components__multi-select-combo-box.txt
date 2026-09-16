@@ -1,0 +1,1437 @@
+Multi-Select Combo Box
+
+Adding a combo box to a project for users to be able to make multiple selections.
+
+Multi-Select Combo Box allows the user to choose one or more values from a filterable list of options presented in an overlay. The component supports the same features as the regular Combo Box, such as lazy loading or allowing custom typed values. This page explains how to add this component to your project and how to configure it.
+
+[Flow: MultiSelectComboBoxBasic.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("multi-select-combo-box-basic")
+public class MultiSelectComboBoxBasic extends Div {
+
+    public MultiSelectComboBoxBasic() {
+        // tag::snippet[]
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        comboBox.setItems(DataService.getCountries());
+        comboBox.setItemLabelGenerator(Country::getName);
+        add(comboBox);
+        // end::snippet[]
+        comboBox.setWidth("300px");
+    }
+
+}
+
+[Flow: Country.java]
+package com.vaadin.demo.domain;
+
+import java.util.Objects;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Country {
+
+    @Nonnull
+    private String name;
+
+    @Nonnull
+    private String abbreviation;
+
+    @Nonnull
+    private Integer id;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Country)) {
+            return false;
+        }
+        Country other = (Country) obj;
+        return Objects.equals(id, other.id);
+    }
+}
+// end::snippet[]
+
+[React: multi-select-combo-box-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  return (
+    <MultiSelectComboBox
+      label="Countries"
+      itemLabelPath="name"
+      itemIdPath="id"
+      items={items.value}
+      style={{ width: '300px' }}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: multi-select-combo-box-basic.ts]
+import '@vaadin/multi-select-combo-box';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-basic')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-multi-select-combo-box {
+      width: 300px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-multi-select-combo-box
+        label="Countries"
+        item-label-path="name"
+        item-id-path="id"
+        .items="${this.items}"
+      ></vaadin-multi-select-combo-box>
+    `;
+  }
+  // end::snippet[]
+}
+
+[Lit: Country.ts]
+interface Country {
+    name: string;
+    abbreviation: string;
+    id: number;
+}
+export default Country;
+
+[Lit: Country.ts]
+
+The overlay opens when the user clicks the field using a pointing device. Using the Up and Downarrow keys, or typing a character — that occurs in at least one of the options — when the field is focused also opens the popup.
+
+Common Combo Box Features
+
+Multi-Select Combo Box supports the following features from the regular Combo Box. All the linked examples and code snippets can be applied by replacing the Combo Box with a Multi-Select Combo Box.
+
+- Custom Value Entry
+- Custom Item Presentation
+- Auto Open
+- Placeholder
+- Custom Filtering
+- Popup Width, using the --vaadin-multi-select-combo-box-overlay-width style, instead of --vaadin-combo-box-overlay-width
+
+Selection
+
+The component allows selecting multiple values, each of which is displayed as a chip inside the component. If there isn’t enough space in the component to display chips for all selected values, some values are collapsed into an overflow chip. The example below shows a Multi-Select Combo Box with multiple preselected values, some of which are collapsed into the overflow chip:
+
+[Flow: MultiSelectComboBoxSelection.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("multi-select-combo-box-selection")
+public class MultiSelectComboBoxSelection extends Div {
+
+    public MultiSelectComboBoxSelection() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        List<Country> countries = DataService.getCountries();
+        comboBox.setItems(countries);
+        // tag::snippet[]
+        comboBox.select(countries.subList(0, 4));
+        // end::snippet[]
+        comboBox.setItemLabelGenerator(Country::getName);
+        comboBox.setWidth("300px");
+        add(comboBox);
+    }
+
+}
+
+[Flow: Country.java]
+package com.vaadin.demo.domain;
+
+import java.util.Objects;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Country {
+
+    @Nonnull
+    private String name;
+
+    @Nonnull
+    private String abbreviation;
+
+    @Nonnull
+    private Integer id;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Country)) {
+            return false;
+        }
+        Country other = (Country) obj;
+        return Objects.equals(id, other.id);
+    }
+}
+// end::snippet[]
+
+[React: multi-select-combo-box-selection.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  const selectedItems = useComputed(() => items.value.slice(0, 4));
+
+  // tag::snippet[]
+  return (
+    <MultiSelectComboBox
+      label="Countries"
+      itemLabelPath="name"
+      itemIdPath="id"
+      items={items.value}
+      selectedItems={selectedItems.value}
+      style={{ width: '300px' }}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: multi-select-combo-box-selection.ts]
+import '@vaadin/multi-select-combo-box';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-selection')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-multi-select-combo-box {
+      width: 300px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-multi-select-combo-box
+        label="Countries"
+        item-label-path="name"
+        item-id-path="id"
+        .items="${this.items}"
+        .selectedItems="${this.items.slice(0, 4)}"
+      ></vaadin-multi-select-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+[Lit: Country.ts]
+interface Country {
+    name: string;
+    abbreviation: string;
+    id: number;
+}
+export default Country;
+
+[Lit: Country.ts]
+
+When the overlay is closed, items can be removed one by one (starting with the most recently selected item) using the Backspace key. The first Backspace press moves focus to the last chip; the second press removes that chip, and the corresponding item, from the selection.
+
+Note: Selection Uses equals() and hashCode()
+
+Multi-Select Combo Box matches selected values to its items using equals() and hashCode(), not reference identity. setValue(Set) and select() preselect only items that are equal to those given to setItems(). The Country class used here overrides both methods (based on its id), which is why the preselected chips appear.
+
+This matters for entity types: JPA entities that don’t override equals() and hashCode() won’t preselect, because freshly loaded instances aren’t equal to the option instances the component holds — so the chips silently don’t appear. Either override both methods (for example, based on the entity’s ID), or select the exact item instances the component already holds.
+
+Selection Change
+
+The following example demonstrates how to listen for selection changes:
+
+[Flow: MultiSelectComboBoxSelectionChange.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Route("multi-select-combo-box-selection-change")
+public class MultiSelectComboBoxSelectionChange extends Div {
+
+    public MultiSelectComboBoxSelectionChange() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        List<Country> countries = DataService.getCountries();
+        comboBox.setItems(countries);
+        comboBox.setItemLabelGenerator(Country::getName);
+
+        // tag::snippet[]
+        TextArea selectedCountries = new TextArea("Selected Countries");
+        selectedCountries.setReadOnly(true);
+
+        comboBox.addValueChangeListener(e -> {
+            String selectedCountriesText = e.getValue().stream()
+                    .map(Country::getName).collect(Collectors.joining(", "));
+
+            selectedCountries.setValue(selectedCountriesText);
+        });
+        // end::snippet[]
+
+        HorizontalLayout layout = new HorizontalLayout(comboBox,
+                selectedCountries);
+        layout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        add(layout);
+    }
+
+}
+
+[Flow: Country.java]
+package com.vaadin.demo.domain;
+
+import java.util.Objects;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Country {
+
+    @Nonnull
+    private String name;
+
+    @Nonnull
+    private String abbreviation;
+
+    @Nonnull
+    private Integer id;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    public void setAbbreviation(String abbreviation) {
+        this.abbreviation = abbreviation;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Country)) {
+            return false;
+        }
+        Country other = (Country) obj;
+        return Objects.equals(id, other.id);
+    }
+}
+// end::snippet[]
+
+[React: multi-select-combo-box-selection-change.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const selectedCountries = useSignal<Country[]>([]);
+  const selectedCountriesText = selectedCountries.value.map((country) => country.name).join(', ');
+
+  return (
+    <HorizontalLayout theme="spacing" style={{ alignItems: 'baseline' }}>
+      <MultiSelectComboBox
+        label="Countries"
+        itemLabelPath="name"
+        itemIdPath="id"
+        items={items.value}
+        selectedItems={selectedCountries.value}
+        onSelectedItemsChanged={(event) => {
+          selectedCountries.value = event.detail.value;
+        }}
+      />
+
+      <TextArea label="Selected Countries" readonly value={selectedCountriesText} />
+    </HorizontalLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: multi-select-combo-box-selection-change.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/multi-select-combo-box';
+import '@vaadin/text-area';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MultiSelectComboBoxSelectedItemsChangedEvent } from '@vaadin/multi-select-combo-box';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-selection-change')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  // tag::snippet[]
+  @state()
+  private selectedCountries: Country[] = [];
+
+  private get selectedCountriesText(): string {
+    return this.selectedCountries.map((country) => country.name).join(', ');
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing" style="align-items: baseline">
+        <vaadin-multi-select-combo-box
+          label="Countries"
+          item-label-path="name"
+          item-id-path="id"
+          .items="${this.items}"
+          .selectedItems="${this.selectedCountries}"
+          @selected-items-changed="${(e: MultiSelectComboBoxSelectedItemsChangedEvent<Country>) => {
+            this.selectedCountries = e.detail.value;
+          }}"
+        ></vaadin-multi-select-combo-box>
+        <vaadin-text-area
+          label="Selected Countries"
+          readonly
+          .value="${this.selectedCountriesText}"
+        ></vaadin-text-area>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  // end::snippet[]
+}
+
+[Lit: Country.ts]
+interface Country {
+    name: string;
+    abbreviation: string;
+    id: number;
+}
+export default Country;
+
+[Lit: Country.ts]
+
+Read-Only
+
+The component can be set to read-only, which prevents the user from modifying its value. A read-only Multi-Select Combo Box still allows opening the overlay, which then shows only the selected values, instead of all the options. This can be useful if selected values have been collapsed into the overflow chip.
+
+[Flow: MultiSelectComboBoxReadOnly.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("multi-select-combo-box-read-only")
+public class MultiSelectComboBoxReadOnly extends Div {
+
+    public MultiSelectComboBoxReadOnly() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        List<Country> countries = DataService.getCountries();
+        comboBox.setItems(countries);
+        comboBox.select(countries.subList(0, 4));
+        comboBox.setItemLabelGenerator(Country::getName);
+        // tag::snippet[]
+        comboBox.setReadOnly(true);
+        // end::snippet[]
+        comboBox.setWidth("300px");
+        add(comboBox);
+    }
+
+}
+
+[React: multi-select-combo-box-read-only.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  const selectedItems = useComputed(() => items.value.slice(0, 4));
+
+  return (
+    // tag::snippet[]
+    <MultiSelectComboBox
+      label="Countries"
+      itemLabelPath="name"
+      itemIdPath="id"
+      items={items.value}
+      selectedItems={selectedItems.value}
+      readonly
+      style={{ width: '300px' }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: multi-select-combo-box-read-only.ts]
+import '@vaadin/multi-select-combo-box';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-read-only')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-multi-select-combo-box {
+      width: 300px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-multi-select-combo-box
+        label="Countries"
+        item-label-path="name"
+        item-id-path="id"
+        .items="${this.items}"
+        .selectedItems="${this.items.slice(0, 4)}"
+        readonly
+      ></vaadin-multi-select-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Auto Expand
+
+The component can be configured to auto-expand so as to accommodate chips for selected items. It’s possible to expand both horizontally (i.e., until max-width is reached) and vertically — in which case the field with chips wraps in multiple lines. These modes can be used together.
+
+[Flow: MultiSelectComboBoxAutoExpand.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox.AutoExpandMode;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("multi-select-combo-box-auto-expand")
+public class MultiSelectComboBoxAutoExpand extends Div {
+
+    public MultiSelectComboBoxAutoExpand() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        List<Country> countries = DataService.getCountries();
+        comboBox.setItems(countries);
+        comboBox.setItemLabelGenerator(Country::getName);
+        comboBox.select(countries.subList(0, 4));
+        // tag::snippet[]
+        comboBox.setAutoExpand(AutoExpandMode.BOTH);
+        // end::snippet[]
+        add(comboBox);
+    }
+
+}
+
+[React: multi-select-combo-box-auto-expand.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  const selectedItems = useComputed(() => items.value.slice(0, 4));
+
+  return (
+    // tag::snippet[]
+    <MultiSelectComboBox
+      label="Countries"
+      itemLabelPath="name"
+      itemIdPath="id"
+      items={items.value}
+      autoExpandHorizontally
+      autoExpandVertically
+      selectedItems={selectedItems.value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: multi-select-combo-box-auto-expand.ts]
+import '@vaadin/multi-select-combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-auto-expand')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-multi-select-combo-box
+        label="Countries"
+        item-label-path="name"
+        item-id-path="id"
+        .items="${this.items}"
+        auto-expand-horizontally
+        auto-expand-vertically
+        .selectedItems="${this.items.slice(0, 4)}"
+      ></vaadin-multi-select-combo-box>
+    `;
+  }
+  // end::snippet[]
+}
+
+Selected Items on Top
+
+The component can be configured to group selected items at the top of the overlay. When the selection changes, a set of items to be shown in the top group is only updated after the overlay is closed.
+
+[Flow: MultiSelectComboBoxSelectedItemsOnTop.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("multi-select-combo-box-selected-items-on-top")
+public class MultiSelectComboBoxSelectedItemsOnTop extends Div {
+
+    public MultiSelectComboBoxSelectedItemsOnTop() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        List<Country> countries = DataService.getCountries();
+        comboBox.setItems(countries);
+        comboBox.setItemLabelGenerator(Country::getName);
+        comboBox.select(countries.subList(20, 23));
+        // tag::snippet[]
+        comboBox.setSelectedItemsOnTop(true);
+        // end::snippet[]
+        add(comboBox);
+    }
+
+}
+
+[React: multi-select-combo-box-selected-items-on-top.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  const selectedItems = useComputed(() => items.value.slice(20, 23));
+
+  return (
+    <MultiSelectComboBox
+      label="Countries"
+      itemLabelPath="name"
+      itemIdPath="id"
+      itemValuePath="id"
+      items={items.value}
+      selectedItemsOnTop
+      selectedItems={selectedItems.value}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: multi-select-combo-box-selected-items-on-top.ts]
+import '@vaadin/multi-select-combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-selected-items-on-top')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-multi-select-combo-box
+        label="Countries"
+        item-label-path="name"
+        item-id-path="id"
+        item-value-path="id"
+        .items="${this.items}"
+        .selectedItems="${this.items.slice(20, 23)}"
+        selected-items-on-top
+      ></vaadin-multi-select-combo-box>
+    `;
+  }
+  // end::snippet[]
+}
+
+Collapse Chips
+
+By default, the component shows as many chips for selected items as fit, collapsing the remainder into the overflow chip. The component can be configured to instead collapse all chips into the overflow chip whenever they don’t all fit. This can be useful when partial chip lists take up too much space or are visually confusing.
+
+[Flow: MultiSelectComboBoxCollapseChips.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("multi-select-combo-box-collapse-chips")
+public class MultiSelectComboBoxCollapseChips extends VerticalLayout {
+
+    public MultiSelectComboBoxCollapseChips() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Countries");
+        List<Country> countries = DataService.getCountries();
+        comboBox.setItems(countries);
+        comboBox.setItemLabelGenerator(Country::getName);
+        comboBox.select(countries.subList(0, 3));
+        comboBox.setWidth("250px");
+        // tag::snippet[]
+        comboBox.setCollapseChips(true);
+
+        Checkbox toggle = new Checkbox("Collapse chips", true);
+        toggle.addValueChangeListener(
+                e -> comboBox.setCollapseChips(e.getValue()));
+        // end::snippet[]
+
+        setPadding(false);
+        add(comboBox, toggle);
+    }
+
+}
+
+[React: multi-select-combo-box-collapse-chips.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+  const collapseChips = useSignal(true);
+  const selectedCountries = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+      selectedCountries.value = countries.slice(0, 3);
+    });
+  }, []);
+
+  return (
+    <VerticalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <MultiSelectComboBox
+        label="Countries"
+        itemLabelPath="name"
+        itemIdPath="id"
+        itemValuePath="id"
+        items={items.value}
+        collapseChips={collapseChips.value}
+        selectedItems={selectedCountries.value}
+        onSelectedItemsChanged={(event) => {
+          selectedCountries.value = event.detail.value;
+        }}
+        style={{ width: '250px' }}
+      />
+      {/* end::snippet[] */}
+      <Checkbox
+        label="Collapse chips"
+        checked={collapseChips.value}
+        onChange={(e) => {
+          collapseChips.value = e.target.checked;
+        }}
+      />
+    </VerticalLayout>
+  );
+}
+
+[Lit: multi-select-combo-box-collapse-chips.ts]
+import '@vaadin/checkbox';
+import '@vaadin/multi-select-combo-box';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CheckboxChangeEvent } from '@vaadin/checkbox';
+import type { MultiSelectComboBoxSelectedItemsChangedEvent } from '@vaadin/multi-select-combo-box';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-collapse-chips')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  @state()
+  private selectedCountries: Country[] = [];
+
+  @state()
+  private collapseChips = true;
+
+  protected override async firstUpdated() {
+    const countries = await getCountries();
+    this.items = countries
+    this.selectedCountries = countries.slice(0, 3);
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-multi-select-combo-box
+          label="Countries"
+          item-label-path="name"
+          item-id-path="id"
+          item-value-path="id"
+          .items="${this.items}"
+          ?collapse-chips="${this.collapseChips}"
+          .selectedItems="${this.selectedCountries}"
+          @selected-items-changed="${(e: MultiSelectComboBoxSelectedItemsChangedEvent<Country>) => {
+            this.selectedCountries = e.detail.value;
+          }}"
+          style="width: 250px"
+        ></vaadin-multi-select-combo-box>
+        <!-- end::snippet[] -->
+        <vaadin-checkbox
+          label="Collapse chips"
+          .checked="${this.collapseChips}"
+          @change="${(e: CheckboxChangeEvent) => {
+            this.collapseChips = e.target.checked;
+          }}"
+        ></vaadin-checkbox>
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+Item Class Names
+
+See Combo Box, Item Class Names. In addition to items in the overlay, custom class names also apply to chips representing selected items.
+
+[Flow: MultiSelectComboBoxItemClassName.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import java.util.List;
+
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("multi-select-combo-box-item-class-name")
+public class MultiSelectComboBoxItemClassName extends Div {
+
+    public MultiSelectComboBoxItemClassName() {
+        // tag::snippet[]
+        MultiSelectComboBox<String> comboBox = new MultiSelectComboBox<>(
+                "Fruit");
+        List<String> items = List.of("Apple", "Banana", "Orange", "Pear");
+        comboBox.setItems(items);
+        comboBox.setClassNameGenerator((item) -> {
+            switch (item) {
+            case "Apple":
+                return "coral";
+            case "Banana":
+                return "gold";
+            case "Orange":
+                return "orange";
+            case "Pear":
+                return "yellowgreen";
+            default:
+                return "";
+            }
+        });
+        // end::snippet[]
+        comboBox.select(items.subList(0, 2));
+        comboBox.setWidth("300px");
+        add(comboBox);
+    }
+
+}
+
+[Flow: multi-select-combo-box-chip-class-name.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-multi-select-combo-box-chip.coral {
+  background: coral;
+}
+
+vaadin-multi-select-combo-box-chip.gold {
+  background: gold;
+}
+
+vaadin-multi-select-combo-box-chip.orange {
+  background: orange;
+}
+
+vaadin-multi-select-combo-box-chip.yellowgreen {
+  background: yellowgreen;
+}
+
+[Flow: multi-select-combo-box-chip-class-name.css]
+
+[React: multi-select-combo-box-item-class-name.tsx]
+import React from 'react';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+
+function Example() {
+  // tag::snippet[]
+  const items = ['Apple', 'Banana', 'Orange', 'Pear'];
+  const selectedItems = items.slice(0, 2);
+
+  const classNameGenerator = (item: string) => {
+    switch (item) {
+      case 'Apple':
+        return 'coral';
+      case 'Banana':
+        return 'gold';
+      case 'Orange':
+        return 'orange';
+      case 'Pear':
+        return 'yellowgreen';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <MultiSelectComboBox
+      label="Fruit"
+      items={items}
+      selectedItems={selectedItems}
+      style={{ width: '300px' }}
+      itemClassNameGenerator={classNameGenerator}
+    />
+  );
+  // end::snippet[]
+}
+
+[React: multi-select-combo-box-chip-class-name.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-multi-select-combo-box-chip.coral {
+  background: coral;
+}
+
+vaadin-multi-select-combo-box-chip.gold {
+  background: gold;
+}
+
+vaadin-multi-select-combo-box-chip.orange {
+  background: orange;
+}
+
+vaadin-multi-select-combo-box-chip.yellowgreen {
+  background: yellowgreen;
+}
+
+[React: multi-select-combo-box-chip-class-name.css]
+
+[Lit: multi-select-combo-box-item-class-name.ts]
+import '@vaadin/multi-select-combo-box';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('multi-select-combo-box-item-class-name')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-multi-select-combo-box {
+      width: 300px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = ['Apple', 'Banana', 'Orange', 'Pear'];
+
+  protected override render() {
+    return html`
+      <vaadin-multi-select-combo-box
+        label="Fruit"
+        .items="${this.items}"
+        .selectedItems="${this.items.slice(0, 2)}"
+        .itemClassNameGenerator="${this.classNameGenerator}"
+      ></vaadin-multi-select-combo-box>
+    `;
+  }
+
+  protected classNameGenerator(item: string): string {
+    switch (item) {
+      case 'Apple':
+        return 'coral';
+      case 'Banana':
+        return 'gold';
+      case 'Orange':
+        return 'orange';
+      case 'Pear':
+        return 'yellowgreen';
+      default:
+        return '';
+    }
+  }
+  // end::snippet[]
+}
+
+[Lit: multi-select-combo-box-chip-class-name.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-multi-select-combo-box-chip.coral {
+  background: coral;
+}
+
+vaadin-multi-select-combo-box-chip.gold {
+  background: gold;
+}
+
+vaadin-multi-select-combo-box-chip.orange {
+  background: orange;
+}
+
+vaadin-multi-select-combo-box-chip.yellowgreen {
+  background: yellowgreen;
+}
+
+[Lit: multi-select-combo-box-chip-class-name.css]
+
+Internationalization (i18n)
+
+Multi-Select Combo Box allows localizing the following messages. These are only used in screen reader announcements, and can’t be observed visually.
+
+Message | Default | Description
+cleared | "Selection cleared" | Announced by screen readers when the clear button is clicked.
+focused | " focused. Press Backspace to remove" | Announced by screen readers when a chip is focused.
+selected | " added to selection" | Announced by screen readers when an item is added to the selection.
+deselected | " removed from selection" | Announced by screen readers when an item is removed from the selection.
+total | "{count} items selected" | Announced by screen readers to inform about the total number of selected items. The string must contain a {count} placeholder, which is replaced with the actual count of selected items by the component.
+
+The following example demonstrates how to localize the component’s messages into German:
+
+[Flow: MultiSelectComboBoxI18nDemo.java]
+package com.vaadin.demo.component.multiselectcombobox;
+
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBoxI18n;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("multi-select-combo-box-i18n")
+public class MultiSelectComboBoxI18nDemo extends Div {
+
+    public MultiSelectComboBoxI18nDemo() {
+        MultiSelectComboBox<Country> comboBox = new MultiSelectComboBox<>(
+                "Länder");
+        comboBox.setItems(DataService.getCountries());
+        comboBox.setItemLabelGenerator(Country::getName);
+        comboBox.setWidth("300px");
+        add(comboBox);
+
+        // tag::snippet[]
+        MultiSelectComboBoxI18n i18n = new MultiSelectComboBoxI18n();
+        i18n.setCleared("Alle Einträge entfernt");
+        i18n.setFocused(" ausgewählt. Drücke Rücktaste zum Entfernen");
+        i18n.setSelected(" hinzugefügt");
+        i18n.setDeselected(" entfernt");
+        i18n.setTotal("{count} Einträge ausgewählt");
+
+        comboBox.setI18n(i18n);
+        // end::snippet[]
+    }
+
+}
+
+[React: multi-select-combo-box-i18n.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MultiSelectComboBox } from '@vaadin/react-components/MultiSelectComboBox.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((countries) => {
+      items.value = countries;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const i18n = {
+    cleared: 'Alle Einträge entfernt',
+    focused: ' ausgewählt. Drücke Rücktaste zum Entfernen',
+    selected: ' hinzugefügt',
+    deselected: ' entfernt',
+    total: '{count} Einträge ausgewählt',
+  };
+
+  return (
+    <MultiSelectComboBox
+      label="Länder"
+      itemLabelPath="name"
+      itemIdPath="id"
+      items={items.value}
+      i18n={i18n}
+      style={{ width: '300px' }}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: multi-select-combo-box-i18n.ts]
+import '@vaadin/multi-select-combo-box';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MultiSelectComboBoxI18n } from '@vaadin/multi-select-combo-box';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('multi-select-combo-box-basic')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-multi-select-combo-box {
+      width: 300px;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  // tag::snippet[]
+  private i18n: MultiSelectComboBoxI18n = {
+    cleared: 'Alle Einträge entfernt',
+    focused: ' ausgewählt. Drücke Rücktaste zum Entfernen',
+    selected: ' hinzugefügt',
+    deselected: ' entfernt',
+    total: '{count} Einträge ausgewählt',
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-multi-select-combo-box
+        label="Länder"
+        item-label-path="name"
+        item-id-path="id"
+        .items="${this.items}"
+        .i18n="${this.i18n}"
+      ></vaadin-multi-select-combo-box>
+    `;
+  }
+  // end::snippet[]
+}
+
+Best Practices
+
+Multi-Select Combo Box supports lazy loading for large datasets. It reduces the initial load time, and consumes less bandwidth and resources.
+
+For consistency, the default width of the Multi-Select Combo Box matches that of other input fields. You should increase the width of the component when using items with long labels, or if you expect users to select several items, to avoid collapsing selected items into the overflow chip.
+
+[HTML]
+<vaadin-multi-select-combo-box
+  style="width: 300px"
+></vaadin-multi-select-combo-box>
+
+[Java]
+comboBox.setWidth("300px");
+
+[tsx]
+<MultiSelectComboBox style={{ width: '300px' }} />
+
+Related Components
+
+Component | Usage Recommendations
+Combo Box | Same feature set, but for selecting a single value.
+List Box | Scrollable inline list of options. Supports single and multi-select.
+Checkbox Group | Serves the same purpose in a more user-friendly format, but takes up more vertical space.

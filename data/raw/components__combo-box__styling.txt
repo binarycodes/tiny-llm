@@ -1,0 +1,314 @@
+Combo Box Styling
+
+Styling API reference for the Combo Box component.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+align-left | Aligns the text to the left side of the field (default) | Aura, Lumo
+align-center | Centers the text within the field | Aura, Lumo
+align-right | Aligns the text to the right side of the field. Recommended for numerical values when presented in vertical groups. | Aura, Lumo
+align-start | Aligns the text to the start side of the field, taking into account the current text direction (left for LTR, right for RTL) | Aura
+align-end | Aligns the text to the end side of the field, taking into account the current text direction (right for LTR, left for RTL) | Aura
+small | Renders a more compact field | Aura, Lumo
+filled | Uses a solid background color for hovered and active items in the overlay | Aura
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+
+[Flow: ComboBoxStyles.java]
+package com.vaadin.demo.component.combobox;
+
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.ComboBoxVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("combo-box-styles")
+public class ComboBoxStyles extends HorizontalLayout {
+
+    public ComboBoxStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        ComboBox<String> field = new ComboBox<>();
+        field.addThemeVariants(ComboBoxVariant.SMALL,
+                ComboBoxVariant.ALIGN_RIGHT, ComboBoxVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setItems("Value");
+        field.setValue("Value");
+
+        add(field);
+    }
+
+}
+
+[React: combo-box-styles.tsx]
+import React from 'react';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <ComboBox
+      theme="align-right small helper-above-field"
+      label="Label"
+      helperText="Helper text"
+      items={['Value']}
+      value="Value"
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: combo-box-styles.ts]
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('combo-box-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-combo-box
+        theme="align-right small helper-above-field"
+        label="Label"
+        helper-text="Helper text"
+        .items="${['Value']}"
+        value="Value"
+      >
+      </vaadin-combo-box>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Field Surface
+
+Common Properties
+
+Property | Supported by
+--vaadin-input-field-background | Aura, Lumo
+--vaadin-input-field-border-color | Aura, Lumo
+--vaadin-input-field-border-radius | Aura, Lumo
+--vaadin-input-field-border-width | Aura, Lumo
+--vaadin-input-field-bottom-end-radius | Aura, Lumo
+--vaadin-input-field-bottom-start-radius | Aura, Lumo
+--vaadin-input-field-container-gap | Aura
+--vaadin-input-field-height | Lumo
+--vaadin-input-field-padding | Aura
+--vaadin-input-field-placeholder-color | Aura, Lumo
+--vaadin-input-field-top-start-radius | Aura, Lumo
+--vaadin-input-field-top-end-radius | Aura, Lumo
+--vaadin-input-field-value-color | Aura, Lumo
+--vaadin-input-field-value-font-size | Aura, Lumo
+--vaadin-input-field-value-font-weight | Aura, Lumo
+--vaadin-input-field-value-line-height | Aura, Lumo
+
+Field States
+
+Property | Supported by
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+--vaadin-input-field-disabled-background | Aura, Lumo
+--vaadin-input-field-disabled-text-color | Aura
+--vaadin-input-field-disabled-value-color | Lumo
+--vaadin-input-field-hover-highlight | Lumo
+--vaadin-input-field-hover-highlight-opacity | Lumo
+--vaadin-input-field-invalid-background | Lumo
+--vaadin-input-field-invalid-hover-highlight | Lumo
+--vaadin-input-field-readonly-border | Lumo
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+Field Buttons
+
+Property | Supported by
+--vaadin-clickable-cursor | Aura
+--vaadin-disabled-cursor | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-input-field-button-text-color | Aura
+--vaadin-input-field-icon-size | Lumo
+--vaadin-input-field-icon-color | Lumo
+
+Overlay
+
+Property | Supported by
+--vaadin-combo-box-overlay-width | Aura, Lumo
+--vaadin-combo-box-overlay-max-height | Aura, Lumo
+--vaadin-item-overlay-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+--vaadin-spinner-color | Aura
+--vaadin-spinner-width | Aura
+--vaadin-spinner-size | Aura
+--vaadin-spinner-animation-duration | Aura
+
+Overlay Items
+
+Property | Supported by
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-combo-box
+
+States
+
+Required
+    vaadin-combo-box[required]
+Focused
+    vaadin-combo-box[focused]
+Keyboard focused
+    vaadin-combo-box[focus-ring]
+Read-only
+    vaadin-combo-box[readonly]
+Disabled
+    vaadin-combo-box[disabled]
+Not empty
+    vaadin-combo-box[has-value]
+With open overlay
+    vaadin-combo-box[opened]
+Loading items
+    vaadin-combo-box[loading]
+Hovered
+    vaadin-combo-box:hover
+
+Field
+
+Field surface (background, border)
+    vaadin-combo-box::part(input-field)
+Native input element
+    vaadin-combo-box > input
+Input field with placeholder shown
+    vaadin-combo-box > input:placeholder-shown
+Clear and Toggle buttons
+    vaadin-combo-box::part(field-button)
+Toggle Button
+    vaadin-combo-box::part(toggle-button)
+Clear button
+    vaadin-combo-box::part(clear-button)
+Clear button icon
+    vaadin-combo-box::part(clear-button)::before
+Prefix element
+    vaadin-combo-box > [slot="prefix"]
+
+Label
+
+Field with label
+    vaadin-combo-box[has-label]
+Label
+    vaadin-combo-box::part(label)
+Label text
+    vaadin-combo-box > label
+Required indicator
+    vaadin-combo-box::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-combo-box[has-helper]
+Helper
+    vaadin-combo-box::part(helper-text)
+Helper text
+    vaadin-combo-box > [slot="helper"]
+Invalid field
+    vaadin-combo-box[invalid]
+Field with error message
+    vaadin-combo-box[has-error-message]
+Error message
+    vaadin-combo-box::part(error-message)
+Error message text
+    vaadin-combo-box > [slot="error-message"]
+
+Overlay
+
+Overlay background
+    vaadin-combo-box::part(overlay)
+Overlay content wrapper
+    vaadin-combo-box::part(content)
+Overlay loading indicator
+    vaadin-combo-box::part(loader)
+
+Items
+
+Item element
+    vaadin-combo-box-item
+Selected item
+    vaadin-combo-box-item[selected]
+Item selection indicator
+    vaadin-combo-box-item::part(checkmark)
+Item selection indicator icon
+    vaadin-combo-box-item::part(checkmark)::before
+Focused item
+    vaadin-combo-box-item[focused]
+Item content wrapper
+    vaadin-combo-box-item::part(content)
+Hovered item
+    vaadin-combo-box-item:hover

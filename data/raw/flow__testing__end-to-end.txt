@@ -1,0 +1,66 @@
+End-to-End Testing
+
+Simulating an application with end-to-end testing to verify expected actions took place.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use TestBench in your project.
+
+- Start Free Trial
+- See Pricing
+
+End-to-end testing simulates an application, performs tasks specified using Java code, and verifies expected actions take place in application.
+
+The TestBench end-to-end testing approach can visually inspect an application and detect unintentionally introduced changes. It can also verify that the application is visually OK in all browsers with which you’re testing.
+
+TestBench also includes special support for other Vaadin products, making testing easy and robust compared to generic web testing solutions.
+
+Although it’s not the main purpose of TestBench, you can also use the end-to-end testing approach to automate mundane tasks such as filling in forms.
+
+TestBench supports JUnit 5 testing framework on end-to-end tests.
+
+Features
+
+Below are the main features of end-to-end testing:
+
+- Control one or more browser instances from Java — both desktop and mobile browsers.
+- A powerful and robust way to describe your tests so that they don’t break with application changes.
+- A high-level API for finding the component with which you want to interact.
+- Vaadin Component API for easy interaction with all Vaadin components and HTML elements.
+- Automatic screen comparison, highlighting differences.
+- Assertion-based UI state validation.
+- Run tests in parallel.
+- Test grid support to speed up tests by running in parallel on multiple browsers on selected operating systems.
+- Support for JUnit and other testing frameworks.
+- All features available in Selenium.
+
+In addition to end-to-end testing, Vaadin also enables you to write browserless tests for your Vaadin applications. Each approach has their own advantages.
+
+Topics
+
+Getting Started
+    Tutorial to begin doing end-to-end testing.
+Installing WebDrivers
+    How to install the proper, browser-specific WebDriver for tests.
+Creating Tests
+    How to create tests using TestBench.
+Tests with Page Objects
+    Creating maintainable tests using Page Objects.
+Low-Level Element Interactions
+    A list and description of helpers to use when a high-level API isn't available for interacting with components.
+Taking & Comparing Screenshots
+    Explains how to take screenshots and compare them in testing.
+Advanced Testing Methods
+    Describes advanced methods for testing a project.
+Making Tests Reliable
+    Tutorial on creating reliable tests.
+Behavior-Driven Development
+    A method of developing software starting with writing tests in plain spoken language.
+Running Tests with Maven
+    Using Maven to test projects.
+Running Tests on a CI Server
+    Factors to consider and configure when running tests on a CI Server.
+Running Tests on Multiple Browsers
+    Advice on running tests on multiple browsers.
+Test Grid Set Up
+    Explanations and examples on setting up a test grid.

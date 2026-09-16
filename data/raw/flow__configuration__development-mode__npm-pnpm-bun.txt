@@ -1,0 +1,157 @@
+Configuring npm/pnpm/bun
+
+Configuring the frontend package manager.
+
+npm is the recommended and default package manager for Vaadin projects. This page explains how to configure npm and how to change to an alternative package manager (i.e., pnpm or bun).
+
+Install a Custom Package
+
+To install a custom frontend package into your project with npm, run npm i xxx. For example, to add the mobx package as a dependency in package.json as well as install it into node_modules, run the following command in the project directory:
+
+[terminal]
+npm i mobx
+
+Note: Vaadin expects transitive platform dependencies to be available directly under node_modules. Vaadin uses the npm overrides feature (since npm 8.3.0) to lock the transitive platform dependencies versions.
+
+Delayed Installation of Recently Published Packages
+
+By default, Vaadin only installs npm package versions that were published more than one day ago. Versions published more recently than that are ignored when frontend dependencies are installed. This protects against supply-chain attacks, where a compromised package version is briefly available on the registry before it’s detected and removed.
+
+This default changes the behavior of installing frontend dependencies: if your project depends on a package version that was published less than a day ago, the installation fails or resolves to an older version until the package version is old enough.
+
+The minimum age is configured with the npm.minimumFrontendPackageAgeDays property. For example, to require package versions to be at least three days old, set the following system property:
+
+[terminal]
+-Dvaadin.npm.minimumFrontendPackageAgeDays=3
+
+To disable the check and install packages regardless of their publication date, set the value to 0.
+
+Note: When pnpm or bun is used as the package manager, this feature requires pnpm 10.16.0 or later, or bun 1.3.0 or later.
+
+Switch Among npm, pnpm & bun
+
+npm is used as the default frontend package manager. Vaadin also supports using pnpm (also known as, performant npm). To switch to pnpm, you can set the vaadin.pnpm.enable system property to true.
+
+When using pnpm, the framework installs it locally using npm if it isn’t installed globally. The package-lock.json file that’s used by npm is incompatible with pnpm and is removed automatically if pnpm is used. pnpm uses the pnpm-lock.yaml file instead of package-lock.json. Any custom dependency configurations should go to pnpm-lock.yaml.
+
+Using bun is also supported by Vaadin. With bun, packages are cached locally by default and linked — instead of downloaded — for every project. This results in reduced disk space usage, and faster recurring builds compared to npm. To switch to bun, you can set the vaadin.bun.enable system property to true.
+
+When using bun, a binary lockfile named bun.lockb is used when bun install is run. This lockfile is not included in or used from Vaadin development bundle.
+
+Note: Vaadin does not support automatic installation of bun - instead please follow the installation instructions.
+
+Switching in a Spring Boot Project
+
+For a Spring Boot-based project, you can add vaadin.pnpm.enable = true or vaadin.bun.enable = true to the application.properties file.
+
+Switching in a Plain Java or JavaEE Project
+
+For a plain Java or a JavaEE-based project, you can set the pnpmEnable or bunEnable configuration property inside the vaadin-maven-plugin.
+
+[Enable pnpm (plain Java / JavaEE)]
+<plugin>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-maven-plugin</artifactId>
+    <version>${project.version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-frontend</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <pnpmEnable>true</pnpmEnable>
+    </configuration>
+</plugin>
+
+[Enable bun (plain Java / JavaEE)]
+<plugin>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-maven-plugin</artifactId>
+    <version>${project.version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-frontend</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <bunEnable>true</bunEnable>
+    </configuration>
+</plugin>
+
+Alternatively, you can use the Servlet 3.0 @WebServlet annotation:
+
+[Enable pnpm (via annotation)]
+@WebServlet(urlPatterns = "/*", name = "myservlet", asyncSupported = true, loadOnStartup = 1,
+  initParams = { @WebInitParam(name = "pnpm.enable", value = "true") })
+public class CustomServlet extends VaadinServlet {
+}
+
+[Enable bun (via annotation)]
+@WebServlet(urlPatterns = "/*", name = "myservlet", asyncSupported = true, loadOnStartup = 1,
+  initParams = { @WebInitParam(name = "bun.enable", value = "true") })
+public class CustomServlet extends VaadinServlet {
+}
+
+or use the traditional web.xml file:
+
+[Enable pnpm (via web.xml)]
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+  id="WebApp_ID" version="3.0"
+  xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+  <servlet>
+    <servlet-name>myservlet</servlet-name>
+    <servlet-class>
+        com.vaadin.flow.server.VaadinServlet
+    </servlet-class>
+    <load-on-startup>1</load-on-startup>
+
+    <init-param>
+      <param-name>pnpm.enable</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>myservlet</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+</web-app>
+
+[Enable bun (via web.xml)]
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+  id="WebApp_ID" version="3.0"
+  xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+  <servlet>
+    <servlet-name>myservlet</servlet-name>
+    <servlet-class>
+        com.vaadin.flow.server.VaadinServlet
+    </servlet-class>
+    <load-on-startup>1</load-on-startup>
+
+    <init-param>
+      <param-name>bun.enable</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>myservlet</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+</web-app>
+
+For more about how to set properties, see Configuration Properties.

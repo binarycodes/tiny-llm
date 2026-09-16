@@ -1,0 +1,35 @@
+Horizontal Layout Styling
+
+Styling API reference for the Horizontal Layout component.
+
+Style Variants
+
+Horizontal Layout supports the following style variants:
+
+Variant | Supported by
+margin | Aura, Lumo
+padding | Aura, Lumo
+spacing | Aura, Lumo
+wrap | Aura, Lumo
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-horizontal-layout-gap | Aura, Lumo
+--vaadin-horizontal-layout-padding | Aura, Lumo
+--vaadin-horizontal-layout-margin | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-horizontal-layout

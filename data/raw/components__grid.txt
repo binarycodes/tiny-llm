@@ -1,0 +1,4391 @@
+Grid
+
+Vaadin Grid is a component for displaying tabular data, including various enhancements to grid renderings.
+
+Vaadin Grid is a component for displaying tabular data, including various enhancements to grid renderings.
+
+Some of the more complex topics are described on separate pages:
+
+- Columns
+- Renderers
+- Styling
+- Selection
+- Drag & Drop
+- Data Binding Flow
+- Inline Editing Flow
+- AI-Powered Grid Flow — let users populate the grid from your database via natural language.
+
+[Flow: GridBasic.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-basic")
+public class GridBasic extends Div {
+
+    public GridBasic() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        // end::snippet[]
+
+        add(grid);
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[React: grid-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+      <GridColumn path="profession" />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-basic.ts]
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+  // end::snippet[]
+}
+
+Note: Auto-generated columns in Flow Grid
+
+Although most code examples define columns explicitly, the Flow component can generated them automatically based root-level properties on the bean class if you pass it as an argument to the constructor, e.g. new Grid<>(Person.class);
+
+Dynamic Height
+
+Grid has a default height of 400 pixels. It becomes scrollable when items contained in it overflow the allocated space.
+
+In addition to setting any fixed or relative value, the height of a grid can be set by the number of items in the dataset. The grid expands and retracts based on the row count. This feature disables scrolling. It shouldn’t be used with large data sets since it might cause performance issues.
+
+Notice how the height of the rows in the earlier example adjusts because of the text in the Address cells wrapping. With that in mind, click the gray icon at the top right corner of the example below to open it in a new browser tab. Try resizing it, making it narrower and then wider. Notice how the rows are always the same height and that the text doesn’t wrap. Instead, the text is truncated with ellipses.
+
+[Flow: GridDynamicHeight.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-dynamic-height")
+public class GridDynamicHeight extends Div {
+
+    private static final List<Person> invitedPeople = new ArrayList<>();
+
+    private static Grid<Person> grid;
+    private static Div hint;
+
+    public GridDynamicHeight() {
+        this.setupInvitationForm();
+        this.setupGrid();
+        this.refreshGrid();
+    }
+
+    private void setupInvitationForm() {
+        List<Person> people = DataService.getPeople();
+        ComboBox<Person> comboBox = new ComboBox<>();
+        comboBox.setItems(people);
+        comboBox.setItemLabelGenerator(Person::getFullName);
+
+        Button button = new Button("Send invite");
+        button.addThemeVariants(ButtonVariant.PRIMARY);
+        button.addClickListener(e -> {
+            sendInvitation(comboBox.getValue());
+            comboBox.setValue(null);
+        });
+
+        HorizontalLayout layout = new HorizontalLayout(comboBox, button);
+        layout.setFlexGrow(1, comboBox);
+
+        add(layout);
+    }
+
+    private void setupGrid() {
+        // tag::snippet[]
+        grid = new Grid<>(Person.class, false);
+        grid.setAllRowsVisible(true);
+        // end::snippet[]
+        grid.getStyle().set("margin-top", "var(--vaadin-gap-s)");
+        grid.addColumn(Person::getFullName).setHeader("Name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone())
+                .setHeader("Phone");
+        grid.addColumn(
+                new ComponentRenderer<>(Button::new, (button, person) -> {
+                    button.addThemeVariants(ButtonVariant.ERROR,
+                            ButtonVariant.TERTIARY);
+                    button.addClickListener(e -> this.removeInvitation(person));
+                    button.setIcon(new Icon(VaadinIcon.TRASH));
+                })).setHeader("Manage");
+
+        grid.setItems(invitedPeople);
+
+        hint = new Div();
+        hint.setText("No invitation has been sent");
+        hint.getStyle().set("padding", "var(--vaadin-padding-xl)")
+                .set("text-align", "center").set("font-style", "italic")
+                .set("color", "var(--vaadin-text-color-secondary)");
+
+        add(hint, grid);
+    }
+
+    private void refreshGrid() {
+        if (invitedPeople.size() > 0) {
+            grid.setVisible(true);
+            hint.setVisible(false);
+            grid.getDataProvider().refreshAll();
+        } else {
+            grid.setVisible(false);
+            hint.setVisible(true);
+        }
+    }
+
+    private void sendInvitation(Person person) {
+        if (person == null || invitedPeople.contains(person))
+            return;
+        invitedPeople.add(person);
+        this.refreshGrid();
+    }
+
+    private void removeInvitation(Person person) {
+        if (person == null)
+            return;
+        invitedPeople.remove(person);
+        this.refreshGrid();
+    }
+
+}
+
+[React: grid-dynamic-height.tsx]
+import '@vaadin/icons';
+import React, { useCallback, useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function renderNoInvitationAlert() {
+  return (
+    <div
+      style={{
+        padding: 'var(--vaadin-padding-xl)',
+        textAlign: 'center',
+        fontStyle: 'italic',
+        color: 'var(--vaadin-text-color-secondary)',
+      }}
+    >
+      No invitation has been sent
+    </div>
+  );
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const invitedPeople = useSignal<Person[]>([]);
+  const selectedValue = useSignal<string>('');
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  const removePersonRenderer = useCallback(
+    ({ item: person }: { item: Person }) => (
+      <Button
+        theme="error tertiary icon"
+        onClick={() => {
+          invitedPeople.value = invitedPeople.value.filter((p) => p.id !== person.id);
+        }}
+      >
+        <Icon icon="vaadin:trash" />
+      </Button>
+    ),
+    []
+  );
+
+  function renderInvitedPeopleTable() {
+    return (
+      <>
+        {/* tag::snippet[] */}
+        <Grid
+          items={invitedPeople.value}
+          allRowsVisible
+          style={{ marginTop: 'var(--vaadin-gap-s)' }}
+        >
+          <GridColumn header="Name" path="displayName" autoWidth />
+          <GridColumn path="email" />
+          <GridColumn path="address.phone" />
+          <GridColumn header="Manage" renderer={removePersonRenderer} />
+        </Grid>
+        {/* end::snippet[] */}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <HorizontalLayout theme="spacing">
+        <ComboBox
+          items={items.value}
+          value={selectedValue.value}
+          itemLabelPath="displayName"
+          itemValuePath="id"
+          style={{ flex: '1' }}
+          onValueChanged={(event) => {
+            selectedValue.value = event.detail.value;
+          }}
+        />
+
+        <Button
+          theme="primary"
+          onClick={() => {
+            const person = items.value.find((p) => String(p.id) === selectedValue.value);
+            const isInvited = person && invitedPeople.value.some((p) => p.id === person.id);
+            if (person && !isInvited) {
+              invitedPeople.value = [...invitedPeople.value, person];
+              selectedValue.value = '';
+            }
+          }}
+        >
+          Send invite
+        </Button>
+      </HorizontalLayout>
+
+      {invitedPeople.value.length === 0 ? renderNoInvitationAlert() : renderInvitedPeopleTable()}
+    </>
+  );
+}
+
+[Lit: grid-dynamic-height.ts]
+import '@vaadin/button';
+import '@vaadin/combo-box';
+import '@vaadin/grid';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ComboBoxValueChangedEvent } from '@vaadin/combo-box';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-dynamic-height')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private invitedPeople: Person[] = [];
+
+  @state()
+  private selectedValue = '';
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <vaadin-combo-box
+          .items="${this.items}"
+          .value="${this.selectedValue}"
+          item-label-path="displayName"
+          item-value-path="id"
+          style="flex: 1;"
+          @value-changed="${(event: ComboBoxValueChangedEvent) => {
+            this.selectedValue = event.detail.value;
+          }}"
+        ></vaadin-combo-box>
+        <vaadin-button
+          theme="primary"
+          @click="${() => {
+            const person = this.items.find((p) => String(p.id) === this.selectedValue);
+            const isInvited = person && this.invitedPeople.some((p) => p.id === person.id);
+            if (person && !isInvited) {
+              this.invitedPeople = [...this.invitedPeople, person];
+              this.selectedValue = '';
+            }
+          }}"
+        >
+          Send invite
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+
+      ${this.invitedPeople.length === 0
+        ? this.renderNoInvitationAlert()
+        : this.renderInvitedPeopleTable()}
+    `;
+  }
+
+  private manageRenderer: GridColumnBodyLitRenderer<Person> = ({ id }) => html`
+    <vaadin-button
+      theme="error tertiary icon"
+      @click="${() => {
+        this.invitedPeople = this.invitedPeople.filter((p) => p.id !== id);
+      }}"
+    >
+      <vaadin-icon icon="vaadin:trash"></vaadin-icon>
+    </vaadin-button>
+  `;
+
+  private renderNoInvitationAlert = () => html`
+    <div
+      style="padding: var(--vaadin-padding-xl); text-align: center; font-style: italic; color: var(--vaadin-text-color-secondary);"
+    >
+      No invitation has been sent
+    </div>
+  `;
+
+  private renderInvitedPeopleTable = () => html`
+    <!-- tag::snippet[] -->
+    <vaadin-grid
+      .items="${this.invitedPeople}"
+      all-rows-visible
+      style="margin-top: var(--vaadin-gap-s)"
+    >
+      <vaadin-grid-column header="Name" path="displayName" auto-width></vaadin-grid-column>
+      <vaadin-grid-column path="email"></vaadin-grid-column>
+      <vaadin-grid-column path="address.phone"></vaadin-grid-column>
+      <vaadin-grid-column
+        header="Manage"
+        ${columnBodyRenderer(this.manageRenderer, [])}
+      ></vaadin-grid-column>
+    </vaadin-grid>
+    <!-- end::snippet[] -->
+  `;
+}
+
+Sorting
+
+Any column can be used for sorting the data displayed. Enable sorting to allow the user to sort items alphabetically, numerically, by date, or by some other method.
+
+The arrowhead symbols in the column header indicate the current sorting direction. When toggled, the direction will cycle between ascending, descending and none.
+
+[Flow: GridSorting.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+
+@Route("grid-sorting")
+public class GridSorting extends Div {
+
+    public GridSorting() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getId).setHeader("Id").setSortable(true);
+        grid.addColumn(Person::getFullName).setHeader("Name").setSortable(true);
+        grid.addColumn(Person::getEmail).setHeader("Email").setSortable(true);
+        grid.addColumn(Person::getProfession).setHeader("Profession")
+                .setSortable(true);
+        grid.addColumn(new LocalDateRenderer<>(GridSorting::getPersonBirthday,
+                "yyyy-MM-dd")).setHeader("Birthday").setSortable(true)
+                .setComparator(Person::getBirthday);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static LocalDate getPersonBirthday(Person person) {
+        return person.getBirthday().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+}
+
+[React: grid-sorting.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridSortColumn } from '@vaadin/react-components/GridSortColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value}>
+      <GridSortColumn path="id" />
+      <GridSortColumn header="Name" path="displayName" />
+      <GridSortColumn path="email" />
+      <GridSortColumn path="profession" />
+      <GridSortColumn path="birthday" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-sorting.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-sort-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-sorting')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-sort-column path="id"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="displayName" header="Name"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="email"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="profession"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="birthday"></vaadin-grid-sort-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Sorting by Multiple Columns
+
+Multi-sort mode allows the Grid to be sorted by multiple columns simultaneously.
+
+In normal multi-sort mode, additional sorting columns are applied simply by clicking their headers.
+
+A separate multi-sort on shift-click mode combines single and multi-column sorting by adding more sorting columns only when the user holds the Shift key while clicking their headers.
+
+The order in which multi-sort columns (known as sorting criteria) are evaluated is determined by the multi-sort priority setting.
+
+[Flow: GridMultiSort.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.Grid.MultiSortPriority;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+
+@Route("grid-multisort")
+public class GridMultiSort extends Div {
+
+    public GridMultiSort() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getId).setHeader("Id").setSortable(true);
+        grid.addColumn(Person::getFullName).setHeader("Name").setSortable(true);
+        grid.addColumn(Person::getEmail).setHeader("Email").setSortable(true);
+        grid.addColumn(Person::getProfession).setHeader("Profession")
+                .setSortable(true);
+        grid.addColumn(new LocalDateRenderer<>(GridMultiSort::getPersonBirthday,
+                "yyyy-MM-dd")).setHeader("Birthday").setSortable(true)
+                .setComparator(Person::getBirthday);
+        grid.setMultiSort(true, MultiSortPriority.APPEND);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static LocalDate getPersonBirthday(Person person) {
+        return person.getBirthday().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+}
+
+[React: grid-multisort.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridSortColumn } from '@vaadin/react-components/GridSortColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} multiSort multiSortPriority="append">
+      <GridSortColumn path="id" />
+      <GridSortColumn path="displayName" header="Name" />
+      <GridSortColumn path="email" />
+      <GridSortColumn path="profession" />
+      <GridSortColumn path="birthday" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-multisort.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-sort-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-multisort')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" multi-sort multi-sort-priority="append">
+        <vaadin-grid-sort-column path="id"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="displayName" header="Name"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="email"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="profession"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="birthday"></vaadin-grid-sort-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Shift-Click Multi-Sorting Accessibility Issues
+
+The multi-sort on shift-click mode is not recommended for applications for which accessibility is important. This feature is unlikely to work well with assistive technologies, and the lack of visual affordance makes it difficult to discover for sighted users.
+
+Specifying Sort Property
+
+Columns with rich or custom content can be sorted by defining the property by which to sort. For example, in the table here there’s a column containing the employees' first and last names, avatar images, and email addresses. By clicking on the heading for that column, it’ll sort the data by their last names.
+
+[Flow: GridRichContentSorting.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+@Route("grid-rich-content-sorting")
+public class GridRichContentSorting extends Div {
+
+    public GridRichContentSorting() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createEmployeeRenderer()).setHeader("Employee")
+                .setAutoWidth(true).setFlexGrow(0)
+                .setComparator(Person::getLastName);
+        grid.addColumn(createBirthdayRenderer()).setHeader("Birthdate")
+                .setComparator(Person::getBirthday);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createEmployeeRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <div class="person-item">
+                                  <vaadin-avatar img="${item.pictureUrl}" name="${item.fullName}" style="--vaadin-avatar-size: 2.25rem"></vaadin-avatar>
+                                  <span>${item.fullName}</span>
+                                  <span>${item.email}</span>
+                                </div>
+                                """)
+                .withProperty("pictureUrl", Person::getPictureUrl)
+                .withProperty("fullName", Person::getFullName)
+                .withProperty("email", Person::getEmail);
+    }
+
+    private static Renderer<Person> createBirthdayRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <div>${item.birthday}</div>
+                                <div style="font-size: .875rem; color: var(--vaadin-text-color-secondary);">
+                                  Age: ${item.age}
+                                </div>
+                                """)
+                .withProperty("birthday",
+                        GridRichContentSorting::getFormattedPersonBirthday)
+                .withProperty("age", GridRichContentSorting::getPersonAge);
+    }
+
+    private static final DateTimeFormatter birthdayFormatter = DateTimeFormatter
+            .ofPattern("MM/dd/yyyy");
+
+    private static String getFormattedPersonBirthday(Person person) {
+        LocalDate birthday = person.getBirthday().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return birthday.format(birthdayFormatter);
+    }
+
+    private static int getPersonAge(Person person) {
+        LocalDate birthday = person.getBirthday().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return LocalDate.now(ZoneId.systemDefault()).getYear()
+                - birthday.getYear();
+    }
+
+}
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: grid-rich-content-sorting.tsx]
+import React, { useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridSortColumn } from '@vaadin/react-components/GridSortColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+function employeeRenderer({ item: person }: { item: Person }) {
+  return (
+    <div className="person-item">
+      <Avatar
+        img={person.pictureUrl}
+        name={`${person.firstName} ${person.lastName}`}
+        style={{ '--vaadin-avatar-size': '2.25rem' }}
+      />
+      <span>
+        {person.firstName} {person.lastName}
+      </span>
+      <span>{person.email}</span>
+    </div>
+  );
+}
+
+function birthdayRenderer({ item: person }: { item: Person }) {
+  const birthday = parseISO(person.birthday);
+  return (
+    <>
+      <div>{format(birthday, 'P')}</div>
+      <div style={{ fontSize: '.875rem', color: 'var(--vaadin-text-color-secondary)' }}>
+        Age: {Math.floor((Date.now() - birthday.getTime()) / (1000 * 60 * 60 * 24 * 365.25))}
+      </div>
+    </>
+  );
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridSortColumn header="Employee" path="lastName" renderer={employeeRenderer} />
+
+      <GridSortColumn header="Birthdate" path="birthday" renderer={birthdayRenderer} />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: grid-rich-content-sorting.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-sort-column.js';
+import { differenceInYears, format, parseISO } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer, columnHeaderRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-rich-content-sorting')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-sort-column
+          header="Employee"
+          path="lastName"
+          ${columnBodyRenderer(this.employeeRenderer, [])}
+        ></vaadin-grid-sort-column>
+        <vaadin-grid-column
+          ${columnHeaderRenderer(this.birthdayHeaderRenderer, [])}
+          ${columnBodyRenderer(this.birthdayRenderer, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private employeeRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <div class="person-item">
+      <vaadin-avatar
+        img="${person.pictureUrl}"
+        name="${person.firstName} ${person.lastName}"
+        style="--vaadin-avatar-size: 2.25rem"
+      ></vaadin-avatar>
+      <span>${person.firstName} ${person.lastName}</span>
+      <span>${person.email}</span>
+    </div>
+  `;
+
+  private birthdayHeaderRenderer = () => html`
+    <vaadin-grid-sorter path="birthday">Birthdate</vaadin-grid-sorter>
+  `;
+
+  private birthdayRenderer: GridColumnBodyLitRenderer<Person> = (person) => {
+    const birthday = parseISO(person.birthday);
+    return html`
+      <div>${format(birthday, 'P')}</div>
+      <div style="font-size: .875rem; color: var(--vaadin-text-color-secondary);">
+        Age: ${differenceInYears(Date.now(), birthday)}
+      </div>
+    `;
+  };
+  // end::snippet[]
+}
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Sorting helps users find and examine data. Therefore, it’s recommended to enable sorting for all applicable columns. An exception, though, would be when the order is an essential part of the data itself, such as with prioritized lists.
+
+Programmatic Sorting
+
+You can sort a Grid programmatically using the sort() method with GridSortOrder. This is useful when you want to set an initial sort order or change the sorting based on application logic:
+
+[Java]
+Grid.Column<Person> nameColumn = grid.addColumn(Person::getLastName)
+        .setHeader("Last Name")
+        .setSortable(true);
+
+// Sort ascending by the name column
+grid.sort(GridSortOrder.asc(nameColumn).build());
+
+To sort by multiple columns, use GridSortOrder.asc() or GridSortOrder.desc() and chain with thenAsc() or thenDesc():
+
+[Java]
+grid.sort(GridSortOrder.asc(lastNameColumn)
+        .thenDesc(ageColumn)
+        .build());
+
+Note: GridSortOrder vs. QuerySortOrder
+
+GridSortOrder is used with grid.sort() and references Grid columns. Don’t confuse it with QuerySortOrder, which is used in data provider callbacks and references property name strings. The Grid automatically translates between the two when fetching data.
+
+Filtering
+
+Filtering allows the user to find a specific item or subset of items. You can add filters to Grid columns or use external filter fields.
+
+For instance, try typing anna in the input box for Name below. When you’re finished, the data shown is only people who have anna in their name. That includes some with the names Anna and Annabelle, as well as some with Arianna and Brianna.
+
+[Flow: GridColumnFiltering.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+@Route("grid-column-filtering")
+public class GridColumnFiltering extends Div {
+
+    public GridColumnFiltering() {
+        // tag::snippet1[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        Grid.Column<Person> nameColumn = grid.addColumn(createPersonRenderer())
+                .setWidth("230px").setFlexGrow(0);
+        Grid.Column<Person> emailColumn = grid.addColumn(Person::getEmail);
+        Grid.Column<Person> professionColumn = grid
+                .addColumn(Person::getProfession);
+
+        List<Person> people = DataService.getPeople();
+        GridListDataView<Person> dataView = grid.setItems(people);
+        PersonFilter personFilter = new PersonFilter(dataView);
+
+        grid.getHeaderRows().clear();
+        HeaderRow headerRow = grid.appendHeaderRow();
+
+        headerRow.getCell(nameColumn).setComponent(
+                createFilterHeader("Name", personFilter::setFullName));
+        headerRow.getCell(emailColumn).setComponent(
+                createFilterHeader("Email", personFilter::setEmail));
+        headerRow.getCell(professionColumn).setComponent(
+                createFilterHeader("Profession", personFilter::setProfession));
+        // end::snippet1[]
+
+        add(grid);
+    }
+
+    private static Component createFilterHeader(String labelText,
+            Consumer<String> filterChangeConsumer) {
+        TextField textField = new TextField(labelText);
+        textField.setValueChangeMode(ValueChangeMode.EAGER);
+        textField.setClearButtonVisible(true);
+        textField.addThemeVariants(TextFieldVariant.SMALL);
+        textField.addValueChangeListener(
+                e -> filterChangeConsumer.accept(e.getValue()));
+        return textField;
+    }
+
+    private static class PersonFilter {
+        private final GridListDataView<Person> dataView;
+
+        private String fullName;
+        private String email;
+        private String profession;
+
+        public PersonFilter(GridListDataView<Person> dataView) {
+            this.dataView = dataView;
+            this.dataView.addFilter(this::test);
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+            this.dataView.refreshAll();
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+            this.dataView.refreshAll();
+        }
+
+        public void setProfession(String profession) {
+            this.profession = profession;
+            this.dataView.refreshAll();
+        }
+
+        public boolean test(Person person) {
+            boolean matchesFullName = matches(person.getFullName(), fullName);
+            boolean matchesEmail = matches(person.getEmail(), email);
+            boolean matchesProfession = matches(person.getProfession(),
+                    profession);
+
+            return matchesFullName && matchesEmail && matchesProfession;
+        }
+
+        private boolean matches(String value, String searchTerm) {
+            return searchTerm == null || searchTerm.isEmpty()
+                    || value.toLowerCase().contains(searchTerm.toLowerCase());
+        }
+    }
+
+    private static Renderer<Person> createPersonRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                  <vaadin-avatar img="${item.pictureUrl}" name="${item.fullName}"></vaadin-avatar>
+                                  <span>${item.fullName}</span>
+                                </vaadin-horizontal-layout>
+                                """)
+                .withProperty("pictureUrl", Person::getPictureUrl)
+                .withProperty("fullName", Person::getFullName);
+    }
+
+}
+
+[React: grid-column-filtering.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridFilterColumn } from '@vaadin/react-components/GridFilterColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type PersonEnhanced = Person & { displayName: string };
+
+const nameRenderer = ({ item: person }: { item: PersonEnhanced }) => (
+  <HorizontalLayout style={{ alignItems: 'center' }} theme="spacing">
+    <Avatar img={person.pictureUrl} name={person.displayName} />
+    <span>{person.displayName}</span>
+  </HorizontalLayout>
+);
+
+// tag::snippet[]
+function Example() {
+  const items = useSignal<PersonEnhanced[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridFilterColumn
+        header="Name"
+        path="displayName"
+        flexGrow={0}
+        width="230px"
+        renderer={nameRenderer}
+      />
+
+      <GridFilterColumn path="email" />
+      <GridFilterColumn path="profession" />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[Lit: grid-column-filtering.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-filter-column.js';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type PersonEnhanced = Person & { displayName: string };
+
+@customElement('grid-column-filtering')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: PersonEnhanced[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-filter-column
+          header="Name"
+          path="displayName"
+          flex-grow="0"
+          width="230px"
+          ${columnBodyRenderer(this.nameRenderer, [])}
+        ></vaadin-grid-filter-column>
+        <vaadin-grid-filter-column path="email"></vaadin-grid-filter-column>
+        <vaadin-grid-filter-column path="profession"></vaadin-grid-filter-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private nameRenderer: GridColumnBodyLitRenderer<PersonEnhanced> = (person) => html`
+    <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+      <vaadin-avatar img="${person.pictureUrl}" .name="${person.displayName}"></vaadin-avatar>
+      <span>${person.displayName}</span>
+    </vaadin-horizontal-layout>
+  `;
+}
+
+Place filters outside the grid when the filter is based on multiple columns, or when a bigger field or more complex filter UI is needed, one which wouldn’t fit well in a column. In the example here, whatever you type in the search box can be matched against all of the columns. Type Rheumatologist in the search box. The results show only the rows with that profession.
+
+[Flow: GridExternalFiltering.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-external-filtering")
+public class GridExternalFiltering extends Div {
+
+    public GridExternalFiltering() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createPersonRenderer()).setHeader("Name").setFlexGrow(0)
+                .setWidth("230px");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        GridListDataView<Person> dataView = grid.setItems(people);
+
+        TextField searchField = new TextField();
+        searchField.setWidth("50%");
+        searchField.setPlaceholder("Search");
+        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.EAGER);
+        searchField.addValueChangeListener(e -> dataView.refreshAll());
+
+        dataView.addFilter(person -> {
+            String searchTerm = searchField.getValue().trim();
+
+            if (searchTerm.isEmpty())
+                return true;
+
+            boolean matchesFullName = matchesTerm(person.getFullName(),
+                    searchTerm);
+            boolean matchesEmail = matchesTerm(person.getEmail(), searchTerm);
+            boolean matchesProfession = matchesTerm(person.getProfession(),
+                    searchTerm);
+
+            return matchesFullName || matchesEmail || matchesProfession;
+        });
+        // end::snippet[]
+
+        VerticalLayout layout = new VerticalLayout(searchField, grid);
+        layout.setPadding(false);
+
+        add(layout);
+    }
+
+    private static Renderer<Person> createPersonRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                  <vaadin-avatar img="${item.pictureUrl}" name="${item.fullName}"></vaadin-avatar>
+                                  <span> ${item.fullName} </span>
+                                </vaadin-horizontal-layout>
+                                """)
+                .withProperty("pictureUrl", Person::getPictureUrl)
+                .withProperty("fullName", Person::getFullName);
+    }
+
+    private boolean matchesTerm(String value, String searchTerm) {
+        return value.toLowerCase().contains(searchTerm.toLowerCase());
+    }
+
+}
+
+[React: grid-external-filtering.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type PersonEnhanced = Person & { displayName: string };
+
+// tag::snippet[]
+function nameRenderer({ item: person }: { item: PersonEnhanced }) {
+  return (
+    <HorizontalLayout style={{ alignItems: 'center' }} theme="spacing">
+      <Avatar img={person.pictureUrl} name={person.displayName} />
+      <span> {person.displayName} </span>
+    </HorizontalLayout>
+  );
+}
+
+function Example() {
+  const filteredItems = useSignal<PersonEnhanced[]>([]);
+  const items = useSignal<PersonEnhanced[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      const newItems = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+      items.value = newItems;
+      filteredItems.value = newItems;
+    });
+  }, []);
+
+  return (
+    <VerticalLayout theme="spacing">
+      <TextField
+        placeholder="Search"
+        style={{ width: '50%' }}
+        onValueChanged={(e) => {
+          const searchTerm = (e.detail.value || '').trim().toLowerCase();
+          filteredItems.value = items.value.filter(
+            ({ displayName, email, profession }) =>
+              !searchTerm ||
+              displayName.toLowerCase().includes(searchTerm) ||
+              email.toLowerCase().includes(searchTerm) ||
+              profession.toLowerCase().includes(searchTerm)
+          );
+        }}
+      >
+        <Icon slot="prefix" icon="vaadin:search" />
+      </TextField>
+
+      <Grid items={filteredItems.value}>
+        <GridColumn header="Name" flexGrow={0} width="230px" renderer={nameRenderer} />
+
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+    </VerticalLayout>
+  );
+}
+
+// end::snippet[]
+
+[Lit: grid-external-filtering.ts]
+import '@vaadin/avatar';
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import type { TextFieldValueChangedEvent } from '@vaadin/text-field';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type PersonEnhanced = Person & { displayName: string };
+
+@customElement('grid-external-filtering')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private filteredItems: PersonEnhanced[] = [];
+
+  private items: PersonEnhanced[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    const items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+    this.items = items;
+    this.filteredItems = items;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-text-field
+          placeholder="Search"
+          style="width: 50%;"
+          @value-changed="${(e: TextFieldValueChangedEvent) => {
+            const searchTerm = (e.detail.value || '').trim();
+            const matchesTerm = (value: string) =>
+              value.toLowerCase().includes(searchTerm.toLowerCase());
+
+            this.filteredItems = this.items.filter(
+              ({ displayName, email, profession }) =>
+                !searchTerm ||
+                matchesTerm(displayName) ||
+                matchesTerm(email) ||
+                matchesTerm(profession)
+            );
+          }}"
+        >
+          <vaadin-icon slot="prefix" icon="vaadin:search"></vaadin-icon>
+        </vaadin-text-field>
+        <vaadin-grid .items="${this.filteredItems}">
+          <vaadin-grid-column
+            header="Name"
+            flex-grow="0"
+            width="230px"
+            ${columnBodyRenderer(this.nameRenderer, [])}
+          ></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-vertical-layout>
+    `;
+  }
+  // end::snippet[]
+
+  private nameRenderer: GridColumnBodyLitRenderer<PersonEnhanced> = (person) => html`
+    <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+      <vaadin-avatar img="${person.pictureUrl}" .name="${person.displayName}"></vaadin-avatar>
+      <span> ${person.displayName} </span>
+    </vaadin-horizontal-layout>
+  `;
+}
+
+Lazy Loading
+
+When you want to display a list of items that would be quite large to load entirely into memory, or you want to load items from a database, data providers can be used to provide lazy loading through pagination.
+
+The following example works like the earlier example, but it uses a data provider for lazy loading, sorting, and filtering items.
+
+[Flow: GridDataProvider.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
+import com.vaadin.flow.router.Route;
+
+@Route("grid-data-provider")
+public class GridDataProvider extends VerticalLayout {
+    public GridDataProvider() {
+        setPadding(false);
+
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>();
+        grid.addColumn(Person::getFullName, "name").setSortable(true)
+                .setHeader("Name");
+        grid.addColumn(Person::getProfession, "profession").setSortable(true)
+                .setHeader("Profession");
+
+        // Create a data provider instance with a configurable filter, allowing
+        // the filter value to be set programmatically via setFilter().
+        ConfigurableFilterDataProvider<Person, Void, String> dataProvider =
+                new PersonDataProvider().withConfigurableFilter();
+        grid.setItems(dataProvider);
+
+        TextField searchField = new TextField();
+        searchField.setWidth("50%");
+        searchField.setPlaceholder("Search");
+        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.EAGER);
+        searchField.addValueChangeListener(event -> {
+            dataProvider.setFilter(event.getValue());
+        });
+
+        add(searchField, grid);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+
+// tag::snippet[]
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, String> {
+    private static final List<Person> DATABASE = new ArrayList<>(
+            DataService.getPeople());
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, String> query) {
+        // A real app should use a real database or a service to fetch,
+        // filter and sort data.
+
+        // SQL equivalent: SELECT ... FROM ...
+        Stream<Person> stream = DATABASE.stream();
+
+        // SQL equivalent: WHERE ...
+        stream = stream.filter(createPredicate(query.getFilter()));
+
+        // SQL equivalent: ORDER BY ...
+        stream = stream.sorted(createComparator(query.getSortOrders()));
+
+        // SQL equivalent: OFFSET ... LIMIT ...
+        stream = stream.skip(query.getOffset()).limit(query.getLimit());
+
+        return stream;
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, String> query) {
+        // SQL equivalent: SELECT COUNT(*) FROM ...
+        Stream<Person> stream = DATABASE.stream();
+
+        // SQL equivalent: WHERE ...
+        stream = stream.filter(createPredicate(query.getFilter()));
+
+        return (int) stream.count();
+    }
+
+    private Predicate<Person> createPredicate(Optional<String> filter) {
+        return (person) -> filter.map(searchTerm -> {
+            if (person.getFullName().toLowerCase()
+                    .contains(searchTerm.toLowerCase())) {
+                return true;
+            }
+            if (person.getProfession().toLowerCase()
+                    .contains(searchTerm.toLowerCase())) {
+                return true;
+            }
+
+            return false;
+        }).orElse(true);
+    }
+
+    private Comparator<Person> createComparator(
+            List<QuerySortOrder> sortOrders) {
+        return sortOrders.stream().map(sortOrder -> {
+            Comparator<Person> comparator = switch (sortOrder.getSorted()) {
+            case "name" -> Comparator.comparing(Person::getFullName);
+            case "profession" -> Comparator.comparing(Person::getProfession);
+            default -> (p0, p1) -> 0;
+            };
+
+            return sortOrder.getDirection().equals(SortDirection.ASCENDING)
+                    ? comparator
+                    : comparator.reversed();
+        }).reduce((p0, p1) -> 0, Comparator::thenComparing);
+    }
+}
+// end::snippet[]
+
+[React: grid-data-provider.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { useGridDataProvider } from '@vaadin/hilla-react-crud';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridSortColumn } from '@vaadin/react-components/GridSortColumn.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { GridPersonService } from 'Frontend/generated/endpoints';
+
+// tag::snippet[]
+function Example() {
+  const searchTerm = useSignal('');
+
+  // Create a data provider that calls a backend service with a
+  // Spring Data pageable and the search term
+  const dataProvider = useGridDataProvider(
+    async (pageable) => await GridPersonService.list(pageable, searchTerm.value),
+    // Providing the search term as a dependency will automatically
+    // refresh the data provider when the search term changes
+    [searchTerm.value]
+  );
+
+  return (
+    <VerticalLayout theme="spacing">
+      <TextField
+        placeholder="Search"
+        style={{ width: '50%' }}
+        onValueChanged={(e) => {
+          searchTerm.value = e.detail.value.trim();
+        }}
+      >
+        <Icon slot="prefix" icon="vaadin:search" />
+      </TextField>
+
+      <Grid dataProvider={dataProvider}>
+        <GridSortColumn path="fullName" header="Name" />
+        <GridSortColumn path="profession" />
+      </Grid>
+    </VerticalLayout>
+  );
+  // end::snippet[]
+}
+
+[React: GridPersonService.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+// tag::snippet[]
+@BrowserCallable
+@AnonymousAllowed
+public class GridPersonService {
+    private final GridPersonRepository personRepository;
+
+    public GridPersonService(GridPersonRepository personRepository) {
+        this.personRepository = personRepository;
+    }
+
+    public @NonNull List<@NonNull Person> list(Pageable pageable,
+            String filter) {
+        // Implement your data fetching logic here
+        // For this example, we're using a Spring Data repository
+        return personRepository
+                .findByFullNameContainingIgnoreCaseOrProfessionContainingIgnoreCase(
+                        filter, filter, pageable);
+    }
+}
+// end::snippet[]
+
+[React: GridPersonRepository.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.Person;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+// tag::snippet[]
+public interface GridPersonRepository extends JpaRepository<Person, Long> {
+    List<Person> findByFullNameContainingIgnoreCaseOrProfessionContainingIgnoreCase(
+            String fullName, String profession, Pageable pageable);
+}
+    // end::snippet[]
+
+[Lit: grid-data-provider.ts]
+import '@vaadin/text-field';
+import '@vaadin/icon';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-sort-column.js';
+import '@vaadin/grid/vaadin-grid-filter-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type {
+  Grid,
+  GridDataProviderCallback,
+  GridDataProviderParams,
+  GridSorterDefinition,
+  GridSorterDirection,
+} from '@vaadin/grid';
+import type { TextFieldValueChangedEvent } from '@vaadin/text-field';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function matchesTerm(value: string, searchTerm: string) {
+  return value.toLowerCase().includes(searchTerm.toLowerCase());
+}
+
+function compare(a: string, b: string, direction: GridSorterDirection) {
+  return direction === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
+}
+
+// tag::snippet[]
+async function fetchPeople(params: {
+  page: number;
+  pageSize: number;
+  searchTerm: string;
+  sortOrders: GridSorterDefinition[];
+}) {
+  const { page, pageSize, searchTerm, sortOrders } = params;
+  const { people } = await getPeople();
+
+  let result = people.map((person) => ({
+    ...person,
+    fullName: `${person.firstName} ${person.lastName}`,
+  }));
+
+  // Filtering
+  if (searchTerm) {
+    result = result.filter(
+      (p) => matchesTerm(p.fullName, searchTerm) || matchesTerm(p.profession, searchTerm)
+    );
+  }
+
+  // Sorting
+  const sortBy = Object.fromEntries(sortOrders.map(({ path, direction }) => [path, direction]));
+  if (sortBy.fullName) {
+    result = result.sort((p1, p2) => compare(p1.fullName, p2.fullName, sortBy.fullName));
+  } else if (sortBy.profession) {
+    result = result.sort((p1, p2) => compare(p1.profession, p2.profession, sortBy.profession));
+  }
+
+  // Pagination
+  const count = result.length;
+  const offset = page * pageSize;
+  result = result.slice(offset, offset + pageSize);
+
+  return { people: result, count };
+}
+// end::snippet[]
+
+@customElement('grid-data-provider')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet2[]
+  @state()
+  private searchTerm = '';
+
+  @query('#grid')
+  private grid!: Grid;
+
+  private dataProvider = async (
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) => {
+    const { page, pageSize, sortOrders } = params;
+
+    const { people, count } = await fetchPeople({
+      page,
+      pageSize,
+      sortOrders,
+      searchTerm: this.searchTerm,
+    });
+
+    callback(people, count);
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-text-field
+          placeholder="Search"
+          style="width: 50%;"
+          @value-changed="${(e: TextFieldValueChangedEvent) => {
+            this.searchTerm = (e.detail.value || '').trim();
+            this.grid.clearCache();
+          }}"
+        >
+          <vaadin-icon slot="prefix" icon="vaadin:search"></vaadin-icon>
+        </vaadin-text-field>
+        <vaadin-grid id="grid" .dataProvider="${this.dataProvider}">
+          <vaadin-grid-sort-column path="fullName" header="Name"></vaadin-grid-sort-column>
+          <vaadin-grid-sort-column path="profession"></vaadin-grid-sort-column>
+        </vaadin-grid>
+      </vaadin-vertical-layout>
+    `;
+  }
+  // end::snippet2[]
+}
+
+See the Data Binding page for more information about data providers in Flow.
+
+Lazy Column Rendering
+
+Grids containing a large number of columns can sometimes exhibit performance issues. If many of the columns are typically outside the visible viewport, rendering performance can be optimized by using "lazy column rendering" mode.
+
+This mode enables virtual scrolling horizontally. It renders body cells only when their corresponding columns are inside the visible viewport.
+
+Lazy rendering should be used only with a large number of columns and performance is a high priority. For most use cases, though, the default "eager" mode is recommended.
+
+When considering whether to use the "lazy" mode, keep the following factors in mind:
+
+Row Height
+    When only a number of columns are visible at once, the height of a row can only be that of the highest cell currently visible on that row. Make sure each cell on a single row has the same height as all of the other cells on the row. Otherwise, users may notice jumpiness when horizontally scrolling the grid as lazily rendered cells with different heights are scrolled into view.
+Auto-Width Columns
+    For columns that are initially outside the visible viewport, but still use auto-width, only the header content is taken into account when calculating the column width. This is because the body cells of the columns outside the viewport are not rendered initially.
+Screen Reader Compatibility
+    Screen readers may not be able to associate the focused cells with the correct headers when only a subset of the body cells on a row is rendered.
+Keyboard Navigation
+    Tabbing through focusable elements inside the grid body may not work as expected. This is because some of the columns that would include focusable elements in the body cells may be outside the visible viewport and thus not rendered.
+No Improvement If All Columns Visible
+    The lazy column rendering mode can only improve the rendering performance when a significant portion of the columns are outside of the Grid’s visible viewport. It has no effect on Grids in which all columns are visible without horizontal scrolling.
+
+[Flow: GridLazyColumnRendering.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.ColumnRendering;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-lazy-column-rendering")
+public class GridLazyColumnRendering extends Div {
+
+    public GridLazyColumnRendering() {
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        // tag::snippet[]
+        grid.setColumnRendering(ColumnRendering.LAZY);
+        // end::snippet[]
+
+        grid.addColumn(LitRenderer.of("Row ${index}")).setFrozen(true);
+
+        // Generate 100 columns
+        for (int i = 0; i < 100; i++) {
+            grid.addColumn(LitRenderer.of(i + " - ${index}"))
+                    .setHeader("Col " + i);
+        }
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-lazy-column-rendering.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function createColumnRenderer(columnIndex: number) {
+  return ({ model }: { model: { index: number } }) => (
+    <>
+      {columnIndex} - {model.index}
+    </>
+  );
+}
+
+function indexColumnRenderer({ model }: { model: { index: number } }) {
+  return <>Row {model.index}</>;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} columnRendering="lazy">
+      <GridColumn frozen renderer={indexColumnRenderer}></GridColumn>
+
+      {[...Array(100).keys()].map((index) => (
+        // Generate 100 columns
+        <GridColumn key={index} header={`Col ${index}`} renderer={createColumnRenderer(index)} />
+      ))}
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-lazy-column-rendering.ts]
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridBodyRenderer } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-lazy-column-rendering')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" column-rendering="lazy">
+        <!-- end::snippet[] -->
+        <vaadin-grid-column frozen .renderer="${this.indexColumnRenderer}"></vaadin-grid-column>
+
+        ${[...Array(100).keys()].map(
+          (index) =>
+            // Generate 100 columns
+            html`
+              <vaadin-grid-column
+                data-index="${index}"
+                .header="${`Col ${index}`}"
+                .renderer="${this.columnRenderer}"
+              ></vaadin-grid-column>
+            `
+        )}
+      </vaadin-grid>
+    `;
+  }
+
+  private columnRenderer: GridBodyRenderer<Person> = (root, column, { index }) => {
+    root.textContent = `${column.dataset.index} - ${index}`;
+  };
+
+  private indexColumnRenderer: GridBodyRenderer<Person> = (root, _, { index }) => {
+    root.textContent = `Row ${index}`;
+  };
+}
+
+Pagination
+
+In general, there are two approaches to presenting large data sets in grids:
+
+- Infinite Scrolling loads data incrementally as the user scrolls, providing a seamless browsing experience. It works well for exploratory browsing but can make locating specific items or returning to previous positions difficult.
+- Pagination divides data into discrete pages with navigation controls, making it easier to track position within a dataset and locate specific items. It provides better user orientation but requires additional navigation steps to view more content. It can also cause confusion about whether the grid’s "Select All" action means a selection across all pages or only on this particular page.
+
+By default, Vaadin Grid uses infinite scrolling with lazy loading, as demonstrated in the Lazy Loading section.
+
+While Vaadin Grid doesn’t include built-in pagination controls, you can still implement manual pagination using other Vaadin components. The example below shows a custom pagination implementation that includes page size selection, navigation buttons, and page indicators.
+
+The implementation uses a grid with allRowsVisible=true (to disable scrolling) and a data provider that returns only items relevant to the currently selected page.
+
+[Flow: GridManualPagination.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.select.SelectVariant;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+@SuppressWarnings("FieldCanBeLocal")
+@Route("grid-manual-pagination")
+public class GridManualPagination extends VerticalLayout {
+
+    private final PaginationControls paginationControls = new PaginationControls();
+    private final DataSource dataSource = new DataSource();
+
+    // tag::snippet[]
+    private final DataProvider<Person, String> pagingDataProvider = DataProvider
+            .fromFilteringCallbacks(query -> {
+                // We are implementing our own way of data pagination.
+                // Unfortunately, the data provider contract requires these
+                // two methods to be called during data fetch, otherwise
+                // IllegalStateException is thrown
+                // -> so we just call them but ignore their return values.
+                query.getLimit();
+                query.getOffset();
+
+                // determine the offset and limit for the current page.
+                var offset = paginationControls.calculateOffset();
+                var limit = paginationControls.getPageSize();
+
+                return dataSource.fetch(query.getFilter(), offset, limit);
+            }, query -> {
+                // Total count of filtered items
+                var itemCount = dataSource.count(query.getFilter());
+
+                // Recalculate page count here to avoid calling
+                // dataSource.count twice
+                paginationControls.recalculatePageCount(itemCount);
+
+                var offset = paginationControls.calculateOffset();
+                var limit = paginationControls.getPageSize();
+
+                // Return the number of items for the current page, taking the
+                // remaining items on the last page into consideration
+                var remainingItemsCount = itemCount - offset;
+                return Math.min(remainingItemsCount, limit);
+            });
+
+    public GridManualPagination() {
+        setPadding(false);
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+
+        grid.addColumn(createPersonRenderer()).setHeader("Name").setFlexGrow(0)
+                .setWidth("230px");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        grid.setAllRowsVisible(true); // this will prevent scrolling in the grid
+        var dataProvider = pagingDataProvider.withConfigurableFilter();
+        grid.setDataProvider(dataProvider);
+
+        paginationControls
+                .onPageChanged(() -> grid.getDataProvider().refreshAll());
+
+        final TextField searchField = createSearchField();
+        searchField.addValueChangeListener(e -> {
+            // setFilter will refresh the data provider and trigger data
+            // provider fetch / count queries. As a side effect, the pagination
+            // controls will be updated.
+            dataProvider.setFilter(e.getValue());
+        });
+
+        add(searchField, grid, paginationControls);
+    }
+    // end::snippet[]
+
+    @NotNull
+    private TextField createSearchField() {
+        TextField searchField = new TextField();
+        searchField.setWidth("50%");
+        searchField.setPlaceholder("Search");
+        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setValueChangeMode(ValueChangeMode.EAGER);
+        return searchField;
+    }
+
+    public static class DataSource {
+        private final List<Person> people = DataService.getPeople();
+
+        public Stream<Person> fetch(Optional<String> searchTerm, int offset,
+                int limit) {
+            // emulate accessing the backend datasource - in a real application
+            // this would call, for example, an SQL query, passing an offset and
+            // a limit to the query
+            return people.stream().filter(
+                    person -> matchesSearchTerm(person, searchTerm.orElse("")))
+                    .skip(offset).limit(limit);
+        }
+
+        public int count(Optional<String> searchTerm) {
+            return (int) people.stream().filter(
+                    person -> matchesSearchTerm(person, searchTerm.orElse("")))
+                    .count();
+        }
+
+        public boolean matchesSearchTerm(Person person, String searchTerm) {
+            return searchTerm == null || searchTerm.isEmpty()
+                    || person.getFullName().toLowerCase()
+                            .contains(searchTerm.toLowerCase())
+                    || person.getEmail().toLowerCase()
+                            .contains(searchTerm.toLowerCase())
+                    || person.getProfession().toLowerCase()
+                            .contains(searchTerm.toLowerCase());
+        }
+    }
+
+    public static class PaginationControls extends HorizontalLayout {
+        private int totalItemCount = 0;
+        private int pageCount = 1;
+        private int pageSize = 10;
+        private int currentPage = 1;
+
+        private final Span currentPageLabel = currentPageLabel();
+        private final Button firstPageButton = firstPageButton();
+        private final Button lastPageButton = lastPageButton();
+        private final Button goToPreviousPageButton = goToPreviousPageButton();
+        private final Button goToNextPageButton = goToNextPageButton();
+
+        private Component createPageSizeField() {
+            Select<Integer> select = new Select<>();
+            select.addThemeVariants(SelectVariant.SMALL);
+            select.setWidth("4.8rem");
+            select.setItems(10, 15, 25, 50, 100);
+            select.setValue(pageSize);
+            select.addValueChangeListener(e -> {
+                pageSize = e.getValue();
+                updatePageCount();
+            });
+            var label = new Span("Page size");
+            label.setId("page-size-label");
+            select.setAriaLabelledBy("page-size-label");
+            final HorizontalLayout layout = new HorizontalLayout(
+                    Alignment.CENTER, label, select);
+            layout.setSpacing("var(--vaadin-gap-s)");
+            return layout;
+        }
+
+        private Runnable pageChangedListener;
+
+        public PaginationControls() {
+            setDefaultVerticalComponentAlignment(Alignment.CENTER);
+            setSpacing("var(--vaadin-gap-s)");
+            setWidthFull();
+            getStyle().set("font-size", "0.875rem");
+            addToStart(createPageSizeField());
+            addToEnd(firstPageButton, goToPreviousPageButton, currentPageLabel,
+                    goToNextPageButton, lastPageButton);
+        }
+
+        private void recalculatePageCount(int totalItemCount) {
+            this.totalItemCount = totalItemCount;
+            updatePageCount();
+        }
+
+        private void updatePageCount() {
+            if (totalItemCount == 0) {
+                this.pageCount = 1; // we still want to display one page even
+                                    // though there are no items
+            } else {
+                this.pageCount = (int) Math
+                        .ceil((double) totalItemCount / pageSize);
+            }
+            if (currentPage > pageCount) {
+                currentPage = pageCount;
+            }
+            updateControls();
+            firePageChangedEvent();
+        }
+
+        public int getPageSize() {
+            return pageSize;
+        }
+
+        public int calculateOffset() {
+            return (currentPage - 1) * pageSize;
+        }
+
+        private void updateControls() {
+            currentPageLabel.setText(
+                    String.format("Page %d of %d", currentPage, pageCount));
+            firstPageButton.setEnabled(currentPage > 1);
+            lastPageButton.setEnabled(currentPage < pageCount);
+            goToPreviousPageButton.setEnabled(currentPage > 1);
+            goToNextPageButton.setEnabled(currentPage < pageCount);
+        }
+
+        private Button firstPageButton() {
+            return createIconButton(VaadinIcon.ANGLE_DOUBLE_LEFT,
+                    "Go to first page", () -> currentPage = 1);
+        }
+
+        private Button lastPageButton() {
+            return createIconButton(VaadinIcon.ANGLE_DOUBLE_RIGHT,
+                    "Go to last page", () -> currentPage = pageCount);
+        }
+
+        private Button goToNextPageButton() {
+            return createIconButton(VaadinIcon.ANGLE_RIGHT, "Go to next page",
+                    () -> currentPage++);
+        }
+
+        private Button goToPreviousPageButton() {
+            return createIconButton(VaadinIcon.ANGLE_LEFT,
+                    "Go to previous page", () -> currentPage--);
+        }
+
+        private Span currentPageLabel() {
+            var label = new Span();
+            label.getStyle().set("padding", "0 var(--vaadin-padding-xs)");
+            return label;
+        }
+
+        private Button createIconButton(VaadinIcon icon, String ariaLabel,
+                Runnable onClickListener) {
+            Button button = new Button(new Icon(icon));
+            button.addThemeVariants(ButtonVariant.SMALL);
+            button.addClickListener(e -> {
+                onClickListener.run();
+                updateControls();
+                firePageChangedEvent();
+            });
+            button.setAriaLabel(ariaLabel);
+            return button;
+        }
+
+        private void firePageChangedEvent() {
+            if (pageChangedListener != null) {
+                pageChangedListener.run();
+            }
+        }
+
+        public void onPageChanged(Runnable pageChangedListener) {
+            this.pageChangedListener = pageChangedListener;
+        }
+    }
+
+    private static Renderer<Person> createPersonRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                  <vaadin-avatar img="${item.pictureUrl}" name="${item.fullName}"></vaadin-avatar>
+                                  <span> ${item.fullName} </span>
+                                </vaadin-horizontal-layout>
+                                """)
+                .withProperty("pictureUrl", Person::getPictureUrl)
+                .withProperty("fullName", Person::getFullName);
+    }
+
+}
+
+[React: grid-manual-pagination.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { type Signal, useComputed, useSignal, useSignalEffect } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Select } from '@vaadin/react-components/Select.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import type { TextFieldValueChangedEvent } from '@vaadin/text-field';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// Extend Person type with displayName
+type PersonEnhanced = Person & { displayName: string };
+
+interface GridPaginationControlsProps {
+  totalItemCount: Signal<number>;
+  currentPage: Signal<number>;
+  pageSize: Signal<number>;
+
+  onCurrentPageChanged(newCurrentPage: number): void;
+
+  onPageSizeChanged(newPageSize: number): void;
+}
+
+// Page size and page selector visual component
+const GridPaginationControls = ({
+  totalItemCount,
+  currentPage,
+  pageSize,
+  onCurrentPageChanged,
+  onPageSizeChanged,
+}: GridPaginationControlsProps) => {
+  const pageCount = useComputed<number>(() => {
+    if (totalItemCount.value === 0) {
+      return 1; // Display one page even if there are no items
+    }
+    return Math.ceil(totalItemCount.value / pageSize.value);
+  });
+
+  useSignalEffect(() => {
+    // Adjust the current page if it exceeds the new page count
+    if (currentPage.value > pageCount.value) {
+      onCurrentPageChanged(pageCount.value);
+    }
+  });
+
+  const smallIconButton = (
+    ariaLabel: string,
+    icon: string,
+    onClick: () => void, // should return page number we want to go to
+    disabledWhen: boolean
+  ) => (
+    <Button
+      theme="small icon"
+      slot="end"
+      aria-label={ariaLabel}
+      disabled={disabledWhen}
+      onClick={onClick}
+    >
+      <Icon icon={icon}></Icon>
+    </Button>
+  );
+
+  return (
+    <HorizontalLayout
+      style={{
+        alignItems: 'center',
+        gap: 'var(--vaadin-gap-s)',
+        fontSize: '0.875rem',
+        width: '100%',
+      }}
+    >
+      <HorizontalLayout style={{ alignItems: 'center', gap: 'var(--vaadin-gap-s)' }}>
+        <span id="page-size-label">Page size</span>
+        <Select
+          theme="small"
+          aria-labelledby="page-size-label"
+          style={{ width: '4.8rem' }}
+          items={['10', '15', '25', '50', '100'].map((it) => ({ label: it, value: it }))}
+          value={pageSize.value.toString()}
+          onValueChanged={(e: CustomEvent) => {
+            onPageSizeChanged(parseInt(e.detail.value));
+          }}
+        ></Select>
+      </HorizontalLayout>
+      {smallIconButton(
+        'Go to first page',
+        'vaadin:angle-double-left',
+        () => onCurrentPageChanged(1),
+        currentPage.value === 1
+      )}
+      {smallIconButton(
+        'Go to previous page',
+        'vaadin:angle-left',
+        () => onCurrentPageChanged(currentPage.value - 1),
+        currentPage.value === 1
+      )}
+      <span style={{ padding: '0 var(--vaadin-padding-xs)' }} slot="end">
+        Page {currentPage.value} of {pageCount.value}
+      </span>
+      {smallIconButton(
+        'Go to next page',
+        'vaadin:angle-right',
+        () => onCurrentPageChanged(currentPage.value + 1),
+        currentPage.value === pageCount.value
+      )}
+      {smallIconButton(
+        'Go to last page',
+        'vaadin:angle-double-right',
+        () => onCurrentPageChanged(pageCount.value),
+        currentPage.value === pageCount.value
+      )}
+    </HorizontalLayout>
+  );
+};
+
+function nameRenderer({ item: person }: { item: PersonEnhanced }) {
+  return (
+    <HorizontalLayout style={{ alignItems: 'center' }} theme="spacing">
+      <Avatar img={person.pictureUrl} name={person.displayName} />
+      <span> {person.displayName} </span>
+    </HorizontalLayout>
+  );
+}
+
+// tag::snippet[]
+function Example() {
+  const allItems = useSignal<PersonEnhanced[]>([]);
+  const currentSearchTerm = useSignal('');
+  const currentPage = useSignal(1);
+  const pageSize = useSignal(10);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      allItems.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  const matchesTerm = (value: string, term: string): boolean =>
+    value.toLowerCase().includes(term.toLowerCase());
+
+  const itemsFilteredByTerm = useComputed<PersonEnhanced[]>(() =>
+    allItems.value.filter(
+      ({ displayName, email, profession }) =>
+        !currentSearchTerm.value ||
+        matchesTerm(displayName, currentSearchTerm.value) ||
+        matchesTerm(email, currentSearchTerm.value) ||
+        matchesTerm(profession, currentSearchTerm.value)
+    )
+  );
+
+  const itemsFilteredByTermCount = useComputed<number>(() => itemsFilteredByTerm.value.length);
+
+  const gridItems = useComputed<PersonEnhanced[]>(() => {
+    const offset = (currentPage.value - 1) * pageSize.value;
+    return itemsFilteredByTerm.value.slice(offset, offset + pageSize.value);
+  });
+
+  const handleCurrentPageChanged = (newCurrentPage: number) => {
+    currentPage.value = newCurrentPage;
+  };
+  const handlePageSizeChanged = (newPageSize: number) => {
+    pageSize.value = newPageSize;
+  };
+
+  return (
+    <VerticalLayout theme="spacing">
+      <TextField
+        placeholder="Search"
+        style={{ width: '50%' }}
+        onValueChanged={(e: TextFieldValueChangedEvent) => {
+          currentSearchTerm.value = (e.detail.value || '').trim();
+        }}
+      >
+        <Icon slot="prefix" icon="vaadin:search" />
+      </TextField>
+      <Grid items={gridItems.value} all-rows-visible>
+        <GridColumn header="Name" flexGrow={0} width="230px" renderer={nameRenderer} />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+      <GridPaginationControls
+        totalItemCount={itemsFilteredByTermCount}
+        currentPage={currentPage}
+        onCurrentPageChanged={handleCurrentPageChanged}
+        pageSize={pageSize}
+        onPageSizeChanged={handlePageSizeChanged}
+      />
+    </VerticalLayout>
+  );
+}
+
+// end::snippet[]
+
+[Lit: grid-manual-pagination.ts]
+import '@vaadin/select';
+import '@vaadin/avatar';
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement, type PropertyValues } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import type { TextFieldValueChangedEvent } from '@vaadin/text-field';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type PersonEnhanced = Person & { displayName: string };
+
+@customElement('grid-manual-pagination')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private gridItems: PersonEnhanced[] = [];
+
+  @query('grid-pagination-controls')
+  private paginationControls!: GridPaginationControls;
+
+  private allItems: PersonEnhanced[] = [];
+  private currentSearchTerm = '';
+  private itemsFilteredByTermCount: number = 0;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.allItems = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+    this.updateGridItems();
+  }
+
+  private updateGridItems() {
+    const itemsFilteredByTerm = this.allItems.filter(
+      ({ displayName, email, profession }) =>
+        !this.currentSearchTerm ||
+        this.matchesTerm(displayName) ||
+        this.matchesTerm(email) ||
+        this.matchesTerm(profession)
+    );
+
+    this.itemsFilteredByTermCount = itemsFilteredByTerm.length;
+
+    const offset = this.paginationControls.calculateOffset();
+    const limit = this.paginationControls.pageSize;
+    this.gridItems = itemsFilteredByTerm.slice(offset, offset + limit);
+  }
+
+  private matchesTerm(value: string): boolean {
+    return value.toLowerCase().includes(this.currentSearchTerm.toLowerCase());
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-text-field
+          placeholder="Search"
+          style="width: 50%;"
+          @value-changed="${(e: TextFieldValueChangedEvent) => {
+            this.currentSearchTerm = (e.detail.value || '').trim();
+            this.updateGridItems();
+          }}"
+        >
+          <vaadin-icon slot="prefix" icon="vaadin:search"></vaadin-icon>
+        </vaadin-text-field>
+        <!-- tag::snippet[] -->
+        <vaadin-grid .items="${this.gridItems}" all-rows-visible>
+          <vaadin-grid-column
+            header="Name"
+            flex-grow="0"
+            width="230px"
+            ${columnBodyRenderer(this.nameRenderer, [])}
+          ></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+        <grid-pagination-controls
+          style="width: 100%;"
+          .totalItemCount="${this.itemsFilteredByTermCount}"
+          @page-changed="${(_: CustomEvent) => {
+            this.updateGridItems();
+          }}"
+        ></grid-pagination-controls>
+        <!-- end::snippet[] -->
+      </vaadin-vertical-layout>
+    `;
+  }
+
+  private nameRenderer: GridColumnBodyLitRenderer<PersonEnhanced> = (person) => html`
+    <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+      <vaadin-avatar img="${person.pictureUrl}" .name="${person.displayName}"></vaadin-avatar>
+      <span> ${person.displayName} </span>
+    </vaadin-horizontal-layout>
+  `;
+}
+
+@customElement('grid-pagination-controls')
+export class GridPaginationControls extends LitElement {
+  @property()
+  totalItemCount = 0;
+
+  @property()
+  pageSize = 10;
+
+  @state()
+  private pageCount = 1;
+
+  @state()
+  private currentPage = 1;
+
+  calculateOffset(): number {
+    return (this.currentPage - 1) * this.pageSize;
+  }
+
+  protected override createRenderRoot() {
+    return this;
+  }
+
+  protected override willUpdate(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has('totalItemCount')) {
+      this.updatePageCount();
+    }
+  }
+
+  private updatePageCount() {
+    if (this.totalItemCount === 0) {
+      this.pageCount = 1; // we still want to display one page even though there are no items
+    } else {
+      this.pageCount = Math.ceil(this.totalItemCount / this.pageSize);
+    }
+    if (this.currentPage > this.pageCount) {
+      this.currentPage = this.pageCount;
+    }
+    this.dispatchPageChanged();
+  }
+
+  private dispatchPageChanged() {
+    this.dispatchEvent(
+      new CustomEvent('page-changed', {
+        detail: {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+        },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout
+        style="align-items: center; gap: var(--vaadin-gap-s); font-size: 0.875rem;"
+      >
+        <vaadin-horizontal-layout style="align-items: center; gap: var(--vaadin-gap-s)">
+          <span id="page-size-label">Page size</span>
+          <vaadin-select
+            theme="small"
+            aria-labelledby="page-size-label"
+            style="width: 4.8rem;"
+            .items="${['10', '15', '25', '50', '100'].map((it) => ({ label: it, value: it }))}"
+            .value="${this.pageSize}"
+            @value-changed="${(e: CustomEvent) => {
+              this.pageSize = parseInt(e.detail.value);
+              this.updatePageCount();
+            }}"
+          ></vaadin-select>
+        </vaadin-horizontal-layout>
+        <vaadin-button
+          theme="small icon"
+          slot="end"
+          aria-label="Go to first page"
+          ?disabled="${this.currentPage === 1}"
+          @click="${() => {
+            this.currentPage = 1;
+            this.dispatchPageChanged();
+          }}"
+        >
+          <vaadin-icon icon="vaadin:angle-double-left"></vaadin-icon>
+        </vaadin-button>
+        <vaadin-button
+          theme="small icon"
+          slot="end"
+          aria-label="Go to previous page"
+          ?disabled="${this.currentPage === 1}"
+          @click="${() => {
+            this.currentPage -= 1;
+            this.dispatchPageChanged();
+          }}"
+        >
+          <vaadin-icon icon="vaadin:angle-left"></vaadin-icon>
+        </vaadin-button>
+        <span style="padding: 0 var(--vaadin-padding-xs);" slot="end">
+          Page ${this.currentPage} of ${this.pageCount}
+        </span>
+        <vaadin-button
+          theme="small icon"
+          slot="end"
+          aria-label="Go to next page"
+          ?disabled="${this.currentPage === this.pageCount}"
+          @click="${() => {
+            this.currentPage += 1;
+            this.dispatchPageChanged();
+          }}"
+        >
+          <vaadin-icon icon="vaadin:angle-right"></vaadin-icon>
+        </vaadin-button>
+        <vaadin-button
+          theme="small icon"
+          slot="end"
+          aria-label="Go to last page"
+          ?disabled="${this.currentPage === this.pageCount}"
+          @click="${() => {
+            this.currentPage = this.pageCount;
+            this.dispatchPageChanged();
+          }}"
+        >
+          <vaadin-icon icon="vaadin:angle-double-right"></vaadin-icon>
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Item Details
+
+Item details are expandable content areas that can be displayed below the regular content of a row. They can be used to display more information about an item. By default, an item’s details are toggled by clicking on the item’s row. Try clicking on one of the rows in the example here. Notice that when you do, the row is expanded to show the person’s email address, telephone number, and home address. If you click on the row again, it’s collapsed back to a single line.
+
+[Flow: GridItemDetails.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+@Route("grid-item-details")
+public class GridItemDetails extends Div {
+
+    public GridItemDetails() {
+        // tag::snippet1[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFullName).setHeader("Name");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        grid.setItemDetailsRenderer(createPersonDetailsRenderer());
+        // end::snippet1[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        grid.addThemeVariants(GridVariant.ROW_STRIPES);
+
+        add(grid);
+    }
+
+    private static ComponentRenderer<PersonDetailsFormLayout, Person> createPersonDetailsRenderer() {
+        return new ComponentRenderer<>(PersonDetailsFormLayout::new,
+                PersonDetailsFormLayout::setPerson);
+    }
+
+    private static class PersonDetailsFormLayout extends FormLayout {
+        private final TextField emailField = new TextField("Email address");
+        private final TextField phoneField = new TextField("Phone number");
+        private final TextField streetField = new TextField("Street address");
+        private final TextField zipField = new TextField("ZIP code");
+        private final TextField cityField = new TextField("City");
+        private final TextField stateField = new TextField("State");
+
+        public PersonDetailsFormLayout() {
+            Stream.of(emailField, phoneField, streetField, zipField, cityField,
+                    stateField).forEach(field -> {
+                        field.setReadOnly(true);
+                        add(field);
+                    });
+
+            setResponsiveSteps(new ResponsiveStep("0", 3));
+            setColspan(emailField, 3);
+            setColspan(phoneField, 3);
+            setColspan(streetField, 3);
+        }
+
+        public void setPerson(Person person) {
+            emailField.setValue(person.getEmail());
+            phoneField.setValue(person.getAddress().getPhone());
+            streetField.setValue(person.getAddress().getStreet());
+            zipField.setValue(person.getAddress().getZip());
+            cityField.setValue(person.getAddress().getCity());
+            stateField.setValue(person.getAddress().getState());
+        }
+    }
+
+}
+
+[React: grid-item-details.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { FormLayout } from '@vaadin/react-components/FormLayout.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+function detailsRenderer({ item: person }: { item: Person }) {
+  return (
+    <FormLayout responsiveSteps={[{ minWidth: '0', columns: 3 }]}>
+      <TextField label="Email address" value={person.email} data-colspan="3" readonly />
+      <TextField label="Phone number" value={person.address.phone} data-colspan="3" readonly />
+      <TextField label="Street address" value={person.address.street} data-colspan="3" readonly />
+      <TextField label="ZIP code" value={person.address.zip} readonly />
+      <TextField label="City" value={person.address.city} readonly />
+      <TextField label="State" value={person.address.state} readonly />
+    </FormLayout>
+  );
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const detailsOpenedItem = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  return (
+    <Grid
+      theme="row-stripes"
+      items={items.value}
+      detailsOpenedItems={detailsOpenedItem.value}
+      onActiveItemChanged={(event) => {
+        const person = event.detail.value;
+        detailsOpenedItem.value = person ? [person] : [];
+      }}
+      rowDetailsRenderer={detailsRenderer}
+    >
+      <GridColumn path="displayName" header="Name" />
+      <GridColumn path="profession" />
+    </Grid>
+  );
+}
+// end::snippet[]
+
+[Lit: grid-item-details.ts]
+import '@vaadin/form-layout';
+import '@vaadin/grid';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridActiveItemChangedEvent } from '@vaadin/grid';
+import { gridRowDetailsRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-item-details')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private detailsOpenedItem: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid
+        theme="row-stripes"
+        .items="${this.items}"
+        .detailsOpenedItems="${this.detailsOpenedItem}"
+        @active-item-changed="${(event: GridActiveItemChangedEvent<Person>) => {
+          const person = event.detail.value;
+          this.detailsOpenedItem = person ? [person] : [];
+        }}"
+        ${gridRowDetailsRenderer<Person>(
+          (person) => html`
+            <vaadin-form-layout .responsiveSteps="${[{ minWidth: '0', columns: 3 }]}">
+              <vaadin-text-field
+                label="Email address"
+                .value="${person.email}"
+                colspan="3"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="Phone number"
+                .value="${person.address.phone}"
+                colspan="3"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="Street address"
+                .value="${person.address.street}"
+                colspan="3"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="ZIP code"
+                .value="${person.address.zip}"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="City"
+                .value="${person.address.city}"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="State"
+                .value="${person.address.state}"
+                readonly
+              ></vaadin-text-field>
+            </vaadin-form-layout>
+          `,
+          []
+        )}
+      >
+        <vaadin-grid-column path="displayName" header="Name"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+}
+// end::snippet[]
+
+The default toggle behavior can be replaced by programmatically toggling the details visibility, such as from a button click.
+
+[Flow: GridItemDetailsToggle.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+@Route("grid-item-details-toggle")
+public class GridItemDetailsToggle extends Div {
+
+    public GridItemDetailsToggle() {
+        // tag::snippet1[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createToggleDetailsRenderer(grid)).setWidth("80px")
+                .setFlexGrow(0).setFrozen(true);
+        grid.addColumn(Person::getFullName).setHeader("Name");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        grid.setDetailsVisibleOnClick(false);
+        grid.setItemDetailsRenderer(createPersonDetailsRenderer());
+        // end::snippet1[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        grid.addThemeVariants(GridVariant.ROW_STRIPES);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createToggleDetailsRenderer(
+            Grid<Person> grid) {
+
+        return LitRenderer
+                .<Person> of("""
+                    <vaadin-button
+                        theme="tertiary icon"
+                        aria-label="Toggle details"
+                        aria-expanded="${model.detailsOpened ? 'true' : 'false'}"
+                        @click="${handleClick}"
+                    >
+                        <vaadin-icon
+                        .icon="${model.detailsOpened ? 'vaadin:angle-down' : 'vaadin:angle-right'}"
+                        ></vaadin-icon>
+                    </vaadin-button>
+                """)
+                .withFunction("handleClick",
+                        person -> grid.setDetailsVisible(person,
+                                !grid.isDetailsVisible(person)));
+    }
+
+    private static ComponentRenderer<PersonDetailsFormLayout, Person> createPersonDetailsRenderer() {
+        return new ComponentRenderer<>(PersonDetailsFormLayout::new,
+                PersonDetailsFormLayout::setPerson);
+    }
+
+    private static class PersonDetailsFormLayout extends FormLayout {
+        private final TextField emailField = new TextField("Email address");
+        private final TextField phoneField = new TextField("Phone number");
+        private final TextField streetField = new TextField("Street address");
+        private final TextField zipField = new TextField("ZIP code");
+        private final TextField cityField = new TextField("City");
+        private final TextField stateField = new TextField("State");
+
+        public PersonDetailsFormLayout() {
+            Stream.of(emailField, phoneField, streetField, zipField, cityField,
+                    stateField).forEach(field -> {
+                        field.setReadOnly(true);
+                        add(field);
+                    });
+
+            setResponsiveSteps(new ResponsiveStep("0", 3));
+            setColspan(emailField, 3);
+            setColspan(phoneField, 3);
+            setColspan(streetField, 3);
+        }
+
+        public void setPerson(Person person) {
+            emailField.setValue(person.getEmail());
+            phoneField.setValue(person.getAddress().getPhone());
+            streetField.setValue(person.getAddress().getStreet());
+            zipField.setValue(person.getAddress().getZip());
+            cityField.setValue(person.getAddress().getCity());
+            stateField.setValue(person.getAddress().getState());
+        }
+    }
+
+}
+
+[React: grid-item-details-toggle.tsx]
+import '@vaadin/icons';
+import React, { useCallback, useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { FormLayout } from '@vaadin/react-components/FormLayout.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Person[]>([]);
+  const detailsOpenedItems = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  const detailsRenderer = useCallback(({ item: person }: { item: Person }) => {
+    return (
+      <FormLayout responsiveSteps={[{ minWidth: '0', columns: 3 }]}>
+        <TextField label="Email address" value={person.email} data-colspan="3" readonly />
+        <TextField label="Phone number" value={person.address.phone} data-colspan="3" readonly />
+        <TextField label="Street address" value={person.address.street} data-colspan="3" readonly />
+        <TextField label="ZIP code" value={person.address.zip} readonly />
+        <TextField label="City" value={person.address.city} readonly />
+        <TextField label="State" value={person.address.state} readonly />
+      </FormLayout>
+    );
+  }, []);
+
+  const toggleDetailsRenderer = useCallback(({ item: person }: { item: Person }) => {
+    const isExpanded = detailsOpenedItems.value.includes(person);
+    return (
+      <Button
+        theme="tertiary icon"
+        aria-label="Toggle details"
+        aria-expanded={isExpanded}
+        onClick={() => {
+          detailsOpenedItems.value = isExpanded
+            ? detailsOpenedItems.value.filter((p) => p !== person)
+            : [...detailsOpenedItems.value, person];
+        }}
+      >
+        <Icon icon={isExpanded ? 'vaadin:angle-down' : 'vaadin:angle-right'} />
+      </Button>
+    );
+  }, []);
+
+  return (
+    <Grid
+      theme="row-stripes"
+      items={items.value}
+      detailsOpenedItems={detailsOpenedItems.value}
+      rowDetailsRenderer={detailsRenderer}
+    >
+      <GridColumn width="80px" flexGrow={0} frozen renderer={toggleDetailsRenderer} />
+      <GridColumn path="displayName" header="Name" />
+      <GridColumn path="profession" />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-item-details-toggle.ts]
+import '@vaadin/button';
+import '@vaadin/form-layout';
+import '@vaadin/grid';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer, gridRowDetailsRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-item-details-toggle')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private detailsOpenedItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid
+        theme="row-stripes"
+        .items="${this.items}"
+        .detailsOpenedItems="${this.detailsOpenedItems}"
+        ${gridRowDetailsRenderer<Person>(
+          (person) => html`
+            <vaadin-form-layout .responsiveSteps="${[{ minWidth: '0', columns: 3 }]}">
+              <vaadin-text-field
+                label="Email address"
+                .value="${person.email}"
+                colspan="3"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="Phone number"
+                .value="${person.address.phone}"
+                colspan="3"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="Street address"
+                .value="${person.address.street}"
+                colspan="3"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="ZIP code"
+                .value="${person.address.zip}"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="City"
+                .value="${person.address.city}"
+                readonly
+              ></vaadin-text-field>
+              <vaadin-text-field
+                label="State"
+                .value="${person.address.state}"
+                readonly
+              ></vaadin-text-field>
+            </vaadin-form-layout>
+          `,
+          []
+        )}
+      >
+        <vaadin-grid-column
+          width="80px"
+          flex-grow="0"
+          frozen
+          ${columnBodyRenderer<Person>(
+            (person, { detailsOpened }) => html`
+              <vaadin-button
+                theme="tertiary icon"
+                aria-label="Toggle details"
+                aria-expanded="${detailsOpened ? 'true' : 'false'}"
+                @click="${() => {
+                  this.detailsOpenedItems = detailsOpened
+                    ? this.detailsOpenedItems.filter((p) => p !== person)
+                    : [...this.detailsOpenedItems, person];
+                }}"
+              >
+                <vaadin-icon
+                  .icon="${detailsOpened ? 'vaadin:angle-down' : 'vaadin:angle-right'}"
+                ></vaadin-icon>
+              </vaadin-button>
+            `,
+            []
+          )}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="displayName" header="Name"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+}
+
+// end::snippet[]
+
+Tooltips can be used as a lightweight alternative to the item details panel.
+
+Empty State
+
+When there’s no data available for the grid to display any rows, the space between the header and footer is left blank by default. You can use the empty state feature to provide a message or other content in this area to inform the user that there are no items to show.
+
+[Flow: GridEmptyState.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("grid-empty-state")
+public class GridEmptyState extends Div {
+
+    public GridEmptyState() {
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        // tag::snippet[]
+        grid.setEmptyStateText("No employees found.");
+        // end::snippet[]
+
+        add(grid);
+    }
+
+}
+
+[React: grid-empty-state.tsx]
+import React from 'react';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+
+function Example() {
+  return (
+    /* tag::snippet[] */
+    <Grid>
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+      <GridColumn path="profession" />
+
+      <span slot="empty-state">No employees found.</span>
+    </Grid>
+    /* end::snippet[] */
+  );
+}
+
+[Lit: grid-empty-state.ts]
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('grid-empty-state')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+
+        <span slot="empty-state">No employees found.</span>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Context Menu
+
+You can use Context Menu to provide shortcuts for the user. It appears on a right-click by default. In a mobile browser, a long press opens the menu. In the example here, try right-clicking on one of the rows. You’ll notice a box appears with a list of choices: Edit the row, delete it, email the person, or call them. If this example were fully configured, the latter two would open the related application (i.e., the default email program or a telephone application).
+
+Using a context menu shouldn’t be the only way of accomplishing a task, though. The same functionality needs to be accessible elsewhere in the UI. See the documentation page on Context Menu for more information.
+
+[Flow: GridContextMenuExample.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-context-menu")
+public class GridContextMenuExample extends Div {
+
+    public GridContextMenuExample() {
+        // tag::snippet1[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+
+        PersonContextMenu contextMenu = new PersonContextMenu(grid);
+
+        add(grid);
+        // end::snippet1[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+    }
+
+    private static class PersonContextMenu extends GridContextMenu<Person> {
+        public PersonContextMenu(Grid<Person> target) {
+            super(target);
+
+            addItem("Edit", e -> e.getItem().ifPresent(person -> {
+                // System.out.printf("Edit: %s%n", person.getFullName());
+            }));
+            addItem("Delete", e -> e.getItem().ifPresent(person -> {
+                // System.out.printf("Delete: %s%n", person.getFullName());
+            }));
+
+            addSeparator();
+
+            GridMenuItem<Person> emailItem = addItem("Email",
+                    e -> e.getItem().ifPresent(person -> {
+                        // System.out.printf("Email: %s%n",
+                        // person.getFullName());
+                    }));
+            GridMenuItem<Person> phoneItem = addItem("Call",
+                    e -> e.getItem().ifPresent(person -> {
+                        // System.out.printf("Phone: %s%n",
+                        // person.getFullName());
+                    }));
+
+            setDynamicContentHandler(person -> {
+                // Do not show context menu when header is clicked
+                if (person == null)
+                    return false;
+                emailItem
+                        .setText(String.format("Email: %s", person.getEmail()));
+                phoneItem.setText(String.format("Call: %s",
+                        person.getAddress().getPhone()));
+                return true;
+            });
+        }
+    }
+
+}
+
+[React: grid-context-menu.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  ContextMenu,
+  type ContextMenuElement,
+  type ContextMenuRendererContext,
+} from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Workaround: Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  // tag::snippet[]
+  const renderMenu = ({
+    context,
+  }: Readonly<{
+    context: ContextMenuRendererContext;
+    original: ContextMenuElement;
+  }>) => {
+    if (!gridRef.current) {
+      return null;
+    }
+
+    const { sourceEvent } = context.detail as { sourceEvent: Event };
+    const grid = gridRef.current;
+
+    const eventContext = grid.getEventContext(sourceEvent);
+    const person = eventContext.item;
+
+    const clickHandler = (action: string) => () => {
+      console.log(`${action}: ${person.firstName} ${person.lastName}`);
+    };
+
+    return (
+      <ListBox>
+        <Item onClick={clickHandler('Edit')}>Edit</Item>
+        <Item onClick={clickHandler('Delete')}>Delete</Item>
+        <hr />
+        <Item onClick={clickHandler('Email')}>Email ({person.email})</Item>
+        <Item onClick={clickHandler('Call')}>Call ({person.address.phone})</Item>
+      </ListBox>
+    );
+  };
+
+  return (
+    <ContextMenu renderer={renderMenu}>
+      <Grid items={items.value} ref={gridRef}>
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-context-menu.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import '@vaadin/item';
+import '@vaadin/list-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ContextMenuLitRenderer } from '@vaadin/context-menu/lit.js';
+import { contextMenuRenderer } from '@vaadin/context-menu/lit.js';
+import type { Grid } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-context-menu')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  // tag::snippet[]
+  private renderMenu: ContextMenuLitRenderer = (context, menu) => {
+    const { sourceEvent } = context.detail as { sourceEvent: Event };
+    const grid = menu.firstElementChild as Grid<Person>;
+
+    const eventContext = grid.getEventContext(sourceEvent);
+    const person = eventContext.item!;
+
+    const clickHandler = (_action: string) => () => {
+      // console.log(`${action}: ${person.firstName} ${person.lastName}`);
+    };
+
+    return html`
+      <vaadin-list-box>
+        <vaadin-item @click="${clickHandler('Edit')}">Edit</vaadin-item>
+        <vaadin-item @click="${clickHandler('Delete')}">Delete</vaadin-item>
+        <hr />
+        <vaadin-item @click="${clickHandler('Email')}">Email (${person.email})</vaadin-item>
+        <vaadin-item @click="${clickHandler('Call')}">Call (${person.address.phone})</vaadin-item>
+      </vaadin-list-box>
+    `;
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-context-menu ${contextMenuRenderer(this.renderMenu, [])}>
+        <vaadin-grid .items="${this.items}" @vaadin-contextmenu="${this.onContextMenu}">
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    if ((e.currentTarget as Grid).getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+  // end::snippet[]
+}
+
+Tooltips
+
+Tooltips on cells can be useful in many situations: They can be used to give more details on the contents of a cell — if an item details panel would be overkill or otherwise undesirable. They can show the full text of a cell if it’s too long to fit feasibly into the cell itself — if wrapping the cell contents is insufficient or otherwise undesirable. Or they can give textual explanations for non-text content, such as status icons.
+
+In the example here, hold your mouse pointer over the birthday date for one of the rows. A tooltip should appear indicating the age of the person. Now hover over one of the status icons, an X or a checkmark. It’ll use Tooltips to interpret the meaning of the icons.
+
+[Flow: GridTooltipGenerator.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+@Route("grid-tooltip-generator")
+public class GridTooltipGenerator extends Div {
+
+    public GridTooltipGenerator() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        // tag::snippet[]
+        grid.addColumn(person -> getFormattedPersonBirthday(person))
+                .setTooltipGenerator(person -> "Age: " + getPersonAge(person))
+                .setHeader("Birthday");
+        grid.addComponentColumn(person -> createStatusBadge(person.getStatus()))
+                .setTooltipGenerator(person -> person.getStatus())
+                .setHeader("Status");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        grid.setSelectionMode(Grid.SelectionMode.NONE);
+
+        add(grid);
+    }
+
+    private static final DateTimeFormatter birthdayFormatter = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd");
+
+    private int getPersonAge(Person person) {
+        LocalDate birthday = person.getBirthday().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return LocalDate.now(ZoneId.systemDefault()).getYear()
+                - birthday.getYear();
+    }
+
+    private String getFormattedPersonBirthday(Person person) {
+        LocalDate birthday = person.getBirthday().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return birthday.format(birthdayFormatter);
+    }
+
+    private Badge createStatusBadge(String status) {
+        boolean isAvailable = "Available".equals(status);
+        Badge badge = new Badge();
+        badge.setIcon(isAvailable ? VaadinIcon.CHECK.create()
+                : VaadinIcon.CLOSE_SMALL.create());
+        badge.addThemeVariants(BadgeVariant.ICON_ONLY,
+                isAvailable ? BadgeVariant.SUCCESS : BadgeVariant.ERROR);
+        return badge;
+    }
+
+}
+
+[React: grid-tooltip-generator.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { differenceInYears, parseISO } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Badge } from '@vaadin/react-components/Badge.js';
+import { Grid, type GridEventContext } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const statusRenderer = ({ item: { status } }: { item: Person }) => {
+  const icon = status === 'Available' ? 'check' : 'close-small';
+  const theme = status === 'Available' ? 'success' : 'error';
+
+  return (
+    <Badge theme={`${theme} icon-only`}>
+      <Icon icon={`vaadin:${icon}`} slot="icon" />
+    </Badge>
+  );
+};
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const tooltipGenerator = (context: GridEventContext<Person>): string => {
+    let text = '';
+
+    const { column, item } = context;
+    if (column && item) {
+      switch (column.path) {
+        case 'birthday':
+          text = `Age: ${differenceInYears(Date.now(), parseISO(item.birthday))}`;
+          break;
+        case 'status':
+          text = item.status;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return text;
+  };
+
+  return (
+    <Grid items={items.value}>
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="birthday" />
+      <GridColumn path="status" renderer={statusRenderer} />
+      <Tooltip slot="tooltip" generator={tooltipGenerator} />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-tooltip-generator.ts]
+import '@vaadin/badge';
+import '@vaadin/grid';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tooltip';
+import { differenceInYears, parseISO } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridEventContext } from '@vaadin/grid';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-tooltip-generator')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  // tag::snippet[]
+  private tooltipGenerator = (context: GridEventContext<Person>): string => {
+    let text = '';
+
+    const { column, item } = context;
+    if (column && item) {
+      switch (column.path) {
+        case 'birthday':
+          text = `Age: ${differenceInYears(Date.now(), parseISO(item.birthday))}`;
+          break;
+        case 'status':
+          text = item.status;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return text;
+  };
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="birthday"></vaadin-grid-column>
+        <vaadin-grid-column
+          path="status"
+          ${columnBodyRenderer(this.statusRenderer, [])}
+        ></vaadin-grid-column>
+        <!-- tag::snippethtml[] -->
+        <vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>
+        <!-- end::snippethtml[] -->
+      </vaadin-grid>
+    `;
+  }
+
+  private statusRenderer: GridColumnBodyLitRenderer<Person> = ({ status }) => {
+    const icon = status === 'Available' ? 'check' : 'close-small';
+    const theme = status === 'Available' ? 'success' : 'error';
+
+    return html`
+      <vaadin-badge theme="${theme} icon-only">
+        <vaadin-icon icon="vaadin:${icon}" slot="icon"></vaadin-icon>
+      </vaadin-badge>
+    `;
+  };
+}
+
+Markdown
+
+Cell tooltips can be configured to render their text content as Markdown. This allows using simple formatting such as bold or italic text in the string returned by the tooltip generator. By default, this feature is inactive and the tooltip content is rendered as plain text.
+
+[Flow: Java]
+grid.setTooltipMarkdownEnabled(true);
+
+[Flow: Java]
+
+[React: tsx]
+<Tooltip markdown slot="tooltip" generator={tooltipGenerator} />
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-tooltip markdown slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>
+
+[Lit: HTML]
+
+Note: Using Markdown is discouraged if accessibility of the tooltip content is essential, as semantics of the rendered HTML content (headers, lists, …​) won’t be conveyed to assistive technologies.
+
+See the Tooltips documentation page for details on tooltip configuration.
+
+Cell Focus
+
+Many of the explanations and examples above alluded to giving the focus to rows and cells. Cells can be focused by clicking on a cell, or with the keyboard. The following keyboard shortcuts are available with Grid:
+
+Keys | Action
+Tab | Switches focus between sections of the grid (i.e., header, body, footer).
+Left, Up, Right, and Down Arrow Keys | Moves focus between cells within a section of the grid.
+Page Up | Moves cell focus up by one page of visible rows.
+Page Down | Moves cell focus down by one page of visible rows.
+Home | Moves focus to the first cell in a row.
+End | Moves focus to the last cell in a row.
+
+The cell focus event can be used to be notified when the user changes focus between cells. By default, the focus outline is only visible when using keyboard navigation. For illustrative purposes, the example below also uses custom styles to show the focus outline when clicking on cells. Try clicking on a cell. Notice how the cell is highlighted and notice the information shown at the bottom, the information provided about the event.
+
+[Flow: GridCellFocus.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.CellFocusEvent;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-cell-focus")
+public class GridCellFocus extends Div {
+
+    public GridCellFocus() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.setClassName("force-focus-outline");
+        grid.addColumn(Person::getFirstName).setKey("firstName")
+                .setHeader("First name");
+        grid.addColumn(Person::getLastName).setKey("lastName")
+                .setHeader("Last name");
+        grid.addColumn(Person::getEmail).setKey("email").setHeader("Email");
+        grid.addColumn(Person::getProfession).setKey("profession")
+                .setHeader("Profession");
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        TextArea textArea = new TextArea();
+        textArea.getStyle().set("margin-top", "var(--vaadin-gap-l)")
+                .set("padding", "0");
+        textArea.setLabel("Cell focus event information");
+        textArea.setReadOnly(true);
+
+        // tag::snippet[]
+        grid.addCellFocusListener(event -> {
+            CellFocusEvent.GridSection section = event.getSection();
+            String column = event.getColumn().map(Grid.Column::getKey)
+                    .orElse("Not available");
+            String row = event.getItem()
+                    .map(value -> String.valueOf(people.indexOf(value)))
+                    .orElse("Not available");
+            String fullName = event.getItem().map(Person::getFullName)
+                    .orElse("Not available");
+
+            String eventSummary = String.format(
+                    "Section: %s%nRow: %s%nColumn: %s%nPerson: %s", section,
+                    row, column, fullName);
+
+            textArea.setValue(eventSummary);
+        });
+        // end::snippet[]
+
+        add(grid, textArea);
+    }
+
+}
+
+[Flow: grid-cell-focus.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid.force-focus-outline::part(focused-cell)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 2px deepskyblue;
+}
+
+vaadin-grid.force-focus-outline::part(focused-cell)::after {
+    outline: none;
+}
+
+[Flow: grid-cell-focus.css]
+
+[React: grid-cell-focus.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid, type GridCellFocusEvent, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { TextArea } from '@vaadin/react-components/TextArea.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const gridRef = useRef<GridElement>(null);
+  const items = useSignal<Person[]>([]);
+  const eventSummary = useSignal('');
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  const handleCellFocus = (event: GridCellFocusEvent<Person>) => {
+    if (!gridRef.current) {
+      return;
+    }
+    const eventContext = gridRef.current.getEventContext(event);
+    const section = eventContext.section ?? 'Not available';
+    const row = eventContext.index ?? 'Not available';
+    const column = eventContext.column?.path ?? 'Not available';
+    const person = eventContext.item;
+    const fullName =
+      person?.firstName && person?.lastName
+        ? `${person.firstName} ${person.lastName}`
+        : 'Not available';
+
+    eventSummary.value = `Section: ${section}\nRow: ${row}\nColumn: ${column}\nPerson: ${fullName}`;
+  };
+
+  return (
+    <>
+      <Grid
+        className="force-focus-outline"
+        items={items.value}
+        onCellFocus={handleCellFocus}
+        ref={gridRef}
+      >
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+
+      <TextArea
+        style={{ marginTop: 'var(--vaadin-gap-l)', padding: '0' }}
+        label="Cell focus event information"
+        readonly
+        value={eventSummary.value}
+      />
+    </>
+  );
+}
+
+[React: grid-cell-focus.tsx]
+
+[React: grid-cell-focus.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid.force-focus-outline::part(focused-cell)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 2px deepskyblue;
+}
+
+vaadin-grid.force-focus-outline::part(focused-cell)::after {
+    outline: none;
+}
+
+[React: grid-cell-focus.css]
+
+[Lit: grid-cell-focus.ts]
+import '@vaadin/grid';
+import '@vaadin/text-area';
+import { css, html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type { Grid, GridCellFocusEvent } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-cell-focus')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-text-area {
+      width: 100%;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-grid')
+  private grid!: Grid<Person>;
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private eventSummary = '';
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  // tag::snippet[]
+  protected override render() {
+    return html`
+      <vaadin-grid
+        class="force-focus-outline"
+        .items="${this.items}"
+        @cell-focus="${(e: GridCellFocusEvent<Person>) => {
+          const eventContext = this.grid.getEventContext(e);
+          const section = eventContext.section ?? 'Not available';
+          const row = eventContext.index ?? 'Not available';
+          const column = eventContext.column?.path ?? 'Not available';
+          const person = eventContext.item;
+          const fullName =
+            person?.firstName && person?.lastName
+              ? `${person.firstName} ${person.lastName}`
+              : 'Not available';
+
+          this.eventSummary = `Section: ${section}\nRow: ${row}\nColumn: ${column}\nPerson: ${fullName}`;
+        }}"
+      >
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+      </vaadin-grid>
+      <vaadin-text-area
+        style="margin-top: var(--vaadin-gap-l); padding: 0;"
+        label="Cell focus event information"
+        readonly
+        .value="${this.eventSummary}"
+      ></vaadin-text-area>
+    `;
+  }
+
+  // end::snippet[]
+}
+
+[Lit: grid-cell-focus.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid.force-focus-outline::part(focused-cell)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 2px deepskyblue;
+}
+
+vaadin-grid.force-focus-outline::part(focused-cell)::after {
+    outline: none;
+}
+
+[Lit: grid-cell-focus.css]
+
+Programmatic Scrolling
+
+Grid allows programmatically scrolling to a specific row or column. This can be useful for example to scroll to a new or updated item, or to initialize the scroll position on page load when the grid’s selected item is set through a URL parameter.
+
+Scrolling to a row is done by using the scrollToIndex method with the index of the row to scroll to. In addition, the Flow Grid also supports scrolling to a specific item by using the scrollToItem method with the item to scroll to.
+
+[Flow: Java]
+// Scroll by index
+grid.scrollToIndex(rowIndex);
+// Scroll by item reference
+grid.scrollToItem(item);
+
+[Flow: Java]
+
+[React: tsx]
+const gridRef = useRef<Grid>(null);
+
+gridRef.current!.scrollToIndex(rowIndex);
+
+<Grid ref={gridRef} ...>
+  ...
+</Grid>
+
+[React: tsx]
+
+[Lit: TypeScript]
+const grid = document.querySelector('vaadin-grid');
+grid.scrollToIndex(rowIndex);
+
+[Lit: TypeScript]
+
+Scrolling to a column is done by using the scrollToColumn method with either the column index, or a reference to a column instance. The column index is based on the visual order of columns in the grid, excluding any hidden columns.
+
+[Flow: Java]
+// Scroll by column index
+grid.scrollToColumn(columnIndex);
+// Scroll by column reference
+var column = grid.addColumn(Person::getEmail).setHeader("Email");
+grid.scrollToColumn(column);
+
+[Flow: Java]
+
+[React: tsx]
+const gridRef = useRef<Grid>(null);
+const columnRef = useRef<GridColumn>(null);
+
+gridRef.current!.scrollToColumn(columnIndex);
+gridRef.current!.scrollToColumn(columnRef.current!);
+
+<Grid ref={gridRef} ...>
+  <GridColumn ref={columnRef} path="email" header="Email" />
+  ...
+</Grid>
+
+[React: tsx]
+
+[Lit: TypeScript]
+// Scroll by column index
+const grid = document.querySelector('vaadin-grid');
+grid.scrollToColumn(columnIndex);
+// Scroll by column reference
+const column = grid.querySelector('vaadin-grid-column[path="email"]');
+grid.scrollToColumn(column);
+
+[Lit: TypeScript]
+
+Related Components
+
+Component | Usage Recommendation
+CRUD | Component for creating, displaying, updating, and deleting tabular data.
+Grid Pro | Component for showing and editing tabular data.
+Tree Grid | Component for showing hierarchical tabular data.
+List Box | Lightweight component for lightweight, single-column lists.

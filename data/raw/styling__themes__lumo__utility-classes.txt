@@ -1,0 +1,925 @@
+Lumo Utility Classes
+
+List of Lumo utility classes and descriptions of them.
+
+Lumo Utility Classes are predefined CSS class names and stylesheets — similar to the popular Tailwind CSS library. They can be used to style HTML elements and layouts without having to write CSS.
+
+Each utility class applies a particular style to the element, such as background color, borders, fonts, sizing, or spacing. Classes for applying CSS flexbox and grid layout features are also available.
+
+[image: Small example of Lumo Utility Classes]
+
+Example of Lumo Utility Classes
+
+The Lumo utility classes are designed primarily to be used with native HTML elements, Vaadin layout components, and custom UI structures. Although some of them do work as expected on some Vaadin components, this is not their intended use. They especially cannot be used to style the inner parts of components.
+
+Enable Utility Classes
+
+See Utility Classes for how to load the utility classes in your application.
+
+Using Utility Classes
+
+Utility classes are regular CSS classes applied through CSS class names.
+
+The LumoUtility Java class in Flow contains String constants for all utility classes. They’re divided into nested category classes, such as LumoUtility.FontSize. These are applied the same way as CSS class name literals, using the addClassNames or ClassList APIs.
+
+[Flow: Java]
+Span errorMsg = new Span("Error");
+errorMsg.addClassNames(
+  LumoUtility.TextColor.ERROR,
+  LumoUtility.Padding.SMALL,
+  LumoUtility.Background.BASE,
+  LumoUtility.BoxShadow.XSMALL,
+  LumoUtility.BorderRadius.LARGE
+);
+
+[Flow: Java]
+
+[React: tsx]
+<span className="text-error p-s bg-base shadow-xs rounded-l">Error</span>
+
+[React: tsx]
+
+[Lit: HTML]
+<span class="text-error p-s bg-base shadow-xs rounded-l">Error</span>
+
+[Lit: HTML]
+
+[image: Effects of the above application of utility classes]
+
+Effects of Above Application of Utility Classes
+
+List of Utility Classes
+
+[lumo-tokens.ts]
+import colorScheme from '@vaadin/vaadin-lumo-styles/src/global/color-scheme.css?inline';
+import propsStyles from '@vaadin/vaadin-lumo-styles/src/props/index.css?inline';
+import utilityStyles from '@vaadin/vaadin-lumo-styles/utility.css?inline';
+import { addStylesheet } from 'Frontend/demo/theme';
+
+// Extract dark theme properties. Exclude non-custom properties, so that we don't override docs
+// styles (color, background) with Lumo styles.
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
+const darkThemeProps = colorScheme
+  .toString()
+  .split('\n')
+  .filter((line) => line.trim().startsWith('--'));
+const darkThemeStyles = `
+[theme~='dark'] {
+${darkThemeProps.join('\n')}
+}
+`;
+
+// Include styles in the page
+addStylesheet(propsStyles);
+addStylesheet(utilityStyles);
+addStylesheet(darkThemeStyles);
+
+// Notify DSP CustomPropertyPreview React component after custom properties have been loaded
+window.dispatchEvent(new CustomEvent('custom-properties-changed'));
+
+// Dummy element so that this module can be included as a rendered example in a docs page
+export default class LumoTokens extends HTMLElement {}
+
+[lumo-tokens.ts]
+
+The following is a list of all of the utility classes:
+
+Backgrounds
+
+Classes for applying a background color.
+Java class: LumoUtility.Background
+
+Base
+
+Preview | CSS Class Name / Java Constant
+Base | bg-base / BASE
+
+Transparent
+
+Preview | CSS Class Name / Java Constant
+Transparent | bg-transparent / TRANSPARENT
+
+Contrast
+
+Preview | CSS Class Name / Java Constant
+ | bg-contrast-5 / CONTRAST_5
+ | bg-contrast-10 / CONTRAST_10
+ | bg-contrast-20 / CONTRAST_20
+ | bg-contrast-30 / CONTRAST_30
+ | bg-contrast-40 / CONTRAST_40
+ | bg-contrast-50 / CONTRAST_50
+ | bg-contrast-60 / CONTRAST_60
+ | bg-contrast-70 / CONTRAST_70
+ | bg-contrast-80 / CONTRAST_80
+ | bg-contrast-90 / CONTRAST_90
+ | bg-contrast / CONTRAST
+
+Primary
+
+Preview | CSS Class Name / Java Constant
+ | bg-primary-10 / PRIMARY_10
+ | bg-primary-50 / PRIMARY_50
+ | bg-primary / PRIMARY
+
+Error
+
+Preview | CSS Class Name / Java Constant
+ | bg-error-10 / ERROR_10
+ | bg-error-50 / ERROR_50
+ | bg-error / ERROR
+
+Warning
+
+Preview | CSS Class Name / Java Constant
+ | bg-warning-10 / WARNING_10
+ | bg-warning / WARNING
+
+Success
+
+Preview | CSS Class Name / Java Constant
+ | bg-success-10 / SUCCESS_10
+ | bg-success-50 / SUCCESS_50
+ | bg-success / SUCCESS
+
+Borders
+
+Border related classes.
+Java class: LumoUtility.Border
+
+Preview | CSS Class Name / Java Constant
+ | border-0 / NONE
+ | border / ALL
+ | border-b / BOTTOM
+ | border-l / LEFT
+ | border-r / RIGHT
+ | border-t / TOP
+
+Border Color
+
+Classes for setting the border color of an element.
+Java class: LumoUtility.BorderColor
+
+Contrast
+
+Preview | CSS Class Name / Java Constant
+ | border-contrast-5 / CONTRAST_5
+ | border-contrast-10 / CONTRAST_10
+ | border-contrast-20 / CONTRAST_20
+ | border-contrast-30 / CONTRAST_30
+ | border-contrast-40 / CONTRAST_40
+ | border-contrast-50 / CONTRAST_50
+ | border-contrast-60 / CONTRAST_60
+ | border-contrast-70 / CONTRAST_70
+ | border-contrast-80 / CONTRAST_80
+ | border-contrast-90 / CONTRAST_90
+ | border-contrast / CONTRAST
+
+Primary
+
+Preview | CSS Class Name / Java Constant
+ | border-primary-10 / PRIMARY_10
+ | border-primary-50 / PRIMARY_50
+ | border-primary / PRIMARY
+
+Error
+
+Preview | CSS Class Name / Java Constant
+ | border-error-10 / ERROR_10
+ | border-error-50 / ERROR_50
+ | border-error / ERROR
+
+Warning
+
+Preview | CSS Class Name / Java Constant
+ | border-warning-10 / WARNING_10
+ | border-warning / WARNING
+ | border-warning-strong / WARNING_STRONG
+
+Success
+
+Preview | CSS Class Name / Java Constant
+ | border-success-10 / SUCCESS_10
+ | border-success-50 / SUCCESS_50
+ | border-success / SUCCESS
+
+Border Radius
+
+Classes for setting the border radius of an element.
+Java class: LumoUtility.BorderRadius
+
+Preview | CSS Class Name / Java Constant
+ | rounded-none / NONE
+ | rounded-s / SMALL
+ | rounded-m / MEDIUM
+ | rounded-l / LARGE
+
+Box Shadow
+
+Classes for applying a box shadow.
+Java class: LumoUtility.BoxShadow
+
+Preview | CSS Class Name / Java Constant
+ | shadow-xs / XSMALL
+ | shadow-s / SMALL
+ | shadow-m / MEDIUM
+ | shadow-l / LARGE
+ | shadow-xl / XLARGE
+
+Sizing
+
+Classes for setting the height and width of an element.
+
+Height
+
+Java class: LumoUtility.Height
+
+Preview | CSS Class Name / Java Constant
+N/A | h-0 / NONE
+XS | h-xs / XSMALL
+S | h-s / SMALL
+M | h-m / MEDIUM
+L | h-l / LARGE
+XL | h-xl / XLARGE
+Auto | h-auto / AUTO
+Full | h-full / FULL Sets the height of an element to 100% of its parent’s height.
+Screen(scroll to see total height) | h-screen / SCREEN Sets the height of an element to 100% of the viewport height.
+
+Max Height
+
+Java class: LumoUtility.MaxHeight
+
+Preview | CSS Class Name / Java Constant
+N/A | max-h-full / FULL Sets the maximum height of an element to 100% of its parent’s height.
+N/A | max-h-screen / SCREEN Sets the maximum height of an element to 100% of the viewport height.
+
+Min Height
+
+Java class: LumoUtility.MinHeight
+
+Preview | CSS Class Name / Java Constant
+N/A | min-h-0 / NONE Sets the minimum height of an element to 0.
+Full | min-h-full / FULL Sets the minimum height of an element to 100% of its parent’s height.
+Screen(scroll to see total height) | min-h-screen / SCREEN Sets the minimum height of an element to 100% of the viewport height.
+
+Width
+
+Java class: LumoUtility.Width
+
+Preview | CSS Class Name / Java Constant
+XS | w-xs / XSMALL
+S | w-s / SMALL
+M | w-m / MEDIUM
+L | w-l / LARGE
+XL | w-xl / XLARGE
+Auto | w-auto / AUTO
+Full | w-full / FULL Sets the width of an element to 100% of its parent’s width.
+
+Max Width
+
+Java class: LumoUtility.MaxWidth
+
+Preview | CSS Class Name / Java Constant
+N/A | max-w-full / FULL Sets the maximum width of an element to 100% of its parent’s width.
+N/A | max-w-screen-sm / SCREEN_SMALL Sets the maximum width of an element to 640px.
+N/A | max-w-screen-md / SCREEN_MEDIUM Sets the maximum width of an element to 768px.
+N/A | max-w-screen-lg / SCREEN_LARGE Sets the maximum width of an element to 1024px.
+N/A | max-w-screen-xl / SCREEN_XLARGE Sets the maximum width of an element to 1280px.
+N/A | max-w-screen-2xl / SCREEN_XXLARGE Sets the maximum width of an element to 1536px.
+
+Min Width
+
+Java class: LumoUtility.MinWidth
+
+Preview | CSS Class Name / Java Constant
+N/A | min-w-0 / NONE Sets the minimum width of an element to 0.
+Full | min-w-full / FULL Sets the minimum width of an element to 100% of its parent’s width.
+
+Icon Size
+
+Java class: LumoUtility.IconSize
+
+Preview | CSS Class Name / Java Constant
+ | icon-s / SMALL
+ | icon-m / MEDIUM
+ | icon-l / LARGE
+
+Spacing
+
+Classes for applying margin and padding to individual elements, as well as spacing between elements in a layout.
+
+Margin
+
+Classes for setting the margin of an element.
+
+Uniform
+
+Java class: LumoUtility.Margin
+
+Preview | CSS Class Name / Java Constant
+Auto | m-auto / AUTO
+0 | m-0 / NONE
+XS | m-xs / XSMALL
+S | m-s / SMALL
+M | m-m / MEDIUM
+L | m-l / LARGE
+XL | m-xl / XLARGE
+
+Bottom
+
+Java class: LumoUtility.Margin.Bottom
+
+Preview | CSS Class Name / Java Constant
+Auto | mb-auto / AUTO
+0 | mb-0 / NONE
+XS | mb-xs / XSMALL
+S | mb-s / SMALL
+M | mb-m / MEDIUM
+L | mb-l / LARGE
+XL | mb-xl / XLARGE
+
+Left
+
+Java class: LumoUtility.Margin.Left
+
+Preview | CSS Class Name / Java Constant
+Auto | ml-auto / AUTO
+0 | ml-0 / NONE
+XS | ml-xs / XSMALL
+S | ml-s / SMALL
+M | ml-m / MEDIUM
+L | ml-l / LARGE
+XL | ml-xl / XLARGE
+
+Right
+
+Java class: LumoUtility.Margin.Right
+
+Preview | CSS Class Name / Java Constant
+Auto | mr-auto / AUTO
+0 | mr-0 / NONE
+XS | mr-xs / XSMALL
+S | mr-s / SMALL
+M | mr-m / MEDIUM
+L | mr-l / LARGE
+XL | mr-xl / XLARGE
+
+Top
+
+Java class: LumoUtility.Margin.Top
+
+Preview | CSS Class Name / Java Constant
+Auto | mt-auto / AUTO
+0 | mt-0 / NONE
+XS | mt-xs / XSMALL
+S | mt-s / SMALL
+M | mt-m / MEDIUM
+L | mt-l / LARGE
+XL | mt-xl / XLARGE
+
+Inline End
+
+Java class: LumoUtility.Margin.End
+
+Preview | CSS Class Name / Java Constant
+Auto | me-auto / AUTO
+0 | me-0 / NONE
+XS | me-xs / XSMALL
+S | me-s / SMALL
+M | me-m / MEDIUM
+L | me-l / LARGE
+XL | me-xl / XLARGE
+
+Inline Start
+
+Java class: LumoUtility.Margin.Start
+
+Preview | CSS Class Name / Java Constant
+Auto | ms-auto / AUTO
+0 | ms-0 / NONE
+XS | ms-xs / XSMALL
+S | ms-s / SMALL
+M | ms-m / MEDIUM
+L | ms-l / LARGE
+XL | ms-xl / XLARGE
+
+Horizontal
+
+Java class: LumoUtility.Margin.Horizontal
+
+Preview | CSS Class Name / Java Constant
+Auto | mx-auto / AUTO
+0 | mx-0 / NONE
+XS | mx-xs / XSMALL
+S | mx-s / SMALL
+M | mx-m / MEDIUM
+L | mx-l / LARGE
+XL | mx-xl / XLARGE
+
+Vertical
+
+Java class: LumoUtility.Margin.Vertical
+
+Preview | CSS Class Name / Java Constant
+Auto | my-auto / AUTO
+0 | my-0 / NONE
+XS | my-xs / XSMALL
+S | my-s / SMALL
+M | my-m / MEDIUM
+L | my-l / LARGE
+XL | my-xl / XLARGE
+
+Padding
+
+Classes for setting the padding of an element.
+
+Uniform
+
+Java class: LumoUtility.Padding
+
+Preview | CSS Class Name / Java Constant
+0 | p-0 / NONE
+XS | p-xs / XSMALL
+S | p-s / SMALL
+M | p-m / MEDIUM
+L | p-l / LARGE
+XL | p-xl / XLARGE
+
+Bottom
+
+Java class: LumoUtility.Padding.Bottom
+
+Preview | CSS Class Name / Java Constant
+0 | pb-0 / NONE
+XS | pb-xs / XSMALL
+S | pb-s / SMALL
+M | pb-m / MEDIUM
+L | pb-l / LARGE
+XL | pb-xl / XLARGE
+
+Left
+
+Java class: LumoUtility.Padding.Left
+
+Preview | CSS Class Name / Java Constant
+0 | pl-0 / NONE
+XS | pl-xs / XSMALL
+S | pl-s / SMALL
+M | pl-m / MEDIUM
+L | pl-l / LARGE
+XL | pl-xl / XLARGE
+
+Right
+
+Java class: LumoUtility.Padding.Right
+
+Preview | CSS Class Name / Java Constant
+0 | pr-0 / NONE
+XS | pr-xs / XSMALL
+S | pr-s / SMALL
+M | pr-m / MEDIUM
+L | pr-l / LARGE
+XL | pr-xl / XLARGE
+
+Top
+
+Java class: LumoUtility.Padding.Top
+
+Preview | CSS Class Name / Java Constant
+0 | pt-0 / NONE
+XS | pt-xs / XSMALL
+S | pt-s / SMALL
+M | pt-m / MEDIUM
+L | pt-l / LARGE
+XL | pt-xl / XLARGE
+
+Inline End
+
+Java class: LumoUtility.Padding.End
+
+Preview | CSS Class Name / Java Constant
+0 | pe-0 / NONE
+XS | pe-xs / XSMALL
+S | pe-s / SMALL
+M | pe-m / MEDIUM
+L | pe-l / LARGE
+XL | pe-xl / XLARGE
+
+Inline Start
+
+Java class: LumoUtility.Padding.Start
+
+Preview | CSS Class Name / Java Constant
+0 | ps-0 / NONE
+XS | ps-xs / XSMALL
+S | ps-s / SMALL
+M | ps-m / MEDIUM
+L | ps-l / LARGE
+XL | ps-xl / XLARGE
+
+Horizontal
+
+Java class: LumoUtility.Padding.Horizontal
+
+Preview | CSS Class Name / Java Constant
+0 | px-0 / NONE
+XS | px-xs / XSMALL
+S | px-s / SMALL
+M | px-m / MEDIUM
+L | px-l / LARGE
+XL | px-xl / XLARGE
+
+Vertical
+
+Java class: LumoUtility.Padding.Vertical
+
+Preview | CSS Class Name / Java Constant
+0 | py-0 / NONE
+XS | py-xs / XSMALL
+S | py-s / SMALL
+M | py-m / MEDIUM
+L | py-l / LARGE
+XL | py-xl / XLARGE
+
+Typography
+
+Classes for styling text.
+
+Font Size
+
+Classes for setting the font size of an element.
+Java class: LumoUtility.FontSize
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum | text-2xs / XXSMALL
+Lorem ipsum | text-xs / XSMALL
+Lorem ipsum | text-s / SMALL
+Lorem ipsum | text-m / MEDIUM
+Lorem ipsum | text-l / LARGE
+Lorem ipsum | text-xl / XLARGE
+Lorem ipsum | text-2xl / XXLARGE
+Lorem ipsum | text-3xl / XXXLARGE
+
+Font Weight
+
+Classes for setting the font weight of an element.
+Java class: LumoUtility.FontWeight
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-thin / THIN
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-extralight / EXTRALIGHT
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-light / LIGHT
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-normal / NORMAL
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-medium / MEDIUM
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-semibold / SEMIBOLD
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-bold / BOLD
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-extrabold / EXTRABOLD
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | font-black / BLACK
+
+Line Height
+
+Classes for setting the line height of an element.
+Java class: LumoUtility.LineHeight
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | leading-none / NONE
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | leading-xs / XSMALL
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | leading-s / SMALL
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | leading-m / MEDIUM
+
+List Style Type
+
+Class for remove the default look of a list.
+Java class: LumoUtility.ListStyleType
+
+Preview | CSS Class Name / Java Constant
+- Item 1 - Item 2 - Item 3 | list-none / NONE
+
+Text Alignment
+
+Classes for setting an element’s text alignment.
+Java class: LumoUtility.TextAlignment
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | text-left / LEFT
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | text-center / CENTER
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | text-right / RIGHT
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | text-justify / JUSTIFY
+
+Text Color
+
+Classes for setting the text color of an element.
+Java class: LumoUtility.TextColor
+
+Preview | CSS Class Name / Java Constant
+Header | text-header / HEADER
+Body | text-body / BODY
+Secondary | text-secondary / SECONDARY
+Tertiary | text-tertiary / TERTIARY
+Disabled | text-disabled / DISABLED
+Primary | text-primary / PRIMARY
+Primary contrast | text-primary-contrast / PRIMARY_CONTRAST
+Error | text-error / ERROR
+Error contrast | text-error-contrast / ERROR_CONTRAST
+Error | text-warning / WARNING
+Error contrast | text-warning-contrast / WARNING_CONTRAST
+Success | text-success / SUCCESS
+Success contrast | text-success-contrast / SUCCESS_CONTRAST
+
+Text Overflow
+
+Classes for setting text overflow.
+Java class: LumoUtility.TextOverflow
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | overflow-clip / CLIP
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. | overflow-ellipsis / ELLIPSIS
+
+Text Transform
+
+Classes for transforming text.
+Java class: LumoUtility.TextTransform
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum dolor sit amet | capitalize / CAPITALIZE
+Lorem ipsum dolor sit amet | lowercase / LOWERCASE
+Lorem ipsum dolor sit amet | uppercase / UPPERCASE
+
+Whitespace
+
+Classes for transforming text.
+Java class: LumoUtility.Whitespace
+
+Preview | CSS Class Name / Java Constant
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | whitespace-normal / NORMAL
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | whitespace-nowrap / NOWRAP
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | whitespace-pre / PRE
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | whitespace-pre-line / PRE_LINE
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | whitespace-pre-wrap / PRE_WRAP
+
+Flexbox & Grid
+
+Classes for flexbox and grid layouts.
+
+Note: Remember to set display
+
+The following classes require setting either the flex or grid CSS class on the element to work. See Display classes.
+
+Align Content
+
+Classes for distributing space around and between items along a flexbox’s cross axis or a grid’s block axis. Applies to flexbox and grid layouts.
+Java class: LumoUtility.AlignContent
+
+Preview | CSS Class Name / Java Constant
+1234 | content-center / CENTER
+1234 | content-end / END
+1234 | content-start / START
+1234 | content-around / AROUND
+1234 | content-between / BETWEEN
+1234 | content-evenly / EVENLY
+1234 | content-stretch / STRETCH
+
+Align Items
+
+Classes for aligning items along a flexbox’s cross axis or a grid’s block axis. Applies to flexbox and grid layouts.
+Java class: LumoUtility.AlignItems
+
+Preview | CSS Class Name / Java Constant
+123 | items-baseline / BASELINE
+123 | items-center / CENTER
+123 | items-end / END
+123 | items-start / START
+123 | items-stretch / STRETCH
+
+Align Self
+
+Classes for overriding individual items align-item property. Applies to flexbox and grid items.
+Java class: LumoUtility.AlignSelf
+
+Preview | CSS Class Name / Java Constant
+123 | self-auto / AUTO
+123 | self-baseline / BASELINE
+123 | self-center / CENTER
+123 | self-end / END
+123 | self-start / START
+123 | self-stretch / STRETCH
+
+Justify Content
+
+Classes for aligning items along a flexbox’s main axis or a grid’s inline axis. Applies to flexbox and grid layouts.
+Java class: LumoUtility.JustifyContent
+
+Preview | CSS Class Name / Java Constant
+12 | justify-center / CENTER
+12 | justify-end / END
+12 | justify-start / START
+12 | justify-around / AROUND
+12 | justify-between / BETWEEN
+12 | justify-evenly / EVENLY
+
+Flex
+
+Classes for setting how items grow and shrink in a flexbox layout. Applies to flexbox items.
+Java class: LumoUtility.Flex
+
+Preview | CSS Class Name / Java Constant
+1999 | flex-auto / AUTO
+1999 | flex-none / NONE
+
+Flex Direction
+
+Classes for setting the flex direction of a flexbox layout.
+Java class: LumoUtility.FlexDirection
+
+Preview | CSS Class Name / Java Constant
+123 | flex-col / COLUMN
+123 | flex-col-reverse / COLUMN_REVERSE
+123 | flex-row / ROW
+123 | flex-row-reverse / ROW_REVERSE
+
+Flex Grow
+
+Classes for setting how items grow in a flexbox layout. Applies to flexbox items.
+Java class: LumoUtility.Flex
+
+Preview | CSS Class Name / Java Constant
+1 | flex-grow-0 / GROW_NONE
+1 | flex-grow / GROW
+
+Flex Shrink
+
+Classes for setting how items shrink in a flexbox layout. Applies to flexbox items.
+Java class: LumoUtility.Flex
+
+Preview | CSS Class Name / Java Constant
+56px | flex-shrink-0 / SHRINK_NONE
+56px | flex-shrink / SHRINK
+
+Flex Wrap
+
+Classes for setting how items wrap in a flexbox layout. Applies to flexbox layouts.
+Java class: LumoUtility.FlexWrap
+
+Preview | CSS Class Name / Java Constant
+1234 | flex-nowrap / NOWRAP
+1234 | flex-wrap / WRAP
+1234 | flex-wrap-reverse / WRAP_REVERSE
+
+Gap
+
+Classes for defining the space between items in a flexbox or grid layout. Applies to flexbox and grid layouts.
+
+Uniform
+
+Java class: LumoUtility.Gap
+
+Preview | CSS Class Name / Java Constant
+1234 | gap-xs / XSMALL
+1234 | gap-s / SMALL
+1234 | gap-m / MEDIUM
+1234 | gap-l / LARGE
+1234 | gap-xl / XLARGE
+
+Column
+
+Classes for defining the horizontal space between items in a flexbox or grid layout. Applies to flexbox and grid layouts.
+Java class: LumoUtility.Gap.Column
+
+Preview | CSS Class Name / Java Constant
+12 | gap-x-xs / XSMALL
+12 | gap-x-s / SMALL
+12 | gap-x-m / MEDIUM
+12 | gap-x-l / LARGE
+12 | gap-x-xl / XLARGE
+
+Row
+
+Classes for defining the vertical space between items in a flexbox or grid layout. Applies to flexbox and grid layouts.
+Java class: LumoUtility.Gap.Row
+
+Preview | CSS Class Name / Java Constant
+12 | gap-y-xs / XSMALL
+12 | gap-y-s / SMALL
+12 | gap-y-m / MEDIUM
+12 | gap-y-l / LARGE
+12 | gap-y-xl / XLARGE
+
+Grid Columns
+
+Classes for setting the number of columns in a grid layout.
+Java class: LumoUtility.Grid.Column
+
+Preview | CSS Class Name / Java Constant
+1234 | grid-cols-1 / COLUMNS_1
+1234 | grid-cols-2 / COLUMNS_2
+1234 | grid-cols-3 / COLUMNS_3
+1234 | grid-cols-4 / COLUMNS_4
+12345678 | grid-cols-5 / COLUMNS_5
+12345678 | grid-cols-6 / COLUMNS_6
+12345678 | grid-cols-7 / COLUMNS_7
+12345678 | grid-cols-8 / COLUMNS_8
+123456789101112 | grid-cols-9 / COLUMNS_9
+123456789101112 | grid-cols-10 / COLUMNS_10
+123456789101112 | grid-cols-11 / COLUMNS_11
+123456789101112 | grid-cols-12 / COLUMNS_12
+
+Grid Rows
+
+Classes for setting the number of rows in a grid layout.
+Java class: LumoUtility.Grid.Row
+
+Preview | CSS Class Name / Java Constant
+12345678 | grid-rows-1 / ROWS_1
+12345678 | grid-rows-2 / ROWS_2
+12345678 | grid-rows-3 / ROWS_3
+12345678 | grid-rows-4 / ROWS_4
+12345678 | grid-rows-5 / ROWS_5
+12345678 | grid-rows-6 / ROWS_6
+
+Spanning Columns
+
+Classes for setting the column span of an item in a grid layout. Java class: LumoUtility.Grid.Column
+
+Preview | CSS Class Name / Java Constant
+123456789101112 | col-span-1 / COLUMN_SPAN_1
+1234567891011121314151617181920212223 | col-span-2 / COLUMN_SPAN_2
+12345678910111213141516171819202122 | col-span-3 / COLUMN_SPAN_3
+123456789101112131415161718192021 | col-span-4 / COLUMN_SPAN_4
+1234567891011121314151617181920 | col-span-5 / COLUMN_SPAN_5
+12345678910111213141516171819 | col-span-6 / COLUMN_SPAN_6
+123456789101112131415161718 | col-span-7 / COLUMN_SPAN_7
+1234567891011121314151617 | col-span-8 / COLUMN_SPAN_8
+12345678910111213141516 | col-span-9 / COLUMN_SPAN_9
+123456789101112131415 | col-span-10 / COLUMN_SPAN_10
+1234567891011121314 | col-span-11 / COLUMN_SPAN_11
+12345678910111213 | col-span-12 / COLUMN_SPAN_12
+
+Spanning Rows
+
+Classes for setting the row span of an item in a grid layout.
+Java class: LumoUtility.Grid.Row
+
+Preview | CSS Class Name / Java Constant
+123456 | row-span-1 / ROW_SPAN_1
+1234567891011 | row-span-2 / ROW_SPAN_2
+12345678910 | row-span-3 / ROW_SPAN_3
+123456789 | row-span-4 / ROW_SPAN_4
+12345678 | row-span-5 / ROW_SPAN_5
+1234567 | row-span-6 / ROW_SPAN_6
+
+Layout
+
+Classes for general layout purposes.
+
+Box Sizing
+
+Classes for setting the box sizing property of an element. Box sizing determines whether an element’s border and padding is considered a part of its size.
+Java class: LumoUtility.BoxSizing
+
+Preview | CSS Class Name / Java Constant
+Size: 44px | box-border / BORDER
+Size: 44px | box-content / CONTENT
+
+Display
+
+Classes for setting the display property of an element. Determines whether the element is a block or inline element and how its items are laid out.
+Java class: LumoUtility.Display
+
+Preview | CSS Class Name / Java Constant
+123 | block / BLOCK
+123 | inline / INLINE
+123 | inline-block / INLINE_BLOCK
+123 | flex / FLEX
+123 | inline-flex / INLINE_FLEX
+123 | hidden / HIDDEN
+123456789 | grid / GRID
+123456789 | inline-grid / INLINE_GRID
+
+Overflow
+
+Classes for setting the overflow behavior of an element.
+Java class: LumoUtility.Overflow
+
+Preview | CSS Class Name / Java Constant
+123Scrolls | overflow-auto / AUTO
+123No scroll | overflow-hidden / HIDDEN
+123Scrolls | overflow-scroll / SCROLL
+
+Position
+
+Classes for setting the position of an element.
+Java class: LumoUtility.Position
+
+Preview | CSS Class Name / Java Constant
+RelativeAbsolute | absolute / ABSOLUTE
+FixedLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | fixed / FIXED
+N/A | static / STATIC
+Sticky 1Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Sticky 2Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. | sticky / STICKY
+N/A | relative / RELATIVE
+
+Accessibility
+
+Accessibility related classes
+Java class: LumoUtility.Accessibility
+
+Preview | CSS Class Name / Java Constant
+Screen reader only content | sr-only / SCREEN_READER_ONLY Hides content visually while remaining available to screen readers

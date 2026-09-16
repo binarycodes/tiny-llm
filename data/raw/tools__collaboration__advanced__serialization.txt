@@ -1,0 +1,127 @@
+Kubernetes Kit Session Replication
+
+Best practices to achieve session replication when using Kubernetes Kit.
+
+Kubernetes Kit allows session replication by transferring HTTP session data via a backend session storage for every request. This requires that everything stored in the session is made serializable. The Kubernetes Kit documentation provides some general session replication tips. However, when using Collaboration Kit, there are some specific changes you may need to make.
+
+Collaboration Kit Classes
+
+An instance of the class CollaborationEngine should not be stored in the session. Don’t work directly with the CollaborationEngine class. Instead, utilize other APIs, such as Topic, CollaborationBinder and the managers. If you must work directly with the class, it should always be accessed using its singleton method:
+
+[ConnectionContextExample.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.ComponentConnectionContext;
+import com.vaadin.collaborationengine.ConnectionContext;
+import com.vaadin.collaborationengine.MessageManager;
+import com.vaadin.collaborationengine.PresenceManager;
+import com.vaadin.collaborationengine.SystemConnectionContext;
+import com.vaadin.collaborationengine.TopicConnection;
+import com.vaadin.collaborationengine.TopicConnectionRegistration;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
+
+import org.springframework.scheduling.annotation.Async;
+
+public class ConnectionContextExample extends VerticalLayout {
+
+    private UserInfo localUser = new UserInfo("userId");
+    private String topicId = "mytopic";
+    private MessageManager messageManager;
+    private PresenceManager presenceManager;
+    private TopicConnectionRegistration registration;
+    private SerializableFunction<TopicConnection, Registration> connectionActivationCallback = connection -> {
+        // Do something when the connection is active.
+        return () -> {
+            // cleanup
+        };
+    };
+
+    public void instantiateWithConnectionContext(
+            ConnectionContext connectionContext) {
+        // Use to create a message manager
+        messageManager = new MessageManager(connectionContext, localUser,
+                topicId, CollaborationEngine::getInstance);
+
+        // Use to open a topic connection
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                connectionContext, topicId, localUser,
+                connectionActivationCallback);
+    }
+
+    public void instantiateWithComponent() {
+        // The ComponentConnectionContext is implicitly created
+        // when passing a component (this) as the first argument.
+        messageManager = new MessageManager(this, localUser, topicId);
+        presenceManager = new PresenceManager(this, localUser, topicId);
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                this, topicId, localUser, connectionActivationCallback);
+    }
+
+    public void instantiateWithComponentContext() {
+        ComponentConnectionContext context = new ComponentConnectionContext(
+                this);
+
+        // In this case the CollaborationEngine instance
+        // also needs to be supplied.
+        messageManager = new MessageManager(context, localUser, topicId,
+                CollaborationEngine::getInstance);
+
+        registration = CollaborationEngine.getInstance().openTopicConnection(
+                context, topicId, localUser, connectionActivationCallback);
+    }
+
+    @Async
+    public void runAsynchronously(CollaborationEngine collaborationEngine) { 1
+        UserInfo systemUser = new UserInfo("system user");
+
+        ConnectionContext context = collaborationEngine.getSystemContext(); 2
+
+        MessageManager messageManager = new MessageManager(context, systemUser,
+                topicId, () -> collaborationEngine); 3
+
+        messageManager.submit("The system is shutting down")
+                .whenComplete((v, t) -> messageManager.close()); 4
+
+    }
+
+    public SystemConnectionContext getSystemConnectionContext(
+            CollaborationEngine collaborationEngine) {
+
+        SystemConnectionContext context = collaborationEngine
+                .getSystemContext();
+        return context;
+    }
+
+    public void close() {
+        messageManager.close();
+        presenceManager.close();
+        registration.remove();
+    }
+}
+
+Note: The MessageManager constructor now takes a static method reference as its last argument. Previously, this took an instance of CollaborationEngine. This version of the constructor has now been deprecated, so you should also update this in your code.
+
+Here is a list of other Collaboration Kit classes that should not be stored in the session:
+
+Class | Alternative
+CollaborationList | Use topic.getNamedList()
+CollaborationMap | Use topic.getNamedMap()
+TopicConnection | Use CollaborationEngine.getInstance().openTopicConnection()
+
+Conversely, here is a list of Collaboration Kit classes that are serializable and can be stored in the session:
+
+Class
+CollaborationAvatarGroup
+CollaborationBinder
+CollaborationMessage
+CollaborationMessageInput
+CollaborationMessageList
+ComponentConnectionContext
+FormManager
+MessageManager
+PresenceManager
+SystemConnectionContext

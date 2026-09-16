@@ -1,0 +1,36 @@
+Custom Widget Set & MPR
+
+By default, there is no need for a custom widget-set. MPR functions using the AppWidgetset are automatically built and configured by scanning the dependencies.
+
+When using MPR, you can’t use Content Delivery Network (CDN) for the widget-set. The configuration <vaadin.widgetset.mode>cdn</vaadin.widgetset.mode> should be removed.
+
+To use a custom widget-set for the legacy framework embedded with MPR, add MprWidgetset annotation to your AppShellConfigurator configuration class.
+
+[Widget Set Definition]
+@MprWidgetset("com.vaadin.mpr.DemoWidgetset")
+public class Configuration implements AppShellConfigurator {
+}
+
+public class MainLayout extends Div implements RouterLayout {
+}
+
+@Route(value = "", layout = MainLayout.class)
+public class RootTarget extends Div {
+    public RootTarget() {
+      LegacyWrapper addressbookWrapper = new LegacyWrapper(
+                  new AddressbookLayout());
+      add(addressbookWrapper);
+    }
+}
+
+The AppWidgetset contains widget-sets found by scanning the dependencies, but at times you might only want to have specific widget-sets included or you’ll need an optimized widget-set with eager and lazy parts.
+
+For more information on the AppWidgetset and widget-set compilation, see Add-ons and Widget Set part of application environment.
+
+Note: Although you can use Java 17 or 21 in your application code, the custom widget-set code is restricted either to Java 8 with Vaadin 7 or to Java 11 with Vaadin 8. Use separate modules for the custom widget-set and set the source level, accordingly.
+
+The widget-set should start with <!-- WS Compiler: manually edited --> in the module so that it’s not manually updated with imports.
+
+The custom widget-set XML needs to import MprWidgetSet (e.g., <inherits name="com.vaadin.mpr.MprWidgetSet"/>). After changing the widget-set XML, remember to recompile it. When using Vaadin Maven plugin, you can run mvn vaadin:compile.
+
+Back to Overview

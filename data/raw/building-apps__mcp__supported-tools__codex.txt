@@ -1,0 +1,81 @@
+Codex
+
+Learn how to configure OpenAI Codex to access Vaadin documentation through the Model Context Protocol server
+
+OpenAI Codex provides native support for HTTP-based MCP servers, making it straightforward to integrate with the Vaadin MCP server for enhanced code generation capabilities.
+
+Requirements: Codex CLI version 0.43 or later
+
+Recommended: Install via the Vaadin Agent Marketplace
+
+The easiest way to set up Codex for Vaadin development is the Vaadin Agent Marketplace plugin. A single plugin installs both the Vaadin MCP server and a set of Vaadin development skills. When you use the plugin, you don’t need to configure the MCP server manually as described below.
+
+Installing the plugin requires a recent version of Codex with plugin support.
+
+1. Add the marketplace:
+   [terminal]
+   codex plugin marketplace add vaadin/agent-marketplace --ref main
+2. Install the plugin:
+   [terminal]
+   codex plugin add vaadin-skills@vaadin-marketplace
+
+To preview the available plugins before installing, run codex plugin list --marketplace vaadin-marketplace --available --json (the --available flag requires --json).
+
+To update the plugin later, upgrade the marketplace:
+
+[terminal]
+codex plugin marketplace upgrade
+
+If you prefer to connect only the MCP server, without the bundled skills, follow the manual configuration instructions below instead.
+
+Manual Configuration
+
+Add the following to ~/.codex/config.toml:
+
+[toml]
+[mcp_servers.vaadin]
+url = "https://mcp.vaadin.com/docs"
+
+After configuration, restart Codex to load the new MCP server.
+
+Note: If you see "missing field command" errors, upgrade Codex with:
+
+[bash]
+npm install -g @openai/codex@latest
+
+Configuration File Format
+
+The Codex configuration uses TOML format:
+
+- Each MCP server is defined under [mcp_servers.name]
+- The url field points to the HTTP endpoint
+- Multiple servers can be configured by adding additional sections
+
+Example with multiple servers:
+
+[toml]
+[mcp_servers.vaadin]
+url = "https://mcp.vaadin.com/docs"
+
+[mcp_servers.other_server]
+url = "https://example.com/mcp"
+
+Verify the Setup
+
+After restarting Codex:
+
+1. Start a new coding session
+2. Ask Codex about Vaadin development (e.g., "Generate a Vaadin login form")
+3. Codex queries the Vaadin MCP server to access relevant documentation
+4. Generated code is based on current Vaadin best practices
+
+You can verify active MCP servers by running:
+
+[bash]
+codex mcp list
+
+Resources
+
+- Vaadin Agent Marketplace
+- Codex MCP Documentation
+- Codex GitHub Repository

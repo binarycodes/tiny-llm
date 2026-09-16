@@ -1,0 +1,14 @@
+Development Environment Instructions
+
+Get the most out of Vaadin by setting up your development environment with the right tools and configurations.
+
+This page contains instructions for setting up your development environment for Vaadin development.
+
+Install a JDK
+    Install a Java Development Kit (JDK) for Vaadin development if you don't have one already.
+Install an IDE
+    Install a Java IDE for Vaadin development if you don't have one already.
+Import a Project
+    Import your Vaadin project into your favorite IDE.
+Run a Project
+    Run your Vaadin application with hot deploy and live reload from within your favorite IDE.

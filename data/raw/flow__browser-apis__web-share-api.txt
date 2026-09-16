@@ -1,0 +1,76 @@
+Web Share
+
+Invoking the browser’s native share sheet from the server side.
+
+The WebShare API gives server-side Java code access to the browser Web Share API (navigator.share). Use it to open the operating system’s native share sheet — the same one users see when sharing from a native app — so they can pass a title, some text, and a URL to messaging apps, email, or other installed targets. The API has two entry points: a click binding that invokes the share sheet, and a read-only signal that reports whether sharing is available at all.
+
+Warning: Not every browser implements the Web Share API. Notably, most desktop Firefox builds don’t expose navigator.share, even though Vaadin itself supports Firefox. Always check for support before showing a share control, and provide a fallback for browsers where sharing is unavailable. See Detecting Support.
+
+The Web Share API requires a fresh user gesture for every call. The browser only honors navigator.share while it is handling a real interaction such as a click or tap, so WebShare binds the share action to a trigger component rather than exposing a method you can call from anywhere. Calling the underlying browser API directly from a constructor, a background thread, or a server push is rejected by the browser.
+
+Sharing on Click
+
+Bind a share action to a component the user can click. WebShare.onClick(Component) returns a WebShareBinding whose share() method registers the action with that component’s click. The action then runs inside the browser’s click handler and inherits the user gesture:
+
+[Java]
+Button shareButton = new Button("Share");
+WebShare.onClick(shareButton).share(
+        ShareContent.create().title("Vaadin").url("https://vaadin.com"));
+
+The trigger component must implement ClickNotifier, which covers buttons and most other clickable components.
+
+Building Share Content
+
+ShareContent is the payload passed to share(). Create one with ShareContent.create() and set any combination of title(), text(), and url(). The Web Share API requires at least one of the three to be present:
+
+[Java]
+ShareContent content = ShareContent.create()
+        .title("Vaadin Docs")
+        .text("Server-side Java for modern web apps")
+        .url("https://vaadin.com/docs");
+
+Each setter also has an overload that reads the value from a component instead of a literal string. Pass any component implementing HasValue<?, String>, such as a TextField, and the value is read on the client at the moment the trigger fires. This lets users share something they typed without a server round trip to capture it first:
+
+[Java]
+TextField urlField = new TextField("Link to share");
+
+Button shareButton = new Button("Share");
+WebShare.onClick(shareButton).share(
+        ShareContent.create().title("Check this out").url(urlField));
+
+Detecting Support
+
+WebShare.supportSignal() returns a read-only Signal<WebShareSupport> for the current UI — see UI State for an introduction to signals. The value is seeded from the bootstrap handshake, so your view code observes a real value before it runs. Web Share support is fixed for the lifetime of the page, so the signal settles once and then stays stable.
+
+The signal value is one of three WebShareSupport constants:
+
+SUPPORTED
+    The browser exposes navigator.share; a share action bound to a click invokes the native share sheet.
+UNSUPPORTED
+    The browser does not expose navigator.share. Share actions silently reject. Most desktop Firefox builds and older browsers fall here.
+UNKNOWN
+    Sentinel value used only in the brief window before the first client handshake delivers a real value. Treat it the same as UNSUPPORTED.
+
+Because a share action does nothing when sharing is unsupported, use this signal to decide whether to show a share affordance at all. Bind it to the button’s visibility with bindVisible() and a mapped signal, rather than reading the value once — this keeps the button in sync if the value is still settling when the view renders:
+
+[Java]
+Button shareButton = new Button("Share");
+WebShare.onClick(shareButton).share(
+        ShareContent.create().title("Vaadin").url("https://vaadin.com"));
+
+shareButton.bindVisible(WebShare.supportSignal()
+        .map(support -> support == WebShareSupport.SUPPORTED));
+
+Handling the Outcome
+
+The plain share(ShareContent) call is fire-and-forget — the server never sees what the user did with the share sheet. To react to the outcome, use the overload that takes an onShared runnable and an onError consumer:
+
+[Java]
+WebShare.onClick(shareButton).share(
+        ShareContent.create().url("https://vaadin.com"),
+        () -> Notification.show("Thanks for sharing!"),
+        err -> Notification.show("Sharing cancelled: " + err.name()));
+
+Both callbacks fire on the UI thread, so they can update components directly. onShared runs after the user picks a share target. onError runs when the user dismisses the share sheet — the browser reports this as AbortError — or when the call is rejected for another reason, such as a missing user gesture, a permissions-policy block, or an unsupported browser. Both consumers are required in this form; pass () → {} or err → {} to opt out of one side.
+
+The onError consumer receives the browser’s error, and name() returns its name. Because the user dismissing the sheet arrives as an AbortError rather than a success, treat that case as a normal cancellation rather than a failure.

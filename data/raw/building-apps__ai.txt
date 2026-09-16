@@ -1,0 +1,22 @@
+AI in Vaadin Applications
+
+Leverage AI in your Vaadin applications with practical use cases and setup options that fit your project.
+
+In this section, you’ll learn how to connect a Vaadin application to a Large Language Model (LLM) and integrate AI features into your workflows. Using common Vaadin application scenarios as examples, you’ll explore typical UI patterns for AI integration. The focus is on simple, adaptable examples that you can quickly implement in your own projects.
+
+You’ll learn how to:
+
+- connect your application to an AI client with popular Java libraries such as Spring AI and LangChain4j,
+- use the AI support features to connect LLM providers to Vaadin UI components with minimal boilerplate,
+- choose Vaadin components that create intuitive, AI-powered workflows — such as MessageInput, MessageList, and UploadManager,
+- let users explore application data through natural language with AI-powered Grid and AI-powered Chart, and
+- deliver real-time updates to users through server push.
+
+Tip: The AI support features eliminate the boilerplate of wiring UI components to LLM frameworks. The AIOrchestrator handles streaming, conversation history, file attachments, and tool calling behind a simple builder API. Ready-made controllers — GridAIController and ChartAIController — bring natural-language data exploration to Grid and Chart. See the documentation for the full API reference.
+
+Technical Setup
+    Configure API keys and IDE settings so your Vaadin application can connect to hosted or local LLMs.
+Quick Start-Guide
+    A compact chat view with streaming, correct scrolling, and message context.
+
+Note: This section is a work in progress, and your feedback is welcome. If you have suggestions or find gaps, open an issue on GitHub.

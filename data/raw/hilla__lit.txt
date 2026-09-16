@@ -1,0 +1,10 @@
+Lit
+
+Documentation how to use the Hilla framework together with Lit.
+
+Getting Started
+    How to set up your first Hilla project, and read through tutorials that guide you through building your first Hilla application step by step.
+Guides
+Components
+    Hilla helps you build professional-looking UIs faster by including more than 45 UI components, provided by Vaadin, ranging from text fields to data grids.
+Reference

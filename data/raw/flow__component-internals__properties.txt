@@ -1,0 +1,173 @@
+Component Properties
+
+Declaring and synchronizing Vaadin component properties between client and server.
+
+Since Vaadin components are ordinary Java classes, you can define properties using standard Java getter and setter methods. However, if the property accesses a property or attribute of the underlying DOM element, you need to ensure that changes in the browser are synchronized with the server.
+
+Synchronizing a client-side property needs two things:
+
+1. the name of the property or attribute, and
+2. the client-side event that triggers synchronization.
+
+Important: Hidden and Disabled Components
+
+If a component is hidden or disabled, property value synchronization is automatically blocked. See the Component Enabled State and Component Visibility reference guides for more information.
+
+Synchronizing with the @Synchronize annotation
+
+For properties on the root element of your component, use the @Synchronize annotation on the getter method. The annotations defines the name of the DOM event that triggers synchronization, while the name of the property is deduced from the getter method name.
+
+Example 1. Synchronizing the value property whenever the change event occurs
+
+[TextField.java]
+package com.vaadin.demo.reference.componentinternals.properties.annotation;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Synchronize;
+import com.vaadin.flow.component.Tag;
+
+@Tag("input")
+public class TextField extends Component {
+
+    @Synchronize("change")
+    public String getValue() {
+        return getElement().getProperty("value");
+    }
+
+    public void setValue(String value) {
+        getElement().setProperty("value", value);
+    }
+}
+
+The @Synchronize annotation only works for events that originate from the root element, or are bubbled to the root element. For example, if you have an <input> element inside a <div> element, @Synchronize only listens to events from the <div> element. To synchronize on events from child elements, use the Element API instead.
+
+Synchronizing with the Element API
+
+If the property you want to synchronize is on a child element, or if you need more control over the synchronization process, use the Element API directly. This is covered in the Element Properties & Attributes reference guide.
+
+Example 2. Synchronizing the value property whenever the change event occurs using the Element API
+
+[TextField.java]
+package com.vaadin.demo.reference.componentinternals.properties.element;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Tag;
+
+@Tag("input")
+public class TextField extends Component {
+
+    public TextField() {
+        getElement().addPropertyChangeListener("value", "change", e -> {
+        });
+    }
+
+    public String getValue() {
+        return getElement().getProperty("value");
+    }
+
+    public void setValue(String value) {
+        getElement().setProperty("value", value);
+    }
+}
+
+Using API Helpers to Define Component Properties
+
+The PropertyDescriptor interface and associated PropertyDescriptors helper class simplify managing attributes and properties in a component.
+
+You can use PropertyDescriptors to define a property name and default value in a single place, and then use the descriptor from the setter and getter methods.
+
+Example 3. Using the PropertyDescriptors.propertyWithDefault() method to define the default property value
+
+[TextField.java]
+package com.vaadin.demo.reference.componentinternals.properties.helper;
+
+import java.util.Optional;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.PropertyDescriptor;
+import com.vaadin.flow.component.PropertyDescriptors;
+import com.vaadin.flow.component.Tag;
+
+@Tag("input")
+public class TextField extends Component {
+    private static final PropertyDescriptor<String, String> VALUE = PropertyDescriptors
+            .propertyWithDefault("value", "");
+
+    public String getValue() {
+        return get(VALUE);
+    }
+
+    public void setValue(String value) {
+        set(VALUE, value);
+    }
+
+    private static final PropertyDescriptor<String, Optional<String>> PLACEHOLDER = PropertyDescriptors
+            .optionalAttributeWithDefault("placeholder", "");
+
+    public Optional<String> getPlaceholder() {
+        return get(PLACEHOLDER);
+    }
+
+    public void setPlaceholder(String placeholder) {
+        set(PLACEHOLDER, placeholder);
+    }
+}
+
+Your component API must meet the following requirements to function correctly for a given property, such as the value of an input field:
+
+- The getter and setter should use the same property or attribute.
+- The default value should be handled appropriately.
+- The getter return value should be either:
+  - the type used by the setter, for example String for an input value, or
+  - an optional version of the type used by the setter if the property isn’t mandatory; for example, Optional<String>.
+
+PropertyDescriptors automatically take these requirements into consideration.
+
+PropertyDescriptor Interface
+
+You create PropertyDescriptor instances using the helper methods that are available in the PropertyDescriptors class.
+
+Different helper methods are available, depending on how you want your component to work:
+
+- PropertyDescriptors.propertyWithDefault() maps to an element property with a given default value.
+- PropertyDescriptors.attributeWithDefault() maps to an element attribute with a given default value.
+- PropertyDescriptors.optionalAttributeWithDefault() maps to an element attribute with a given default value, but returns an empty Optional when the default value is set.
+
+Example 4. Using the PropertyDescriptors.optionalAttributeWithDefault() method for a non-mandatory placeholder in a TextField
+
+[TextField.java]
+package com.vaadin.demo.reference.componentinternals.properties.helper;
+
+import java.util.Optional;
+
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.PropertyDescriptor;
+import com.vaadin.flow.component.PropertyDescriptors;
+import com.vaadin.flow.component.Tag;
+
+@Tag("input")
+public class TextField extends Component {
+    private static final PropertyDescriptor<String, String> VALUE = PropertyDescriptors
+            .propertyWithDefault("value", "");
+
+    public String getValue() {
+        return get(VALUE);
+    }
+
+    public void setValue(String value) {
+        set(VALUE, value);
+    }
+
+    private static final PropertyDescriptor<String, Optional<String>> PLACEHOLDER = PropertyDescriptors
+            .optionalAttributeWithDefault("placeholder", "");
+
+    public Optional<String> getPlaceholder() {
+        return get(PLACEHOLDER);
+    }
+
+    public void setPlaceholder(String placeholder) {
+        set(PLACEHOLDER, placeholder);
+    }
+}
+
+Note: The default value used in all PropertyDescriptors methods should match the value in the browser when the attribute or property is not set. Otherwise, when the user sets the value to the default value, the value isn’t correctly sent to the browser.

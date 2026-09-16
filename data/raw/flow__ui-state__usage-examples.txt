@@ -1,0 +1,20 @@
+Usage Examples
+
+Practical guides for solving common state management challenges with Signals
+
+This section provides instructive, opinionated guides on solving common state management challenges. Instead of exploring every technical detail, we focus on the "how" and "why" of our recommended patterns, showing you how to reach your goals using the specific features of Signals.
+
+These and more examples are available online in the Signals Demos, and the source code for them is available at https://github.com/vaadin/signals-cases. You can also find a link to the source code from the UI views in the demos.
+
+Form Binding with Dynamic Validation
+    Combine Vaadin Binder with signals for forms where validation rules depend on other field values, enabling reactive cross-field validation with dynamic error messages.
+Conditional Visibility
+    Use signals to control component visibility based on form values.
+Real-Time Dashboard
+    Learn how to build a real-time dashboard using signals for reactive state management.
+Shopping Cart Example
+    Building a reactive shopping cart with signals that automatically updates totals and manages dynamic lists of items.
+In-Memory Grid Filtering
+    Use signals to implement reactive client-side filtering for a in-memory data grid, where the displayed items update automatically as filter criteria change.
+CRUD Form Editor
+    Building an form editor CRUD interface for creating and updating data in a grid using signals.

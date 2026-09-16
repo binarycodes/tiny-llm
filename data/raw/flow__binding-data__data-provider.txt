@@ -1,0 +1,695 @@
+Binding Items to Components
+
+Binding and displaying a list of items in components, such as Grid and Combo Box.
+
+Selection components allow selecting a field value from a list of options. This page describes how they’re bound and displayed in such components.
+
+Applications often display lists of items, which you might want users to select one or more of them. To display such lists, you can use basic components such as HTML elements. Alternatively, you can use components specifically designed for this purpose: such as Grid, ComboBox, and ListBox.
+
+[Java]
+// Create a listing component for a bean type
+Grid<Person> grid = new Grid<>(Person.class);
+
+// Sets items using vararg beans
+grid.setItems(
+        new Person("George Washington", 1732),
+        new Person("John Adams", 1735),
+        new Person("Thomas Jefferson", 1743),
+        new Person("James Madison", 1751)
+);
+
+All listing components in Vaadin have many overloaded setItems() methods to define the items to display. Items can be basic objects (e.g., strings or numbers), Java Records, or plain-old Java objects (POJO), such as Data Transfer Objects (DTO) and JPA entities.
+
+The easiest way to bind items to a component is to provide a List of objects to be shown in the component.
+
+When there are many items, requiring plenty of memory, Grid and ComboBox can allow lazy data binding using callbacks to fetch only the required set of items from the backend.
+
+To function, components such as the Grid and ComboBox require that the assigned items have identifiers that are stable and unique. This usually requires a proper implementation of the hashCode() and equals() methods as described in the section.
+
+How Items are Displayed
+
+Component-specific APIs allow you to adjust how items are displayed. By default, listing components use the toString() method to display items. If this isn’t suitable, you can change the behavior by configuring the component.
+
+Listing components have one or more callbacks that define how to display the items. For example, consider the ComboBox component that lists status items. You can configure it to use Status::getLabel() method to get a label for each status item:
+
+[Java]
+ComboBox<Status> comboBox = new ComboBox<>();
+comboBox.setItemLabelGenerator(Status::getLabel);
+
+In a Grid, you can use addColumn() to define the columns and configure the getter that returns the content for the column. The setHeader() method sets the column header:
+
+[Java]
+// A bean with some fields
+final class Person implements Serializable {
+    private String name;
+    private String email;
+    private String title;
+    private int yearOfBirth;
+
+    public Person(String name, int yearOfBirth) {
+        this.name = name;
+        this.yearOfBirth = yearOfBirth;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getYearOfBirth() {
+        return yearOfBirth;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    // other getters and setters
+}
+
+// Show such beans in a Grid
+Grid<Person> grid = new Grid<>();
+grid.addColumn(Person::getName)
+    .setHeader("Name");
+grid.addColumn(Person::getYearOfBirth)
+    .setHeader("Year of birth");
+
+It’s also possible to set the Grid columns to display by property name. For this, you’ll need to get the column objects to configure the headers:
+
+[Java]
+Grid<Person> grid = new Grid<>(Person.class);
+grid.setColumns("name", "email", "title");
+grid.getColumnByKey("name").setHeader("Name");
+grid.getColumnByKey("email").setHeader("Email");
+grid.getColumnByKey("title").setHeader("Title");
+
+Check the component examples for more details on configuring the display of listed data.
+
+In-Memory Data List
+
+The easiest way to pass data to the listing component is to use an array or List. You can create these or pass values directly from your service layer.
+
+For example, passing in-memory data to components using the setItems() method would look like this:
+
+[Java]
+// Sets items as a collection
+List<Person> persons = getPersonService().findAll();
+comboBox.setItems(persons);
+
+// Sets items using vararg beans
+grid.setItems(
+        new Person("George Washington", 1732),
+        new Person("John Adams", 1735),
+        new Person("Thomas Jefferson", 1743),
+        new Person("James Madison", 1751)
+);
+
+// Pass all Person objects to a grid from a Spring Data repository object
+grid.setItems(personRepository.findAll());
+
+Lazy Data Binding Using Callbacks
+
+Using callback methods is a more advanced way to bind data to components. By this method, only the required portion of the data is loaded from your backend to the server memory. This approach is more difficult to implement and provides fewer built-in features. However, it can save resources on the backend and on the UI server.
+
+Currently, only Grid and ComboBox support lazy data binding. To use it, though, it’s important to understand how lazy data binding works. Here’s the process it follows:
+
+- The user performs an action that requires the component to display more data. For example, the user might scroll down a list of items in a Grid component.
+- The component detects that more data is needed, and it passes a Query object as a parameter to the callback methods. This object contains the necessary information about the data that should be displayed next to the user.
+- The callback methods use this Query object (for generic callbacks) or a Pageable object (for Spring services) to fetch only the required data and return it to the component, which displays it once the data is available.
+
+Binding a Grid to a Spring Service for Lazy Loading
+
+For example, to bind a Grid to load its data on demand from a Spring service, you do:
+
+[Java]
+grid.setItemsPageable(productService::list);
+
+// Assuming a service like
+class ProductService {
+  public List<Product> list(Pageable pageable) { ... }
+}
+
+The setItemsPageable method takes care of making the Grid request available in a Spring friendly format, as a Pageable instance. This Pageable instance contains information about which page (offset/limit) to load and also about how to sort the data (based on what is selected in the Grid). Many spring data sources use Pageable so you can directly pass it into e.g. a JPA repository class.
+
+If your Spring service requires additional parameters, you can use the longer version
+
+[Java]
+grid.setItemsPageable(pageable -> productService.list(pageable, somethingElse));
+
+Lazy Data Binding When not Using Spring
+
+For the generic case, you use the setItems method which uses a more generic Query type parameter. The Query parameter contains the same information as Pageable for Spring, i.e. which rows to fetch (offset/limit) and which sort order to use.
+
+[Java]
+grid.setItems(query -> 1
+    getPersonService() 2
+            .fetchPersons(
+                query.getOffset(), 3
+                query.getLimit() 4
+            )
+            .stream() 5
+);
+
+1. To create a lazy binding, use an overloaded version of the setItems() method that uses a callback instead of passing data directly to the component.
+2. This calls the service layer from the callback, which is common.
+3. The offset refers to the first index of the item to fetch.
+4. The limit refers to the number of items to fetch. When fetching more data, you should utilize Query properties to limit the amount of data to fetch.
+5. In this example, it’s assumed that the backend returns a List. Therefore, you’ll need to convert it to a Stream.
+
+The example above works well with JDBC backends, where you can request a set of rows from a given index. Vaadin Flow executes your data binding call in a paged manner, so it’s also possible to bind to "paging backends".
+
+For efficient lazy data binding, sorting needs to happen in the backend. By default, Grid makes all columns appear sortable in the UI if you pass the class as a constructor parameter. You can declare which columns should be sortable. Otherwise, the UI may show that some columns are sortable, but nothing happens if you try to sort them.
+
+To make sorting work in a lazy data binding, you need to pass the hints that Grid provides in the Query object to your backend logic. For example, to enable sortable lazy data binding to a custom service like
+
+[Java]
+public List<Person> listPersons(int page, int offset, String sortProperty, boolean ascending) { ... }
+
+you could do
+
+[Java]
+Grid<Person> grid = new Grid<>(Person.class);
+grid.setSortableColumns("name", "email"); 1
+grid.addColumn(person -> person.getTitle())
+        .setHeader("Title")
+        .setKey("title").setSortable(true); 2
+grid.setItems(query -> { 3
+    String colKey = null;
+    boolean ascending = true;
+    if (!query.getSortOrders().isEmpty()) { 4
+        QuerySortOrder firstSort = query.getSortOrders().get(0);
+        colKey = firstSort.getSorted();
+        ascending = firstSort.getDirection() == SortDirection.ASCENDING;
+    }
+    return personService.list(query.getPage(), query.getOffset(), colKey, ascending).stream();
+});
+
+1. If you’re using property-name-based column definition, Grid columns can be made sortable by their property names. The setSortableColumns() method makes columns with given identifiers sortable and all others non-sortable.
+2. Alternatively, define a key to your columns, which is passed to the callback, and define the column to be sortable.
+3. In the callback, you need to convert the Vaadin-specific sort information to whatever your backend understands. This example uses Spring Data based backend, so it’s mostly converting Vaadin’s QuerySortOrder hints to Spring’s Order objects and finally passing the sort and paging details to the backend.
+4. For a real implementation, you should take into account that there can be many sort orders, i.e. "first sort by birth year and then by last name"
+
+Filtering with Lazy Data Binding
+
+For the lazy data to be efficient, filtering needs to be done at the backend. For instance, if you provide a text field to limit the results shown in a Grid, you need to make your callbacks handle the filter.
+
+For example, suppose you have a Spring service that supports filtering like this:
+
+[Java]
+  public List<Product> list(Pageable pageable, String lastNameFilter) {
+    return repository.findAllByLastName(lastNameFilter, pageable);
+  }
+
+You can then set up a filtering text field that causes the grid to refresh the data when the filter is changed, like so:
+
+[Java]
+TextField filterTextField = new TextField("Filter using last name");
+filterTextField.setValueChangeMode(ValueChangeMode.LAZY); 1
+
+GridLazyDataView<Product> dataView = grid.setItemsPageable(pageable -> productService.list(pageable, filterTextField.getValue(), somethingElse)); 2
+filterTextField.addValueChangeListener(e -> dataView.refreshAll()); 3
+
+1. The lazy data value change mode is optimal for filtering purposes. Queries to the backend are only done when a user makes a small pause while typing.
+2. Passes the current filter value to the service.
+3. When a value-change event occurs, asks the data provider to load new values.
+
+If you are not using Spring, you can pass a filter value in the same way. You can also pass more complex filtering values like JPA specification instances or whatever is needed.
+
+Binding a ComboBox to a Spring Service for Lazy Loading
+
+A Combo Box differs in its data binding for Grid in two ways: it doesn’t have UI controls for defining the sort order; and it has a UI control for defining a filter string.
+
+The API for connecting a Combo Box to a Spring Service is quite similar to the Grid API:
+
+[Java]
+combobox.setItemsPageable(productService::list);
+
+// Assuming a service like
+class ProductService {
+  public List<Product> list(Pageable pageable, String filterString) { ... }
+}
+
+A service used for a Combo Box always has at least two parameters: a Pageable instance to define which page to load; and a String that provides the input the user has typed into the combobox field — which is empty by default.
+
+Similarly, when not using Spring, you would have the following:
+
+[Java]
+ComboBox<Person> comboBox = new ComboBox<>(Person.class);
+comboBox.setItems(query -> {
+    return personService.list(query.getPage(), query.getOffset(), query.getFilter().orElse("")).stream(); 1
+});
+
+1. The Query object contains the filter
+
+If you want to filter items with a type other than a string, you can provide a filter converter with the fetch callback to get the right type of filter for the fetch query like so:
+
+[Java]
+ComboBox<Person> cb = new ComboBox<>();
+cb.setPattern("\\d+");
+cb.setPreventInvalidInput(true);
+cb.setItemsWithFilterConverter(
+     query -> getPersonService()
+             .fetchPersonsByAge(query.getFilter().orElse(null), 1
+                     query.getOffset(), query.getLimit())
+             .stream(),
+     textFilter -> textFilter.isEmpty() ? null 2
+             : Integer.parseInt(textFilter));
+
+1. The Query object contains the filter of type returned by given converter.
+2. The second callback is used to convert the filter from the combo box text on the client side into an appropriate value for the backend.
+
+Improving Scrolling Behavior
+
+With the lazy data binding described above, the component doesn’t know how many items are actually available. When a user scrolls to the end of the scrollable area, the component (e.g. Grid or ComboBox) polls your callbacks for more items. If new items are found, these are added to the component. This pattern, often called infinite scrolling, causes the scrollbar to be updated when new items are added on the fly and does not allow the user to immediately scroll to the end.
+
+The usability can be improved by either providing the exact number of items available or providing an estimate of the number of items.
+
+If your service is able to provide the exact number of items available, you can add an additional "count" callback to setItems or setItemsPageable like this:
+
+[Java]
+grid.setItemsPageable(productService::list, productService::count);
+
+// Assuming a service like
+class ProductService {
+  public List<Product> list(Pageable pageable) { ... }
+  public long count(Pageable pageable) { ... } (1)
+}
+
+1. The count method should return the total number of items available. The pageable instance is also passed to the count method but in most cases you do not need to take it into account.
+
+If your service does not provide an exact count or requesting it is too costly (i.e. takes too long), you can provide an estimate instead. This you can do through a DataView instance, which is returned by the setItems() method. For example, to configure the estimate of rows and how the "virtual row count" is adjusted when the user scrolls down, you could do this:
+
+[Java]
+GridLazyDataView<Person> dataView = grid.setItems(query -> { 1
+    return getPersonService()
+            .fetchPersons(query.getOffset(), query.getLimit())
+            .stream();
+});
+
+dataView.setItemCountEstimate(1000); 2
+dataView.setItemCountEstimateIncrease(500); 3
+
+1. When assigning the callback, a data view object is returned. This can be configured directly or saved for later adjustments.
+2. If you have a rough estimate of rows, passing this to the component improves the user experience. For example, users can scroll directly to the end of the result set.
+3. You can also configure how Grid adjusts its estimate of available rows. With this configuration, if the backend returns an item for index 1000, the scrollbar is adjusted as if there were 1,500 items in the Grid.
+
+A count callback has to be provided to get a similar user experience to that of assigning data directly. In many backends, counting the number of results can be an intensive operation.
+
+[Java]
+dataView.setItemCountCallback(q -> getPersonService().getPersonCount());
+
+Callback for an Item Index
+
+When using lazy data binding, the component can’t know the index of the item in the data set, if it’s not loaded yet. Index is needed, for example, when you want to scroll to an item’s position in the component. setItemIndexProvider(ItemIndexProvider) method in LazyDataView is used to provide a callback to get the index of the item in the data set.
+
+The example below sets the item index provider that uses a service which uses the Spring Data repository. It fetches all persons and finds the index of the matching item in the list. This is not an optimal solution with a large data set, but it shows how to implement the callback. Callback should always ensure the data set used to find the item index matches the component’s data set with the same sorting and filtering:
+
+[Java]
+dataView.setItemIndexProvider((item, query) -> {
+  if(item == null) {
+    return null;
+  }
+  AtomicInteger index = new AtomicInteger();
+  return getPersonService().list(
+                  PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
+          .stream()
+          .peek(v -> index.incrementAndGet())
+          .anyMatch(item::equals) ?
+          index.get() - 1 : null;
+});
+
+The callback gives parameters of the target item, and the Query object to fetch the index. The query is prepared for fetching all items, including filter and sorting. The returned index is the index of the item in the filtered and sorted data set. If the item is not found, null is expected as a return value.
+
+The index is inconsistent if the data set for the returned index is different from the component’s data set. Changing the data set of either side during this call may cause an inconsistent index.
+
+The index of an item is retrieved with getItemIndex(Object) method in DataView. It works with lazy data binding only when the item index provider is set. Otherwise, it throws UnsupportedOperationException.
+
+This is an example of a call that scrolls to the item’s position in the component:
+
+[Java]
+grid.scrollToIndex(dataView.getItemIndex(item));
+
+Paginated Item Access
+
+Use DataView.getItems(int offset, int limit) for efficient paginated access to displayed items. This returns a filtered and sorted stream of items from the specified range:
+
+[Java]
+GridDataView<Person> dataView = grid.getGenericDataView();
+
+// Get items 20-29 (page 3, page size 10)
+try (Stream<Person> page = dataView.getItems(20, 10)) {
+    List<Person> pageItems = page.toList();
+    // Process the page...
+}
+
+Important: The returned stream must be used with try-with-resources to ensure proper resource cleanup. The method throws IndexOutOfBoundsException if offset or limit is negative.
+
+Accessing Displayed Items
+
+You may need to get a handle to all items shown in a listing component. For example, add-ons or generic helpers might want to do something with the data that’s currently listed in the component. For such purposes, the supertype of data views can be accessed with the getGenericDataView() method.
+
+Caution: Calling certain methods in data views can be an expensive operation. Particularly with lazy data binding, calling grid.getGenericDataView().getItems() causes the whole data set to be loaded from the backend.
+
+You can export persons listed in a Grid to a CSV file like this:
+
+[Java]
+private void exportToCsvFile(Grid<Person> grid)
+        throws FileNotFoundException, IOException {
+    GridDataView<Person> dataView = grid.getGenericDataView();
+    FileOutputStream fout = new FileOutputStream(new File("/tmp/export.csv"));
+
+    dataView.getItems().forEach(person -> {
+        try {
+            fout.write((person.getFullName() + ", " + person.getEmail() +"\n").getBytes());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    });
+    fout.close();
+}
+
+If you’ve assigned your items as in-memory data, you have more methods available in a list data view object. You can get the reference to that as a return value of the setItems() method or through the getListDataView() method. It’s then possible to get the next or previous item from a certain item. Of course, this can be done by saving the original data structure, but that way you can implement a generic UI logic without dependencies on the assigned data.
+
+For example, you can programmatically select the next item in a Grid, if a current value is selected and there is a next item after it.
+
+[Java]
+List<Person> allPersons = repo.findAll();
+GridListDataView<Person> gridDataView = grid.setItems(allPersons);
+
+Button selectNext = new Button("Next", e -> {
+    grid.asSingleSelect().getOptionalValue().ifPresent(p -> {
+        gridDataView.getNextItem(p).ifPresent(
+                next -> grid.select(next)
+        );
+    });
+});
+
+Updating the Displayed Data
+
+A typical scenario in Vaadin Flow applications is that data displayed, for example, in a Grid component, is edited elsewhere in the application. Editing an item elsewhere doesn’t automatically update the UI in a listing component.
+
+An easy way to refresh the component’s content is to call setItems() again with the fresh data. Alternatively, you can use finer-grained APIs in the DataView to update a portion of the dataset.
+
+For example, you can modify one or more fields of a displayed item and notify Grid about the updates to the item through DataView::refreshItem(). This would modify only one specific item, not the whole data set.
+
+[Java]
+Person person = new Person();
+person.setName("Jorma");
+person.setEmail("old@gmail.com");
+
+GridListDataView<Person> gridDataView = grid.setItems(person);
+
+Button modify = new Button("Modify data", e -> {
+    person.setEmail("new@gmail.com");
+
+    // The component shows the old email until notified of changes
+    gridDataView.refreshItem(person);
+});
+
+Alternatively, if you’ve bound a mutable List to your component, you can use helper methods in the list data view to add or remove items. You can also get an item count by hooking to the item count change event or request the item count, directly.
+
+Note: Grid is a component with complex server and client interactions. For example, when you update a Grid by using Grid.getDataProvider().refreshAll(), the Grid reports this to the server. Hence, there’s a request to the server. For example, if you periodically update a Grid from a background thread, the application won’t be idling, and the session won’t time out.
+
+For example, it’s possible to use a mutation method and listen for an item count change through the list data view, as follows:
+
+[Java]
+// The initial data
+ArrayList<String> items = new ArrayList<>(Arrays.asList("foo", "bar"));
+
+// Get the data view when binding it to a component
+Select<String> select = new Select<>();
+SelectListDataView<String> dataView = select.setItems(items);
+
+TextField newItemField = new TextField("Add new item");
+Button addNewItem = new Button("Add", e -> {
+        // Adding through the data view API mutates the data source
+        dataView.addItem(newItemField.getValue());
+});
+Button remove = new Button("Remove selected", e-> {
+        // Same for removal
+        dataView.removeItem(select.getValue());
+});
+
+// Hook to item count change event
+dataView.addItemCountChangeListener(e ->
+        Notification.show(" " + e.getItemCount() + " items available"));
+
+// Request the item count directly
+Span itemCountSpan = new Span("Total Item Count: " + dataView.getItemCount());
+
+Sorting In-Memory Data
+
+Consider the Grid as an example of a component with a sorting API. Grid rows are automatically sortable by columns that have a property type that implements Comparable. By defining a custom Comparator, you can also make other columns sortable.
+
+Alternatively, you can override the default behavior of columns with comparable types. For example, to make the sorting of string-typed columns case-insensitive, you would do this:
+
+[Java]
+grid.addColumn(Person::getName)
+        .setHeader("Name")
+        // Override the default sorting
+        .setComparator(Comparator.comparing(person ->
+                    person.getName().toLowerCase()));
+
+This kind of sorting is only supported for in-memory data. See [data-binding.data-provider.lazy-sorting] for information on how to sort lazy-loaded data.
+
+It’s possible to sort a collection of bound items with the DataView API, either by setting a Comparator or a sort order for a given bean field. Sort orders or Comparator instances can be added or removed, as well.
+
+For example, you can define custom sorting through the DataView API as follows:
+
+[Java]
+// You get a DataView when setting the items
+GridListDataView<Person> dataView = grid
+        .setItems(personRepository.findAll());
+
+// Change the sort order of items collection
+dataView.setSortOrder(Person::getName, SortDirection.ASCENDING);
+
+// Add a secondary sort order to the existing sort order
+dataView.addSortOrder(Person::getTitle, SortDirection.ASCENDING);
+
+// Remove sorting completely (undoes the settings done above)
+dataView.removeSorting();
+
+Filtering In-Memory Data
+
+If you’re using an in-memory data set, you can also apply filters through the data view object. The filtered list is automatically updated to the UI.
+
+For example, you can use a list data view to filter items based on a property as follows:
+
+[Java]
+List<Person> allPersons = repo.findAll();
+GridListDataView<Person> gridDataView = grid.setItems(allPersons);
+
+// Filter Persons younger 20 years
+gridDataView.setFilter(p -> p.getAge() < 20);
+
+// Remove filters completely (undoes the settings done above)
+gridDataView.removeFilters();
+
+Hierarchical Data
+
+Components such as Tree Grid display hierarchical data, where each item can have child items. The HierarchicalData interface in the com.vaadin.flow.data.provider.hierarchy package represents such data. It defines three methods:
+
+- getChildren(T item) returns the immediate child items of the given item, or the root items when the given item is null.
+- getParent(T item) returns the parent of the given item, or null for root items.
+- contains(T item) tells whether the given item is part of the hierarchy.
+
+The built-in TreeData class implements HierarchicalData and is a good choice when you need a ready-made, modifiable in-memory tree structure. See Binding Data to Tree Grid for details.
+
+When your domain model is already hierarchical, you can implement HierarchicalData directly instead of copying the items into a TreeData instance. For example, consider a Department type whose items reference their parent department:
+
+[Java]
+public class DepartmentData implements HierarchicalData<Department> {
+
+    private final List<Department> departments;
+
+    public DepartmentData(List<Department> departments) {
+        this.departments = departments;
+    }
+
+    @Override
+    public List<Department> getChildren(Department item) {
+        // A null item means the root of the hierarchy
+        return departments.stream()
+                .filter(department -> Objects
+                        .equals(department.getParent(), item))
+                .toList();
+    }
+
+    @Override
+    public Department getParent(Department item) {
+        return item.getParent();
+    }
+
+    @Override
+    public boolean contains(Department item) {
+        // Must return true for null, which represents the root
+        return item == null || departments.contains(item);
+    }
+}
+
+The InMemoryHierarchicalDataProvider class turns any HierarchicalData implementation into a hierarchical data provider with support for in-memory sorting and filtering, so there is no need to implement a data provider from scratch:
+
+[Java]
+TreeGrid<Department> treeGrid = new TreeGrid<>();
+treeGrid.addHierarchyColumn(Department::getName).setHeader("Department");
+
+InMemoryHierarchicalDataProvider<Department, DepartmentData> dataProvider =
+        new InMemoryHierarchicalDataProvider<>(
+                new DepartmentData(departmentService.findAll()));
+treeGrid.setDataProvider(dataProvider);
+
+// Show only active departments
+dataProvider.setFilter(Department::isActive);
+
+// Sort sibling items by name
+dataProvider.setSortOrder(Department::getName, SortDirection.ASCENDING);
+
+The data provider doesn’t track changes in the backing data structure: call refreshAll() after modifying the underlying HierarchicalData instance. The built-in TreeDataProvider is an InMemoryHierarchicalDataProvider backed by a TreeData instance.
+
+Recycling Data Binding Logic
+
+In large applications, you typically have multiple places where you display the same data type in a listing component. You can use various approaches to share the lazy data binding logic.
+
+One way is to use a domain-object-specific component implementation by extending a listing component to handle the application-specific data binding. This approach also allows you to share other common configuration aspects.
+
+[Java]
+@SpringComponent
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class PersonGrid extends Grid<Person> {
+
+    public PersonGrid(@Autowired PersonRepository repo) {
+        super(Person.class);
+
+        // Make the lazy binding
+        setItems(q -> repo.findAll(
+                PageRequest.of(q.getPage(), q.getPageSize())).stream());
+
+        // Make other common/default configuration
+        setColumns("name", "email");
+    }
+
+}
+
+You can also use a static helper method to bind the data as follows:
+
+[Java]
+public static void listItems(Grid<Person> grid, PersonRepository repository) {
+    grid.setItems(query -> repository.findAll(
+            PageRequest.of(query.getPage(), query.getPageSize())).stream());
+}
+
+To completely split off the lazy data binding logic from UI components, you can create a separate data provider class. The following example shows a data provider with only a fetch callback:
+
+[Java]
+@SpringComponent
+public class PersonDataProvider implements CallbackDataProvider.FetchCallback<Person, Void> {
+
+    @Autowired
+    private PersonRepository repo;
+
+    @Override
+    public Stream<Person> fetch(Query<Person, Void> query) {
+        return repo.findAll(PageRequest.of(query.getPage(),
+                query.getPageSize())).stream();
+    }
+
+}
+
+personGrid.setDataProvider(dataProvider);
+
+You can also implement a full data provider by extending the AbstractBackEndDataProvider class like so:
+
+[Java]
+public class PersonDataProvider extends AbstractBackEndDataProvider<Person, String> {
+    @Autowired
+    private PersonRepository repo;
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, String> query) {
+        String lastNameFilter = query.getFilter().orElse("");
+
+        return (int) repo.countByLastnameContaining(lastNameFilter);
+    }
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, String> query) {
+        String lastNameFilter = query.getFilter().orElse("");
+
+        return repo.findByLastnameContaining(lastNameFilter,
+                VaadinSpringDataHelpers.toSpringPageRequest(query),
+                VaadinSpringDataHelpers.toSpringDataSort(query)).stream();
+    }
+}
+
+To use filtering with the data provider above, you need to instantiate it with a configurable filter type. This provides access to the setFilter() method, which you can use to apply a filter value, as shown below:
+
+[Java]
+// Create a data provider
+PersonDataProvider dataProvider = new PersonDataProvider();
+
+// Wrap the original data provider to support configurable filtering
+ConfigurableFilterDataProvider<Person, Void, String>
+    configurableFilterDataProvider = dataProvider.withConfigurableFilter();
+
+// Set the wrapped data provider to the grid
+personGrid.setDataProvider(configurableFilterDataProvider);
+
+filterTextField.addValueChangeListener(e -> {
+    // Update the filter in the wrapped data provider on filter change
+    configurableFilterDataProvider.setFilter(e.getValue()));
+});
+
+Stable & Unique Item Identities
+
+When you bind items to a component, the identities of those items are essential for the component to work. For example, if you bind a list of Person objects to a Grid, the Grid relies on the identities of the Person objects for various operations, such as for highlighting the selected rows and updating the data in an edited row.
+
+For that reason, it’s important that the identities of the items are stable and unique. To ensure this, your Java class should implement hashCode() and equals() methods based on the invariant properties of the class.
+
+For example, the Person class in the following has a final long id property that’s used in the hashCode() and equals() methods as the identity of the Person object. This way even if the Person object has a property such as its phoneNumber modified, the identity of the Person object doesn’t change, and a component like the Grid is still able to identify the object, correctly.
+
+[Java]
+class Person {
+    private final long id;
+    private String name;
+    private String phoneNumber;
+
+    public Person(long id, String name, String phoneNumber) {
+        this.id = id;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+    }
+
+    // Getters and setters omitted for brevity
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return id == person.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}
+
+If you’re using the Lombok library to generate hashCode() and equals() methods, you need to ensure that only the invariant properties are being used. You can do this by setting onlyExplicitlyIncluded = true for @EqualsAndHashCode, and then annotating the entity’s id property with @EqualsAndHashCode.Include.
+
+[Java]
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+class Person {
+    @EqualsAndHashCode.Include
+    private final long id;
+    private String name;
+    private String phoneNumber;
+
+    public Person(long id, String name, String phoneNumber) {
+        this.id = id;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+    }
+
+    // Getters and setters omitted for brevity
+}

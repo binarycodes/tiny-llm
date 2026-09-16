@@ -1,0 +1,647 @@
+Grid Renderers
+
+Although most grid content is typically plain text, cell renderers can be used to render the contents of specific columns using components and native HTML elements.
+
+A cell renderer is a function that generates the HTML to be rendered into a cell, defined through Java, Lit or React code.
+
+[Flow: GridContent.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-content")
+public class GridContent extends Div {
+
+    public GridContent() {
+        // tag::snippet1[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.addColumn(createEmployeeRenderer()).setHeader("Employee")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getProfession).setHeader("Profession")
+                .setAutoWidth(true);
+        grid.addColumn(createStatusComponentRenderer()).setHeader("Status")
+                .setAutoWidth(true);
+        // end::snippet1[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createEmployeeRenderer() {
+        return LitRenderer
+                .<Person> of(
+                        """
+                                <div class="person-item">
+                                  <vaadin-avatar img="${item.pictureUrl}" name="${item.fullName}" style="--vaadin-avatar-size: 2.25rem"></vaadin-avatar>
+                                  <span>${item.fullName}</span>
+                                  <span>${item.email}</span>
+                                </div>
+                                """)
+                .withProperty("pictureUrl", Person::getPictureUrl)
+                .withProperty("fullName", Person::getFullName)
+                .withProperty("email", Person::getEmail);
+    }
+
+    private static final SerializableBiConsumer<Badge, Person> statusComponentUpdater = (
+            badge, person) -> {
+        boolean isAvailable = "Available".equals(person.getStatus());
+        badge.addThemeVariants(
+                isAvailable ? BadgeVariant.SUCCESS : BadgeVariant.ERROR);
+        badge.setText(person.getStatus());
+    };
+
+    private static ComponentRenderer<Badge, Person> createStatusComponentRenderer() {
+        return new ComponentRenderer<>(Badge::new, statusComponentUpdater);
+    }
+
+}
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: grid-content.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Badge } from '@vaadin/react-components/Badge.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridSelectionColumn } from '@vaadin/react-components/GridSelectionColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+const employeeRenderer = ({ item: person }: { item: Person }) => (
+  <div className="person-item">
+    <Avatar
+      img={person.pictureUrl}
+      name={`${person.firstName} ${person.lastName}`}
+      style={{ '--vaadin-avatar-size': '2.25rem' }}
+    />
+    <span>
+      {person.firstName} {person.lastName}
+    </span>
+    <span>{person.email}</span>
+  </div>
+);
+
+const statusRenderer = ({ item: person }: { item: Person }) => (
+  <Badge theme={person.status === 'Available' ? 'success' : 'error'}>{person.status}</Badge>
+);
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridSelectionColumn />
+
+      <GridColumn header="Employee" flexGrow={0} autoWidth renderer={employeeRenderer} />
+
+      <GridColumn path="profession" autoWidth />
+
+      <GridColumn header="Status" autoWidth renderer={statusRenderer} />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: grid-content.ts]
+import '@vaadin/avatar';
+import '@vaadin/badge';
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-selection-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-content')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Person[] | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-selection-column></vaadin-grid-selection-column>
+        <vaadin-grid-column
+          header="Employee"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.employeeRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="profession" auto-width></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Status"
+          auto-width
+          ${columnBodyRenderer(this.statusRenderer, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private employeeRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <div class="person-item">
+      <vaadin-avatar
+        img="${person.pictureUrl}"
+        name="${person.firstName} ${person.lastName}"
+        style="--vaadin-avatar-size: 2.25rem"
+      ></vaadin-avatar>
+      <span>${person.firstName} ${person.lastName}</span>
+      <span>${person.email}</span>
+    </div>
+  `;
+
+  private statusRenderer: GridColumnBodyLitRenderer<Person> = ({ status }) => html`
+    <vaadin-badge theme="${status === 'Available' ? 'success' : 'error'}">${status}</vaadin-badge>
+  `;
+  // end::snippet[]
+}
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Grid Cell Renderers in Flow
+
+The Grid API in Flow supports three types of cell renderer:
+
+- Basic Renderer: Formatted plain text values and native HTML buttons.
+- Component Renderer: Renders content using UI components; Easy to use, but can have an adverse effect on performance.
+- Lit Renderer: Renders content using HTML markup and Lit data-binding syntax; More lightweight than component renderers.
+
+The example above demonstrates a Lit Renderer in the first column and a Component Renderer in the last column.
+
+Basic Renderers
+
+The following basic renderers can be used in the Flow Grid component.
+
+Local Date Renderer
+
+Use LocalDateRenderer to render LocalDate objects in the cells. An example of this is below, which is using LocalDateRenderer with the addColumn() method:
+
+[Java]
+grid.addColumn(new LocalDateRenderer<>(
+        Item::getEstimatedDeliveryDate,
+        () -> DateTimeFormatter.ofLocalizedDate(
+                FormatStyle.MEDIUM)))
+    .setHeader("Estimated delivery date");
+
+LocalDateRenderer works with a DateTimeFormatter or a String format to render LocalDate objects.
+
+Here is an example using a String format to render the LocalDate object:
+
+[Java]
+grid.addColumn(new LocalDateRenderer<>(
+        Item::getEstimatedDeliveryDate,
+        "dd/MM/yyyy"))
+    .setHeader("Estimated delivery date");
+
+Local Date Time Renderer
+
+Use LocalDateTimeRenderer to render LocalDateTime objects in the cells. Below is an example using LocalDateTimeRenderer with the addColumn() method:
+
+[Java]
+grid.addColumn(new LocalDateTimeRenderer<>(
+        Item::getPurchaseDate,
+        () -> DateTimeFormatter.ofLocalizedDateTime(
+                FormatStyle.SHORT,
+                FormatStyle.MEDIUM)))
+    .setHeader("Purchase date and time");
+
+LocalDateTimeRenderer also works with DateTimeFormatter — with separate styles for date and time — or a String format to render LocalDateTime objects.
+
+Here is an example using a String format to render the LocalDateTime object:
+
+[Java]
+grid.addColumn(new LocalDateTimeRenderer<>(
+        Item::getPurchaseDate,
+        "dd/MM HH:mm:ss")
+).setHeader("Purchase date and time");
+
+Number Renderer
+
+Use NumberRenderer to render any type of Number in the cells. It’s especially useful for rendering floating-point values.
+
+The example here is using NumberRenderer with the addColumn() method:
+
+[Java]
+grid.addColumn(new NumberRenderer<>(Item::getPrice,
+        NumberFormat.getCurrencyInstance())
+).setHeader("Price");
+
+It’s possible to configure the NumberRenderer with a String format, and an optional null representation. For example, to use a String format to render a price do something like this:
+
+[Java]
+grid.addColumn(new NumberRenderer<>(
+        Item::getPrice, "$ %(,.2f",
+        Locale.US, "$ 0.00")
+).setHeader("Price");
+
+Native Button Renderer
+
+Use NativeButtonRenderer to create a clickable button in the cells. This creates a native <button> on the client side. Click events — or tap for touch devices — are handled on the server side.
+
+Below is an example using NativeButtonRenderer with the addColumn() method:
+
+[Java]
+grid.addColumn(
+    new NativeButtonRenderer<>("Remove item",
+       clickedItem -> {
+           // remove the item
+    })
+);
+
+You can configure a custom label for each item. The example here is configuring NativeButtonRenderer to use a custom label:
+
+[Java]
+grid.addColumn(new NativeButtonRenderer<>(
+        item -> "Remove " + item,
+        clickedItem -> {
+            // remove the item
+        })
+);
+
+Component Renderer
+
+Component renderers are easy to build, but slow to render as they generate a component for each item in the dataset for a given column. The rendered components are fully controllable on the server side.
+
+For each rendered cell, Grid creates a corresponding component instance on the server side. A dataset of 100 items with 10 columns using a component renderer produces up to 1,000 components that need to be managed. The more components you use in a component renderer, the greater the impact on performance.
+
+You can use any component in the grid cells by providing a ComponentRenderer for a column. To define how the component is generated for each item, you need to pass a Function for the ComponentRenderer.
+
+For example, to add a column that contains a different icon depending on the person’s gender, you would do something like this:
+
+[Java]
+Grid<Person> grid = new Grid<>();
+grid.setItems(people);
+
+grid.addColumn(new ComponentRenderer<>(person -> {
+    if (person.getGender() == Gender.MALE) {
+        return VaadinIcon.MALE.create();
+    } else {
+        return VaadinIcon.FEMALE.create();
+    }
+})).setHeader("Gender");
+
+It’s also possible to provide a separate Supplier to create the component, and a Consumer to configure it for each item.
+
+The example below uses ComponentRenderer with a Consumer:
+
+[Java]
+SerializableBiConsumer<Div, Person> consumer =
+        (div, person) -> div.setText(person.getName());
+grid.addColumn(
+        new ComponentRenderer<>(Div::new, consumer))
+    .setHeader("Name");
+
+If the component is the same for each item, you only need to provide the Supplier.
+
+The example here is using ComponentRenderer with a Supplier:
+
+[Java]
+grid.addColumn(
+    new ComponentRenderer<>(
+             () -> VaadinIcon.ARROW_LEFT.create()));
+
+Component renderers allow providing an optional update function that can be used to optimize rendering. Without an update function, component renderers recreate components for each item whenever the grid needs to be refreshed. This has several downsides:
+
+- It results in a large number of DOM changes in the browser as old elements are removed and new ones are added
+- It results in a larger payload that needs to be sent to the browser
+- Components lose their client-side state, for example, input fields lose their focus or entered text that has not been committed
+
+By providing an update function, the grid can reuse existing components and only update their state. This results in fewer DOM changes, smaller payloads, and better user experience.
+
+The following example shows how to provide an update function to a component renderer:
+
+[Java]
+grid.addColumn(new ComponentRenderer<>(item -> {
+    // Create the initial component using item name as text
+    return new Badge(item.getName());
+}, (component, item) -> {
+    // Update the component text when the item changes.
+    // Cast is necessary as component renderer is typed
+    // so that it allows the update function to return
+    // a different component type if desired.
+    ((Badge) component).setText(item.getName());
+    return component;
+}));
+
+You can create complex content for the grid cells by using the component APIs. This example is using ComponentRenderer to create complex content that listens for events and wraps multiple components in layouts:
+
+[Java]
+grid.addColumn(new ComponentRenderer<>(person -> {
+
+    // text field for entering a new name for the person
+    TextField name = new TextField("Name");
+    name.setValue(person.getName());
+
+    // button for saving the name to backend
+    Button update = new Button("Update", event -> {
+        person.setName(name.getValue());
+        grid.getDataProvider().refreshItem(person);
+    });
+
+    // button that removes the item
+    Button remove = new Button("Remove", event -> {
+        ListDataProvider<Person> dataProvider =
+            (ListDataProvider<Person>) grid
+                .getDataProvider();
+        dataProvider.getItems().remove(person);
+        dataProvider.refreshAll();
+    });
+
+    // layouts for placing the text field on top
+    // of the buttons
+    HorizontalLayout buttons =
+            new HorizontalLayout(update, remove);
+    return new VerticalLayout(name, buttons);
+})).setHeader("Actions");
+
+Incidentally, addComponentColumn() is a shorthand for addColumn() with a ComponentRenderer.
+
+Editing grid items requires refreshing the grid’s DataProvider. See Data Providers for more details.
+
+Lit Renderer
+
+Lit renders quickly, but requires you to write HTML code. Components can be used in Lit renderers through their custom HTML tags.
+
+Lit templates are immutable: the state of the components can’t be managed on the server side. However, the template can have different representations, depending on the state of the item.
+
+The only data sent from the server — other than the template itself, which is sent only once — is the extra name property of each item.
+
+Lit templates do support event handling on the server side. However, you can’t, for example, disable or change the text of a button from the event handler. For such situations, use an editor instead.
+
+With Lit renderers, the server doesn’t keep track of the components in each cell. It only manages the state of the items in each row. The client doesn’t have to wait for the server to send missing information about what needs rendering. It can use the template to render all of the cells it requires.
+
+Using Lit Renderers
+
+Providing a LitRenderer for a column allows you to define the content of cells using HTML markup, and to use Lit notations for data binding and event handling.
+
+The example here is using LitRenderer to embolden the names of the persons:
+
+[Java]
+Grid<Person> grid = new Grid<>();
+grid.setItems(people);
+
+grid.addColumn(LitRenderer
+       .<Person>of("<b>${item.name}</b>")
+       .withProperty("name", Person::getName)
+).setHeader("Name");
+
+The template string here is passed for the static LitRenderer.of() method. Every property in the template needs to be defined in the withProperty() method. The ${item.name} is the Lit syntax for interpolating properties into the template. See the Lit documentation for more.
+
+When using a custom Web Component or a Vaadin element in a Lit renderer, remember to import the component. This can be done using @JsModule or @Uses, if the component has a server-side counterpart. It ensures that all StyleSheet, HtmlImport, and JavaScript dependencies for the component are loaded when the Grid is used.
+
+Custom Properties in Lit Renderers
+
+You can use a LitRenderer to create and display new properties, properties the item didn’t originally contain.
+
+The example below is using LitRenderer to compute the approximate age of each person and add it in a new column. Age is the current year minus the birth year.
+
+[Java]
+grid.addColumn(LitRenderer
+        .<Person>of("${item.age} years old")
+        .withProperty("age",
+                person -> Year.now().getValue()
+                        - person.getYearOfBirth())
+).setHeader("Age");
+
+Using Expressions in Lit Renderers
+
+Lit templates can include any type of JavaScript expression, not limited to binding single property values.
+
+For example, by evaluating the person’s age in the template expression, the age column could also be written as this:
+
+[Java]
+grid.addColumn(LitRenderer
+        .<Person>of("${new Date().getFullYear() - item.yearOfBirth} years old")
+        .withProperty("yearOfBirth", Person::getYearOfBirth);
+).setHeader("Age");
+
+Binding Beans in Lit Renderers
+
+If an object contains a bean property that has sub-properties, it’s only necessary to make the bean accessible by calling the withProperty() method. The sub-properties become accessible automatically.
+
+Warning: All properties of the bean, even ones which aren’t used in the template, are sent to the client. Therefore, use this feature with caution.
+
+The example that follows is using the withProperty() method to access multiple sub-properties. This assumes that Person has a field for the Address bean, which has street, number and postalCode fields with corresponding getter and setter methods.
+
+[Java]
+grid.addColumn(LitRenderer.<Person> of(
+    """
+        <div>
+          ${item.address.street}, number ${item.address.number}<br>
+          <small>${item.address.postalCode}</small>
+        </div>
+        """)
+    .withProperty("address", Person::getAddress))
+    .setHeader("Address");
+
+Handling Events in Lit Renderers
+
+You can define event handlers for the elements in your template, and hook them to server-side code, by calling the withFunction() method on your LitRenderer. This is useful for editing items in the grid.
+
+The example that follows is using the withFunction() method to map defined method names to server-side code. The snippet adds a new column with two buttons: one to edit a property of the item; and one to remove the item. Both buttons define a method to call for click events.
+
+[Java]
+grid.addColumn(LitRenderer.<Person> of(
+    """
+        <button @click="${handleUpdate}">Update</button>
+        <button @click="${handleRemove}">Remove</button>
+        """)
+    .withFunction("handleUpdate", person -> {
+        person.setName(person.getName() + " Updated");
+        grid.getDataProvider().refreshItem(person);
+    }).withFunction("handleRemove", person -> {
+        ListDataProvider<Person> dataProvider = (ListDataProvider<Person>) grid
+                .getDataProvider();
+        dataProvider.getItems().remove(person);
+        dataProvider.refreshAll();
+    })).setHeader("Actions");
+
+When the server-side data used by the grid here is edited, the grid’s DataProvider is refreshed by calling the refreshItem() method. This ensures that the changes are in the element. When an item is removed, the refreshAll() method call ensures that all of the data is updated.
+
+You’ll need to use Lit notation for event handlers. The @click is Lit syntax for the native click. The LitRenderer has a fluent API, so you can chain the commands (e.g., LitRenderer.of().withProperty().withProperty().withFunction()…​).
+
+The withFunction() handler can also receive more data in addition to the item. To pass additional data from client to the server-side handler, you’ll need to invoke the function in the Lit template with the desired extra parameters. The additional data can be accessed via the second handler parameter — of type JsonArray.
+
+Below is an example of this:
+
+[Java]
+grid.addColumn(LitRenderer.<Person> of(
+    """
+        <input .value="${item.profession}" @change="${e => changed(e.target.value)}">
+        """)
+    .withProperty("profession", Person::getProfession)
+    .withFunction("changed", (person, args) -> {
+        String profession = args.getString(0);
+        person.setProfession(profession);
+        grid.getDataProvider().refreshItem(person);
+    }));
+
+The functions defined by the withFunction() method can be called with any number of additional parameters. The additional argument of type String (the updated profession) is obtained from the second handler parameter with args.getString(0), where the number is the index of the argument in the JsonArray.
+
+Accessing Model Properties
+
+In addition to the most commonly used item and index, Grid has the following meta properties associated with each item. You can access these properties in the template via the model object.
+
+model.expanded
+    Indicates whether the item is expanded or collapsed. This is relevant only for TreeGrid.
+model.level
+    Indicates the hierarchy level of the item. This is relevant only for TreeGrid.
+model.selected
+    Indicates whether the item is selected or not.
+model.detailsOpened
+    Indicates whether the details row for the item is opened or closed.
+model.hasChildren
+    Indicates whether the item has child items and therefore can be expanded.
+
+The example below shows how to create a custom tree toggle for the TreeGrid:
+
+[Java]
+grid.addColumn(LitRenderer.<Person> of(
+    // The click listener needs to check if the event gets canceled
+    // (by vaadin-grid-tree-toggle) and only invoke the callback if
+    // it does. vaadin-grid-tree-toggle will cancel the event if the
+    // user clicks on a non-focusable element inside the toggle.
+    """
+        <vaadin-grid-tree-toggle
+          @click="${(e) => requestAnimationFrame(() => e.defaultPrevented && onClick(e))}"
+          .leaf="${!model.hasChildren}"
+          .level="${model.level}"
+          .expanded="${live(model.expanded)}"
+        >
+          ${item.name}
+        </vaadin-grid-tree-toggle>
+        """)
+    .withProperty("name", item -> item.getName())
+    .withFunction("onClick", item -> {
+        if (grid.isExpanded(item)) {
+            grid.collapse(item);
+        } else {
+            grid.expand(item);
+        }
+    }));

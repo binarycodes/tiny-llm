@@ -1,0 +1,12 @@
+Security
+
+Learn how to secure Vaadin applications.
+
+Add Login
+    Learn how to add user login to a Vaadin application using Spring Security.
+Add Logout
+    Learn how to securely logout users from a Vaadin application using Spring Security.
+Protect Views
+    Learn how to protect views in a Vaadin application based on user roles.
+Protect Services
+    Learn how to protect services in a Vaadin application based on user roles.

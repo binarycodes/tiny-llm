@@ -1,0 +1,195 @@
+Date Time Picker Styling
+
+Styling API reference for the Date Time Picker component.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+align-left | Aligns the text to the left side of the field (default) | Aura, Lumo
+align-center | Centers the text within the field | Aura, Lumo
+align-right | Aligns the text to the right side of the field. Recommended for numerical values when presented in vertical groups. | Aura, Lumo
+align-start | Aligns the text to the start side of the field, taking into account the current text direction (left for LTR, right for RTL) | Aura
+align-end | Aligns the text to the end side of the field, taking into account the current text direction (right for LTR, left for RTL) | Aura
+small | Renders a more compact field | Aura, Lumo
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+
+[Flow: DateTimePickerStyles.java]
+package com.vaadin.demo.component.datetimepicker;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
+import com.vaadin.flow.component.datetimepicker.DateTimePickerVariant;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDateTime;
+
+@Route("date-time-picker-styles")
+public class DateTimePickerStyles extends HorizontalLayout {
+
+    public DateTimePickerStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        DateTimePicker field = new DateTimePicker();
+        field.addThemeVariants(DateTimePickerVariant.SMALL,
+                DateTimePickerVariant.ALIGN_RIGHT,
+                DateTimePickerVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setValue(LocalDateTime.of(2020, 6, 12, 12, 30));
+
+        add(field);
+    }
+
+}
+
+[React: date-time-picker-styles.tsx]
+import React from 'react';
+import { DateTimePicker } from '@vaadin/react-components/DateTimePicker.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DateTimePicker
+      theme="align-right small helper-above-field"
+      label="Label"
+      helperText="Helper text"
+      value="2020-06-12T12:30"
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-time-picker-styles.ts]
+import '@vaadin/date-time-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-time-picker-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-time-picker
+        theme="align-right small helper-above-field"
+        label="Label"
+        helper-text="Helper text"
+        value="2020-06-12T12:30"
+      ></vaadin-date-time-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-date-time-picker-gap | Aura
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-date-time-picker
+
+States
+
+Required
+    vaadin-date-time-picker[required]
+Focused
+    vaadin-date-time-picker[focused]
+Keyboard focused
+    vaadin-date-time-picker[focus-ring]
+Read-only
+    vaadin-date-time-picker[readonly]
+Disabled
+    vaadin-date-time-picker[disabled]
+Not empty
+    vaadin-date-time-picker[has-value]
+Hovered
+    vaadin-date-time-picker:hover
+
+Sub-Fields
+
+Date Picker
+    vaadin-date-time-picker > vaadin-date-picker
+Time Picker
+    vaadin-date-time-picker > vaadin-time-picker
+
+See Date Picker and Time Picker selectors for details
+
+Label
+
+Field with label
+    vaadin-date-time-picker[has-label]
+Label
+    vaadin-date-time-picker::part(label)
+Label text
+    vaadin-date-time-picker > label
+Required indicator
+    vaadin-date-time-picker::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-date-time-picker[has-helper]
+Helper
+    vaadin-date-time-picker::part(helper-text)
+Helper text
+    vaadin-date-time-picker > [slot="helper"]
+Invalid field
+    vaadin-date-time-picker[invalid]
+Field with error message
+    vaadin-date-time-picker[has-error-message]
+Error message
+    vaadin-date-time-picker::part(error-message)
+Error message text
+    vaadin-date-time-picker > [slot="error-message"]

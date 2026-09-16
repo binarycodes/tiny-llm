@@ -1,0 +1,4081 @@
+CRUD
+
+CRUD is a component for managing a dataset. It allows for easy displaying, editing, creating, and deleting of items.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use CRUD in your project.
+
+- Start Free Trial
+- See Pricing
+
+CRUD is a component for managing a dataset. It allows for easy displaying, editing, creating, and deleting of items.
+
+[Flow: CrudBasic.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-basic")
+public class CrudBasic extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudBasic() {
+        // tag::snippet[]
+        crud = new Crud<>(Person.class, createEditor());
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+        // end::snippet[]
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Crud include="firstName, lastName, email, profession" items={items.value} />
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-basic.ts]
+import '@vaadin/crud';
+import '@vaadin/email-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud
+        include="firstName, lastName, email, profession"
+        .items="${this.items}"
+      ></vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Columns
+
+CRUD automatically generates columns for each field in the provided dataset. You can add columns with it and configure or remove existing ones.
+
+[Flow: CrudColumns.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.converter.LocalDateToDateConverter;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-columns")
+public class CrudColumns extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String BIRTHDAY = "birthday";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudColumns() {
+        // tag::snippet[]
+        crud = new Crud<>(Person.class, createEditor());
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+        // end::snippet[]
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        DatePicker birthday = new DatePicker("Birthday");
+        FormLayout form = new FormLayout(firstName, email, profession,
+                birthday);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+        binder.forField(birthday).asRequired()
+                .withConverter(new LocalDateToDateConverter())
+                .bind(Person::getBirthday, Person::setBirthday);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // tag::snippet[]
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, EMAIL,
+                PROFESSION, BIRTHDAY, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+        // end::snippet[]
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(EMAIL), grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(BIRTHDAY),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-columns.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      {/* Use 'include' or 'exclude' to select which fields to show */}
+      <Crud
+        items={items.value}
+        exclude="lastName, address, id, subscribe, membership, pictureUrl, manager"
+      />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: crud-columns.ts]
+import '@vaadin/crud';
+import '@vaadin/date-picker';
+import '@vaadin/email-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-columns')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- Use 'include' or 'exclude' to select which fields to show -->
+      <vaadin-crud
+        exclude="lastName, address, id, subscribe, membership, pictureUrl, manager"
+        .items="${this.items}"
+      ></vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Editor
+
+Data is edited using CRUD’s editor UI. By default, the editor is opened by clicking the edit Button in the last column. However, this button column can be removed if you want to provide an alternative way to engage the editor. For example, you set it to open using a double-click like so:
+
+[Flow: CrudOpenEditor.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-open-editor")
+public class CrudOpenEditor extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+
+    public CrudOpenEditor() {
+        crud = new Crud<>(Person.class, createEditor());
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        // tag::snippet[]
+        Grid<Person> grid = crud.getGrid();
+
+        // Remove edit column
+        Crud.removeEditColumn(grid);
+        // grid.removeColumnByKey(EDIT_COLUMN);
+        // grid.removeColumn(grid.getColumnByKey(EDIT_COLUMN));
+
+        // Open editor on double click
+        grid.addItemDoubleClickListener(event -> crud.edit(event.getItem(),
+                Crud.EditMode.EXISTING_ITEM));
+        // end::snippet[]
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-open-editor.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const editedItem = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  function onEditedItemChanged(event: any) {
+    editedItem.value = event.detail.value;
+  }
+
+  function onDblClick(e: React.MouseEvent) {
+    const target = e.currentTarget as GridElement<Person>;
+    editedItem.value = target.getEventContext(e.nativeEvent).item;
+  }
+
+  return (
+    // tag::snippet[]
+    <Crud
+      include="firstName, lastName, email, profession"
+      items={items.value}
+      editedItem={editedItem.value}
+      onEditedItemChanged={onEditedItemChanged}
+    >
+      <Grid slot="grid" onDoubleClick={onDblClick}>
+        <GridColumn path="firstName" header="First name" />
+        <GridColumn path="lastName" header="Last name" />
+        <GridColumn path="email" header="Email" />
+        <GridColumn path="profession" header="Profession" />
+      </Grid>
+    </Crud>
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-open-editor.ts]
+import '@vaadin/crud';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CrudEditedItemChangedEvent } from '@vaadin/crud';
+import type { Grid } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-open-editor')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private editedItem: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud
+        include="firstName, lastName, email, profession"
+        .items="${this.items}"
+        .editedItem="${this.editedItem as any}"
+        @edited-item-changed="${(event: CrudEditedItemChangedEvent<Person>) => {
+          this.editedItem = event.detail.value;
+        }}"
+      >
+        <vaadin-grid slot="grid" @dblclick="${this.onDblClick}">
+          <vaadin-grid-column path="firstName" header="First name"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName" header="Last name"></vaadin-grid-column>
+          <vaadin-grid-column path="email" header="Email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession" header="Profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  onDblClick(e: MouseEvent) {
+    const target = e.currentTarget as Grid<Person>;
+    this.editedItem = target.getEventContext(e).item;
+  }
+}
+
+Editor Position
+
+The editor can be positioned in an overlay, on the side or at the bottom.
+
+Overlay
+
+The overlay position renders the editor in a modal overlay. This is the default position. Overlays aren’t constrained to the CRUD’s size. This makes them ideal for complex forms. However, they do block the user from viewing and interacting with the Grid beneath.
+
+Aside
+
+The aside position displays the editor as an overlay next to the grid. Use this position when there is sufficient horizontal space to accommodate both the grid and the editor. Also, use it when it’s beneficial for the user to be able to view and interact with the grid while the editor is open. Aside positioning is also a good fit for single-column forms.
+
+[Flow: CrudEditorAside.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.crud.CrudEditorPosition;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-editor-aside")
+public class CrudEditorAside extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudEditorAside() {
+        crud = new Crud<>(Person.class, createEditor());
+        // tag::snippet[]
+        crud.setEditorPosition(CrudEditorPosition.ASIDE);
+        // end::snippet[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-editor-aside.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Crud
+      editorPosition="aside"
+      include="firstName, lastName, email, profession"
+      items={items.value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-editor-aside.ts]
+import '@vaadin/crud';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-editor-aside')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud
+        editor-position="aside"
+        include="firstName, lastName, email, profession"
+        .items="${this.items}"
+      ></vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Grid Width
+
+The opening and closing of an aside editor affect the grid’s width. Fixed-width columns are recommended to prevent them from resizing each time.
+
+Bottom
+
+The bottom position can be useful when the user needs to see as many columns in the grid as possible while editing, when horizontal space is limited, or when a wider editor form is desired.
+
+[Flow: CrudEditorBottom.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.crud.CrudEditorPosition;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-editor-bottom")
+public class CrudEditorBottom extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudEditorBottom() {
+        crud = new Crud<>(Person.class, createEditor());
+        // tag::snippet[]
+        crud.setEditorPosition(CrudEditorPosition.BOTTOM);
+        // end::snippet[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-editor-bottom.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Crud
+      editorPosition="bottom"
+      include="firstName, lastName, email, profession"
+      items={items.value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-editor-bottom.ts]
+import '@vaadin/crud';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-editor-bottom')
+export class Example extends LitElement {
+  static override styles = css`
+    vaadin-crud {
+      --vaadin-crud-editor-max-height: 60%;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud
+        editor-position="bottom"
+        include="firstName, lastName, email, profession"
+        .items="${this.items}"
+      ></vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+When using a bottom-positioned editor, make sure there’s enough vertical space to fit comfortably both the grid and the editor. Incidentally, a bottom-positioned editor is generally an inappropriate option for longer forms.
+
+Note: Small Viewports
+
+On small viewports like mobile phones, the editor always opens as a full-screen overlay, regardless of this configuration.
+
+Editor Content
+
+The editor’s content is fully configurable, except for the header and footer.
+
+[Flow: CrudEditorContent.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-editor-content")
+public class CrudEditorContent extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    private List<String> professions = DataService.getProfessions();
+
+    public CrudEditorContent() {
+        // tag::snippet1[]
+        crud = new Crud<>(Person.class, createEditor());
+        // end::snippet1[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        ComboBox<String> profession = new ComboBox<>("Profession");
+        profession.setItems(professions);
+
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+        form.setColspan(email, 2);
+        form.setColspan(profession, 2);
+        form.setMaxWidth("480px");
+        form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("30em", 2));
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-editor-content.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { EmailField } from '@vaadin/react-components/EmailField.js';
+import { FormLayout, type FormLayoutResponsiveStep } from '@vaadin/react-components/FormLayout.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { Crud, crudPath } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const professions = useSignal<string[]>([]);
+  const responsiveSteps: FormLayoutResponsiveStep[] = [
+    { minWidth: 0, columns: 1 },
+    { minWidth: '30em', columns: 2 },
+  ];
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+      professions.value = [...new Set(people.map((i) => i.profession))];
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Crud include="firstName, lastName, email, profession" items={items.value}>
+      <FormLayout slot="form" style={{ maxWidth: '480px' }} responsiveSteps={responsiveSteps}>
+        <TextField label="First name" {...crudPath('firstName')} required />
+        <TextField label="Last name" {...crudPath('lastName')} required />
+        <EmailField label="Email" {...crudPath('email')} required data-colspan="2" />
+        <ComboBox
+          data-colspan="2"
+          label="Profession"
+          {...crudPath('profession')}
+          items={professions.value}
+        />
+      </FormLayout>
+    </Crud>
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-editor-content.ts]
+import '@vaadin/combo-box';
+import '@vaadin/crud';
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { FormLayoutResponsiveStep } from '@vaadin/form-layout';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-editor-content')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private professions: string[] = [];
+
+  @state()
+  private responsiveSteps: FormLayoutResponsiveStep[] = [
+    { minWidth: 0, columns: 1 },
+    { minWidth: '30em', columns: 2 },
+  ];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+    this.professions = [...new Set(people.map((i) => i.profession))];
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud include="firstName, lastName, email, profession" .items=${this.items}>
+        <vaadin-form-layout
+          slot="form"
+          style="max-width: 480px;"
+          .responsiveSteps=${this.responsiveSteps}
+        >
+          <vaadin-text-field label="First name" path="firstName" required></vaadin-text-field>
+          <vaadin-text-field label="Last name" path="lastName" required></vaadin-text-field>
+          <vaadin-email-field colspan="2" label="Email" path="email" required></vaadin-email-field>
+          <vaadin-combo-box
+            colspan="2"
+            label="Profession"
+            path="profession"
+            .items="${this.professions}"
+          ></vaadin-combo-box>
+        </vaadin-form-layout>
+      </vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Editor Actions
+
+The editor contains three Buttons: Delete, Cancel, and Save. The Delete shows a confirmation dialog asking the user to verify whether they wish to delete the item. Whereas the Cancel closes the editor unless there are unsaved changes. If so, a confirmation dialog is shown and the user can either discard the changes or go back to editing. The Save button, when clicked, saves the changes and closes the editor. This is disabled until a change is made.
+
+Save Button State Flow
+
+Save is enabled as soon as the editor becomes dirty — that is, as soon as the user changes the value of a field in it. Validity doesn’t factor into this: Save is enabled for invalid input, too. Clicking it runs the editor’s validate() method, and when validation fails, the editor stays open and nothing is saved.
+
+An editor that doesn’t propagate its field changes — one built from a composite component that wraps its fields, for example — can leave Save permanently disabled. Call setDirty(true) on the CRUD to enable it explicitly in such a case.
+
+Some applications need Save to be enabled at all times. A common accessibility pattern is to let the user submit at any point and then show a summary of what needs fixing. Set the enabled state of the Save Button directly to get this: CRUD stops managing that Button’s state from then on, leaving it enabled regardless of whether the editor is dirty. The editor’s validate() method still decides whether a save goes through.
+
+[Java]
+crud.getSaveButton().setEnabled(true);
+
+See Custom Editor for an editor that pairs this with an error summary.
+
+Editor Button Access Flow
+
+CRUD’s Buttons are ordinary Button instances that you can access from the server to change their state, appearance, or behavior:
+
+Method | Description
+getSaveButton() | The editor’s Save Button. Setting its enabled state hands its management over to you — see Save Button State.
+getCancelButton() | The editor’s Cancel Button.
+getDeleteButton() | The editor’s Delete Button. CRUD hides it automatically while a new item is being created.
+getNewButton() and setNewButton() | The toolbar’s New item Button. See Toolbar for an example of replacing it.
+
+Set the Button labels through Localization, not setText(): CRUD writes the localized labels onto its default Buttons, overwriting anything set that way.
+
+Some datasets shouldn’t allow deletion at all — for example, records that are archived or deactivated instead of removed, so that history is preserved. There’s no API for removing the Delete Button, so the only way to do this at present is to hide it with CSS.
+
+[CrudEditorButtons.java]
+package com.vaadin.demo.component.crud;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+@Route("crud-editor-buttons")
+public class CrudEditorButtons extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudEditorButtons() {
+        crud = new Crud<>(Person.class, createEditor());
+
+        // tag::snippet[]
+        // Records in this dataset are archived rather than removed, so the
+        // editor shouldn't offer a Delete action at all. There's no API for
+        // removing the Button, so hide it with CSS.
+        crud.getDeleteButton().getStyle().set("display", "none");
+        // end::snippet[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        FormLayout form = new FormLayout(firstName, lastName, email);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+Note: Hiding Delete Is a Workaround
+
+Setting display: none isn’t advocated by the CRUD API; it’s the only thing that works today. Don’t reach for setVisible(false): CRUD manages the Delete Button’s hidden attribute itself, and it clears the attribute each time the editor opens for an existing item, which makes the Button reappear.
+
+Custom Editor Flow
+
+BinderCrudEditor is the stock editor implementation, but it isn’t the only option. CrudEditor is a public interface, so you can supply any implementation — with its own layout, its own state handling, and its own validation — through the Crud constructor or setEditor().
+
+CRUD calls the interface’s methods at these points:
+
+Method | When It’s Called
+setItem(item, validate) | When the editor is opened, for a new or an existing item. The second parameter tells the editor whether to validate the item immediately.
+getItem() | Whenever CRUD needs the item currently being edited, such as when it builds a save or delete event.
+validate() | When Save is clicked. Returning false keeps the editor open and cancels the save.
+writeItemChanges() | After validate() passes, to copy the input into the item, before the save event is fired.
+clear() | When the editor is closed, whether by saving, deleting, or cancelling.
+getView() | When the editor is set, to get the form to place inside CRUD.
+
+The editor in the example below validates the item itself and renders all problems in a summary at the top of the form. It’s paired with an always-enabled Save Button, so the user can submit at any point and be told what’s missing.
+
+[CrudCustomEditor.java]
+package com.vaadin.demo.component.crud;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("crud-custom-editor")
+public class CrudCustomEditor extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudCustomEditor() {
+        // tag::snippet[]
+        crud = new Crud<>(Person.class, new PersonCrudEditor());
+
+        // The editor reports validation errors itself, so Save can stay
+        // enabled at all times.
+        crud.getSaveButton().setEnabled(true);
+        // end::snippet[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[PersonCrudEditor.java]
+package com.vaadin.demo.component.crud;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+
+// An editor that validates the item itself and reports all problems in a
+// single summary at the top of the form, instead of using a Binder.
+public class PersonCrudEditor implements CrudEditor<Person> {
+
+    private final TextField firstName = new TextField("First name");
+    private final TextField lastName = new TextField("Last name");
+    private final EmailField email = new EmailField("Email");
+
+    private final Div errorSummary = new Div();
+    private final VerticalLayout view;
+
+    private Person item;
+
+    public PersonCrudEditor() {
+        // Announce the errors to screen readers when the summary appears.
+        errorSummary.getElement().setAttribute("role", "alert");
+        errorSummary.setVisible(false);
+
+        view = new VerticalLayout(errorSummary,
+                new FormLayout(firstName, lastName, email));
+        view.setPadding(false);
+    }
+
+    // Called when the editor is opened, for both new and existing items.
+    @Override
+    public void setItem(Person item, boolean validate) {
+        this.item = item;
+        firstName.setValue(orEmpty(item.getFirstName()));
+        lastName.setValue(orEmpty(item.getLastName()));
+        email.setValue(orEmpty(item.getEmail()));
+
+        if (validate) {
+            validate();
+        }
+    }
+
+    @Override
+    public Person getItem() {
+        return item;
+    }
+
+    // Called when the editor is closed, after a save, delete, or cancel.
+    @Override
+    public void clear() {
+        item = null;
+        firstName.clear();
+        lastName.clear();
+        email.clear();
+        errorSummary.removeAll();
+        errorSummary.setVisible(false);
+    }
+
+    // Called when Save is clicked. Returning false keeps the editor open and
+    // leaves the item unchanged.
+    @Override
+    public boolean validate() {
+        List<String> errors = new ArrayList<>();
+        if (firstName.isEmpty()) {
+            errors.add("Enter a first name.");
+        }
+        if (lastName.isEmpty()) {
+            errors.add("Enter a last name.");
+        }
+        if (!email.getValue().contains("@")) {
+            errors.add("Enter a valid email address.");
+        }
+
+        UnorderedList messages = new UnorderedList();
+        errors.forEach(error -> messages.add(new ListItem(error)));
+        errorSummary.removeAll();
+        errorSummary.add(messages);
+        errorSummary.setVisible(!errors.isEmpty());
+
+        return errors.isEmpty();
+    }
+
+    // Called after validate() has passed, before the save event is fired.
+    @Override
+    public void writeItemChanges() {
+        item.setFirstName(firstName.getValue());
+        item.setLastName(lastName.getValue());
+        item.setEmail(email.getValue());
+    }
+
+    @Override
+    public Component getView() {
+        return view;
+    }
+
+    private static String orEmpty(String value) {
+        return value == null ? "" : value;
+    }
+}
+
+[PersonCrudEditor.java]
+
+Controlling the Editor Programmatically Flow
+
+The editor doesn’t have to be opened by the user. These methods drive it from the server:
+
+Method | Description
+edit(item, EditMode.EXISTING_ITEM) | Opens the editor for an item that’s already in the dataset.
+edit(item, EditMode.NEW_ITEM) | Opens the editor for a new item, which is what the New item Button does. See Toolbar for an example.
+setOpened(boolean) | Opens or closes the editor without changing the item being edited.
+setEditorPosition(CrudEditorPosition) | Sets where the editor is rendered: OVERLAY, which is the default, ASIDE, or BOTTOM. See Editor Position.
+setEditOnClick(boolean) | Opens the editor when the user clicks a row, instead of requiring the edit Button. This removes the edit column from CRUD’s built-in grid.
+
+Grid Replacement
+
+CRUD’s default Grid is replaceable, which is useful when you wish to customize the Grid. An example of this might be if you want to place the edit Button in the first column, or to apply tooltips. See Grid documentation for details on configuring grids.
+
+[Flow: CrudGridReplacement.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+@Route("crud-grid-replacement")
+public class CrudGridReplacement extends Div {
+
+    private Crud<Person> crud;
+
+    public CrudGridReplacement() {
+        // tag::snippet1[]
+        crud = new Crud<>(Person.class, createGrid(), createEditor());
+        // end::snippet1[]
+
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private Grid<Person> createGrid() {
+        Grid<Person> grid = new Grid<>();
+        Crud.addEditColumn(grid);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+        return grid;
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-grid-replacement.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { CrudEditColumn } from '@vaadin/react-components-pro/CrudEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Crud include="firstName, lastName, email, profession" items={items.value}>
+      <Grid slot="grid">
+        <CrudEditColumn />
+        <GridColumn path="firstName" header="First name" />
+        <GridColumn path="lastName" header="Last name" />
+        <GridColumn path="email" header="Email" />
+        <GridColumn path="profession" header="Profession" />
+      </Grid>
+    </Crud>
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-grid-replacement.ts]
+import '@vaadin/crud';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-grid-replacement')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud include="firstName, lastName, email, profession" .items="${this.items}">
+        <vaadin-grid slot="grid">
+          <vaadin-crud-edit-column></vaadin-crud-edit-column>
+          <vaadin-grid-column path="firstName" header="First name"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName" header="Last name"></vaadin-grid-column>
+          <vaadin-grid-column path="email" header="Email"></vaadin-grid-column>
+          <vaadin-grid-column path="profession" header="Profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Note: Edit Column
+
+You need to add explicitly an edit column to the replacement Grid to be able to edit items. Additionally, Grid doesn’t have sorting and filtering enabled by default.
+
+Toolbar
+
+Creating new items is done via the “New Item” Button in CRUD’s toolbar. Both the toolbar and its Button are customizable. For example, you can use the toolbar to display statistics such as the size of the dataset or the number of search results.
+
+[Flow: CrudToolbar.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-toolbar")
+public class CrudToolbar extends Div {
+
+    private Crud<Person> crud;
+    private PersonDataProvider dataProvider;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudToolbar() {
+        crud = new Crud<>(Person.class, createEditor());
+
+        setupGrid();
+        setupDataProvider();
+        setupToolbar();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        FormLayout form = new FormLayout(firstName, lastName);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+    private void setupToolbar() {
+        // tag::snippet[]
+        Html total = new Html("<span>Total: <b>" + dataProvider.DATABASE.size()
+                + "</b> employees</span>");
+
+        Button button = new Button("New employee", VaadinIcon.PLUS.create());
+        button.addClickListener(event -> {
+            crud.edit(new Person(), Crud.EditMode.NEW_ITEM);
+        });
+        button.addThemeVariants(ButtonVariant.TERTIARY);
+        crud.setNewButton(button);
+
+        HorizontalLayout toolbar = new HorizontalLayout(total);
+        toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
+        toolbar.setFlexGrow(1, toolbar);
+        toolbar.setSpacing(false);
+        crud.setToolbar(toolbar);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-toolbar.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const employeeCount = useSignal(0);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+    employeeCount.value = items.value.length;
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Crud
+      include="firstName, lastName"
+      items={items.value}
+      onSizeChanged={() => {
+        if (items.value.length !== employeeCount.value) {
+          employeeCount.value = items.value.length;
+        }
+      }}
+    >
+      <HorizontalLayout slot="toolbar" style={{ alignItems: 'center', flexGrow: 1 }}>
+        <span>
+          Total: <b>{employeeCount.value}</b> employees
+        </span>
+      </HorizontalLayout>
+
+      <Button theme="tertiary" slot="new-button">
+        <Icon icon="vaadin:plus" slot="prefix" />
+        New employee
+      </Button>
+    </Crud>
+    // end::snippet[]
+  );
+}
+
+[Lit: crud-toolbar.ts]
+import '@vaadin/button';
+import '@vaadin/crud';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-toolbar')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud
+        include="firstName, lastName"
+        .items="${this.items}"
+        @size-changed="${() => this.requestUpdate()}"
+      >
+        <vaadin-horizontal-layout slot="toolbar" style="align-items: center; flex-grow: 1;">
+          <span>Total: <b>${this.items.length}</b> employees</span>
+        </vaadin-horizontal-layout>
+        <vaadin-button theme="tertiary" slot="new-button">
+          <vaadin-icon slot="prefix" icon="vaadin:plus"></vaadin-icon>
+          New employee
+        </vaadin-button>
+      </vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Hiding the Toolbar
+
+The toolbar can be hidden if it isn’t needed.
+
+[Flow: CrudHiddenToolbar.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-hidden-toolbar")
+public class CrudHiddenToolbar extends Div {
+
+    private Crud<Person> crud;
+    private PersonDataProvider dataProvider;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudHiddenToolbar() {
+        // tag::snippet[]
+        crud = new Crud<>(Person.class, createEditor());
+        crud.setToolbarVisible(false);
+        // end::snippet[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        FormLayout form = new FormLayout(firstName, lastName);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[React: crud-hidden-toolbar.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      {/* Adding the noToolbar prop hides the toolbar */}
+      <Crud include="firstName, lastName" items={items.value} onSizeChanged={() => {}} noToolbar />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: crud-hidden-toolbar.ts]
+import '@vaadin/crud';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-hidden-toolbar')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- Adding the no-toolbar attribute hides the toolbar -->
+      <vaadin-crud
+        include="firstName, lastName"
+        .items="${this.items}"
+        @size-changed="${() => this.requestUpdate()}"
+        no-toolbar
+      ></vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Sorting & Filtering
+
+By default, CRUD allows sorting and filtering of any column. For more information about sorting and filtering, see the Grid documentation.
+
+Note: No Manual Reordering
+
+CRUD sorts and filters, but it doesn’t support manual reordering — letting the user drag rows or move them with up and down controls to set a display order of their own. If you need that, use Grid Replacement and add the reordering controls to the replacement Grid.
+
+Disabling Sorting & Filtering
+
+Sorting and filtering can be disabled.
+
+[Flow: CrudSortingFiltering.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.crud.CrudGrid;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-sorting-filtering")
+public class CrudSortingFiltering extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudSortingFiltering() {
+        // tag::snippet1[]
+        crud = new Crud<>(Person.class, createGrid(), createEditor());
+        // end::snippet1[]
+
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private CrudGrid<Person> createGrid() {
+        // Create a new CrudGrid to disable filtering (last boolean parameter)
+        CrudGrid<Person> grid = new CrudGrid<>(Person.class, false);
+
+        // Disable sorting
+        grid.setSortableColumns();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+
+        return grid;
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-sorting-filtering.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  return <Crud include="firstName, lastName, profession" noSort noFilter items={items.value} />;
+  // end::snippet[]
+}
+
+[Lit: crud-sorting-filtering.ts]
+import '@vaadin/crud';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-sorting-filtering')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-crud
+        include="firstName, lastName, profession"
+        no-sort
+        no-filter
+        .items="${this.items}"
+      ></vaadin-crud>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Lazy Backend Loading Flow
+
+CRUD’s built-in grid passes the user’s sorting and filtering to the data provider as a CrudFilter, so that the backend can do the work instead of the server holding the full dataset in memory. A data provider used with that grid has to accept this filter type: CrudGrid throws an IllegalArgumentException for anything that isn’t a DataProvider<E, CrudFilter>.
+
+CrudFilter carries two maps, both keyed by column key:
+
+- getConstraints() maps a column to the text the user typed into its filter field. Translate these into a WHERE clause.
+- getSortOrders() maps a column to a SortDirection. Translate these into an ORDER BY clause.
+
+The filter is handed to the data provider on every fetch, and CRUD refreshes the grid whenever the user changes a filter field or a sort order. The PersonDataProvider used in the examples on this page shows the full pattern: it extends AbstractBackEndDataProvider<Person, CrudFilter>, converts the constraints into a predicate and the sort orders into a comparator, and applies the offset and limit from the query.
+
+[PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[PersonDataProvider.java]
+
+Note: Honoring the Filter
+
+The data provider is responsible for applying the filter. If fetchFromBackEnd() ignores it, the grid’s filter fields and sort indicators still appear, but using them has no effect.
+
+Item Initialization
+
+Newly created items can be initialized with data.
+
+[Flow: CrudItemInitialization.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-item-initialization")
+public class CrudItemInitialization extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudItemInitialization() {
+        // tag::snippet[]
+        crud = new Crud<>(Person.class, createEditor());
+        crud.addNewListener(event -> {
+            Person person = event.getItem();
+            person.setEmail("@vaadin.com");
+            person.setProfession("Developer");
+            crud.getEditor().setItem(person);
+        });
+        // end::snippet[]
+
+        setupGrid();
+        setupDataProvider();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+}
+
+[React: crud-item-initialization.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Crud, type CrudNewEvent } from '@vaadin/react-components-pro/Crud.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const editedItem = useSignal<Partial<Person> | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const handleNewItem = (event: CrudNewEvent) => {
+    // Cancel event to allow setting a custom item instance
+    event.preventDefault();
+    editedItem.value = {
+      email: '@vaadin.com',
+      profession: 'Developer',
+    };
+  };
+
+  return (
+    <Crud
+      include="firstName, lastName, email, profession"
+      items={items.value}
+      editedItem={editedItem.value}
+      onNew={handleNewItem}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: crud-item-initialization.ts]
+import '@vaadin/crud';
+import '@vaadin/email-field';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type { Crud, CrudNewEvent } from '@vaadin/crud';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-item-initialization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-crud')
+  private crud!: Crud<Partial<Person>>;
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  // tag::snippet[]
+  handleNewItem(e: CrudNewEvent) {
+    // Cancel event to allow setting a custom item instance
+    e.preventDefault();
+    this.crud.editedItem = {
+      email: '@vaadin.com',
+      profession: 'Developer',
+    };
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-crud
+        include="firstName, lastName, email, profession"
+        .items="${this.items}"
+        @new="${this.handleNewItem}"
+      ></vaadin-crud>
+    `;
+  }
+
+  // end::snippet[]
+}
+
+Localization
+
+CRUD supports full localization through customizable labels for its buttons and the title of the editor.
+
+[Flow: CrudLocalization.java]
+package com.vaadin.demo.component.crud;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.BinderCrudEditor;
+import com.vaadin.flow.component.crud.Crud;
+import com.vaadin.flow.component.crud.CrudEditor;
+import com.vaadin.flow.component.crud.CrudI18n;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Route("crud-localization")
+public class CrudLocalization extends Div {
+
+    private Crud<Person> crud;
+
+    private String FIRST_NAME = "firstName";
+    private String LAST_NAME = "lastName";
+    private String EMAIL = "email";
+    private String PROFESSION = "profession";
+    private String EDIT_COLUMN = "vaadin-crud-edit-column";
+
+    public CrudLocalization() {
+        crud = new Crud<>(Person.class, createEditor());
+
+        setupGrid();
+        setupDataProvider();
+        setupI18n();
+
+        add(crud);
+    }
+
+    private CrudEditor<Person> createEditor() {
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        TextField profession = new TextField("Profession");
+        FormLayout form = new FormLayout(firstName, lastName, email,
+                profession);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        binder.forField(firstName).asRequired().bind(Person::getFirstName,
+                Person::setFirstName);
+        binder.forField(lastName).asRequired().bind(Person::getLastName,
+                Person::setLastName);
+        binder.forField(email).asRequired().bind(Person::getEmail,
+                Person::setEmail);
+        binder.forField(profession).asRequired().bind(Person::getProfession,
+                Person::setProfession);
+
+        return new BinderCrudEditor<>(binder, form);
+    }
+
+    private void setupGrid() {
+        Grid<Person> grid = crud.getGrid();
+
+        // Only show these columns (all columns shown by default):
+        List<String> visibleColumns = Arrays.asList(FIRST_NAME, LAST_NAME,
+                EMAIL, PROFESSION, EDIT_COLUMN);
+        grid.getColumns().forEach(column -> {
+            String key = column.getKey();
+            if (!visibleColumns.contains(key)) {
+                grid.removeColumn(column);
+            }
+        });
+
+        // Reorder the columns (alphabetical by default)
+        grid.setColumnOrder(grid.getColumnByKey(FIRST_NAME),
+                grid.getColumnByKey(LAST_NAME), grid.getColumnByKey(EMAIL),
+                grid.getColumnByKey(PROFESSION),
+                grid.getColumnByKey(EDIT_COLUMN));
+
+        // Translate headers
+        grid.getColumnByKey(FIRST_NAME).setHeader("Etunimi");
+        grid.getColumnByKey(LAST_NAME).setHeader("Sukunimi");
+        grid.getColumnByKey(EMAIL).setHeader("Sähköposti");
+        grid.getColumnByKey(PROFESSION).setHeader("Ammatti");
+    }
+
+    private void setupDataProvider() {
+        PersonDataProvider dataProvider = new PersonDataProvider();
+        crud.setDataProvider(dataProvider);
+        crud.addDeleteListener(
+                deleteEvent -> dataProvider.delete(deleteEvent.getItem()));
+        crud.addSaveListener(
+                saveEvent -> dataProvider.persist(saveEvent.getItem()));
+    }
+
+    private void setupI18n() {
+        // tag::snippet[]
+        CrudI18n i18n = CrudI18n.createDefault();
+
+        i18n.setNewItem("Luo uusi");
+        i18n.setEditItem("Muuta tietoja");
+        i18n.setSaveItem("Tallenna");
+        i18n.setCancel("Peruuta");
+        i18n.setDeleteItem("Poista...");
+        i18n.setEditLabel("Muokkaa");
+
+        CrudI18n.Confirmations.Confirmation delete = i18n.getConfirm()
+                .getDelete();
+        delete.setTitle("Poista kohde");
+        delete.setContent(
+                "Haluatko varmasti poistaa tämän kohteen? Poistoa ei voi perua.");
+        delete.getButton().setConfirm("Poista");
+        delete.getButton().setDismiss("Peruuta");
+
+        CrudI18n.Confirmations.Confirmation cancel = i18n.getConfirm()
+                .getCancel();
+        cancel.setTitle("Hylkää muutokset");
+        cancel.setContent("Kohteessa on tallentamattomia muutoksia.");
+        cancel.getButton().setConfirm("Hylkää");
+        cancel.getButton().setDismiss("Peruuta");
+
+        crud.setI18n(i18n);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: PersonDataProvider.java]
+package com.vaadin.demo.component.crud;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.crud.CrudFilter;
+import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
+import static java.util.Comparator.naturalOrder;
+
+// Person data provider
+public class PersonDataProvider
+        extends AbstractBackEndDataProvider<Person, CrudFilter> {
+
+    // A real app should hook up something like JPA
+    final List<Person> DATABASE = new ArrayList<>(DataService.getPeople());
+
+    private Consumer<Long> sizeChangeListener;
+
+    @Override
+    protected Stream<Person> fetchFromBackEnd(Query<Person, CrudFilter> query) {
+        int offset = query.getOffset();
+        int limit = query.getLimit();
+
+        Stream<Person> stream = DATABASE.stream();
+
+        if (query.getFilter().isPresent()) {
+            stream = stream.filter(predicate(query.getFilter().get()))
+                    .sorted(comparator(query.getFilter().get()));
+        }
+
+        return stream.skip(offset).limit(limit);
+    }
+
+    @Override
+    protected int sizeInBackEnd(Query<Person, CrudFilter> query) {
+        // For RDBMS just execute a SELECT COUNT(*) ... WHERE query
+        long count = fetchFromBackEnd(query).count();
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.accept(count);
+        }
+
+        return (int) count;
+    }
+
+    void setSizeChangeListener(Consumer<Long> listener) {
+        sizeChangeListener = listener;
+    }
+
+    private static Predicate<Person> predicate(CrudFilter filter) {
+        // For RDBMS just generate a WHERE clause
+        return filter.getConstraints().entrySet().stream()
+                .map(constraint -> (Predicate<Person>) person -> {
+                    try {
+                        Object value = valueOf(constraint.getKey(), person);
+                        return value != null && value.toString().toLowerCase()
+                                .contains(constraint.getValue().toLowerCase());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }).reduce(Predicate::and).orElse(e -> true);
+    }
+
+    private static Comparator<Person> comparator(CrudFilter filter) {
+        // For RDBMS just generate an ORDER BY clause
+        return filter.getSortOrders().entrySet().stream().map(sortClause -> {
+            try {
+                Comparator<Person> comparator = Comparator.comparing(
+                        person -> (Comparable) valueOf(sortClause.getKey(),
+                                person));
+
+                if (sortClause.getValue() == SortDirection.DESCENDING) {
+                    comparator = comparator.reversed();
+                }
+
+                return comparator;
+
+            } catch (Exception ex) {
+                return (Comparator<Person>) (o1, o2) -> 0;
+            }
+        }).reduce(Comparator::thenComparing).orElse((o1, o2) -> 0);
+    }
+
+    private static Object valueOf(String fieldName, Person person) {
+        try {
+            Field field = Person.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(person);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    void persist(Person item) {
+        if (item.getId() == null) {
+            item.setId(DATABASE.stream().map(Person::getId).max(naturalOrder())
+                    .orElse(0) + 1);
+        }
+
+        final Optional<Person> existingItem = find(item.getId());
+        if (existingItem.isPresent()) {
+            int position = DATABASE.indexOf(existingItem.get());
+            DATABASE.remove(existingItem.get());
+            DATABASE.add(position, item);
+        } else {
+            DATABASE.add(item);
+        }
+    }
+
+    Optional<Person> find(Integer id) {
+        return DATABASE.stream().filter(entity -> entity.getId().equals(id))
+                .findFirst();
+    }
+
+    void delete(Person item) {
+        DATABASE.removeIf(entity -> entity.getId().equals(item.getId()));
+    }
+}
+
+[Flow: PersonDataProvider.java]
+
+[React: crud-localization.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { EmailField } from '@vaadin/react-components/EmailField.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { Crud, crudPath } from '@vaadin/react-components-pro/Crud.js';
+import { CrudEditColumn } from '@vaadin/react-components-pro/CrudEditColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const i18n = {
+    newItem: 'Luo uusi',
+    editItem: 'Muuta tietoja',
+    saveItem: 'Tallenna',
+    cancel: 'Peruuta',
+    deleteItem: 'Poista...',
+    editLabel: 'Muokkaa',
+    confirm: {
+      delete: {
+        title: 'Poista kohde',
+        content: 'Haluatko varmasti poistaa tämän kohteen? Poistoa ei voi perua.',
+        button: {
+          confirm: 'Poista',
+          dismiss: 'Peruuta',
+        },
+      },
+      cancel: {
+        title: 'Hylkää muutokset',
+        content: 'Kohteessa on tallentamattomia muutoksia',
+        button: {
+          confirm: 'Hylkää',
+          dismiss: 'Peruuta',
+        },
+      },
+    },
+  };
+
+  return (
+    <Crud
+      editorPosition="aside"
+      include="firstName, lastName, email, profession"
+      items={items.value}
+      i18n={i18n}
+    >
+      <Grid slot="grid">
+        <GridColumn path="firstName" header="Etunimi" />
+        <GridColumn path="lastName" header="Sukunimi" />
+        <GridColumn path="email" header="Sähköposti" />
+        <GridColumn path="profession" header="Ammatti" />
+        <CrudEditColumn />
+      </Grid>
+
+      <div slot="form">
+        <TextField {...crudPath('firstName')} label="Etunimi" required />
+        <TextField {...crudPath('lastName')} label="Sukunimi" required />
+        <EmailField {...crudPath('email')} label="Sähköposti" required />
+        <ComboBox
+          {...crudPath('profession')}
+          label="Ammatti"
+          items={[...new Set(items.value.map((i) => i.profession))]}
+        />
+      </div>
+    </Crud>
+  );
+  // end::snippet[]
+}
+
+[Lit: crud-localization.ts]
+import '@vaadin/crud';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type { Crud } from '@vaadin/crud';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('crud-localization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @query('vaadin-crud')
+  private crud!: Crud<Person>;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+    this.crud.i18n = {
+      newItem: 'Luo uusi',
+      editItem: 'Muuta tietoja',
+      saveItem: 'Tallenna',
+      cancel: 'Peruuta',
+      deleteItem: 'Poista...',
+      editLabel: 'Muokkaa',
+      confirm: {
+        delete: {
+          title: 'Poista kohde',
+          content: 'Haluatko varmasti poistaa tämän kohteen? Poistoa ei voi perua.',
+          button: {
+            confirm: 'Poista',
+            dismiss: 'Peruuta',
+          },
+        },
+        cancel: {
+          title: 'Hylkää muutokset',
+          content: 'Kohteessa on tallentamattomia muutoksia',
+          button: {
+            confirm: 'Hylkää',
+            dismiss: 'Peruuta',
+          },
+        },
+      },
+    };
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+
+      <vaadin-crud
+        editor-position="aside"
+        include="firstName, lastName, email, profession"
+        .items="${this.items}"
+      >
+        <vaadin-grid slot="grid">
+          <vaadin-grid-column path="firstName" header="Etunimi"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName" header="Sukunimi"></vaadin-grid-column>
+          <vaadin-grid-column path="email" header="Sähköposti"></vaadin-grid-column>
+          <vaadin-grid-column path="profession" header="Ammatti"></vaadin-grid-column>
+          <vaadin-crud-edit-column></vaadin-crud-edit-column>
+        </vaadin-grid>
+        <vaadin-form-layout slot="form">
+          <vaadin-text-field path="firstName" label="Etunimi" required></vaadin-text-field>
+          <vaadin-text-field path="lastName" label="Sukunimi" required></vaadin-text-field>
+          <vaadin-email-field path="email" label="Sähköposti" required></vaadin-email-field>
+          <vaadin-combo-box
+            path="profession"
+            label="Ammatti"
+            .items="${[...new Set(this.items.map((i) => i.profession))]}"
+          ></vaadin-combo-box>
+        </vaadin-form-layout>
+      </vaadin-crud>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+Related Components
+
+Component | Usage Recommendation
+Grid Pro | Component for showing and editing tabular data.
+Grid | Component for showing tabular data.
+Tree Grid | Component for showing hierarchical data.

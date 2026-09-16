@@ -1,0 +1,107 @@
+Starting a Vaadin Project with Gradle
+
+How to create a Vaadin project with Gradle.
+
+Gradle is a popular build tool for Java, Groovy, Kotlin, and other projects. It’s an alternative to using Maven, and in many ways much simpler. It’s also more powerful. You can use it to build and run a Vaadin application and manage dependencies during development.
+
+This page describes how to create, compile, and run a Vaadin application using the Vaadin Gradle plugin. The Gretty plugin is used to run an application in an embedded web server.
+
+See Gradle Configuration Properties page for various options in configuring Vaadin Gradle plugin.
+
+For information about using Gradle, see the Gradle User Manual.
+
+Note: Requirements
+
+The Vaadin Gradle plugin requires Java SDK 17 or later, Gradle 8.7 or later. It installs Node.js and npm automatically when running the build for the first time if they are missing or the installed version is below the minimum required. If you plan to use Vaadin’s Gradle-based starter projects, there’s no need to install Gradle on your machine. A Gradle Wrapper script is included in starter projects. It manages locally the download and execution of Gradle for your project. For more information on using Gradle Wrapper, see the Official Gradle Documentation.
+
+Creating a Vaadin Project
+
+The easiest way to create a new project is to clone a starter repository containing an application skeleton.
+
+You can also make a build.gradle file for any existing Vaadin project, as described in The Build File.
+
+Cloning a Starter Repository
+
+The following starter repositories are available. The default branch is for the latest Vaadin version. You can find older starters with long-term support in their respective branches:
+
+Gradle Starter on GitHub
+
+The Gradle Starter on GitHub is a simple web application project to be deployed as a WAR package. This example can also be used for Java EE, by changing the servlet dependency to javax:javaee-api and perhaps also adding the dependency com.vaadin:vaadin-cdi for CDI integration.
+
+[terminal]
+git clone https://github.com/vaadin/base-starter-gradle my-project
+
+Spring Gradle Starter
+
+The Spring Gradle Starter is a web application project skeleton that uses Spring Boot.
+
+[terminal]
+git clone https://github.com/vaadin/base-starter-spring-gradle my-project
+
+Gradle files in Starter Projects
+
+Gradle-related files are as follows:
+
+build.gradle
+    The Gradle build file, as described later in The Build File.
+gradlew and gradlew.bat
+    Gradle Wrapper build scripts for Linux/Mac (gradlew) and Windows (gradlew.bat). The build scripts enable the project to be built without having Gradle preinstalled. Since the recommended way to execute any Gradle build is with the help of the Gradle Wrapper, gradlew is used instead of gradle throughout the documentation. However, the gradlew and gradle commands can be used interchangeably if you already have Gradle installed and you prefer to use your installed Gradle. You can learn more about the benefits of using Gradle Wrapper in the Official Gradle Documentation.
+
+The Build File
+
+At a minimum, the build.gradle file needs to enable the Vaadin Gradle plugin:
+
+plugins {
+    id 'com.vaadin' version '25.0.0' (1)
+
+    // Optional
+    id 'org.gretty' version '4.1.1' (2)
+    id 'war' (3)
+    id 'groovy' (4)
+}
+
+1. Use the plugin version that matches the Vaadin version. See github.com/vaadin/platform for the latest release.
+2. Use the Gretty embedded web server to run the application during development. See Running the Application for details.
+3. Build a WAR package to deploy to a traditional servlet container. You also need to define the Servlet API using providedCompile "javax.servlet:javax.servlet-api:3.1.0" in the dependencies section.
+4. By default, the plugin supports Java. You can include Groovy or Kotlin as an optional plugin.
+
+Compiling
+
+To compile your project, You can run ./gradlew build (Linux/Mac) or the gradlew build (Windows) from the terminal / command line tool on your machine. See Gradle configuration page for more build options.
+
+To avoid unnecessary verbosity, only the Unix style of running ./gradlew is used for the rest of this document. You’ll need to replace it with gradlew if you’re using a Windows machine.
+
+Running the Application
+
+You’d use a Spring Boot-based starter (i.e., Vaadin with Spring Boot) to run the application during development in a similar way to any normal Spring Boot application. This means you can run it either from the class containing the main() method — normally annotated with @SpringBootApplication — or by using Spring Boot’s Gradle plugin bootRun task:
+
+[terminal]
+./gradlew bootRun
+
+If you’re using a simple web application (i.e., Vaadin without Spring Boot) to run the application during development, the Gradle plugin supports the Gretty plugin, which runs the application in an embedded web server. You can do this either in an IDE or from the command line.
+
+One way to enable the Gretty plugin is in the plugin section of the gradle.build file, as in the starter project:
+
+plugins {
+    ...
+    id 'org.gretty' version '4.1.1'
+}
+
+You can configure Gretty further in an optional gretty block:
+
+gretty {
+    contextPath = "/" (1)
+    servletContainer = "jetty11" (2)
+}
+
+1. Sets the context path to the root path. The default context path contains the project name, so the URL would be http://localhost:8080/myproject — adjusted for whatever your project is named.
+2. Use Jetty as the servlet container, with the specified version.
+
+The application is started with the appRun task:
+
+[terminal]
+ ./gradlew appRun
+
+The task compiles the application and starts the web server in http://localhost:8080/ — if the root context path is configured as described earlier.
+
+See the Gretty documentation for a complete reference on using Gretty. For issues when running the application in development mode, see Gradle Configuration Properties - Known Issues for possible solutions.

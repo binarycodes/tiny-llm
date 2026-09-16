@@ -1,0 +1,135 @@
+Vaadin Docs
+
+Develop Web Apps with Java
+
+Build scalable user interfaces with Java, using the integrated frameworks, tooling, and components of Vaadin.
+
+Getting Started
+
+Getting Help
+
+Vaadin Community
+
+If you’re stuck or need feedback on your implementation, the Vaadin forum is the perfect place to ask questions, share ideas, and connect with other developers.
+
+Join the forum
+
+Video Course & Certification
+
+Prefer to learn by watching? The free Vaadin training videos cover the basics of Vaadin Flow development and help you to get certified.
+
+Start video course
+
+Learn about Extended Maintenance
+
+Secure your Vaadin 24.x minor version for 15 years
+
+Extended Maintenance now covers individual minor versions—get security patches and critical fixes without upgrading.
+
+Learn about Extended Maintenance
+
+Components
+
+Browse Components
+
+Vaadin Flow comes with over 40 UI components.
+
+Browse all components
+
+Grid
+
+Vaadin Grid is a component for displaying tabular data, including various enhancements to grid renderings.
+
+See Grid
+
+Combo Box
+
+Combo Box allows the user to choose a value from a filterable list of options presented in an overlay.
+
+See Combo Box
+
+Date Picker
+
+Date Picker is an input field that allows the user to enter a date by typing or by selecting from a calendar overlay.
+
+See Date Picker
+
+Button
+
+The Button component allows users to perform actions. It comes in several different style variants and supports icons as well as text labels.
+
+See Button
+
+App Layout
+
+App Layout is a component for the root layout of a Vaadin application. It provides predefined areas for the navigation drawer, the header, and the view’s content.
+
+See App Layout
+
+Tools
+
+Development Tools
+
+Copilot
+
+Edit your application directly in the browser yourself or ask the AI copilot to do it for you, and see the changes applied right there in the browser.
+
+See Copilot
+
+Acceleration Kits
+
+AppSec Kit
+
+Identify and manage security vulnerabilities in third-party dependencies.
+
+See AppSec Kit
+
+Azure Cloud Kit
+
+Create scalable, highly-available, easily upgradable Vaadin applications, and deploy them to Azure Cloud.
+
+Azure Cloud Kit Overview
+
+Collaboration Kit Flow
+
+The simplest way to build real-time collaboration into web applications.
+
+See Collaboration Kit
+
+Kubernetes Kit
+
+Deploy your Vaadin application to Kubernetes, enabling scalability, high availability, and rolling updates.
+
+See Kubernetes Kit
+
+Observability Kit
+
+Get insights into Flow applications at runtime and in production by monitoring application health, detecting unhandled errors and performance issues, and observing user behavior.
+
+See Observability Kit
+
+SSO Kit
+
+Integrate your Vaadin application with third-party identity providers, and give users single sign-on capabilities.
+
+See SSO Kit
+
+Swing Kit
+
+Swing Kit is designed to render Vaadin views inside Swing applications. You can gradually modernize your existing Swing application using Vaadin, upgrading the application view-by-view.
+
+See Swing Kit
+
+Other Tools
+
+Multiplatform Runtime Flow
+
+Run applications and components written with Vaadin 7/8 inside a Vaadin 10+ Flow application.
+
+See Multiplatform Runtime
+
+Designer
+
+Create UIs visually by dragging and dropping components on a canvas.
+
+See Designer

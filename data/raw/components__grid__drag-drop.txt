@@ -1,0 +1,899 @@
+Grid Drag & Drop
+
+Grid supports drag-and-drop actions. This feature might be used, for example, to reorder rows and to drag rows between grids.
+
+Drop Mode
+
+The drop mode of a grid determines where a drop can happen. Vaadin offers four different drop modes, which are described in the table here:
+
+Drop Mode | Description
+On Grid | Drops can occur on the grid as a whole, not on top of rows or between individual rows. Use this mode when the order isn’t important.
+Between | Drops can happen between rows. Use this mode when the order is important.
+On Top | Drops can take place on top of rows. This is useful when creating relationships between items or moving an item into another item, such as placing a file inside a folder.
+On Top or Between | Drops can occur on top of rows or between them.
+
+Row Reordering
+
+You can drag rows to reorder them. This can be a useful and impressive feature for users. Try dragging with your mouse one of the rows of data in the example here to another place in the list.
+
+[Flow: GridRowReordering.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.dnd.GridDropLocation;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Route("grid-row-reordering")
+public class GridRowReordering extends Div {
+
+    private Person draggedItem;
+
+    public GridRowReordering() {
+        // tag::snippet[]
+        Grid<Person> grid = setupGrid();
+
+        // Modifying the data view requires a mutable collection
+        List<Person> people = new ArrayList<>(DataService.getPeople());
+        GridListDataView<Person> dataView = grid.setItems(people);
+
+        grid.setRowsDraggable(true);
+
+        grid.addDragStartListener(e -> {
+            draggedItem = e.getDraggedItems().get(0);
+            grid.setDropMode(GridDropMode.BETWEEN);
+        });
+
+        grid.addDropListener(e -> {
+            Person targetPerson = e.getDropTargetItem().orElse(null);
+            GridDropLocation dropLocation = e.getDropLocation();
+
+            boolean personWasDroppedOntoItself = draggedItem
+                    .equals(targetPerson);
+
+            if (targetPerson == null || personWasDroppedOntoItself)
+                return;
+
+            dataView.removeItem(draggedItem);
+
+            if (dropLocation == GridDropLocation.BELOW) {
+                dataView.addItemAfter(draggedItem, targetPerson);
+            } else {
+                dataView.addItemBefore(draggedItem, targetPerson);
+            }
+        });
+
+        grid.addDragEndListener(e -> {
+            draggedItem = null;
+            grid.setDropMode(null);
+        });
+        // end::snippet[]
+
+        add(grid);
+    }
+
+    private static Grid<Person> setupGrid() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createAvatarRenderer()).setHeader("Image")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        return grid;
+    }
+
+    private static Renderer<Person> createAvatarRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\" alt=\"User avatar\"></vaadin-avatar>")
+                .withProperty("pictureUrl", Person::getPictureUrl);
+    }
+
+}
+
+[React: grid-row-reordering.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import {
+  Grid,
+  type GridDragStartEvent,
+  type GridDropEvent,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function avatarRenderer({ item }: { item: Person }) {
+  return <Avatar img={item.pictureUrl} name={`${item.firstName} ${item.lastName}`} />;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const draggedItem = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  function handleDragStart(event: GridDragStartEvent<Person>): void {
+    draggedItem.value = event.detail.draggedItems[0];
+  }
+
+  function handleDragEnd(): void {
+    draggedItem.value = undefined;
+  }
+
+  function handleDrop(event: GridDropEvent<Person>): void {
+    const { dropTargetItem, dropLocation } = event.detail;
+    // Only act when dropping on another item
+    if (draggedItem.value && dropTargetItem !== draggedItem.value) {
+      // Remove the item from its previous position
+      const draggedItemIndex = items.value.indexOf(draggedItem.value);
+      items.value.splice(draggedItemIndex, 1);
+      // Re-insert the item at its new position
+      const dropIndex = items.value.indexOf(dropTargetItem) + (dropLocation === 'below' ? 1 : 0);
+      items.value.splice(dropIndex, 0, draggedItem.value);
+      // Re-assign the array to refresh the grid
+      items.value = [...items.value];
+    }
+  }
+
+  return (
+    <Grid
+      items={items.value}
+      rowsDraggable
+      dropMode={draggedItem.value ? 'between' : undefined}
+      onGridDragstart={handleDragStart}
+      onGridDragend={handleDragEnd}
+      onGridDrop={handleDrop}
+    >
+      <GridColumn header="Image" flexGrow={0} autoWidth renderer={avatarRenderer} />
+
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-row-reordering.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridDragStartEvent, GridDropEvent } from '@vaadin/grid';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-row-reordering')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private draggedItem: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid
+        .items="${this.items}"
+        rows-draggable
+        .dropMode=${this.draggedItem ? 'between' : undefined}
+        @grid-dragstart="${(event: GridDragStartEvent<Person>) => {
+          this.draggedItem = event.detail.draggedItems[0];
+        }}"
+        @grid-dragend="${() => {
+          this.draggedItem = undefined;
+        }}"
+        @grid-drop="${(event: GridDropEvent<Person>) => {
+          const { dropTargetItem, dropLocation } = event.detail;
+          // Only act when dropping on another item
+          if (this.draggedItem && dropTargetItem !== this.draggedItem) {
+            // Remove the item from its previous position
+            const draggedItemIndex = this.items.indexOf(this.draggedItem);
+            this.items.splice(draggedItemIndex, 1);
+            // Re-insert the item at its new position
+            const dropIndex =
+              this.items.indexOf(dropTargetItem) + (dropLocation === 'below' ? 1 : 0);
+            this.items.splice(dropIndex, 0, this.draggedItem);
+            // Re-assign the array to refresh the grid
+            this.items = [...this.items];
+          }
+        }}"
+      >
+        <vaadin-grid-column
+          header="Image"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.avatarRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private avatarRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-avatar
+      img="${person.pictureUrl}"
+      name="${person.firstName} ${person.lastName}"
+    ></vaadin-avatar>
+  `;
+}
+// end::snippet[]
+
+Drag Rows between Grids
+
+Rows can be dragged from one grid to another. You might use this feature to move, copy or link items from different datasets.
+
+In the example here, there are two grids of data. Maybe they represent people to speak at two different presentations at the same conference. One grid lists the first panel of speakers and the other the second panel. Try dragging people from one to the other, as if you were reassigning them to speak at a different panel.
+
+[Flow: GridDragRowsBetweenGrids.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Route("grid-drag-rows-between-grids")
+public class GridDragRowsBetweenGrids extends Div {
+
+    private Person draggedItem;
+
+    public GridDragRowsBetweenGrids() {
+        List<Person> people = DataService.getPeople(10);
+        ArrayList<Person> people1 = new ArrayList<>(people.subList(0, 5));
+        ArrayList<Person> people2 = new ArrayList<>(people.subList(5, 10));
+
+        // tag::snippet[]
+        Grid<Person> grid1 = setupGrid();
+        Grid<Person> grid2 = setupGrid();
+
+        GridListDataView<Person> dataView1 = grid1.setItems(people1);
+        GridListDataView<Person> dataView2 = grid2.setItems(people2);
+
+        grid1.setRowsDraggable(true);
+        grid1.addDragStartListener(e -> {
+            draggedItem = e.getDraggedItems().get(0);
+            grid1.setDropMode(GridDropMode.ON_GRID);
+            grid2.setDropMode(GridDropMode.ON_GRID);
+        });
+        grid1.addDropListener(e -> {
+            dataView2.removeItem(draggedItem);
+            dataView1.addItem(draggedItem);
+        });
+        grid1.addDragEndListener(e -> {
+            draggedItem = null;
+            grid1.setDropMode(null);
+            grid2.setDropMode(null);
+        });
+
+        grid2.setRowsDraggable(true);
+        grid2.addDragStartListener(e -> {
+            draggedItem = e.getDraggedItems().get(0);
+            grid1.setDropMode(GridDropMode.ON_GRID);
+            grid2.setDropMode(GridDropMode.ON_GRID);
+        });
+        grid2.addDropListener(e -> {
+            dataView1.removeItem(draggedItem);
+            dataView2.addItem(draggedItem);
+        });
+        grid2.addDragEndListener(e -> {
+            draggedItem = null;
+            grid1.setDropMode(null);
+            grid2.setDropMode(null);
+        });
+        // end::snippet[]
+
+        Div container = new Div(grid1, grid2);
+        setContainerStyles(container);
+
+        add(container);
+    }
+
+    private static Grid<Person> setupGrid() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFullName).setHeader("Full name");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+        setGridStyles(grid);
+
+        return grid;
+    }
+
+    private static void setGridStyles(Grid<Person> grid) {
+        grid.getStyle().set("width", "300px").set("height", "300px")
+                .set("margin-left", "0.5rem").set("margin-top", "0.5rem")
+                .set("align-self", "unset");
+    }
+
+    private static void setContainerStyles(Div container) {
+        container.getStyle().set("display", "flex").set("flex-direction", "row")
+                .set("flex-wrap", "wrap");
+    }
+
+}
+
+[React: grid-drag-rows-between-grids.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid, type GridDragStartEvent } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const gridContainerStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+};
+
+const gridStyle = {
+  width: '300px',
+  height: '300px',
+  marginLeft: '0.5rem',
+  marginTop: '0.5rem',
+  alignSelf: 'unset',
+};
+
+function fullNameRenderer({ item: person }: { item: Person }) {
+  return `${person.firstName} ${person.lastName}`;
+}
+
+function Example() {
+  const draggedItem = useSignal<Person | undefined>(undefined);
+  const grid1Items = useSignal<Person[]>([]);
+  const grid2Items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 10 }).then(({ people }) => {
+      grid1Items.value = people.slice(0, 5);
+      grid2Items.value = people.slice(5);
+    });
+  }, []);
+
+  // tag::snippet[]
+  const startDraggingItem = (event: GridDragStartEvent<Person>) => {
+    draggedItem.value = event.detail.draggedItems[0];
+  };
+
+  const clearDraggedItem = () => {
+    draggedItem.value = undefined;
+  };
+
+  return (
+    <div style={gridContainerStyle}>
+      <Grid
+        items={grid1Items.value}
+        rowsDraggable
+        dropMode={draggedItem.value ? 'on-grid' : undefined}
+        style={gridStyle}
+        onGridDragstart={startDraggingItem}
+        onGridDragend={clearDraggedItem}
+        onGridDrop={() => {
+          const draggedPerson = draggedItem.value!;
+          const draggedItemIndex = grid2Items.value.indexOf(draggedPerson);
+          if (draggedItemIndex >= 0) {
+            const updatedGrid2Items = grid2Items.value.filter(
+              (_, index) => index !== draggedItemIndex
+            );
+            grid2Items.value = updatedGrid2Items;
+            grid1Items.value = [...grid1Items.value, draggedPerson];
+          }
+        }}
+      >
+        <GridColumn header="Full name" renderer={fullNameRenderer}></GridColumn>
+
+        <GridColumn path="profession" />
+      </Grid>
+
+      <Grid
+        items={grid2Items.value}
+        rowsDraggable
+        dropMode={draggedItem.value ? 'on-grid' : undefined}
+        style={gridStyle}
+        onGridDragstart={startDraggingItem}
+        onGridDragend={clearDraggedItem}
+        onGridDrop={() => {
+          const draggedPerson = draggedItem.value!;
+          const draggedItemIndex = grid1Items.value.indexOf(draggedPerson);
+          if (draggedItemIndex >= 0) {
+            const updatedGrid1Items = grid1Items.value.filter(
+              (_, index) => index !== draggedItemIndex
+            );
+            grid1Items.value = updatedGrid1Items;
+            grid2Items.value = [...grid2Items.value, draggedPerson];
+          }
+        }}
+      >
+        <GridColumn header="Full name" renderer={fullNameRenderer} />
+
+        <GridColumn path="profession" />
+      </Grid>
+    </div>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-drag-rows-between-grids.ts]
+import '@vaadin/grid';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridDragStartEvent } from '@vaadin/grid';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-drag-rows-between-grids')
+export class Example extends LitElement {
+  static override styles = css`
+    .grids-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    vaadin-grid {
+      width: 300px;
+      height: 300px;
+      margin-left: 0.5rem;
+      margin-top: 0.5rem;
+      align-self: unset;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private draggedItem: Person | undefined;
+
+  @state()
+  private grid1Items: Person[] = [];
+
+  @state()
+  private grid2Items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 10 });
+    this.grid1Items = people.slice(0, 5);
+    this.grid2Items = people.slice(5);
+  }
+
+  private startDraggingItem = (event: GridDragStartEvent<Person>) => {
+    this.draggedItem = event.detail.draggedItems[0];
+  };
+
+  private clearDraggedItem = () => {
+    this.draggedItem = undefined;
+  };
+
+  protected override render() {
+    return html`
+      <div class="grids-container">
+        <vaadin-grid
+          .items="${this.grid1Items}"
+          rows-draggable
+          .dropMode=${this.draggedItem ? 'on-grid' : undefined}
+          @grid-dragstart="${this.startDraggingItem}"
+          @grid-dragend="${this.clearDraggedItem}"
+          @grid-drop="${() => {
+            const draggedPerson = this.draggedItem!;
+            const draggedItemIndex = this.grid2Items.indexOf(draggedPerson);
+            if (draggedItemIndex >= 0) {
+              // Remove the item from its previous position
+              this.grid2Items.splice(draggedItemIndex, 1);
+              // Re-assign the array to refresh the grid
+              this.grid2Items = [...this.grid2Items];
+              // Re-assign the array to refresh the grid
+              this.grid1Items = [...this.grid1Items, draggedPerson];
+            }
+          }}"
+        >
+          <vaadin-grid-column
+            header="Full name"
+            ${columnBodyRenderer<Person>(
+              (person) => html`${person.firstName} ${person.lastName}`,
+              []
+            )}
+          ></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+
+        <vaadin-grid
+          .items="${this.grid2Items}"
+          rows-draggable
+          .dropMode=${this.draggedItem ? 'on-grid' : undefined}
+          @grid-dragstart="${this.startDraggingItem}"
+          @grid-dragend="${this.clearDraggedItem}"
+          @grid-drop="${() => {
+            const draggedPerson = this.draggedItem!;
+            const draggedItemIndex = this.grid1Items.indexOf(draggedPerson);
+            if (draggedItemIndex >= 0) {
+              // Remove the item from its previous position
+              this.grid1Items.splice(draggedItemIndex, 1);
+              // Re-assign the array to refresh the grid
+              this.grid1Items = [...this.grid1Items];
+              // Re-assign the array to refresh the grid
+              this.grid2Items = [...this.grid2Items, draggedPerson];
+            }
+          }}"
+        >
+          <vaadin-grid-column
+            header="Full name"
+            ${columnBodyRenderer<Person>(
+              (person) => html`${person.firstName} ${person.lastName}`,
+              []
+            )}
+          ></vaadin-grid-column>
+          <vaadin-grid-column path="profession"></vaadin-grid-column>
+        </vaadin-grid>
+      </div>
+    `;
+  }
+  // end::snippet[]
+}
+
+Drag & Drop Filters
+
+Drag-and-drop filters determine which rows are draggable and which rows are valid drop targets. These filters function on a per-row basis.
+
+[Flow: TreeGridDragDrop.java]
+package com.vaadin.demo.component.treegrid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider.HierarchyFormat;
+import com.vaadin.flow.router.Route;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Route("tree-grid-drag-drop")
+public class TreeGridDragDrop extends Div {
+
+    private final List<Person> people = DataService.getPeople();
+    private final List<Person> managers = people.stream()
+            .filter(Person::isManager).toList();
+    private final Map<Integer, List<Person>> staffByManagerId = people.stream()
+            .filter(person -> person.getManagerId() != null)
+            .collect(Collectors.groupingBy(Person::getManagerId));
+
+    private Person draggedItem;
+
+    public TreeGridDragDrop() {
+        // tag::snippet[]
+        TreeGrid<Person> treeGrid = setupTreeGrid();
+        TreeData<Person> treeData = new TreeData<>();
+        treeData.addItems(managers, this::getStaffByManager);
+
+        // To preserve scroll position after refreshAll(), configure
+        // TreeDataProvider to return data in the flattened hierarchy format.
+        // More details can be found in the JavaDoc of the HierarchyFormat enum.
+        TreeDataProvider<Person> treeDataProvider = new TreeDataProvider<>(
+                treeData, HierarchyFormat.FLATTENED);
+        treeGrid.setDataProvider(treeDataProvider);
+
+        // Enable drag and drop
+        treeGrid.setRowsDraggable(true);
+
+        // Set a filter to allow dragging staff only
+        treeGrid.setDragFilter(person -> !person.isManager());
+
+        treeGrid.addDragStartListener(e -> {
+            draggedItem = e.getDraggedItems().get(0);
+
+            // Allow dropping on top of rows only
+            treeGrid.setDropMode(GridDropMode.ON_TOP);
+
+            // Set a filter to define valid drop targets
+            treeGrid.setDropFilter(person ->
+                    // Allow dropping on supervisors only
+                    person.isManager() &&
+                    // Disallow dropping on the same manager
+                    !person.getId().equals(draggedItem.getManagerId()));
+        });
+
+        treeGrid.addDropListener(e -> {
+            Person newManager = e.getDropTargetItem().orElse(null);
+            if (newManager == null) {
+                return;
+            }
+
+            draggedItem.setManagerId(newManager.getId());
+            treeData.setParent(draggedItem, newManager);
+
+            // Reset TreeGrid's cache to reflect the hierarchy changes in the UI
+            treeDataProvider.refreshAll();
+        });
+
+        treeGrid.addDragEndListener(e -> {
+            draggedItem = null;
+
+            treeGrid.setDropMode(null);
+            treeGrid.setDropFilter(null);
+        });
+        // end::snippet[]
+
+        add(treeGrid);
+    }
+
+    private static TreeGrid<Person> setupTreeGrid() {
+        TreeGrid<Person> treeGrid = new TreeGrid<>();
+        treeGrid.addHierarchyColumn(Person::getFirstName)
+                .setHeader("First name");
+        treeGrid.addColumn(Person::getLastName).setHeader("Last name");
+        treeGrid.addColumn(Person::getEmail).setHeader("Email");
+
+        return treeGrid;
+    }
+
+    private List<Person> getStaffByManager(Person manager) {
+        return staffByManagerId.getOrDefault(manager.getId(),
+                Collections.emptyList());
+    }
+
+}
+
+[React: tree-grid-drag-drop.tsx]
+import React, { useEffect, useMemo } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Grid,
+  type GridDataProviderCallback,
+  type GridDataProviderParams,
+} from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridTreeColumn } from '@vaadin/react-components/GridTreeColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const draggedItem = useSignal<Person | undefined>(undefined);
+  const items = useSignal<Person[]>([]);
+  const expandedItems = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  const dataProvider = useMemo(
+    () => (params: GridDataProviderParams<Person>, callback: GridDataProviderCallback<Person>) => {
+      const { page, pageSize, parentItem } = params;
+      const startIndex = page * pageSize;
+      const endIndex = startIndex + pageSize;
+
+      /*
+    We cannot change the underlying data in this demo so this dataProvider uses
+    a local field to fetch its values. This allows us to keep a reference to the
+    modified list instead of loading a new list every time the dataProvider gets
+    called. In a real application, you should always access your data source
+    here and avoid using grid.clearCache() whenever possible.
+    */
+      const result = parentItem
+        ? items.value.filter((item) => item.managerId === parentItem.id)
+        : items.value.filter((item) => item.manager).slice(startIndex, endIndex);
+
+      callback(result, result.length);
+    },
+    [items.value]
+  );
+
+  return (
+    <Grid
+      dataProvider={dataProvider}
+      itemIdPath="id"
+      itemHasChildrenPath="manager"
+      expandedItems={expandedItems.value}
+      onExpandedItemsChanged={(event) => {
+        expandedItems.value = event.detail.value;
+      }}
+      rowsDraggable
+      onGridDragstart={(event) => {
+        draggedItem.value = event.detail.draggedItems[0];
+      }}
+      onGridDragend={() => {
+        draggedItem.value = undefined;
+      }}
+      onGridDrop={(event) => {
+        const manager = event.detail.dropTargetItem;
+        if (draggedItem.value) {
+          draggedItem.value.managerId = manager.id;
+          items.value = [...items.value];
+        }
+      }}
+      dropMode={draggedItem.value ? 'on-top' : undefined}
+      dragFilter={(model) => {
+        const { item } = model;
+        return !item.manager; // Only drag non-managers
+      }}
+      dropFilter={(model) => {
+        const { item } = model;
+        return (
+          item.manager && // Can only drop on a supervisor
+          item.id !== draggedItem.value?.managerId // Disallow dropping on the same manager
+        );
+      }}
+    >
+      <GridTreeColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: tree-grid-drag-drop.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-tree-column.js';
+import { html, LitElement } from 'lit';
+import { customElement, query, state } from 'lit/decorators.js';
+import type {
+  Grid,
+  GridDataProviderCallback,
+  GridDataProviderParams,
+  GridDragStartEvent,
+  GridDropEvent,
+  GridExpandedItemsChangedEvent,
+  GridItemModel,
+} from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('tree-grid-drag-drop')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    // Apply custom theme (only supported if your app uses one)
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-grid')
+  private grid!: Grid<Person>;
+
+  @state()
+  private draggedItem: Person | undefined;
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private managers: Person[] = [];
+
+  @state()
+  private expandedItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+    this.managers = this.items.filter((item) => item.manager);
+    // Avoid using this method
+    this.grid.clearCache();
+  }
+
+  private dataProvider = (
+    params: GridDataProviderParams<Person>,
+    callback: GridDataProviderCallback<Person>
+  ) => {
+    const { page, pageSize, parentItem } = params;
+    const startIndex = page * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    /*
+    We cannot change the underlying data in this demo so this dataProvider uses
+    a local field to fetch its values. This allows us to keep a reference to the
+    modified list instead of loading a new list every time the dataProvider gets
+    called. In a real application, you should always access your data source
+    here and avoid using grid.clearCache() whenever possible.
+    */
+    const result = parentItem
+      ? this.items.filter((item) => item.managerId === parentItem.id)
+      : this.managers.slice(startIndex, endIndex);
+
+    callback(result, result.length);
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-grid
+        .dataProvider="${this.dataProvider}"
+        item-id-path="id"
+        item-has-children-path="manager"
+        .expandedItems="${this.expandedItems}"
+        @expanded-items-changed="${(event: GridExpandedItemsChangedEvent<Person>) => {
+          this.expandedItems = event.detail.value;
+        }}"
+        rows-draggable
+        @grid-dragstart="${(event: GridDragStartEvent<Person>) => {
+          this.draggedItem = event.detail.draggedItems[0];
+        }}"
+        @grid-dragend="${() => {
+          this.draggedItem = undefined;
+        }}"
+        @grid-drop="${(event: GridDropEvent<Person>) => {
+          const manager = event.detail.dropTargetItem;
+          if (this.draggedItem) {
+            // In a real application, when using a data provider, you should
+            // change the persisted data instead of updating a field
+            this.draggedItem.managerId = manager.id;
+            // Avoid using this method
+            this.grid.clearCache();
+          }
+        }}"
+        .dropMode="${this.draggedItem ? 'on-top' : undefined}"
+        .dragFilter="${(model: GridItemModel<Person>) => {
+          const { item } = model;
+          return !item.manager; // Only drag non-managers
+        }}"
+        .dropFilter="${(model: GridItemModel<Person>) => {
+          const { item } = model;
+          return (
+            item.manager && // Can only drop on a supervisor
+            item.id !== this.draggedItem?.managerId // Disallow dropping on the same manager
+          );
+        }}"
+      >
+        <vaadin-grid-tree-column path="firstName"></vaadin-grid-tree-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+}
+// end::snippet[]

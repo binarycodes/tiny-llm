@@ -1,0 +1,519 @@
+Text Field
+
+Text Field allows users to enter text.
+
+Text Field allows users to enter text. Prefix and suffix components, such as icons, are also supported.
+
+[Flow: TextFieldBasic.java]
+package com.vaadin.demo.component.textfield;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("text-field-basic")
+public class TextFieldBasic extends Div {
+
+    public TextFieldBasic() {
+        // tag::snippet[]
+        TextField textField = new TextField();
+        textField.setLabel("Street Address");
+        textField.setValue("Ruukinkatu 2");
+        textField.setClearButtonVisible(true);
+        textField.setPrefixComponent(VaadinIcon.MAP_MARKER.create());
+        add(textField);
+        // end::snippet[]
+    }
+
+}
+
+[React: text-field-basic.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TextField label="Street Address" value="Ruukinkatu 2" clearButtonVisible>
+      <Icon slot="prefix" icon="vaadin:map-marker" />
+    </TextField>
+    // end::snippet[]
+  );
+}
+
+[Lit: text-field-basic.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-field-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-field label="Street Address" value="Ruukinkatu 2" clear-button-visible>
+        <vaadin-icon slot="prefix" icon="vaadin:map-marker"></vaadin-icon>
+      </vaadin-text-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+The placeholder is text that’s displayed when the field is empty. Its primary purpose is to provide a short input hint (e.g., the expected format) in situations where a Helper cannot be used.
+
+Placeholders should not be used as a replacement for a visible label. They can be mistaken for a manually entered value. See Label for alternatives to the built-in field label.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+The clear button — which is displayed when the field is not empty — clears the field’s current value. Although the button itself is not keyboard focusable, the clear action can be taken with the Esc key, when the field has focus. The clear button can be especially useful in search and filter fields, where users often need to clear the value. They’re less useful, however, in regular forms.
+
+Prefix and suffix elements — rendered at either end of the field — can be used to display units, icons, and similar visual cues to the field’s purpose or format.
+
+Prefix and suffix elements typically don’t work well with assistive technologies like screen readers. Therefore, the information communicated by them should also be conveyed through other means, such as in a Label, a Helper, or through ARIA attributes on the field itself.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-text-field accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-text-field accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: TextFieldBasicFeatures.java]
+package com.vaadin.demo.component.textfield;
+
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("text-field-basic-features")
+public class TextFieldBasicFeatures extends HorizontalLayout {
+
+    public TextFieldBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        TextField field = new TextField();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setPlaceholder("Placeholder");
+        field.setTooltipText("Tooltip text");
+        field.setClearButtonVisible(true);
+        field.setPrefixComponent(VaadinIcon.VAADIN_H.create());
+        field.setSuffixComponent(new Span(":)"));
+        // end::snippet[]
+
+        add(field);
+    }
+
+}
+
+[React: text-field-basic-features.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TextField label="Label" helperText="Helper text" placeholder="Placeholder" clearButtonVisible>
+      <Tooltip slot="tooltip" text="Tooltip text" />
+      <Icon slot="prefix" icon="vaadin:vaadin-h" />
+      <span slot="suffix">:)</span>
+    </TextField>
+    // end::snippet[]
+  );
+}
+
+[Lit: text-field-basic-features.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-field-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-field
+        label="Label"
+        helper-text="Helper text"
+        placeholder="Placeholder"
+        clear-button-visible
+      >
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <vaadin-icon slot="prefix" icon="vaadin:vaadin-h"></vaadin-icon>
+        <span slot="suffix">:)</span>
+      </vaadin-text-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Validation
+
+Text Field provides a validation mechanism based on constraints. Constraints allow you to define criteria that the value must meet to be considered valid. Validation occurs typically when the user initiates a value change, for example by entering input and pressing Enter. If the value is invalid, the field is highlighted in red, and an error message appears underneath the input. Certain constraints, however, can proactively prevent users from entering characters that would result in an invalid value.
+
+Below is a list of supported constraints with more detailed information:
+
+Required fields are marked with an indicator next to the label, and become invalid if their value is first entered and then cleared.
+
+An instruction text at the top of the form explaining the required indicator is recommended. The indicator itself can be customized with the --vaadin-input-field-required-indicator style property.
+
+The minimum and maximum input length value constraints dictate the smallest, and the largest number of characters a field accepts. It triggers a validation error if a value shorter than the minimum length is entered, and limits text entered to the maximum length. They can be used to enforce specific formats, or to cap the value to the length supported by the underlying database schema.
+
+In cases where the length requirements may not be clear to the user, it’s recommended to provide this information, for example by using a Helper.
+
+The pattern is a regular expression used to validate the full value entered into the field. Any value that doesn’t match the pattern, invalidates the field.
+
+A separate single-character, regular expression can be used to restrict the characters that can be entered into the field. Characters that don’t match the expression are rejected. However, values set programmatically are not subject to this restriction, even if they contain disallowed characters.
+
+The following example demonstrates how to specify these constraints and provide error messages:
+
+[Flow: TextFieldValidation.java]
+package com.vaadin.demo.component.textfield;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextField.TextFieldI18n;
+import com.vaadin.flow.router.Route;
+
+@Route("text-field-validation")
+public class TextFieldValidation extends HorizontalLayout {
+
+    public TextFieldValidation() {
+        setPadding(false);
+
+        // tag::snippet[]
+        TextField field = new TextField("Phone number");
+        field.setRequiredIndicatorVisible(true);
+        field.setPattern(
+                "^[+]?[\\(]?[0-9]{3}[\\)]?[\\-]?[0-9]{3}[\\-]?[0-9]{4,6}$");
+        field.setAllowedCharPattern("[0-9()+-]");
+        field.setMinLength(5);
+        field.setMaxLength(18);
+
+        field.setI18n(new TextFieldI18n()
+                .setRequiredErrorMessage("Field is required")
+                .setMinLengthErrorMessage("Minimum length is 5 characters")
+                .setMaxLengthErrorMessage("Maximum length is 18 characters")
+                .setPatternErrorMessage("Invalid phone number format"));
+        // end::snippet[]
+        field.setHelperText("Format: +(123)456-7890");
+
+        add(field);
+    }
+
+}
+
+[React: text-field-validation.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { TextField, type TextFieldElement } from '@vaadin/react-components/TextField.js';
+
+function Example() {
+  const errorMessage = useSignal('');
+
+  return (
+    // tag::snippet[]
+    <TextField
+      required
+      minlength={5}
+      maxlength={18}
+      pattern="^[+]?[\(]?[0-9]{3}[\)]?[\-]?[0-9]{3}[\-]?[0-9]{4,6}$"
+      allowedCharPattern="[0-9()+-]"
+      label="Phone number"
+      helperText="Format: +(123)456-7890"
+      errorMessage={errorMessage.value}
+      onValidated={(event) => {
+        const field = event.target as TextFieldElement;
+        const { validity } = field.inputElement as HTMLInputElement;
+        if (validity.valueMissing) {
+          errorMessage.value = 'Field is required';
+        } else if (validity.tooShort) {
+          errorMessage.value = `Minimum length is ${field.minlength} characters`;
+        } else if (validity.tooLong) {
+          errorMessage.value = `Maximum length is ${field.maxlength} characters`;
+        } else if (validity.patternMismatch) {
+          errorMessage.value = 'Invalid phone number format';
+        } else {
+          errorMessage.value = '';
+        }
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: text-field-validation.ts]
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { TextField, TextFieldValidatedEvent } from '@vaadin/text-field';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-field-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private errorMessage = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-field
+        required
+        minlength="5"
+        maxlength="18"
+        pattern="^[+]?[\\(]?[0-9]{3}[\\)]?[\\-]?[0-9]{3}[\\-]?[0-9]{4,6}$"
+        allowed-char-pattern="[0-9()+-]"
+        label="Phone number"
+        helper-text="Format: +(123)456-7890"
+        .errorMessage="${this.errorMessage}"
+        @validated="${(event: TextFieldValidatedEvent) => {
+          const field = event.target as TextField;
+          const { validity } = field.inputElement as HTMLInputElement;
+          if (validity.valueMissing) {
+            this.errorMessage = 'Field is required';
+          } else if (validity.tooShort) {
+            this.errorMessage = `Minimum length is ${field.minlength} characters`;
+          } else if (validity.tooLong) {
+            this.errorMessage = `Maximum length is ${field.maxlength} characters`;
+          } else if (validity.patternMismatch) {
+            this.errorMessage = 'Invalid phone number format';
+          } else {
+            this.errorMessage = '';
+          }
+        }}"
+      ></vaadin-text-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+It’s important to ensure an appropriate error message is configured for each constraint violation to provide users with clear feedback.
+
+Note: Data Binding & Custom Validation
+
+Flow and Hilla offer an advanced API called Binder that allows you to bind data and add custom validation rules for multiple fields, creating forms. You can learn more about Binder from the corresponding Flow and Hilla articles.
+
+Read-Only & Disabled
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers. They can display tooltips. Their values can be selected and copied.
+
+Fields that are currently unavailable should be disabled. The reduced contrast of disabled fields makes them inappropriate for displaying information. They can’t be focused or display tooltips. They’re invisible to screen readers, and their values cannot be selected and copied.
+
+Disabled fields can be useful in situations where they can become enabled based on some user action. Consider hiding fields entirely if there’s nothing the user can do to make them editable.
+
+[Flow: TextFieldReadonlyAndDisabled.java]
+package com.vaadin.demo.component.textfield;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("text-field-readonly-and-disabled")
+public class TextFieldReadonlyAndDisabled extends FormLayout {
+
+    public TextFieldReadonlyAndDisabled() {
+        setAutoResponsive(true);
+        setAutoRows(true);
+
+        // tag::snippet[]
+        TextField readonlyField = new TextField();
+        readonlyField.setReadOnly(true);
+        readonlyField.setLabel("Read-only");
+        readonlyField.setValue("Value");
+
+        TextField disabledField = new TextField();
+        disabledField.setEnabled(false);
+        disabledField.setLabel("Disabled");
+        // end::snippet[]
+        add(readonlyField, disabledField);
+    }
+
+}
+
+[React: text-field-readonly-and-disabled.tsx]
+import React from 'react';
+import { FormLayout, TextField } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <FormLayout autoResponsive autoRows>
+      {/* tag::snippet[] */}
+      <TextField readonly label="Read-only" value="Value" />
+
+      <TextField disabled label="Disabled" />
+      {/* end::snippet[] */}
+    </FormLayout>
+  );
+}
+
+[Lit: text-field-readonly-and-disabled.ts]
+import '@vaadin/text-field';
+import '@vaadin/form-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('text-field-readonly-and-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-form-layout auto-responsive auto-rows>
+        <!-- tag::snippet[] -->
+        <vaadin-text-field readonly label="Read-only" value="Value"></vaadin-text-field>
+
+        <vaadin-text-field disabled label="Disabled"></vaadin-text-field>
+        <!-- end::snippet[] -->
+      </vaadin-form-layout>
+    `;
+  }
+}
+
+Autoselect
+
+When a field is set to autoselect, its content is selected when the field is focused. Use autoselect when the user might to want to replace the entire value rather than adjust it.
+
+Autoselect | Focused with | Result
+ON | Pointing device or keyboard navigation. | Content selected.
+OFF | Pointing device. | Cursor placed where clicked.
+OFF | Keyboard navigation Tab | Cursor at the end of the input value.
+OFF | Keyboard navigation Shift+Tab | Contents selected[1]
+
+Value Change Modes Flow
+
+With the Flow Java API, you can define when client-side value changes are synchronized to the server. The ValueChangeMode enum provides the following modes:
+
+Mode | Synchronization timing | Custom timeout interval
+EAGER | Synchronizes the value whenever it changes on the client side, for example on each keystroke. | No
+LAZY | Synchronizes the value after a defined interval has passed without further changes. If another change occurs before the interval ends, the timeout is restarted. | Yes
+TIMEOUT | Synchronizes the value at defined intervals while the value continues to change. | Yes
+ON_CHANGE (default) | Synchronizes the value on the change event, when the component value is committed. | No
+
+For the modes that support a custom timeout interval, you can change the interval with the setValueChangeTimeout() method. The default interval is 400 milliseconds.
+
+[Flow: TextFieldValueChangeMode.java]
+package com.vaadin.demo.component.textfield;
+
+import com.vaadin.demo.DemoExporter;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+import static com.vaadin.demo.component.Constants.valueChangeModes;
+
+@Route("text-field-value-change-mode")
+public class TextFieldValueChangeMode extends VerticalLayout {
+
+    public TextFieldValueChangeMode() {
+        setPadding(false);
+
+        // tag::snippet[]
+        var textField = new TextField("Text Field");
+        var modeSelector = new Select<>("Value Change Mode", valueChangeModes);
+        modeSelector.setValue(textField.getValueChangeMode());
+        modeSelector.addValueChangeListener(e -> {
+            textField.clear();
+            textField.setValueChangeMode(e.getValue());
+        });
+        var serverSideContent = new Span();
+        textField.addValueChangeListener(
+                e -> serverSideContent.setText(e.getValue()));
+        // end::snippet[]
+
+        modeSelector.setItemLabelGenerator(ValueChangeMode::name);
+
+        var horizontalLayout = new HorizontalLayout(textField, modeSelector);
+        horizontalLayout.setAlignItems(Alignment.BASELINE);
+
+        var serverSideLayout = new HorizontalLayout(new Span("Server side:"),
+                serverSideContent);
+
+        add(horizontalLayout, serverSideLayout);
+    }
+
+    public static class Exporter
+}
+
+Related Components
+
+A variety of components are available for different types of input:
+
+Component | Usage Recommendation
+Text Area | Free-form multi-line text input, for text longer than can typically fit on a single line.
+Email Field | For email addresses.
+Number Field | Allows only numeric input.
+Password Field | For securely entering passwords.
+Combo Box | For selecting from a predefined set of options. Allows filtering and entering custom values.
+Date Picker | Input field for entering or selecting a specific date.
+Time Picker | Input field for entering or selecting a specific time.
+
+1. Consequent keyboard navigation results in the contents being selected until the selection is changed, by either arrow navigation or mouse click.

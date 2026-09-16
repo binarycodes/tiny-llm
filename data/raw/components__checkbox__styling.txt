@@ -1,0 +1,243 @@
+Checkbox Styling
+
+Styling API reference for the Checkbox component.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+vertical | Vertical layout for checkbox group items | Lumo
+horizontal | Horizontal layout for checkbox group items | Aura
+
+Helper Above Field Variant
+
+[Flow: CheckboxGroupStyles.java]
+package com.vaadin.demo.component.checkbox;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("checkbox-group-styles")
+public class CheckboxGroupStyles extends HorizontalLayout {
+
+    public CheckboxGroupStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        CheckboxGroup<String> field = new CheckboxGroup<>();
+        field.addThemeVariants(CheckboxGroupVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setItems("Item 1", "Item 2", "Item 3");
+        // Only for Lumo
+        field.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+
+        add(field);
+    }
+
+}
+
+[React: checkbox-group-styles.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { CheckboxGroup } from '@vaadin/react-components/CheckboxGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <CheckboxGroup theme="helper-above-field vertical" label="Label" helperText="Helper text">
+      <Checkbox value="1" label="Item 1" />
+      <Checkbox value="2" label="Item 2" />
+      <Checkbox value="3" label="Item 3" />
+    </CheckboxGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: checkbox-group-styles.ts]
+import '@vaadin/checkbox-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('checkbox-group-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-checkbox-group
+        theme="helper-above-field vertical"
+        label="Label"
+        helper-text="Helper text"
+      >
+        <!-- end::snippet[] -->
+        <vaadin-checkbox value="1" label="Item 1"></vaadin-checkbox>
+        <vaadin-checkbox value="2" label="Item 2"></vaadin-checkbox>
+        <vaadin-checkbox value="3" label="Item 3"></vaadin-checkbox>
+        <!-- tag::snippet[] -->
+      </vaadin-checkbox-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Checkbox Properties
+
+Property | Supported by
+--vaadin-checkbox-size | Aura, Lumo
+--vaadin-checkbox-background | Aura, Lumo
+--vaadin-checkbox-background-hover | Lumo
+--vaadin-checkbox-border-color | Aura
+--vaadin-checkbox-border-radius | Aura, Lumo
+--vaadin-checkbox-border-width | Aura
+--vaadin-checkbox-checkmark-char | Lumo
+--vaadin-checkbox-checkmark-char-indeterminate | Lumo
+--vaadin-checkbox-checkmark-color | Lumo
+--vaadin-checkbox-checkmark-size | Lumo
+--vaadin-checkbox-disabled-background | Lumo
+--vaadin-checkbox-disabled-checkmark-color | Lumo
+--vaadin-checkbox-gap | Aura
+--vaadin-checkbox-label-color | Aura, Lumo
+--vaadin-checkbox-label-font-size | Aura, Lumo
+--vaadin-checkbox-label-font-weight | Aura
+--vaadin-checkbox-label-line-height | Aura
+--vaadin-checkbox-label-padding | Lumo
+--vaadin-checkbox-marker-color | Aura
+--vaadin-checkbox-marker-size | Aura
+--vaadin-checkbox-readonly-checked-background | Lumo
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Checkbox
+
+Root element
+    vaadin-checkbox
+Focused
+    vaadin-checkbox[focused]
+Keyboard focused
+    vaadin-checkbox[focus-ring]
+Disabled
+    vaadin-checkbox[disabled]
+Hovered
+    vaadin-checkbox:hover
+Pressed
+    vaadin-checkbox[active]
+Checked
+    vaadin-checkbox[checked]
+Indeterminate
+    vaadin-checkbox[indeterminate]
+Checkbox box
+    vaadin-checkbox::part(checkbox)
+Checkmark
+    vaadin-checkbox::part(checkbox)::after
+Label
+    vaadin-checkbox > label
+
+Checkbox Group
+
+Root element
+    vaadin-checkbox-group
+
+States
+
+Focused
+    vaadin-checkbox-group[focused]
+Keyboard focused
+    vaadin-checkbox-group[focus-ring]
+Disabled
+    vaadin-checkbox-group[disabled]
+Hovered
+    vaadin-checkbox-group:hover
+One or more checkboxes checked
+    vaadin-checkbox-group[has-value]
+
+Parts
+
+Checkbox wrapper
+    vaadin-checkbox-group::part(group-field)
+Checkboxes
+    vaadin-checkbox-group > vaadin-checkbox
+
+Label
+
+Checkbox group with label
+    vaadin-checkbox-group[has-label]
+Label
+    vaadin-checkbox-group::part(label)
+Label text
+    vaadin-checkbox-group > label
+Required indicator
+    vaadin-checkbox-group::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-checkbox-group[has-helper]
+Helper
+    vaadin-checkbox-group::part(helper-text)
+Helper text
+    vaadin-checkbox-group > [slot="helper"]
+Invalid field
+    vaadin-checkbox-group[invalid]
+Field with error message
+    vaadin-checkbox-group[has-error-message]
+Error message
+    vaadin-checkbox-group::part(error-message)
+Error message text
+    vaadin-checkbox-group > [slot="error-message"]

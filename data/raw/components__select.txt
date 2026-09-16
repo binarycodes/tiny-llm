@@ -1,0 +1,2089 @@
+Select
+
+Select allows users to choose a single value from a list of options presented in an overlay.
+
+Select allows users to choose a single value from a list of options presented in an overlay.
+
+[Flow: SelectBasic.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-basic")
+public class SelectBasic extends Div {
+
+    public SelectBasic() {
+        // tag::snippet[]
+        Select<String> select = new Select<>();
+        select.setLabel("Sort by");
+        select.setItems("Most recent first", "Rating: high to low",
+                "Rating: low to high", "Price: high to low",
+                "Price: low to high");
+        select.setValue("Most recent first");
+
+        add(select);
+        // end::snippet[]
+    }
+
+}
+
+[React: select-basic.tsx]
+import React from 'react';
+import { Select } from '@vaadin/react-components/Select.js';
+
+function Example() {
+  const items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  return (
+    // tag::snippet[]
+    <Select label="Sort by" items={items} value={items[0].value} />
+    // end::snippet[]
+  );
+}
+
+[Lit: select-basic.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select
+        label="Sort by"
+        .items="${this.items}"
+        .value="${this.items[0].value}"
+      ></vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The drop-down menu can be opened with a click, up and down arrow keys, or by typing the initial character of one of the options.
+
+Dividers
+
+Dividers can be used to group related options. Use dividers sparingly to avoid creating unnecessary visual clutter.
+
+[Flow: SelectDividers.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-dividers")
+public class SelectDividers extends Div {
+
+    public SelectDividers() {
+        // tag::snippet[]
+        Select<String> select = new Select<>();
+        select.setLabel("Sort by");
+        select.setItems("Most recent first", "Rating: high to low",
+                "Rating: low to high", "Price: high to low",
+                "Price: low to high");
+        select.addComponents("Most recent first", new Hr());
+        select.addComponents("Rating: low to high", new Hr());
+        select.setValue("Most recent first");
+
+        add(select);
+        // end::snippet[]
+    }
+
+}
+
+[React: select-dividers.tsx]
+import React from 'react';
+import { Select } from '@vaadin/react-components/Select.js';
+
+// tag::snippet[]
+function Example() {
+  const items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      component: 'hr',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      component: 'hr',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  return <Select label="Sort by" items={items} value={items[0].value} />;
+}
+// end::snippet[]
+
+[Lit: select-dividers.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-dividers')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  // tag::snippet[]
+  private items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      component: 'hr',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      component: 'hr',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <vaadin-select
+        label="Sort by"
+        .items="${this.items}"
+        .value="${this.items[0].value!}"
+      ></vaadin-select>
+    `;
+  }
+}
+
+For large data sets, it’s preferable to use Combo Box instead of Select. This allows users to filter the list of options.
+
+Disabled Items
+
+Items can be disabled. This prevents users from selecting them, while still showing that the items would be available for selection under different circumstances.
+
+[Flow: SelectDisabled.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-disabled")
+public class SelectDisabled extends Div {
+
+    public SelectDisabled() {
+        // tag::snippet[]
+        Select<String> select = new Select<>();
+        select.setLabel("Size");
+        select.setItems("XS (out of stock)", "S", "M", "L", "XL");
+        select.setItemEnabledProvider(
+                item -> !"XS (out of stock)".equals(item));
+        select.setValue("XL");
+
+        add(select);
+        // end::snippet[]
+    }
+
+}
+
+[React: select-disabled.tsx]
+import React from 'react';
+import { Select } from '@vaadin/react-components/Select.js';
+
+// tag::snippet[]
+function Example() {
+  const items = [
+    {
+      label: 'XS (out of stock)',
+      value: 'xs',
+      disabled: true,
+    },
+    {
+      label: 'S',
+      value: 's',
+    },
+    {
+      label: 'M',
+      value: 'm',
+    },
+    {
+      label: 'L',
+      value: 'l',
+    },
+    {
+      label: 'XL',
+      value: 'xl',
+    },
+  ];
+
+  return <Select label="Size" items={items} value={items[4].value} />;
+}
+// end::snippet[]
+
+[Lit: select-disabled.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  // tag::snippet[]
+  private items = [
+    {
+      label: 'XS (out of stock)',
+      value: 'xs',
+      disabled: true,
+    },
+    {
+      label: 'S',
+      value: 's',
+    },
+    {
+      label: 'M',
+      value: 'm',
+    },
+    {
+      label: 'L',
+      value: 'l',
+    },
+    {
+      label: 'XL',
+      value: 'xl',
+    },
+  ];
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <vaadin-select
+        label="Size"
+        .items="${this.items}"
+        .value="${this.items[4].value}"
+      ></vaadin-select>
+    `;
+  }
+}
+
+Caution: Accessibility
+
+Some assistive technologies might not announce disabled options.
+
+Overlay
+
+You can customize the position and the width of the Select overlay, where the list of options is rendered. You can also add CSS class names to the overlay to customize its styles.
+
+Overlay Position
+
+The overlay is shown on top of the input field by default. You can configure the placement so that it doesn’t cover the input field.
+
+[Flow: SelectNoVerticalOverlap.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-no-vertical-overlap")
+public class SelectNoVerticalOverlap extends Div {
+
+    public SelectNoVerticalOverlap() {
+        // tag::snippet[]
+        Select<String> select = new Select<>();
+        select.setNoVerticalOverlap(true);
+        // end::snippet[]
+        select.setLabel("Sort by");
+        select.setItems("Most recent first", "Rating: high to low",
+                "Rating: low to high", "Price: high to low",
+                "Price: low to high");
+
+        add(select);
+    }
+
+}
+
+[React: select-no-vertical-overlap.tsx]
+import React from 'react';
+import { Select } from '@vaadin/react-components/Select.js';
+
+function Example() {
+  const items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  return (
+    // tag::snippet[]
+    <Select label="Sort by" items={items} noVerticalOverlap />
+    // end::snippet[]
+  );
+}
+
+[Lit: select-no-vertical-overlap.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-no-vertical-overlap')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select label="Sort by" .items="${this.items}" no-vertical-overlap></vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Overlay Width
+
+The overlay is as wide as the options in it and at least as wide as the input field. The overlay width can be overridden to any fixed width in cases where the default width is too narrow.
+
+[Flow: SelectOverlayWidth.java]
+package com.vaadin.demo.component.select;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-overlay-width")
+public class SelectOverlayWidth extends Div {
+
+    public SelectOverlayWidth() {
+        // tag::snippet[]
+        Select<Person> select = new Select<>();
+        select.setOverlayWidth("350px");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople(5);
+        select.setLabel("Employee");
+        select.setItems(people);
+        select.setItemLabelGenerator(person -> person.getProfession() + " - "
+                + person.getFirstName() + " " + person.getLastName());
+        add(select);
+    }
+
+}
+
+[React: select-overlay-width.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Select, type SelectItem } from '@vaadin/react-components/Select.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const formatPersonFullName = (person: Person) => `${person.firstName} ${person.lastName}`;
+
+function Example() {
+  const items = useSignal<SelectItem[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      items.value = people.map((person) => ({
+        value: formatPersonFullName(person),
+        label: `${person.profession} - ${formatPersonFullName(person)}`,
+      }));
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Select
+      style={{ '--vaadin-select-overlay-width': '350px' }}
+      label="Employee"
+      items={items.value}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: select-overlay-width.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { SelectItem } from '@vaadin/select';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const formatPersonFullName = (person: Person) => `${person.firstName} ${person.lastName}`;
+
+@customElement('select-overlay-width')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: SelectItem[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 5 });
+    this.items = people.map((person) => ({
+      value: formatPersonFullName(person),
+      label: `${person.profession} - ${formatPersonFullName(person)}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select
+        style="--vaadin-select-overlay-width: 350px"
+        label="Employee"
+        .items="${this.items}"
+      ></vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+A prefix element — rendered at the start of the field — can be used to display units, icons, and similar visual cues to the field’s purpose or format.
+
+Prefix elements typically don’t work well with assistive technologies like screen readers. Therefore, the information communicated by them should also be conveyed through other means, such as in a Label, a Helper or through ARIA attributes on the field itself.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-select accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-select accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: SelectBasicFeatures.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-basic-features")
+public class SelectBasicFeatures extends HorizontalLayout {
+
+    public SelectBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        Select<String> field = new Select<>();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setPlaceholder("Placeholder");
+        field.setTooltipText("Tooltip text");
+        field.setPrefixComponent(VaadinIcon.VAADIN_H.create());
+        // end::snippet[]
+        field.setItems("Most recent first", "Rating: high to low",
+                "Rating: low to high", "Price: high to low",
+                "Price: low to high");
+
+        add(field);
+    }
+
+}
+
+[React: select-basic-features.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Select } from '@vaadin/react-components/Select.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  const items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  return (
+    // tag::snippet[]
+    <Select label="Label" helperText="Helper text" placeholder="Placeholder" items={items}>
+      <Tooltip slot="tooltip" text="Tooltip text" />
+      <Icon slot="prefix" icon="vaadin:vaadin-h" />
+    </Select>
+    // end::snippet[]
+  );
+}
+
+[Lit: select-basic-features.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/select';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select
+        label="Label"
+        helper-text="Helper text"
+        placeholder="Placeholder"
+        .items="${this.items}"
+      >
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <vaadin-icon slot="prefix" icon="vaadin:vaadin-h"></vaadin-icon>
+      </vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  @state()
+  private items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+}
+
+Read-Only & Disabled
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers. They can display tooltips. Their values can be selected and copied.
+
+Fields that are currently unavailable should be disabled. The reduced contrast of disabled fields makes them inappropriate for displaying information. They can’t be focused or display tooltips. They’re invisible to screen readers, and their values cannot be selected and copied.
+
+Disabled fields can be useful in situations where they can become enabled based on some user action. Consider hiding fields entirely if there’s nothing the user can do to make them editable.
+
+[Flow: SelectReadonlyAndDisabled.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-readonly-and-disabled")
+public class SelectReadonlyAndDisabled extends HorizontalLayout {
+
+    public SelectReadonlyAndDisabled() {
+        setPadding(false);
+
+        // tag::snippet[]
+        Select<String> readonlyField = new Select<>();
+        readonlyField.setReadOnly(true);
+        // end::snippet[]
+        readonlyField.setLabel("Read-only");
+        readonlyField.setItems("Most recent first", "Rating: high to low",
+                "Rating: low to high", "Price: high to low",
+                "Price: low to high");
+        readonlyField.setValue("Most recent first");
+
+        // tag::snippet[]
+        Select<String> disabledField = new Select<>();
+        disabledField.setEnabled(false);
+        // end::snippet[]
+        disabledField.setLabel("Disabled");
+        add(readonlyField, disabledField);
+    }
+
+}
+
+[React: select-readonly-and-disabled.tsx]
+import React from 'react';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Select } from '@vaadin/react-components/Select.js';
+
+function Example() {
+  const items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Select label="Read-only" value={items[0].value} items={items} readonly />
+
+      <Select label="Disabled" disabled />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: select-readonly-and-disabled.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-readonly-and-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-select
+          readonly
+          label="Read-only"
+          value="${this.items[0].value}"
+          .items="${this.items}"
+        ></vaadin-select>
+
+        <vaadin-select disabled label="Disabled"></vaadin-select>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  @state()
+  private items = [
+    {
+      label: 'Most recent first',
+      value: 'recent',
+    },
+    {
+      label: 'Rating: high to low',
+      value: 'rating-desc',
+    },
+    {
+      label: 'Rating: low to high',
+      value: 'rating-asc',
+    },
+    {
+      label: 'Price: high to low',
+      value: 'price-desc',
+    },
+    {
+      label: 'Price: low to high',
+      value: 'price-asc',
+    },
+  ];
+}
+
+Placeholder
+
+Use the placeholder feature to provide an inline text prompt for the field. Don’t create or use a separate item for this purpose.
+
+[Flow: SelectPlaceholder.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-placeholder")
+public class SelectPlaceholder extends Div {
+
+    public SelectPlaceholder() {
+        // tag::snippet[]
+        Select<String> select = new Select<>();
+        select.setLabel("Size");
+        select.setItems("XS", "S", "M", "L", "XL");
+        select.setPlaceholder("Select size");
+
+        add(select);
+        // end::snippet[]
+    }
+
+}
+
+[React: select-placeholder.tsx]
+import React from 'react';
+import { Select } from '@vaadin/react-components/Select.js';
+
+function Example() {
+  const items = [
+    {
+      label: 'XS',
+      value: 'xs',
+    },
+    {
+      label: 'S',
+      value: 's',
+    },
+    {
+      label: 'M',
+      value: 'm',
+    },
+    {
+      label: 'L',
+      value: 'l',
+    },
+    {
+      label: 'XL',
+      value: 'xl',
+    },
+  ];
+
+  return (
+    // tag::snippet[]
+    <Select label="Size" placeholder="Select size" items={items} />
+    // end::snippet[]
+  );
+}
+
+[Lit: select-placeholder.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-placeholder')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      label: 'XS',
+      value: 'xs',
+    },
+    {
+      label: 'S',
+      value: 's',
+    },
+    {
+      label: 'M',
+      value: 'm',
+    },
+    {
+      label: 'L',
+      value: 'l',
+    },
+    {
+      label: 'XL',
+      value: 'xl',
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select label="Size" placeholder="Select size" .items="${this.items}"></vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Empty Selection Item (Flow)
+
+An empty item can be set as the first option. Use it in cases where you want to allow users to clear their selection. The value of the empty item is represented as null.
+
+[Flow: SelectEmptySelection.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-empty-selection")
+public class SelectEmptySelection extends Div {
+
+    public SelectEmptySelection() {
+        Select<String> select = new Select<>();
+        // tag::snippet[]
+        select.setEmptySelectionAllowed(true);
+        // end::snippet[]
+        select.setLabel("Size");
+        select.setItems("XS", "S", "M", "L", "XL");
+        select.setPlaceholder("Select size");
+
+        add(select);
+    }
+
+}
+
+Customizing Empty Selection Caption
+
+The label for the empty item is customizable. The caption that you set replaces the placeholder for the empty selection item.
+
+[Flow: SelectEmptySelectionCaption.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+@Route("select-empty-selection-caption")
+public class SelectEmptySelectionCaption extends Div {
+
+    public SelectEmptySelectionCaption() {
+        Select<String> select = new Select<>();
+        // tag::snippet[]
+        select.setEmptySelectionAllowed(true);
+        select.setEmptySelectionCaption("Unknown size");
+        // end::snippet[]
+        select.setLabel("Size");
+        select.setItems("XS", "S", "M", "L", "XL");
+
+        add(select);
+    }
+
+}
+
+Custom Item Label
+
+When using complex values, a label can be set to represent the item value as plain text.
+
+[Flow: SelectComplexValueLabel.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("select-complex-value-label")
+public class SelectComplexValueLabel extends Div {
+
+    public SelectComplexValueLabel() {
+        // tag::snippet[]
+        Select<Person> select = new Select<>();
+        select.setLabel("Assignee");
+        // Display full name of the person as item text and selected value label
+        select.setItemLabelGenerator(Person::getFullName);
+
+        List<Person> people = DataService.getPeople(5);
+        select.setItems(people);
+        // end::snippet[]
+
+        add(select);
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[React: select-complex-value-label.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Select, type SelectItem } from '@vaadin/react-components/Select.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+function Example() {
+  const items = useSignal<SelectItem[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      // tag::snippet[]
+      items.value = people.map((person) => ({
+        label: `${person.firstName} ${person.lastName}`,
+        value: `${person.id}`,
+      }));
+      // end::snippet[]
+    });
+  }, []);
+
+  return <Select label="Assignee" items={items.value} />;
+}
+
+[Lit: select-complex-value-label.ts]
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { SelectItem } from '@vaadin/select';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('select-complex-value-label')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: SelectItem[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 5 });
+    // tag::snippet[]
+    this.items = people.map((person) => ({
+      label: `${person.firstName} ${person.lastName}`,
+      value: `${person.id}`,
+    }));
+    // end::snippet[]
+  }
+
+  protected override render() {
+    return html`<vaadin-select label="Assignee" .items="${this.items}"></vaadin-select>`;
+  }
+}
+
+[Lit: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[Lit: Person.ts]
+
+When using custom item renderers with rich content, a label can be set to represent the item value when it’s selected.
+
+[Flow: SelectCustomRendererLabel.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("select-custom-renderer-label")
+public class SelectCustomRendererLabel extends Div {
+
+    public SelectCustomRendererLabel() {
+        // tag::snippet[]
+        Select<Person> select = new Select<>();
+        select.setLabel("Assignee");
+        // Use a custom renderer for items in the dropdown
+        select.setRenderer(SelectCustomRendererLabel.createPersonRenderer());
+        // Display full name of the person as selected value label
+        select.setItemLabelGenerator(Person::getFullName);
+
+        List<Person> people = DataService.getPeople(5);
+        select.setItems(people);
+        // end::snippet[]
+
+        add(select);
+    }
+
+    private static ComponentRenderer<Div, Person> createPersonRenderer() {
+        return new ComponentRenderer<>(person -> {
+            Image image = new Image();
+            image.setSrc(person.getPictureUrl());
+            image.setAlt("Portrait of " + person.getFirstName() + " "
+                    + person.getLastName());
+            image.setWidth("2.25rem");
+
+            Span name = new Span(person.getFullName());
+            Span profession = new Span(person.getProfession());
+
+            Div personItem = new Div(image, name, profession);
+            personItem.addClassName("person-item");
+            return personItem;
+        });
+    }
+
+}
+
+[Flow: Person.java]
+package com.vaadin.demo.domain;
+
+import java.util.Date;
+
+import jakarta.annotation.Nonnull;
+
+// tag::snippet[]
+public class Person {
+
+    @Nonnull
+    private String firstName;
+
+    @Nonnull
+    private String lastName;
+
+    @Nonnull
+    private String email;
+
+    @Nonnull
+    private Date birthday;
+
+    @Nonnull
+    private Integer id;
+
+    @Nonnull
+    private Boolean subscriber;
+
+    @Nonnull
+    private String membership;
+
+    @Nonnull
+    private String pictureUrl;
+
+    @Nonnull
+    private String profession;
+
+    @Nonnull
+    private Address address;
+
+    private Integer managerId;
+
+    @Nonnull
+    private Boolean manager;
+
+    @Nonnull
+    private String status;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isSubscriber() {
+        return subscriber;
+    }
+
+    public void setSubscriber(boolean subscriber) {
+        this.subscriber = subscriber;
+    }
+
+    public String getMembership() {
+        return membership;
+    }
+
+    public void setMembership(String membership) {
+        this.membership = membership;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getProfession() {
+        return profession;
+    }
+
+    public void setProfession(String profession) {
+        this.profession = profession;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Person)) {
+            return false;
+        }
+        Person other = (Person) obj;
+        return id == other.id;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public boolean isManager() {
+        return manager;
+    }
+
+    public void setManager(boolean manager) {
+        this.manager = manager;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+// end::snippet[]
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: select-custom-renderer-label.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+import { Select } from '@vaadin/react-components/Select.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const formatPersonFullName = (person: Person) => `${person.firstName} ${person.lastName}`;
+
+function Example() {
+  const people = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people: items }) => {
+      people.value = items;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Select label="Assignee">
+      <ListBox>
+        {people.value.map((person) => (
+          // Use the label attribute to display full name of the person as selected value label
+          <Item value={String(person.id)} key={person.id} label={formatPersonFullName(person)}>
+            <div className="person-item">
+              <img
+                src={person.pictureUrl}
+                alt={`Portrait of ${formatPersonFullName(person)}`}
+                style={{ width: '2.25rem' }}
+              />
+              <span>{formatPersonFullName(person)}</span>
+              <span>{person.profession}</span>
+            </div>
+          </Item>
+        ))}
+      </ListBox>
+    </Select>
+    // end::snippet[]
+  );
+}
+
+[React: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[React: Person.ts]
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: select-custom-renderer-label.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { selectRenderer } from '@vaadin/select/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+const formatPersonFullName = (person: Person) => `${person.firstName} ${person.lastName}`;
+
+@customElement('select-custom-renderer-label')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private people: Person[] = [];
+
+  protected override async firstUpdated() {
+    this.people = (await getPeople({ count: 5 })).people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-select
+        label="Assignee"
+        ${selectRenderer(
+          () => html`
+            <vaadin-list-box>
+              ${this.people.map(
+                (person) => html`
+                  <!-- tag::snippet[] -->
+                  <!-- Use the label attribute to display full name of the person as selected value label -->
+                  <vaadin-item value="${person.id}" label="${formatPersonFullName(person)}">
+                    <div class="person-item">
+                      <img
+                        src="${person.pictureUrl}"
+                        alt="Portrait of ${formatPersonFullName(person)}"
+                        style="width: 2.25rem;"
+                      />
+                      <span>${formatPersonFullName(person)}</span>
+                      <span>${person.profession}</span>
+                    </div>
+                  </vaadin-item>
+                  <!-- end::snippet[] -->
+                `
+              )}
+            </vaadin-list-box>
+          `,
+          this.people
+        )}
+      ></vaadin-select>
+    `;
+  }
+}
+
+[Lit: Person.ts]
+import type Address_1 from "./Address.js";
+interface Person {
+    firstName: string;
+    lastName: string;
+    email: string;
+    birthday: string;
+    id: number;
+    subscriber: boolean;
+    membership: string;
+    pictureUrl: string;
+    profession: string;
+    address: Address_1;
+    managerId?: number;
+    manager: boolean;
+    status: string;
+    fullName?: string;
+}
+export default Person;
+
+[Lit: Person.ts]
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Note: Flow-Specific
+
+When using setItemLabelGenerator() in combination with setEmptySelectionAllowed(), ensure that the implementation is capable of handling null values, as the empty selection item has the value null.
+
+[Java]
+select.setEmptySelectionAllowed(true);
+select.setItemLabelGenerator(person -> {
+  if (person == null) {
+      return "No assignee";
+  }
+  return person.getFullName();
+});
+
+The same applies when using a data source that may contain null values.
+
+Custom Item Presentation
+
+Items can be rendered with rich content instead of plain text. This can be useful to provide information in a more legible fashion than appending it to the item text.
+
+[Flow: SelectPresentation.java]
+package com.vaadin.demo.component.select;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("select-presentation")
+public class SelectPresentation extends Div {
+
+    private List<Person> items = DataService.getPeople(5);
+
+    public SelectPresentation() {
+        // tag::snippet[]
+        Select<Person> select = new Select<>();
+        select.setWidth("15em");
+        select.setLabel("Choose doctor");
+        select.setRenderer(new ComponentRenderer<>(person -> {
+            Avatar avatar = new Avatar(person.getFullName(),
+                    person.getPictureUrl());
+            Span name = new Span(person.getFullName());
+            Span profession = new Span(person.getProfession());
+
+            Div personItem = new Div(avatar, name, profession);
+            personItem.addClassName("person-item");
+            return personItem;
+        }));
+        select.setItems(items);
+        add(select);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: select-presentation.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Item } from '@vaadin/react-components/Item.js';
+import { ListBox } from '@vaadin/react-components/ListBox.js';
+import { Select } from '@vaadin/react-components/Select.js';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const people = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 4 }).then(({ people: items }) => {
+      people.value = items;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Select label="Choose doctor" style={{ width: '15em' }}>
+      <ListBox>
+        {people.value.map((person) => (
+          <Item value={String(person.id)} key={person.id}>
+            <div className="person-item">
+              <Avatar img={person.pictureUrl} name={`${person.firstName} ${person.lastName}`} />
+              <span>
+                {person.firstName} {person.lastName}
+              </span>
+              <span>{person.profession}</span>
+            </div>
+          </Item>
+        ))}
+      </ListBox>
+    </Select>
+    // end::snippet[]
+  );
+}
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: select-presentation.ts]
+import '@vaadin/item';
+import '@vaadin/list-box';
+import '@vaadin/select';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { selectRenderer } from '@vaadin/select/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('select-presentation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private people: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 4 });
+    this.people = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-select
+        label="Choose doctor"
+        style="width: 15em;"
+        ${selectRenderer(this.renderer, this.people)}
+      ></vaadin-select>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private renderer = () => html`
+    <vaadin-list-box>
+      ${this.people.map(
+        (person) => html`
+          <vaadin-item value="${person.id}">
+            <div class="person-item">
+              <vaadin-avatar
+                .img="${person.pictureUrl}"
+                .name="${`${person.firstName} ${person.lastName}`}"
+              ></vaadin-avatar>
+              <span>${person.firstName} ${person.lastName}</span>
+              <span>${person.profession}</span>
+            </div>
+          </vaadin-item>
+        `
+      )}
+    </vaadin-list-box>
+  `;
+}
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Best Practices
+
+Set a Default Value
+
+Where applicable, set the most common choice as the default value.
+
+Don’t Use as a Menu
+
+Select is an input field component, not a generic menu component. Use Menu Bar to create overlays for actions.
+
+Related Components
+
+Component | Usage Recommendation
+Radio Button Group | Better accessibility than Select, as all options are visible without user interaction.
+Combo Box | Filterable list of options. Appropriate for large sets of options. Supports lazy-loading entry of custom values.
+List Box | Scrollable inline list of options. Supports single and multi-select.
+Menu Bar | Overlay menus for items that trigger actions.

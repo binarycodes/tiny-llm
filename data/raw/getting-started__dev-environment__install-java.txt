@@ -1,0 +1,18 @@
+Install a JDK
+
+Install a Java Development Kit (JDK) for Vaadin development if you don’t have one already.
+
+Vaadin requires at least JDK 21, but you should use the latest Long Term Support (LTS) version whenever you can. In addition to picking a version, you also need to pick a distribution. You have multiple distributions to choose from, all based on OpenJDK. If you are unsure which one to pick, see the whichjdk.com website for independent, yet opinionated recommendations.
+
+A good, default choice for Vaadin applications is Eclipse Temurin.
+
+SDKMAN for macOS and Linux
+
+If you use macOS or Linux, a more flexible way of installing a JDK is to use SDKMAN. SDKMAN is a tool that lets you install and switch between multiple JDK:s through a command line interface.
+
+Install SDKMAN by following the SDKMAN installation instructions. After that, install the latest stable version of Java by running the following command:
+
+[terminal]
+sdk install java
+
+You can also install a specific version of a specific JDK. See the SDKMAN usage instructions for more information.

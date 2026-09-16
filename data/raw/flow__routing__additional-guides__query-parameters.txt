@@ -1,0 +1,25 @@
+Query Parameters
+
+Pass parameters to a given route in the form of name-value pairs.
+
+You can retrieve any query parameters contained in a URL; for example, ?name1=value1&name2=value2. Route parameters is the easiest way to pass extra information to a given route, and it should work for most common use cases. It’s, therefore, recommended to use query templates only if your use case isn’t achievable using route parameters.
+
+Use the getQueryParameters() method of a Location instance to access query parameters. You can retrieve the Location class through the BeforeEnterEvent parameter of the BeforeEnterObserver::beforeEnter() method or the BeforeEvent parameter of the HasUrlParameter::setParameter() method.
+
+Note: A Location object represents a relative URL made up of path segments and query parameters, but without the host name; for example, new Location("book/search?keyword=Vaadin").
+
+Example: Retrieving query parameters from a BeforeEvent.
+
+[Java]
+@Override
+public void setParameter(BeforeEvent event,
+        @OptionalParameter String parameter) {
+
+    Location location = event.getLocation();
+    QueryParameters queryParameters = location.getQueryParameters();
+
+    Map<String, List<String>> parametersMap = queryParameters
+            .getParameters();
+}
+
+Note: getQueryParameters() supports multiple values associated with the same key; for example, https://example.com/?genre=fiction&restrictions=16+&genre=classic results in the corresponding map {"genre" : ["fiction", "classic"], "restrictions": ["16+"]}}.

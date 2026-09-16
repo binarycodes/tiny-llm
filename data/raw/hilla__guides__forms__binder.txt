@@ -1,0 +1,77 @@
+Binding Data to Forms
+
+Binding data to UI components in TypeScript forms.
+
+Hilla provides a way for binding input fields to a data model.
+
+The client-side Binder supports Java backend endpoints for loading and saving the form data, and reuses the metadata from Java Bean validation annotations for client-side validation.
+
+API Basics
+
+The form binding API consists of three key concepts:
+
+- The field() directive to bind the field components in form views
+- The generated TypeScript models for POJO classes used in endpoints, which are used as field references and provide the necessary metadata
+- The useForm React Hook returns a UseFormResult object that is responsible for keeping track of the form state, the default and current values, and validation of the data.
+
+See the Form Binding Reference for more details.
+
+How to Bind Form Data
+
+For example, let us consider a Java endpoint with methods for loading and saving a Person bean:
+
+[Java]
+/**
+ * A Hilla endpoint for the person-view.ts form view.
+ */
+@Endpoint
+public class PersonEndpoint {
+    /**
+     * Loads a Person to edit into the view.
+     * @return default form data
+     */
+    public Person loadPerson() {
+        // ...
+    }
+
+    /**
+     * Saves the edited Person from the view.
+     * @param person form data to save
+     */
+    public void savePerson(Person person) {
+        // ...
+    }
+}
+
+To bind data to a form, follow these steps in your frontend/views/person/PersonView.tsx client-side React view:
+
+1. Import the useForm hook from the @vaadin/hilla-react-form package. Import your PersonEndpoint data endpoint and the generated PersonModel from the frontend/generated folder:
+   [tsx]
+   import { useForm } from '@vaadin/hilla-react-form';
+
+   import { PersonEndpoint } from 'Frontend/generated/endpoints';
+   import PersonModel from 'Frontend/generated/com/example/application/PersonModel';
+2. Acquire a UseFormResult instance for your view by calling the useForm:
+   [tsx]
+   export default function PersonView() {
+     // ...
+
+     const { model, field } = useForm(PersonModel);
+
+     // ...
+   }
+   The PersonModel here is generated alongside a Person TypeScript data interface from the Person.java bean. This describes the structure of the data and the validation-related metadata for the form binding.
+3. Bind the UI components in the template using the {…​field()} syntax:
+   [tsx]
+   export default function PersonView() {
+     // ...
+
+     const { model, field } = useForm(PersonModel);
+
+     return (
+       <TextField label="Full name" {...field(model.fullName)} />
+     );
+
+   }
+   In this example, model is an instance of PersonModel.
+   Note: Models don’t contain any actual data. To access the actual current or default value of the form, you can acquire their respective reference by destructing the UseFormResult instance as const { value, defaultValue, …​ } = useForm(…​) when calling the useForm hook.

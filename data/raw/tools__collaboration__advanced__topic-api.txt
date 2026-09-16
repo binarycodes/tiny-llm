@@ -1,0 +1,279 @@
+Getting Started with Topic API
+
+This tutorial shows how to use the low-level Collaboration Kit APIs, by updating and subscribing to a topic map.
+
+To be more productive in creating collaborative applications, use the high-level APIs as described in the Quick Start Guide.
+
+Preparations
+
+Follow the preparation steps in the Preparing the Application in the Quick Start Guide.
+
+Add Collaboration Features
+
+This tutorial shows how to build a view with a checkbox where the user can choose whether they’re in a Friday mood.
+
+Create a Simple View
+
+First, create the view with a checkbox, but not any collaborative functionality — at least not yet.
+
+[TopicView.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.CollaborationMap;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
+
+@Route(value = "collaboration/topic", layout = MainView.class)
+public class TopicView extends VerticalLayout {
+
+    private final Checkbox checkbox;
+
+    public TopicView() {
+        checkbox = new Checkbox("Is it Friday?");
+        add(checkbox);
+        // NOTE: Use the user id of the logged-in user
+        // instead
+        String userId = System.identityHashCode(UI.getCurrentOrThrow()) + "";
+        UserInfo localUser = new UserInfo(userId, "User " + userId);
+        CollaborationEngine.getInstance().openTopicConnection(this, "tutorial",
+                localUser, topic -> {
+                    CollaborationMap fieldValues = topic
+                            .getNamedMap("fieldValues");
+                    Registration registration = checkbox
+                            .addValueChangeListener(valueChangeEvent -> {
+                                fieldValues.put("isFriday",
+                                        valueChangeEvent.getValue());
+                            });
+                    fieldValues.subscribe(event -> {
+                        if ("isFriday".equals(event.getKey())) {
+                            checkbox.setValue(Boolean.TRUE
+                                    .equals(event.getValue(Boolean.class)));
+                        }
+                    });
+                    return registration;
+                });
+    }
+}
+
+Define Topic Connection
+
+Sharing data between multiple users happens through a TopicConnection instance. By default, the connection is deactivated until its related component is attached to the UI.
+
+Open a connection to the tutorial topic, and define the activation callback which is triggered when the current TopicView component (i.e., this) is attached. The user who is related to the topic connection must be defined.
+
+[TopicView.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.CollaborationMap;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
+
+@Route(value = "collaboration/topic", layout = MainView.class)
+public class TopicView extends VerticalLayout {
+
+    private final Checkbox checkbox;
+
+    public TopicView() {
+        checkbox = new Checkbox("Is it Friday?");
+        add(checkbox);
+        // NOTE: Use the user id of the logged-in user
+        // instead
+        String userId = System.identityHashCode(UI.getCurrentOrThrow()) + "";
+        UserInfo localUser = new UserInfo(userId, "User " + userId);
+        CollaborationEngine.getInstance().openTopicConnection(this, "tutorial",
+                localUser, topic -> {
+                    CollaborationMap fieldValues = topic
+                            .getNamedMap("fieldValues");
+                    Registration registration = checkbox
+                            .addValueChangeListener(valueChangeEvent -> {
+                                fieldValues.put("isFriday",
+                                        valueChangeEvent.getValue());
+                            });
+                    fieldValues.subscribe(event -> {
+                        if ("isFriday".equals(event.getKey())) {
+                            checkbox.setValue(Boolean.TRUE
+                                    .equals(event.getValue(Boolean.class)));
+                        }
+                    });
+                    return registration;
+                });
+    }
+}
+
+The activation callback should return a registration, which Collaboration Kit runs when the connection is deactivated. Since the example does not yet register any listeners that need clean-up, it can return null.
+
+Define Topic Category
+
+The topic stores collaborative data in named maps and lists.
+
+In the activation callback, get a map by its name:
+
+[TopicView.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.CollaborationMap;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
+
+@Route(value = "collaboration/topic", layout = MainView.class)
+public class TopicView extends VerticalLayout {
+
+    private final Checkbox checkbox;
+
+    public TopicView() {
+        checkbox = new Checkbox("Is it Friday?");
+        add(checkbox);
+        // NOTE: Use the user id of the logged-in user
+        // instead
+        String userId = System.identityHashCode(UI.getCurrentOrThrow()) + "";
+        UserInfo localUser = new UserInfo(userId, "User " + userId);
+        CollaborationEngine.getInstance().openTopicConnection(this, "tutorial",
+                localUser, topic -> {
+                    CollaborationMap fieldValues = topic
+                            .getNamedMap("fieldValues");
+                    Registration registration = checkbox
+                            .addValueChangeListener(valueChangeEvent -> {
+                                fieldValues.put("isFriday",
+                                        valueChangeEvent.getValue());
+                            });
+                    fieldValues.subscribe(event -> {
+                        if ("isFriday".equals(event.getKey())) {
+                            checkbox.setValue(Boolean.TRUE
+                                    .equals(event.getValue(Boolean.class)));
+                        }
+                    });
+                    return registration;
+                });
+    }
+}
+
+Pass Values to Topic
+
+The first actual step to making the application collaborative is to update the topic whenever the checkbox value changes. The key isFriday is associated with the value of the checkbox. Add a value change listener that updates the related topic map.
+
+[TopicView.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.CollaborationMap;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
+
+@Route(value = "collaboration/topic", layout = MainView.class)
+public class TopicView extends VerticalLayout {
+
+    private final Checkbox checkbox;
+
+    public TopicView() {
+        checkbox = new Checkbox("Is it Friday?");
+        add(checkbox);
+        // NOTE: Use the user id of the logged-in user
+        // instead
+        String userId = System.identityHashCode(UI.getCurrentOrThrow()) + "";
+        UserInfo localUser = new UserInfo(userId, "User " + userId);
+        CollaborationEngine.getInstance().openTopicConnection(this, "tutorial",
+                localUser, topic -> {
+                    CollaborationMap fieldValues = topic
+                            .getNamedMap("fieldValues");
+                    Registration registration = checkbox
+                            .addValueChangeListener(valueChangeEvent -> {
+                                fieldValues.put("isFriday",
+                                        valueChangeEvent.getValue());
+                            });
+                    fieldValues.subscribe(event -> {
+                        if ("isFriday".equals(event.getKey())) {
+                            checkbox.setValue(Boolean.TRUE
+                                    .equals(event.getValue(Boolean.class)));
+                        }
+                    });
+                    return registration;
+                });
+    }
+}
+
+The topic’s structure now looks as follows:
+
+Topic maps
+|_ fieldValues
+  |_ isFriday: true/false
+
+Tip: Add Scope to Topic Data
+
+By default, values are stored in the Topic until explicitly removed. You can use methods accepting a scope parameter and use EntryScope.CONNECTION to have the entry removed when the connection is deactivated.
+
+Subscribe to Topic Changes
+
+The final part of the code is to subscribe to updates to the topic map, and to update the checkbox if the related map is changed. This is also done in the activation callback so that the subscription is opened only when the view is actually used.
+
+It’s also necessary to return the registration of the listener so it can be removed when the component is detached to avoid leaking memory.
+
+[TopicView.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationEngine;
+import com.vaadin.collaborationengine.CollaborationMap;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
+
+@Route(value = "collaboration/topic", layout = MainView.class)
+public class TopicView extends VerticalLayout {
+
+    private final Checkbox checkbox;
+
+    public TopicView() {
+        checkbox = new Checkbox("Is it Friday?");
+        add(checkbox);
+        // NOTE: Use the user id of the logged-in user
+        // instead
+        String userId = System.identityHashCode(UI.getCurrentOrThrow()) + "";
+        UserInfo localUser = new UserInfo(userId, "User " + userId);
+        CollaborationEngine.getInstance().openTopicConnection(this, "tutorial",
+                localUser, topic -> {
+                    CollaborationMap fieldValues = topic
+                            .getNamedMap("fieldValues");
+                    Registration registration = checkbox
+                            .addValueChangeListener(valueChangeEvent -> {
+                                fieldValues.put("isFriday",
+                                        valueChangeEvent.getValue());
+                            });
+                    fieldValues.subscribe(event -> {
+                        if ("isFriday".equals(event.getKey())) {
+                            checkbox.setValue(Boolean.TRUE
+                                    .equals(event.getValue(Boolean.class)));
+                        }
+                    });
+                    return registration;
+                });
+    }
+}
+
+Tip: Combining Registrations
+
+In case there are many registrations, they can be combined by Registration.combine(registration1, registration2);.
+
+Run the Application
+
+Follow the instructions in the application’s README.md file to start the application. Then open http://localhost:8080/ in multiple browser tabs to see how a change made in one tab is automatically shown in the other tabs.

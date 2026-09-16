@@ -1,0 +1,66 @@
+Typography
+
+Explains how to selecting font families, font sizes, and a typographic scale to create cohesive and legible designs.
+
+Typography is a key element of business application design that directly affects the user experience and readability. By thoughtfully selecting the right font families and sizes, designers can create interfaces that are both visually appealing and easy to use.
+
+This page explores the key components of typography, offering insights on making choices that enhance the overall effectiveness of your application’s design.
+
+Font Family
+
+Choose a font family that suits your application and its content. Generally, serif fonts are more traditional, while sans-serif fonts are more modern. Some research suggests that sans-serif fonts slightly outperform serif fonts in legibility tests for those with poor eyesight.
+
+The default font family in Lumo depends on the operating system:
+
+Windows | Segoe UI
+Android, Chrome OS | Roboto
+macOS, iOS, iPadOS | San Francisco
+
+On other operating systems, the fallback fonts are Helvetica and Arial. All these font families, regardless of the operating system, are sans-serif fonts.
+
+Serif and Sans Serif
+
+The image below compares a serif font on the left with a sans serif on the right. Notice the difference in style and how it affects readability:
+
+[image: Two screenshots side by side. The first one shows an interface that uses serif font. The second one shows the same interface using a sans-serif font.]
+
+Compare the same UI with serif and sans-serif fonts.
+
+Monospace & Tabular Figures
+
+Monospace fonts or tabular figures are great for displaying numeric values when comparisons are necessary. Notice how the font in this next image makes the numbers easier to compare between rows:
+
+[image: A data table with multiple columns]
+
+Monospace font used for the “Amount” column.
+
+You can use CSS to display tabular number figures, depending on font support. In the following image, the all numeric figures take the same horizontal space. Otherwise they look the same as the normal, proportional number figures:
+
+[image: A data table with multiple columns]
+
+Tabular numeric figures used for the “Amount” column.
+
+Font Size
+
+The Web Content Accessibility Guidelines (WCAG) don’t specify a minimum font size requirement. Still, be cautious about using less than 12 pixels. This also depends on the inherent size of the typeface: some typefaces may appear smaller or larger at the same size, which affects legibility.
+
+The following image shows two tables for comparison of font sizes. The one on the left uses a small font size, and the one on the right has a larger size. This comparison highlights the difference in readability with font sizes:
+
+[image: Two data tables]
+
+Avoid font sizes that are too small.
+
+Type Scale
+
+A type scale is a system for choosing font sizes based on a base size and scaling ratio. This approach creates a clear visual hierarchy for headings and body text, improving content navigation for users. Alongside font size, variations in font weight and color also contribute to this hierarchy.
+
+The following image illustrates the difference between using the same font size and using different sizes. Notice how using varying font sizes in the form on the right provides a clear visual hierarchy. It enhances readability and ease of navigation:
+
+[image: Two screenshots side by side]
+
+Use varying font sizes, weights, and colors to create visual hierarchy.
+
+You can find online several tools to help you preview and select a type scale that suits your needs, including:
+
+- Baseline
+- Typescale

@@ -1,0 +1,269 @@
+Message Input
+
+Message Input allows users to author and send messages.
+
+Message Input allows users to author and send messages.
+
+[Flow: MessageInputComponent.java]
+package com.vaadin.demo.component.messages;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageInput;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.router.Route;
+
+@Route("message-input")
+public class MessageInputComponent extends Div {
+
+    public MessageInputComponent() {
+        // tag::snippet[]
+        MessageInput input = new MessageInput();
+        input.addSubmitListener(submitEvent -> {
+            Notification.show("Message received: " + submitEvent.getValue(),
+                    3000, Notification.Position.MIDDLE);
+        });
+        add(input);
+        // end::snippet[]
+    }
+
+}
+
+[React: message-input-component.tsx]
+import React from 'react';
+import {
+  MessageInput,
+  type MessageInputSubmitEvent,
+} from '@vaadin/react-components/MessageInput.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  // tag::snippet[]
+  function handleSubmit(event: MessageInputSubmitEvent) {
+    const message = event.detail.value;
+    Notification.show(`Message received: ${message}`, { position: 'middle' });
+  }
+
+  return <MessageInput onSubmit={handleSubmit} />;
+  // end::snippet[]
+}
+
+[Lit: message-input-component.ts]
+import '@vaadin/message-input';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MessageInputSubmitEvent } from '@vaadin/message-input';
+import { Notification } from '@vaadin/notification';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('message-input-component')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private message = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-message-input @submit="${this._handleSubmit}"></vaadin-message-input>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  _handleSubmit(event: MessageInputSubmitEvent) {
+    this.message = event.detail.value;
+    Notification.show(`Message received: ${this.message}`, { position: 'middle' });
+  }
+}
+
+The user can send the message with one of the following actions:
+
+- by pressing Enter (use Shift+Enter to add a new line)
+- by clicking the “send” button.
+
+Use the Message List component to show messages that users have sent.
+
+[Flow: MessagesBasic.java]
+package com.vaadin.demo.component.messages;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageInput;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("messages-basic")
+public class MessagesBasic extends Div {
+
+    public MessagesBasic() {
+        // tag::snippet[]
+        MessageList list = new MessageList();
+        MessageInput input = new MessageInput();
+        input.addSubmitListener(submitEvent -> {
+            MessageListItem newMessage = new MessageListItem(
+                    submitEvent.getValue(), Instant.now(), "Milla Sting");
+            newMessage.setUserColorIndex(3);
+            List<MessageListItem> items = new ArrayList<>(list.getItems());
+            items.add(newMessage);
+            list.setItems(items);
+        });
+
+        Person person = DataService.getPeople(1).get(0);
+        MessageListItem message1 = new MessageListItem(
+                "Nature does not hurry, yet everything gets accomplished.",
+                LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC),
+                "Matt Mambo");
+        message1.setUserColorIndex(1);
+        MessageListItem message2 = new MessageListItem(
+                "Using your talent, hobby or profession in a way that makes you contribute with something good to this world is truly the way to go.",
+                LocalDateTime.now().minusMinutes(55).toInstant(ZoneOffset.UTC),
+                "Linsey Listy", person.getPictureUrl());
+        message2.setUserColorIndex(2);
+        list.setItems(message1, message2);
+
+        VerticalLayout chatLayout = new VerticalLayout(list, input);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(list);
+        add(chatLayout);
+        // end::snippet[]
+    }
+
+}
+
+[React: message-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import type { MessageListItem } from '@vaadin/message-list';
+import { MessageInput } from '@vaadin/react-components/MessageInput.js';
+import { MessageList } from '@vaadin/react-components/MessageList.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+function Example() {
+  const items = useSignal<MessageListItem[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      const person = people[0];
+      items.value = [
+        {
+          text: 'Nature does not hurry, yet everything gets accomplished.',
+          time: 'yesterday',
+          userName: 'Matt Mambo',
+          userColorIndex: 1,
+        },
+        {
+          text: 'Using your talent, hobby or profession in a way that makes you contribute with something good to this world is truly the way to go.',
+          time: 'right now',
+          userName: 'Linsey Listy',
+          userColorIndex: 2,
+          userImg: person.pictureUrl,
+        },
+      ];
+    });
+  }, []);
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <MessageList items={items.value} />
+      <MessageInput
+        onSubmit={(e) => {
+          items.value = [
+            ...items.value,
+            {
+              text: e.detail.value,
+              time: 'seconds ago',
+              userName: 'Milla Sting',
+              userAbbr: 'MS',
+              userColorIndex: 3,
+            },
+          ];
+        }}
+      />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: message-basic.ts]
+import '@vaadin/message-input';
+import '@vaadin/message-list';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MessageInputSubmitEvent } from '@vaadin/message-input';
+import type { MessageListItem } from '@vaadin/message-list';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('message-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: MessageListItem[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    const person = people[0];
+    this.items = [
+      {
+        text: 'Nature does not hurry, yet everything gets accomplished.',
+        time: 'yesterday',
+        userName: 'Matt Mambo',
+        userColorIndex: 1,
+      },
+      {
+        text: 'Using your talent, hobby or profession in a way that makes you contribute with something good to this world is truly the way to go.',
+        time: 'right now',
+        userName: 'Linsey Listy',
+        userColorIndex: 2,
+        userImg: person.pictureUrl,
+      },
+    ];
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-message-list .items="${this.items}"></vaadin-message-list>
+      <vaadin-message-input @submit="${this._handleSubmit}"></vaadin-message-input>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  _handleSubmit(e: MessageInputSubmitEvent) {
+    this.items = [
+      ...this.items,
+      {
+        text: e.detail.value,
+        time: 'seconds ago',
+        userName: 'Milla Sting',
+        userAbbr: 'MS',
+        userColorIndex: 3,
+      },
+    ];
+  }
+}
+
+Related Components
+
+Component | Usage recommendations
+Message List | Show a list of messages.

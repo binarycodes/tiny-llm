@@ -1,0 +1,11 @@
+Configuration & Advanced Topics
+
+Adding Legacy Components in a Flow Layout
+Legacy Theme in MPR
+Custom Widget Set & MPR
+Limitations of MPR
+Set Up Production Mode
+Push & MPR
+Using Sessions with MPR
+Custom Legacy UI Class
+V7 & V14+ CDI Applications Side-by-Side

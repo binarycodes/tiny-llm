@@ -1,0 +1,60 @@
+Master-Detail Layout Styling
+
+Styling API reference for the Master Detail Layout component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-master-detail-layout-border-color | Aura, Lumo
+--vaadin-master-detail-layout-border-width | Aura, Lumo
+--vaadin-master-detail-layout-detail-background | Aura, Lumo
+--vaadin-master-detail-layout-detail-shadow | Aura, Lumo
+--vaadin-overlay-backdrop-background | Aura
+--aura-master-detail-layout-detail-inset | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-master-detail-layout
+
+States
+
+Overlay mode
+    vaadin-master-detail-layout[overlay]
+Horizontal orientation
+    vaadin-master-detail-layout[orientation="horizontal"]
+Vertical orientation
+    vaadin-master-detail-layout[orientation="vertical"]
+Default (layout) containment
+    vaadin-master-detail-layout[overlay-containment="layout"]
+Page containment
+    vaadin-master-detail-layout[overlay-containment="page"]
+Master area expanding
+    vaadin-master-detail-layout[expand-master]
+Detail area expanding
+    vaadin-master-detail-layout[expand-detail]
+Layout with detail provided
+    vaadin-master-detail-layout[has-detail]
+Layout with detail placeholder
+    vaadin-master-detail-layout[has-detail-placeholder]
+
+Parts
+
+Master area
+    vaadin-master-detail-layout::part(master)
+Detail area
+    vaadin-master-detail-layout::part(detail)
+Detail placeholder area
+    vaadin-master-detail-layout::part(detail-placeholder)
+Backdrop in the overlay mode
+    vaadin-master-detail-layout::part(backdrop)

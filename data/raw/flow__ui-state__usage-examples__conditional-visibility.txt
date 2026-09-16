@@ -1,0 +1,883 @@
+Conditional Visibility
+
+Use signals to control component visibility based on form values.
+
+Progressive disclosure is a design pattern where form fields appear or disappear based on previous user selections. This improves user experience by showing only relevant fields and reducing visual clutter. With Signals, you can implement this pattern declaratively using bindVisible().
+
+The Pattern
+
+The key to conditional visibility is:
+
+1. Create ValueSignal instances to track the values that control visibility
+2. Bind form fields to both the data bean (using Binder) and to signals (using bindValue())
+3. Use bindVisible() to show or hide sections based on signal values
+
+This creates a reactive chain: when a user changes a field, the signal updates, which triggers visibility changes in dependent sections.
+
+Example: Visa Application Form
+
+This example demonstrates a multi-level visa application form where fields appear progressively based on user selections.
+
+Setting Up Signals and Data
+
+First, create the signals that control visibility:
+
+[ConditionalVisibility.java]
+package com.vaadin.demo.flow.signals;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("conditional-visibility-with-signals")
+public class ConditionalVisibility extends VerticalLayout {
+
+    enum VisaType {
+        H1B, L1, O1
+    }
+
+    static class VisaApplicationData {
+        private Boolean needsVisa;
+        private VisaType visaType;
+        private String currentVisaStatus;
+        private Boolean hasH1BPreviously;
+        private String previousEmployer;
+
+        // getters and setters omitted for brevity
+        public Boolean getNeedsVisa() {
+            return needsVisa;
+        }
+
+        public void setNeedsVisa(Boolean needsVisa) {
+            this.needsVisa = needsVisa;
+        }
+
+        public VisaType getVisaType() {
+            return visaType;
+        }
+
+        public void setVisaType(VisaType visaType) {
+            this.visaType = visaType;
+        }
+
+        public String getCurrentVisaStatus() {
+            return currentVisaStatus;
+        }
+
+        public void setCurrentVisaStatus(String currentVisaStatus) {
+            this.currentVisaStatus = currentVisaStatus;
+        }
+
+        public Boolean getHasH1BPreviously() {
+            return hasH1BPreviously;
+        }
+
+        public void setHasH1BPreviously(Boolean hasH1BPreviously) {
+            this.hasH1BPreviously = hasH1BPreviously;
+        }
+
+        public String getPreviousEmployer() {
+            return previousEmployer;
+        }
+
+        public void setPreviousEmployer(String previousEmployer) {
+            this.previousEmployer = previousEmployer;
+        }
+    }
+
+    public ConditionalVisibility() {
+        // Create binder and data bean
+        Binder<VisaApplicationData> binder = new Binder<>(
+                VisaApplicationData.class);
+        VisaApplicationData data = new VisaApplicationData();
+        binder.setBean(data);
+
+        // Create signals for conditional visibility
+        ValueSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
+        ValueSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
+        ValueSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+
+        // Base question: needs visa sponsorship
+        Checkbox needsVisaCheckbox = new Checkbox(
+                "Do you require visa sponsorship?");
+        binder.forField(needsVisaCheckbox).bind(
+                VisaApplicationData::getNeedsVisa,
+                VisaApplicationData::setNeedsVisa);
+        needsVisaCheckbox.bindValue(needsVisaSignal, needsVisaSignal::set);
+
+        // Level 1: Visa-related fields (shown when needsVisa is true)
+        VerticalLayout visaSection = new VerticalLayout();
+
+        ComboBox<VisaType> visaTypeSelect = new ComboBox<>("Visa Type",
+                VisaType.values());
+        visaTypeSelect.setValue(VisaType.H1B);
+        binder.forField(visaTypeSelect).bind(VisaApplicationData::getVisaType,
+                VisaApplicationData::setVisaType);
+        visaTypeSelect.bindValue(visaTypeSignal, visaTypeSignal::set);
+
+        TextField currentVisaStatus = new TextField("Current Visa Status");
+        binder.forField(currentVisaStatus).bind(
+                VisaApplicationData::getCurrentVisaStatus,
+                VisaApplicationData::setCurrentVisaStatus);
+
+        visaSection.add(visaTypeSelect, currentVisaStatus);
+        visaSection.bindVisible(needsVisaSignal);
+
+        // Level 2: H1-B specific fields (shown when visa type is H1B)
+        VerticalLayout h1bSection = new VerticalLayout();
+
+        Checkbox hasH1BPreviouslyCheckbox = new Checkbox(
+                "Have you held an H1-B visa before?");
+        binder.forField(hasH1BPreviouslyCheckbox).bind(
+                VisaApplicationData::getHasH1BPreviously,
+                VisaApplicationData::setHasH1BPreviously);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal,
+                hasH1BPreviouslySignal::set);
+
+        TextField h1bSpecialtyOccupation = new TextField(
+                "Specialty Occupation");
+        // Binder binding omitted for brevity
+
+        h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
+        h1bSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B);
+
+        // Level 3: Previous H1-B details (shown when has H1-B previously)
+        VerticalLayout previousH1BSection = new VerticalLayout();
+
+        TextField previousEmployer = new TextField("Previous Employer");
+        binder.forField(previousEmployer).bind(
+                VisaApplicationData::getPreviousEmployer,
+                VisaApplicationData::setPreviousEmployer);
+
+        TextField previousPetitionNumber = new TextField(
+                "Previous Petition Number");
+        // Additional fields omitted for brevity
+
+        previousH1BSection.add(previousEmployer, previousPetitionNumber);
+        previousH1BSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B
+                && hasH1BPreviouslySignal.get());
+
+        add(needsVisaCheckbox, visaSection, h1bSection, previousH1BSection);
+    }
+}
+
+Each signal tracks a value that other fields depend on. Initialize them with sensible defaults.
+
+Level 0: Base Question
+
+The root question controls whether any visa-related fields appear:
+
+[ConditionalVisibility.java]
+package com.vaadin.demo.flow.signals;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("conditional-visibility-with-signals")
+public class ConditionalVisibility extends VerticalLayout {
+
+    enum VisaType {
+        H1B, L1, O1
+    }
+
+    static class VisaApplicationData {
+        private Boolean needsVisa;
+        private VisaType visaType;
+        private String currentVisaStatus;
+        private Boolean hasH1BPreviously;
+        private String previousEmployer;
+
+        // getters and setters omitted for brevity
+        public Boolean getNeedsVisa() {
+            return needsVisa;
+        }
+
+        public void setNeedsVisa(Boolean needsVisa) {
+            this.needsVisa = needsVisa;
+        }
+
+        public VisaType getVisaType() {
+            return visaType;
+        }
+
+        public void setVisaType(VisaType visaType) {
+            this.visaType = visaType;
+        }
+
+        public String getCurrentVisaStatus() {
+            return currentVisaStatus;
+        }
+
+        public void setCurrentVisaStatus(String currentVisaStatus) {
+            this.currentVisaStatus = currentVisaStatus;
+        }
+
+        public Boolean getHasH1BPreviously() {
+            return hasH1BPreviously;
+        }
+
+        public void setHasH1BPreviously(Boolean hasH1BPreviously) {
+            this.hasH1BPreviously = hasH1BPreviously;
+        }
+
+        public String getPreviousEmployer() {
+            return previousEmployer;
+        }
+
+        public void setPreviousEmployer(String previousEmployer) {
+            this.previousEmployer = previousEmployer;
+        }
+    }
+
+    public ConditionalVisibility() {
+        // Create binder and data bean
+        Binder<VisaApplicationData> binder = new Binder<>(
+                VisaApplicationData.class);
+        VisaApplicationData data = new VisaApplicationData();
+        binder.setBean(data);
+
+        // Create signals for conditional visibility
+        ValueSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
+        ValueSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
+        ValueSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+
+        // Base question: needs visa sponsorship
+        Checkbox needsVisaCheckbox = new Checkbox(
+                "Do you require visa sponsorship?");
+        binder.forField(needsVisaCheckbox).bind(
+                VisaApplicationData::getNeedsVisa,
+                VisaApplicationData::setNeedsVisa);
+        needsVisaCheckbox.bindValue(needsVisaSignal, needsVisaSignal::set);
+
+        // Level 1: Visa-related fields (shown when needsVisa is true)
+        VerticalLayout visaSection = new VerticalLayout();
+
+        ComboBox<VisaType> visaTypeSelect = new ComboBox<>("Visa Type",
+                VisaType.values());
+        visaTypeSelect.setValue(VisaType.H1B);
+        binder.forField(visaTypeSelect).bind(VisaApplicationData::getVisaType,
+                VisaApplicationData::setVisaType);
+        visaTypeSelect.bindValue(visaTypeSignal, visaTypeSignal::set);
+
+        TextField currentVisaStatus = new TextField("Current Visa Status");
+        binder.forField(currentVisaStatus).bind(
+                VisaApplicationData::getCurrentVisaStatus,
+                VisaApplicationData::setCurrentVisaStatus);
+
+        visaSection.add(visaTypeSelect, currentVisaStatus);
+        visaSection.bindVisible(needsVisaSignal);
+
+        // Level 2: H1-B specific fields (shown when visa type is H1B)
+        VerticalLayout h1bSection = new VerticalLayout();
+
+        Checkbox hasH1BPreviouslyCheckbox = new Checkbox(
+                "Have you held an H1-B visa before?");
+        binder.forField(hasH1BPreviouslyCheckbox).bind(
+                VisaApplicationData::getHasH1BPreviously,
+                VisaApplicationData::setHasH1BPreviously);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal,
+                hasH1BPreviouslySignal::set);
+
+        TextField h1bSpecialtyOccupation = new TextField(
+                "Specialty Occupation");
+        // Binder binding omitted for brevity
+
+        h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
+        h1bSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B);
+
+        // Level 3: Previous H1-B details (shown when has H1-B previously)
+        VerticalLayout previousH1BSection = new VerticalLayout();
+
+        TextField previousEmployer = new TextField("Previous Employer");
+        binder.forField(previousEmployer).bind(
+                VisaApplicationData::getPreviousEmployer,
+                VisaApplicationData::setPreviousEmployer);
+
+        TextField previousPetitionNumber = new TextField(
+                "Previous Petition Number");
+        // Additional fields omitted for brevity
+
+        previousH1BSection.add(previousEmployer, previousPetitionNumber);
+        previousH1BSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B
+                && hasH1BPreviouslySignal.get());
+
+        add(needsVisaCheckbox, visaSection, h1bSection, previousH1BSection);
+    }
+}
+
+The checkbox is bound to both:
+
+- The data bean via Binder - for data persistence
+- The signal via bindValue() - for reactive visibility control
+
+When the user changes this checkbox, needsVisaSignal updates automatically.
+
+Level 1: Conditional Section
+
+The visa section appears only when sponsorship is needed:
+
+[ConditionalVisibility.java]
+package com.vaadin.demo.flow.signals;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("conditional-visibility-with-signals")
+public class ConditionalVisibility extends VerticalLayout {
+
+    enum VisaType {
+        H1B, L1, O1
+    }
+
+    static class VisaApplicationData {
+        private Boolean needsVisa;
+        private VisaType visaType;
+        private String currentVisaStatus;
+        private Boolean hasH1BPreviously;
+        private String previousEmployer;
+
+        // getters and setters omitted for brevity
+        public Boolean getNeedsVisa() {
+            return needsVisa;
+        }
+
+        public void setNeedsVisa(Boolean needsVisa) {
+            this.needsVisa = needsVisa;
+        }
+
+        public VisaType getVisaType() {
+            return visaType;
+        }
+
+        public void setVisaType(VisaType visaType) {
+            this.visaType = visaType;
+        }
+
+        public String getCurrentVisaStatus() {
+            return currentVisaStatus;
+        }
+
+        public void setCurrentVisaStatus(String currentVisaStatus) {
+            this.currentVisaStatus = currentVisaStatus;
+        }
+
+        public Boolean getHasH1BPreviously() {
+            return hasH1BPreviously;
+        }
+
+        public void setHasH1BPreviously(Boolean hasH1BPreviously) {
+            this.hasH1BPreviously = hasH1BPreviously;
+        }
+
+        public String getPreviousEmployer() {
+            return previousEmployer;
+        }
+
+        public void setPreviousEmployer(String previousEmployer) {
+            this.previousEmployer = previousEmployer;
+        }
+    }
+
+    public ConditionalVisibility() {
+        // Create binder and data bean
+        Binder<VisaApplicationData> binder = new Binder<>(
+                VisaApplicationData.class);
+        VisaApplicationData data = new VisaApplicationData();
+        binder.setBean(data);
+
+        // Create signals for conditional visibility
+        ValueSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
+        ValueSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
+        ValueSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+
+        // Base question: needs visa sponsorship
+        Checkbox needsVisaCheckbox = new Checkbox(
+                "Do you require visa sponsorship?");
+        binder.forField(needsVisaCheckbox).bind(
+                VisaApplicationData::getNeedsVisa,
+                VisaApplicationData::setNeedsVisa);
+        needsVisaCheckbox.bindValue(needsVisaSignal, needsVisaSignal::set);
+
+        // Level 1: Visa-related fields (shown when needsVisa is true)
+        VerticalLayout visaSection = new VerticalLayout();
+
+        ComboBox<VisaType> visaTypeSelect = new ComboBox<>("Visa Type",
+                VisaType.values());
+        visaTypeSelect.setValue(VisaType.H1B);
+        binder.forField(visaTypeSelect).bind(VisaApplicationData::getVisaType,
+                VisaApplicationData::setVisaType);
+        visaTypeSelect.bindValue(visaTypeSignal, visaTypeSignal::set);
+
+        TextField currentVisaStatus = new TextField("Current Visa Status");
+        binder.forField(currentVisaStatus).bind(
+                VisaApplicationData::getCurrentVisaStatus,
+                VisaApplicationData::setCurrentVisaStatus);
+
+        visaSection.add(visaTypeSelect, currentVisaStatus);
+        visaSection.bindVisible(needsVisaSignal);
+
+        // Level 2: H1-B specific fields (shown when visa type is H1B)
+        VerticalLayout h1bSection = new VerticalLayout();
+
+        Checkbox hasH1BPreviouslyCheckbox = new Checkbox(
+                "Have you held an H1-B visa before?");
+        binder.forField(hasH1BPreviouslyCheckbox).bind(
+                VisaApplicationData::getHasH1BPreviously,
+                VisaApplicationData::setHasH1BPreviously);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal,
+                hasH1BPreviouslySignal::set);
+
+        TextField h1bSpecialtyOccupation = new TextField(
+                "Specialty Occupation");
+        // Binder binding omitted for brevity
+
+        h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
+        h1bSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B);
+
+        // Level 3: Previous H1-B details (shown when has H1-B previously)
+        VerticalLayout previousH1BSection = new VerticalLayout();
+
+        TextField previousEmployer = new TextField("Previous Employer");
+        binder.forField(previousEmployer).bind(
+                VisaApplicationData::getPreviousEmployer,
+                VisaApplicationData::setPreviousEmployer);
+
+        TextField previousPetitionNumber = new TextField(
+                "Previous Petition Number");
+        // Additional fields omitted for brevity
+
+        previousH1BSection.add(previousEmployer, previousPetitionNumber);
+        previousH1BSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B
+                && hasH1BPreviouslySignal.get());
+
+        add(needsVisaCheckbox, visaSection, h1bSection, previousH1BSection);
+    }
+}
+
+The bindVisible(needsVisaSignal) method creates a reactive binding: the section’s visibility automatically tracks the signal’s boolean value. When needsVisaSignal is true, the section appears. When false, it’s hidden.
+
+The visaTypeSelect field is also bound to visaTypeSignal, which allows the next level to react to the selected visa type.
+
+Level 2: Nested Conditions
+
+For more complex conditions, use a lambda expression:
+
+[ConditionalVisibility.java]
+package com.vaadin.demo.flow.signals;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("conditional-visibility-with-signals")
+public class ConditionalVisibility extends VerticalLayout {
+
+    enum VisaType {
+        H1B, L1, O1
+    }
+
+    static class VisaApplicationData {
+        private Boolean needsVisa;
+        private VisaType visaType;
+        private String currentVisaStatus;
+        private Boolean hasH1BPreviously;
+        private String previousEmployer;
+
+        // getters and setters omitted for brevity
+        public Boolean getNeedsVisa() {
+            return needsVisa;
+        }
+
+        public void setNeedsVisa(Boolean needsVisa) {
+            this.needsVisa = needsVisa;
+        }
+
+        public VisaType getVisaType() {
+            return visaType;
+        }
+
+        public void setVisaType(VisaType visaType) {
+            this.visaType = visaType;
+        }
+
+        public String getCurrentVisaStatus() {
+            return currentVisaStatus;
+        }
+
+        public void setCurrentVisaStatus(String currentVisaStatus) {
+            this.currentVisaStatus = currentVisaStatus;
+        }
+
+        public Boolean getHasH1BPreviously() {
+            return hasH1BPreviously;
+        }
+
+        public void setHasH1BPreviously(Boolean hasH1BPreviously) {
+            this.hasH1BPreviously = hasH1BPreviously;
+        }
+
+        public String getPreviousEmployer() {
+            return previousEmployer;
+        }
+
+        public void setPreviousEmployer(String previousEmployer) {
+            this.previousEmployer = previousEmployer;
+        }
+    }
+
+    public ConditionalVisibility() {
+        // Create binder and data bean
+        Binder<VisaApplicationData> binder = new Binder<>(
+                VisaApplicationData.class);
+        VisaApplicationData data = new VisaApplicationData();
+        binder.setBean(data);
+
+        // Create signals for conditional visibility
+        ValueSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
+        ValueSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
+        ValueSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+
+        // Base question: needs visa sponsorship
+        Checkbox needsVisaCheckbox = new Checkbox(
+                "Do you require visa sponsorship?");
+        binder.forField(needsVisaCheckbox).bind(
+                VisaApplicationData::getNeedsVisa,
+                VisaApplicationData::setNeedsVisa);
+        needsVisaCheckbox.bindValue(needsVisaSignal, needsVisaSignal::set);
+
+        // Level 1: Visa-related fields (shown when needsVisa is true)
+        VerticalLayout visaSection = new VerticalLayout();
+
+        ComboBox<VisaType> visaTypeSelect = new ComboBox<>("Visa Type",
+                VisaType.values());
+        visaTypeSelect.setValue(VisaType.H1B);
+        binder.forField(visaTypeSelect).bind(VisaApplicationData::getVisaType,
+                VisaApplicationData::setVisaType);
+        visaTypeSelect.bindValue(visaTypeSignal, visaTypeSignal::set);
+
+        TextField currentVisaStatus = new TextField("Current Visa Status");
+        binder.forField(currentVisaStatus).bind(
+                VisaApplicationData::getCurrentVisaStatus,
+                VisaApplicationData::setCurrentVisaStatus);
+
+        visaSection.add(visaTypeSelect, currentVisaStatus);
+        visaSection.bindVisible(needsVisaSignal);
+
+        // Level 2: H1-B specific fields (shown when visa type is H1B)
+        VerticalLayout h1bSection = new VerticalLayout();
+
+        Checkbox hasH1BPreviouslyCheckbox = new Checkbox(
+                "Have you held an H1-B visa before?");
+        binder.forField(hasH1BPreviouslyCheckbox).bind(
+                VisaApplicationData::getHasH1BPreviously,
+                VisaApplicationData::setHasH1BPreviously);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal,
+                hasH1BPreviouslySignal::set);
+
+        TextField h1bSpecialtyOccupation = new TextField(
+                "Specialty Occupation");
+        // Binder binding omitted for brevity
+
+        h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
+        h1bSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B);
+
+        // Level 3: Previous H1-B details (shown when has H1-B previously)
+        VerticalLayout previousH1BSection = new VerticalLayout();
+
+        TextField previousEmployer = new TextField("Previous Employer");
+        binder.forField(previousEmployer).bind(
+                VisaApplicationData::getPreviousEmployer,
+                VisaApplicationData::setPreviousEmployer);
+
+        TextField previousPetitionNumber = new TextField(
+                "Previous Petition Number");
+        // Additional fields omitted for brevity
+
+        previousH1BSection.add(previousEmployer, previousPetitionNumber);
+        previousH1BSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B
+                && hasH1BPreviouslySignal.get());
+
+        add(needsVisaCheckbox, visaSection, h1bSection, previousH1BSection);
+    }
+}
+
+The lambda () → needsVisaSignal.get() && visaTypeSignal.get() == VisaType.H1B reads multiple signals. This section appears only when:
+
+- Visa sponsorship is needed (needsVisaSignal is true)
+- The selected visa type is H1-B
+
+The framework tracks which signals you access in the lambda and automatically updates visibility when any of them change.
+
+Level 3: Multi-Level Nesting
+
+You can nest conditions as deeply as needed:
+
+[ConditionalVisibility.java]
+package com.vaadin.demo.flow.signals;
+
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("conditional-visibility-with-signals")
+public class ConditionalVisibility extends VerticalLayout {
+
+    enum VisaType {
+        H1B, L1, O1
+    }
+
+    static class VisaApplicationData {
+        private Boolean needsVisa;
+        private VisaType visaType;
+        private String currentVisaStatus;
+        private Boolean hasH1BPreviously;
+        private String previousEmployer;
+
+        // getters and setters omitted for brevity
+        public Boolean getNeedsVisa() {
+            return needsVisa;
+        }
+
+        public void setNeedsVisa(Boolean needsVisa) {
+            this.needsVisa = needsVisa;
+        }
+
+        public VisaType getVisaType() {
+            return visaType;
+        }
+
+        public void setVisaType(VisaType visaType) {
+            this.visaType = visaType;
+        }
+
+        public String getCurrentVisaStatus() {
+            return currentVisaStatus;
+        }
+
+        public void setCurrentVisaStatus(String currentVisaStatus) {
+            this.currentVisaStatus = currentVisaStatus;
+        }
+
+        public Boolean getHasH1BPreviously() {
+            return hasH1BPreviously;
+        }
+
+        public void setHasH1BPreviously(Boolean hasH1BPreviously) {
+            this.hasH1BPreviously = hasH1BPreviously;
+        }
+
+        public String getPreviousEmployer() {
+            return previousEmployer;
+        }
+
+        public void setPreviousEmployer(String previousEmployer) {
+            this.previousEmployer = previousEmployer;
+        }
+    }
+
+    public ConditionalVisibility() {
+        // Create binder and data bean
+        Binder<VisaApplicationData> binder = new Binder<>(
+                VisaApplicationData.class);
+        VisaApplicationData data = new VisaApplicationData();
+        binder.setBean(data);
+
+        // Create signals for conditional visibility
+        ValueSignal<Boolean> needsVisaSignal = new ValueSignal<>(false);
+        ValueSignal<VisaType> visaTypeSignal = new ValueSignal<>(VisaType.H1B);
+        ValueSignal<Boolean> hasH1BPreviouslySignal = new ValueSignal<>(false);
+
+        // Base question: needs visa sponsorship
+        Checkbox needsVisaCheckbox = new Checkbox(
+                "Do you require visa sponsorship?");
+        binder.forField(needsVisaCheckbox).bind(
+                VisaApplicationData::getNeedsVisa,
+                VisaApplicationData::setNeedsVisa);
+        needsVisaCheckbox.bindValue(needsVisaSignal, needsVisaSignal::set);
+
+        // Level 1: Visa-related fields (shown when needsVisa is true)
+        VerticalLayout visaSection = new VerticalLayout();
+
+        ComboBox<VisaType> visaTypeSelect = new ComboBox<>("Visa Type",
+                VisaType.values());
+        visaTypeSelect.setValue(VisaType.H1B);
+        binder.forField(visaTypeSelect).bind(VisaApplicationData::getVisaType,
+                VisaApplicationData::setVisaType);
+        visaTypeSelect.bindValue(visaTypeSignal, visaTypeSignal::set);
+
+        TextField currentVisaStatus = new TextField("Current Visa Status");
+        binder.forField(currentVisaStatus).bind(
+                VisaApplicationData::getCurrentVisaStatus,
+                VisaApplicationData::setCurrentVisaStatus);
+
+        visaSection.add(visaTypeSelect, currentVisaStatus);
+        visaSection.bindVisible(needsVisaSignal);
+
+        // Level 2: H1-B specific fields (shown when visa type is H1B)
+        VerticalLayout h1bSection = new VerticalLayout();
+
+        Checkbox hasH1BPreviouslyCheckbox = new Checkbox(
+                "Have you held an H1-B visa before?");
+        binder.forField(hasH1BPreviouslyCheckbox).bind(
+                VisaApplicationData::getHasH1BPreviously,
+                VisaApplicationData::setHasH1BPreviously);
+        hasH1BPreviouslyCheckbox.bindValue(hasH1BPreviouslySignal,
+                hasH1BPreviouslySignal::set);
+
+        TextField h1bSpecialtyOccupation = new TextField(
+                "Specialty Occupation");
+        // Binder binding omitted for brevity
+
+        h1bSection.add(hasH1BPreviouslyCheckbox, h1bSpecialtyOccupation);
+        h1bSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B);
+
+        // Level 3: Previous H1-B details (shown when has H1-B previously)
+        VerticalLayout previousH1BSection = new VerticalLayout();
+
+        TextField previousEmployer = new TextField("Previous Employer");
+        binder.forField(previousEmployer).bind(
+                VisaApplicationData::getPreviousEmployer,
+                VisaApplicationData::setPreviousEmployer);
+
+        TextField previousPetitionNumber = new TextField(
+                "Previous Petition Number");
+        // Additional fields omitted for brevity
+
+        previousH1BSection.add(previousEmployer, previousPetitionNumber);
+        previousH1BSection.bindVisible(() -> needsVisaSignal.get()
+                && visaTypeSignal.get() == VisaType.H1B
+                && hasH1BPreviouslySignal.get());
+
+        add(needsVisaCheckbox, visaSection, h1bSection, previousH1BSection);
+    }
+}
+
+This section requires three conditions to be true:
+
+1. Visa sponsorship is needed
+2. Visa type is H1-B
+3. User has held H1-B previously
+
+Each level progressively discloses more details, creating a smooth, focused user experience.
+
+Key Concepts
+
+Value Binding
+
+bindValue() connects a form field to a signal using two callbacks:
+
+[Java]
+checkbox.bindValue(needsVisaSignal, needsVisaSignal::set);
+comboBox.bindValue(visaTypeSignal, visaTypeSignal::set);
+
+The method signature is:
+
+[Java]
+field.bindValue(Signal<V> signal, Consumer<V> writeCallback)
+
+Read callback (signal): The first parameter is a Signal<V>. The framework reads its value using signal.get() whenever it needs to update the field. When the signal changes, the field automatically updates.
+
+Write callback: The second parameter is a Consumer<V> that receives the new value when the user changes the field. Typically, you pass the signal’s setter (e.g., signal::set) to update the signal with the new field value, but the callback can also run some validation for input value.
+
+This creates a two-way binding:
+
+- User changes field → write callback is invoked → signal is updated via set()
+- Signal changes → framework reads via get() → field is updated
+
+Null Write Callback
+
+You can pass null as the write callback for read-only bindings:
+
+[Java]
+field.bindValue(mySignal, null);
+
+In this case:
+
+- The field displays the signal’s value
+- User changes to the field are ignored (the signal is not updated)
+- The signal can still be updated programmatically, and the field reflects those changes
+
+This is useful when you want a field to display signal-driven data but prevent user input from modifying that data directly.
+
+Visibility Binding
+
+bindVisible() controls component visibility reactively:
+
+[Java]
+// Simple: show when signal is true
+component.bindVisible(booleanSignal);
+
+// Complex: show based on multiple conditions
+component.bindVisible(() -> signal1.get() && signal2.get() == expectedValue);
+
+The framework automatically:
+
+- Tracks which signals are accessed in the lambda
+- Re-evaluates visibility when any tracked signal changes
+- Updates the component’s visibility accordingly
+
+Combining with Binder
+
+Use Binder alongside signals to maintain data integrity:
+
+[Java]
+Checkbox checkbox = new Checkbox("Label");
+binder.forField(checkbox).bind(Data::getValue, Data::setValue); // Data binding
+checkbox.bindValue(signal, signal::set); // Reactive binding
+
+This dual binding ensures:
+
+- Data flows into your business objects (via Binder)
+- UI reactivity works correctly (via signals)
+
+Best Practices
+
+Create one signal per conditional value: If three checkboxes control visibility independently, create three boolean signals.
+
+Initialize signals with defaults: Set initial values that match your form’s default state to avoid inconsistencies.
+
+Use lambda expressions for complex conditions: When visibility depends on multiple signals or computed logic, use bindVisible(() → …​).
+
+Keep conditions readable: Extract complex visibility logic into well-named variables or methods if needed.
+
+When to Use This Pattern
+
+Use conditional visibility with signals when:
+
+- Form fields should appear or disappear based on user input
+- You need progressive disclosure for complex forms
+- Multiple levels of nesting are required
+- Visibility logic needs to be reactive and automatic
+
+For simple show/hide based on a single button click, regular setVisible() may be sufficient. Use signals when the visibility rules are more complex or data-driven.

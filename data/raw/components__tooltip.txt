@@ -1,0 +1,570 @@
+Tooltip
+
+Tooltips are small pop-ups for providing additional information about other UI elements.
+
+Tooltips are small pop-ups for providing additional information about other UI elements. A tooltip for an element becomes visible when the user hovers the mouse pointer over the element or when the element receives keyboard focus.
+
+[Flow: TooltipBasic.java]
+package com.vaadin.demo.component.tooltip;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("tooltip-basic")
+public class TooltipBasic extends Div {
+
+    public TooltipBasic() {
+        // tag::snippet[]
+        TextField textField = new TextField();
+        textField.setPlaceholder("Search");
+        textField.setPrefixComponent(new Icon("lumo", "search"));
+        textField.setTooltipText("Wrap in “quotes” for exact phrase");
+        add(textField);
+        // end::snippet[]
+    }
+
+}
+
+[React: tooltip-basic.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TextField placeholder="Search">
+      <Icon icon="lumo:search" slot="prefix" />
+      <Tooltip slot="tooltip" text="Wrap in “quotes” for exact phrase" />
+    </TextField>
+    // end::snippet[]
+  );
+}
+
+[Lit: tooltip-basic.ts]
+import '@vaadin/icon';
+import '@vaadin/text-field';
+import '@vaadin/tooltip';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tooltip-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-text-field placeholder="Search">
+        <vaadin-icon slot="prefix" icon="lumo:search"></vaadin-icon>
+        <vaadin-tooltip slot="tooltip" text="Wrap in “quotes” for exact phrase"></vaadin-tooltip>
+      </vaadin-text-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Tooltips only support plain text content. They aren’t focusable and can’t contain interactive elements.
+
+Other UI Elements
+
+Tooltips can be displayed for UI elements that lack a dedicated tooltip API. Proper accessibility, however, for these can’t be guaranteed.
+
+[Flow: TooltipHtmlElement.java]
+package com.vaadin.demo.component.tooltip;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.shared.Tooltip;
+import com.vaadin.flow.router.Route;
+
+@Route("tooltip-html-element")
+public class TooltipHtmlElement extends Div {
+
+    public TooltipHtmlElement() {
+        // tag::snippet[]
+        H2 heading = new H2("Heading with tooltip");
+        Tooltip tooltip = Tooltip.forComponent(heading)
+                .withText("This is a tooltip")
+                .withPosition(Tooltip.TooltipPosition.TOP_START);
+        add(heading);
+        // end::snippet[]
+    }
+
+}
+
+[React: tooltip-html-element.tsx]
+import React from 'react';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <h2 id="heading">Heading with tooltip</h2>
+      <Tooltip for="heading" text="This is a tooltip" position="top-start" />
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: tooltip-html-element.ts]
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tooltip-html-element')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <h2 id="heading">Heading with tooltip</h2>
+      <vaadin-tooltip for="heading" text="This is a tooltip" position="top-start"></vaadin-tooltip>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The Grid and Menu Bar components have dedicated APIs for configuring tooltips.
+
+Positioning
+
+The default positioning of the tooltip in relation to the target element can be overridden. This can be useful for optimizing where the tooltip is rendered, to avoid overlaying other important UI elements, or for purely aesthetic reasons.
+
+[Flow: TooltipPositioning.java]
+package com.vaadin.demo.component.tooltip;
+
+import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.shared.Tooltip.TooltipPosition;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+@Route("tooltip-positioning")
+public class TooltipPositioning extends AppLayout {
+
+    public TooltipPositioning() {
+        DrawerToggle toggle = new DrawerToggle();
+
+        SideNav nav = getSideNav();
+        nav.getStyle().set("margin", "0 var(--vaadin-gap-xs)")
+                .set("--vaadin-icon-size", "1.5rem");
+
+        addToDrawer(nav);
+        addToNavbar(toggle);
+
+        getElement().getThemeList().add("narrow-drawer");
+    }
+
+    private SideNav getSideNav() {
+        SideNav sideNav = new SideNav();
+        sideNav.addItem(
+                createItem(VaadinIcon.DASHBOARD, "Dashboard", "/dashboard"),
+                createItem(VaadinIcon.CART, "Orders", "/orders"),
+                createItem(VaadinIcon.USER_HEART, "Customers", "/customers"));
+        return sideNav;
+    }
+
+    private SideNavItem createItem(VaadinIcon viewIcon, String viewName,
+            String path) {
+        // tag::snippet[]
+        SideNavItem item = new SideNavItem(viewName, path, viewIcon.create());
+        item.setTooltipText(viewName).withPosition(TooltipPosition.END);
+        // end::snippet[]
+        return item;
+    }
+
+}
+
+[React: tooltip-positioning.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import {
+  AppLayout,
+  DrawerToggle,
+  Icon,
+  SideNav,
+  type SideNavElement,
+  SideNavItem,
+  Tooltip,
+} from '@vaadin/react-components';
+import { patchSideNavNavigation } from '../../side-nav/react/side-nav-helper';
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    <AppLayout theme="narrow-drawer">
+      <DrawerToggle slot="navbar" />
+
+      <SideNav
+        slot="drawer"
+        ref={sideNavRef}
+        style={{ margin: '0 var(--vaadin-gap-xs)', '--vaadin-icon-size': '1.5rem' }}
+      >
+        {/* tag::snippet[] */}
+        <SideNavItem path="/dashboard">
+          <Icon icon="vaadin:dashboard" slot="prefix" />
+          <Tooltip slot="tooltip" text="Dashboard" position="end" />
+        </SideNavItem>
+        {/* end::snippet[] */}
+        <SideNavItem path="/orders">
+          <Icon icon="vaadin:cart" slot="prefix" />
+          <Tooltip slot="tooltip" text="Orders" position="end" />
+        </SideNavItem>
+        <SideNavItem path="/customers">
+          <Icon icon="vaadin:user-heart" slot="prefix" />
+          <Tooltip slot="tooltip" text="Customers" position="end" />
+        </SideNavItem>
+      </SideNav>
+    </AppLayout>
+  );
+}
+
+[Lit: tooltip-positioning.ts]
+import '@vaadin/app-layout';
+import '@vaadin/app-layout/vaadin-drawer-toggle.js';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/side-nav';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tooltip-positioning')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-app-layout theme="narrow-drawer">
+        <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
+        <vaadin-side-nav
+          slot="drawer"
+          style="margin: 0 var(--vaadin-gap-xs); --vaadin-icon-size: 1.5rem;"
+        >
+          <!-- tag::snippet[] -->
+          <vaadin-side-nav-item path="/dashboard">
+            <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+            <vaadin-tooltip slot="tooltip" text="Dashboard" position="end"></vaadin-tooltip>
+          </vaadin-side-nav-item>
+          <!-- end::snippet[] -->
+          <vaadin-side-nav-item path="/orders">
+            <vaadin-icon icon="vaadin:cart" slot="prefix"></vaadin-icon>
+            <vaadin-tooltip slot="tooltip" text="Orders" position="end"></vaadin-tooltip>
+          </vaadin-side-nav-item>
+          <vaadin-side-nav-item path="/customers">
+            <vaadin-icon icon="vaadin:user-heart" slot="prefix"></vaadin-icon>
+            <vaadin-tooltip slot="tooltip" text="Customers" position="end"></vaadin-tooltip>
+          </vaadin-side-nav-item>
+        </vaadin-side-nav>
+      </vaadin-app-layout>
+    `;
+  }
+}
+
+The distance between the tooltip and the target element can also be customized by setting the following CSS properties on the tooltip:
+
+- --vaadin-tooltip-offset-top
+- --vaadin-tooltip-offset-bottom
+- --vaadin-tooltip-offset-start
+- --vaadin-tooltip-offset-end
+
+Configuring Delays
+
+The delay before tooltips appear can be configured separately for hover and keyboard focus. The delay before tooltips disappear — when the pointer leaves the target element — can also be configured separately. On blur, though, the tooltip is closed immediately to avoid confusion when focusing another element.
+
+[Flow: Java]
+import com.vaadin.flow.component.shared.TooltipConfiguration;
+
+// Global delay configuration:
+TooltipConfiguration.setDefaultFocusDelay(2000);
+TooltipConfiguration.setDefaultHoverDelay(1000);
+TooltipConfiguration.setDefaultHideDelay(1000);
+
+// Overriding delays for a particular component’s tooltip:
+button.setTooltipText("Home").withHoverDelay(500);
+
+[Flow: Java]
+
+[React: tsx]
+import { Tooltip } from '@vaadin/tooltip';
+
+// Global delay configuration:
+Tooltip.setDefaultFocusDelay(2000);
+Tooltip.setDefaultHoverDelay(1000);
+Tooltip.setDefaultHideDelay(1000);
+
+// Overriding delays for a particular component�’s tooltip:
+<Button>
+  Click me
+  <Tooltip hoverDelay={500} slot="tooltip" text="Home" />
+</Button>
+
+[React: tsx]
+
+[Lit: TypeScript]
+import { Tooltip } from '@vaadin/tooltip';
+
+// Global delay configuration:
+Tooltip.setDefaultFocusDelay(2000);
+Tooltip.setDefaultHoverDelay(1000);
+Tooltip.setDefaultHideDelay(1000);
+
+// Overriding delays for a particular component’s tooltip:
+<vaadin-button>
+  Click me
+  <vaadin-tooltip .hoverDelay=${500} slot="tooltip" text="Home"></vaadin-tooltip>
+</vaadin-button>
+
+[Lit: TypeScript]
+
+Triggering Manually
+
+Tooltips can be configured not to appear automatically on hover or keyboard focus, but instead be programmatically triggered only. This can be used to create so-called, toggletips — tooltips that can be manually displayed and hidden by the user.
+
+[Flow: TooltipManual.java]
+package com.vaadin.demo.component.tooltip;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.shared.Tooltip;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("tooltip-manual")
+public class TooltipManual extends Div {
+
+    public TooltipManual() {
+        TextField textField = new TextField();
+        textField.setPlaceholder("Search");
+        textField.setPrefixComponent(new Icon("lumo", "search"));
+        Button button = new Button(new Icon(VaadinIcon.INFO_CIRCLE));
+        button.addThemeVariants(ButtonVariant.TERTIARY);
+        button.getStyle().set("padding", "0").set("border", "0")
+                .set("min-width", "0").set("height", "1.25rem");
+        textField.setSuffixComponent(button);
+        // tag::snippet[]
+        textField.setTooltipText("Wrap in “quotes” for exact phrase");
+        Tooltip tooltip = textField.getTooltip().withManual(true);
+        button.addClickListener(event -> {
+            tooltip.setOpened(!tooltip.isOpened());
+        });
+        // end::snippet[]
+        add(textField);
+    }
+
+}
+
+[React: tooltip-manual.tsx]
+import '@vaadin/icons';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  const tooltipOpened = useSignal(false);
+
+  return (
+    // tag::snippet[]
+    <TextField placeholder="Search">
+      <Icon slot="prefix" icon="lumo:search" />
+      <Tooltip
+        slot="tooltip"
+        text="Wrap in “quotes” for exact phrase"
+        manual
+        opened={tooltipOpened.value}
+      />
+      <Button
+        slot="suffix"
+        theme="tertiary"
+        style={{ border: 0, padding: 0, minWidth: 0, height: '1.25rem' }}
+        onClick={() => {
+          tooltipOpened.value = !tooltipOpened.value;
+        }}
+      >
+        <Icon icon="vaadin:info-circle" />
+      </Button>
+    </TextField>
+    // end::snippet[]
+  );
+}
+
+[Lit: tooltip-manual.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import '@vaadin/tooltip';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tooltip-manual')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private tooltipOpened = false;
+
+  protected override render() {
+    return html`
+      <vaadin-text-field placeholder="Search">
+        <vaadin-icon slot="prefix" icon="lumo:search"></vaadin-icon>
+        <!-- tag::snippet[] -->
+        <vaadin-tooltip
+          slot="tooltip"
+          text="Wrap in “quotes” for exact phrase"
+          manual
+          .opened="${this.tooltipOpened}"
+        ></vaadin-tooltip>
+        <vaadin-button
+          slot="suffix"
+          theme="tertiary"
+          style="padding: 0; border: 0; min-width: 0; height: 1.25rem;"
+          @click="${() => {
+            this.tooltipOpened = !this.tooltipOpened;
+          }}"
+        >
+          <vaadin-icon icon="vaadin:info-circle"></vaadin-icon>
+        </vaadin-button>
+        <!-- end::snippet[] -->
+      </vaadin-text-field>
+    `;
+  }
+}
+
+Markdown
+
+Tooltip can be configured to render its text content as Markdown. This allows using simple formatting such as bold or italic text. By default, this feature is not active and the tooltip content is rendered as plain text.
+
+[Flow: Java]
+// For components that implement HasTooltip:
+button.setTooltipMarkdown("**Bold** _Italic_ `Code`");
+
+// For other components:
+Tooltip.forComponent(header).setMarkdown("**Bold** _Italic_ `Code`");
+
+[Flow: Java]
+
+[React: tsx]
+<Button>
+  Click me
+  <Tooltip markdown slot="tooltip" text="**Bold** _Italic_ `Code`" />
+</Button>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-button>
+  Click me
+  <vaadin-tooltip markdown slot="tooltip" text="**Bold** _Italic_ `Code`"></vaadin-tooltip>
+</vaadin-button>
+
+[Lit: HTML]
+
+Note: Using Markdown is discouraged if accessibility of the tooltip content is essential, as semantics of the rendered HTML content (headers, lists, …​) will not be conveyed to assistive technologies. Likewise, any interactive content such as links may not be accessible. For more complex or interactive content, consider using a Popover instead.
+
+Accessibility
+
+Tooltips are semantically associated with their target elements by default using the aria-describedby attribute, and are announced by screen readers when the element gains keyboard focus.
+
+However, tooltips on elements without dedicated tooltip APIs can’t be guaranteed to be announced correctly. This is because the announcement of aria-describedby attributes depends on the HTML element’s type and the role attribute. It also varies between different screen readers. Testing with screen readers is useful to ensure the accessibility of tooltips on these elements.
+
+The tooltip feature currently doesn’t support triggering via long press on touch-screen devices.
+
+Keep in mind that Vaadin components and other UI elements don’t, by default, imply the presence of tooltips in any way. This might make them difficult for users to discover.
+
+In general, visible labels are always preferable to tooltips. A separately defined invisible aria-label attribute usually provides better accessibility than a tooltip.
+
+ARIA Link Mode
+
+The ARIA attribute used to associate the tooltip with its target element can be configured. The following modes are available:
+
+aria-describedby
+    Links the tooltip as a description of the target. This is the default mode, and the appropriate one when the tooltip provides supplementary information about an element that already has an accessible name, such as a labeled input field.
+aria-labelledby
+    Links the tooltip as the accessible name of the target. Use this mode when the tooltip text acts as the target’s label, such as on icon-only buttons that have no visible label or aria-label of their own.
+none
+    Doesn’t apply any ARIA attribute to the target. Use this mode when the tooltip content is already exposed to assistive technologies by other means, to avoid redundant announcements.
+
+[Flow: Java]
+// For components that implement HasTooltip:
+button.setTooltipText("Search");
+button.getTooltip().setAriaLinkMode(Tooltip.AriaLinkMode.ARIA_LABELLED_BY);
+
+// For other components:
+Tooltip.forComponent(icon)
+        .withText("Search")
+        .withAriaLinkMode(Tooltip.AriaLinkMode.ARIA_LABELLED_BY);
+
+[Flow: Java]
+
+[React: tsx]
+<Button theme="icon">
+  <Icon icon="vaadin:search" />
+  <Tooltip slot="tooltip" text="Search" ariaLinkMode="aria-labelledby" />
+</Button>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-button theme="icon">
+  <vaadin-icon icon="vaadin:search"></vaadin-icon>
+  <vaadin-tooltip slot="tooltip" text="Search" aria-link-mode="aria-labelledby"></vaadin-tooltip>
+</vaadin-button>
+
+[Lit: HTML]
+
+Best Practices
+
+Tooltips should be used only to provide additional information, not for mission-critical information. They’re not a replacement for visible labels on input fields.
+
+On input field components, tooltips should be considered a last resort if neither the label — not the helper — nor the placeholder text can be used to provide the necessary information.
+
+Related Components
+
+Component | Usage recommendations
+Popover | A generic overlay whose position is anchored to an element in the UI.

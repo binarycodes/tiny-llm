@@ -1,0 +1,46 @@
+Browserless Testing
+
+Learn how browserless testing helps you test Vaadin applications faster.
+
+Note: Browserless testing was previously known as UI Unit Testing and required a commercial TestBench subscription. Starting with Vaadin 25.1, browserless testing is free for all users.
+
+Browserless testing removes the need to run a browser or a servlet container, making it much faster to test your Vaadin-based applications.
+
+With browserless testing, you look up components directly from UI.getCurrent(), bypassing the browser and the client-server communication bridge. You call methods directly on your server-side view classes and Vaadin components.
+
+You also don’t need to launch a servlet container. The BrowserlessTest class creates the Vaadin session, the UI, and other necessary Vaadin classes directly in the JVM that runs your JUnit tests.
+
+In addition to browserless testing, Vaadin also allows you to write end-to-end tests for your applications. Each approach has its own advantages.
+
+Topics
+
+Getting Started
+    Tutorial to create and run a browserless test.
+Component Testers
+    Using built-in testers and building custom ones for your own components.
+Querying Components
+    Details and examples on accessing components within a browserless test.
+Component Locators
+    Drive components with a fluent locator that combines a query filter chain and tester actions.
+Testing Overlay Components
+    How to test context menus, menu bars, and other overlay-based components in browserless tests.
+Spring Security Testing
+    How to test view access control and Spring Security integration in browserless tests.
+Snapshots
+    Use UI snapshots to debug failing browserless tests.
+Multi-User and Multi-Window Testing
+    Drive multiple concurrent user sessions and multiple browser windows in a single browserless test.
+Testing Signals
+    Assert on UI built with ValueSignal, ListSignal, computed signals, effects, and component bindings in browserless tests.
+Non-Spring Projects
+    How to write browserless tests in plain Java projects without Spring.
+JUnit 6 Extensions
+    Use BrowserlessExtension and BrowserlessClassExtension as an alternative to extending BrowserlessTest.
+Quarkus-based Projects
+    How to write browserless tests in Quarkus-based projects.
+Optimizing Tests
+    Speed up browserless tests by restricting package scanning and using reduced application contexts.
+Migrating from UI Unit Testing
+    Steps for migrating existing tests from the old UI Unit Testing module to the new Browserless Testing module.
+
+Note: Browserless testing isn’t supported in Java EE based projects due to technical limitations in the Weld JUnit 5 extension. Use End-to-End testing instead.

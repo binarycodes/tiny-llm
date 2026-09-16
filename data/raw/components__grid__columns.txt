@@ -1,0 +1,1372 @@
+Grid Columns
+
+Column alignment, freezing (i.e. fixed positioning), grouping, headers and footers, visibility, and width can be configured. Users can be allowed to resize and reorder columns.
+
+Column Alignment
+
+Three different column alignments are supported: left, which is the default; center; and right.
+
+Right alignment is useful when comparing numeric values, as it helps with readability and scannability. Notice how the Amount column in the example here aligns the euro values to the right. Those values would be difficult to scan visually if they were left aligned or centered. Tabular numbers — if the font offers them — or a monospace font could be used to further improve digit alignment.
+
+[Flow: GridColumnAlignment.java]
+package com.vaadin.demo.component.grid;
+
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-column-alignment")
+public class GridColumnAlignment extends Div {
+
+    public GridColumnAlignment() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFullName).setHeader("Name");
+        grid.addColumn(new LocalDateRenderer<>(
+                GridColumnAlignment::generateRandomDueDate, "MM/dd/yyyy"))
+                .setHeader("Due");
+        // tag::snippet[]
+        grid.addColumn(GridColumnAlignment::generateRandomAmountText)
+                .setHeader("Amount").setTextAlign(ColumnTextAlign.END);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static LocalDate generateRandomDueDate(Person person) {
+        LocalDate rangeStart = LocalDate.now(ZoneId.systemDefault());
+        LocalDate rangeEnd = rangeStart.plusYears(1);
+        long randomEpochDay = ThreadLocalRandom.current()
+                .nextLong(rangeStart.toEpochDay(), rangeEnd.toEpochDay());
+
+        return LocalDate.ofEpochDay(randomEpochDay);
+    }
+
+    private static final NumberFormat currencyFormatter = NumberFormat
+            .getCurrencyInstance(new Locale("en", "US"));
+
+    private static String generateRandomAmountText(Person person) {
+        double randomValue = ThreadLocalRandom.current().nextDouble(10000,
+                1000000);
+
+        return currencyFormatter.format(randomValue);
+    }
+
+}
+
+[React: grid-column-alignment.tsx]
+import React, { useEffect } from 'react';
+import { format } from 'date-fns';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+interface Loan {
+  displayName: string;
+  due: string;
+  amount: string;
+}
+
+function randomDate() {
+  const futureDate = new Date(Date.now() + Math.floor(Math.random() * 10000000000));
+  return format(futureDate, 'P');
+}
+
+function randomAmount() {
+  return Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
+    Math.floor(Math.random() * 1000000)
+  );
+}
+
+function Example() {
+  const items = useSignal<Loan[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        displayName: `${person.firstName} ${person.lastName}`,
+        due: randomDate(),
+        amount: randomAmount(),
+      }));
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value}>
+      <GridColumn path="displayName" header="Name" />
+      <GridColumn path="due" header="Due" />
+      <GridColumn path="amount" header="Amount" textAlign="end" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-column-alignment.ts]
+import '@vaadin/grid';
+import { format } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-column-alignment')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  randomDate() {
+    const futureDate = new Date(Date.now() + Math.floor(Math.random() * 10000000000));
+    return format(futureDate, 'P');
+  }
+
+  randomAmount() {
+    return Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
+      Math.floor(Math.random() * 1000000)
+    );
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column path="displayName" header="Name"></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Due"
+          ${columnBodyRenderer(() => html`<span>${this.randomDate()}</span>`, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Amount"
+          text-align="end"
+          ${columnBodyRenderer(
+            () => html`
+              <span style="font-variant-numeric: tabular-nums">${this.randomAmount()}</span>
+            `,
+            []
+          )}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Column Freezing
+
+Columns and column groups can be frozen — made sticky — to exclude them from horizontally scrolling a grid. This can be useful for keeping the most important columns always visible in a grid that contains so many columns they might otherwise scroll out of view. Freezing columns at the end of the grid is useful, for example, for keeping row actions always visible.
+
+In the example here, try scrolling the data to the right and back left. Notice that the name of each person is stationary so that you can see easily which data relates to which person as you scroll. The Edit button at the end also remains in place so that it’s available at any point while scrolling.
+
+[Flow: GridColumnFreezing.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-column-freezing")
+public class GridColumnFreezing extends Div {
+
+    public GridColumnFreezing() {
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        // tag::snippet1[]
+        grid.addColumn(createPersonRenderer()).setHeader("Name").setFrozen(true)
+                .setAutoWidth(true).setFlexGrow(0);
+        // end::snippet1[]
+        grid.addColumn(Person::getEmail).setHeader("Email").setAutoWidth(true);
+        grid.addColumn(person -> person.getAddress().getPhone())
+                .setHeader("Phone").setAutoWidth(true);
+        grid.addColumn(Person::getProfession).setHeader("Profession")
+                .setAutoWidth(true);
+        grid.addColumn(person -> person.getAddress().getStreet())
+                .setHeader("Street").setAutoWidth(true);
+        // tag::snippet2[]
+        grid.addColumn(createActionRenderer()).setFrozenToEnd(true)
+                .setAutoWidth(true).setFlexGrow(0);
+        // end::snippet2[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createPersonRenderer() {
+        return LitRenderer.<Person> of("${item.fullName}")
+                .withProperty("fullName", Person::getFullName);
+    }
+
+    private static Renderer<Person> createActionRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-button theme=\"tertiary-inline\">Edit</vaadin-button>");
+    }
+
+}
+
+[React: grid-column-freezing.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function nameRenderer({ item: person }: { item: Person }) {
+  return (
+    <>
+      {person.firstName} {person.lastName}
+    </>
+  );
+}
+
+function editRenderer() {
+  return <Button theme="tertiary-inline">Edit</Button>;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      {/* tag::snippet1[] */}
+      <GridColumn frozen header="Name" autoWidth flexGrow={0} renderer={nameRenderer} />
+      {/* end::snippet1[] */}
+
+      <GridColumn path="email" autoWidth />
+      <GridColumn path="address.phone" autoWidth />
+      <GridColumn path="profession" autoWidth />
+      <GridColumn path="address.street" autoWidth />
+
+      {/* tag::snippet2[] */}
+
+      <GridColumn frozenToEnd autoWidth flexGrow={0} renderer={editRenderer}></GridColumn>
+      {/* end::snippet2[] */}
+    </Grid>
+  );
+}
+
+[Lit: grid-column-freezing.ts]
+import '@vaadin/button';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-column-freezing')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <!-- tag::snippet1[] -->
+        <vaadin-grid-column
+          frozen
+          header="Name"
+          auto-width
+          flex-grow="0"
+          ${columnBodyRenderer<Person>(
+            (person) => html`${person.firstName} ${person.lastName}`,
+            []
+          )}
+        ></vaadin-grid-column>
+        <!-- end::snippet1[] -->
+        <vaadin-grid-column path="email" auto-width></vaadin-grid-column>
+        <vaadin-grid-column path="address.phone" auto-width></vaadin-grid-column>
+        <vaadin-grid-column path="profession" auto-width></vaadin-grid-column>
+        <vaadin-grid-column path="address.street" auto-width></vaadin-grid-column>
+        <!-- tag::snippet2[] -->
+        <vaadin-grid-column
+          frozen-to-end
+          auto-width
+          flex-grow="0"
+          ${columnBodyRenderer(
+            () => html`<vaadin-button theme="tertiary-inline">Edit</vaadin-button>`,
+            []
+          )}
+        ></vaadin-grid-column>
+        <!-- end::snippet2[] -->
+      </vaadin-grid>
+    `;
+  }
+}
+
+Although it’s technically possible to freeze any column, it should be used primarily to freeze columns at the start or end of the grid, leaving the remaining columns unfrozen.
+
+Column Grouping
+
+It’s possible to group columns. They share a common header and footer. Use this feature to better visualize and organize related or hierarchical data.
+
+In the example below, the first and last names are grouped under Name. Whereas, the street address, the city, and so forth are grouped under Address.
+
+[Flow: GridColumnGrouping.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-column-grouping")
+public class GridColumnGrouping extends Div {
+
+    public GridColumnGrouping() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        Grid.Column<Person> firstNameColumn = grid
+                .addColumn(Person::getFirstName).setHeader("First name");
+        Grid.Column<Person> lastNameColumn = grid.addColumn(Person::getLastName)
+                .setHeader("Last name");
+        Grid.Column<Person> streetColumn = grid
+                .addColumn(person -> person.getAddress().getStreet())
+                .setHeader("Street");
+        Grid.Column<Person> cityColumn = grid
+                .addColumn(person -> person.getAddress().getCity())
+                .setHeader("City");
+        Grid.Column<Person> zipColumn = grid
+                .addColumn(person -> person.getAddress().getZip())
+                .setHeader("Zip");
+        Grid.Column<Person> stateColumn = grid
+                .addColumn(person -> person.getAddress().getState())
+                .setHeader("State");
+
+        HeaderRow headerRow = grid.prependHeaderRow();
+        headerRow.join(firstNameColumn, lastNameColumn).setText("Name");
+        headerRow.join(streetColumn, cityColumn, zipColumn, stateColumn)
+                .setText("Address");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-column-grouping.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridColumnGroup } from '@vaadin/react-components/GridColumnGroup.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridColumnGroup header="Name">
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+      </GridColumnGroup>
+
+      <GridColumnGroup header="Address">
+        <GridColumn path="address.street" />
+        <GridColumn path="address.city" />
+        <GridColumn path="address.zip" />
+        <GridColumn path="address.state" />
+      </GridColumnGroup>
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-column-grouping.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-column-group.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-column-grouping')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column-group header="Name">
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        </vaadin-grid-column-group>
+        <vaadin-grid-column-group header="Address">
+          <vaadin-grid-column path="address.street"></vaadin-grid-column>
+          <vaadin-grid-column path="address.city"></vaadin-grid-column>
+          <vaadin-grid-column path="address.zip"></vaadin-grid-column>
+          <vaadin-grid-column path="address.state"></vaadin-grid-column>
+        </vaadin-grid-column-group>
+      </vaadin-grid>
+    `;
+  }
+}
+// end::snippet[]
+
+Column Headers & Footers
+
+Each column has a customizable header and footer. A basic column header shows the name in plain text. Footers are empty by default and therefore hidden. However, if you add content for the footer, it becomes visible. Incidentally, both the header and footer can contain rich content and components — notice the header and footer in the example here.
+
+[Flow: GridColumnHeaderFooter.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-column-header-footer")
+public class GridColumnHeaderFooter extends Div {
+
+    public GridColumnHeaderFooter() {
+        // tag::snippet1[]
+        List<Person> people = DataService.getPeople();
+
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFullName).setHeader("Name")
+                .setFooter(String.format("%s total members", people.size()));
+        grid.addColumn(person -> person.isSubscriber() ? "Yes" : "No")
+                .setHeader(createSubscriberHeader())
+                .setFooter(createSubscriberFooterText(people));
+        grid.addColumn(Person::getMembership)
+                .setHeader(createMembershipHeader())
+                .setFooter(createMembershipFooterText(people));
+        // end::snippet1[]
+
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Component createSubscriberHeader() {
+        Span span = new Span("Subscriber");
+        Icon icon = VaadinIcon.INFO_CIRCLE.create();
+        icon.getElement().setAttribute("title",
+                "Subscribers are paying customers");
+        icon.getStyle().set("--vaadin-icon-visual-size", "80%").set("color",
+                "var(--vaadin-text-color-secondary)");
+
+        HorizontalLayout layout = new HorizontalLayout(span, icon);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setSpacing("var(--vaadin-gap-xs)");
+
+        return layout;
+    }
+
+    private static String createSubscriberFooterText(List<Person> people) {
+        long subscriberCount = people.stream().filter(Person::isSubscriber)
+                .count();
+
+        return String.format("%s subscribers", subscriberCount);
+    }
+
+    private static Component createMembershipHeader() {
+        Span span = new Span("Membership");
+        Icon icon = VaadinIcon.INFO_CIRCLE.create();
+        icon.getElement().setAttribute("title",
+                "Membership levels determines which features a client has access to");
+        icon.getStyle().set("--vaadin-icon-visual-size", "80%").set("color",
+                "var(--vaadin-text-color-secondary)");
+
+        HorizontalLayout layout = new HorizontalLayout(span, icon);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setSpacing("var(--vaadin-gap-xs)");
+
+        return layout;
+    }
+
+    private static String createMembershipFooterText(List<Person> people) {
+        long regularCount = people.stream()
+                .filter(person -> "Regular".equals(person.getMembership()))
+                .count();
+        long premiumCount = people.stream()
+                .filter(person -> "Premium".equals(person.getMembership()))
+                .count();
+        long vipCount = people.stream()
+                .filter(person -> "VIP".equals(person.getMembership())).count();
+
+        return String.format("%s regular, %s premium, %s VIP", regularCount,
+                premiumCount, vipCount);
+    }
+
+}
+
+[React: grid-column-header-footer.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+function SubscriberHeader() {
+  return (
+    <HorizontalLayout style={{ alignItems: 'center', gap: 'var(--vaadin-gap-xs)' }}>
+      <span>Subscriber</span>
+      <Icon
+        icon="vaadin:info-circle"
+        title="Subscribers are paying customers"
+        style={{ '--vaadin-icon-visual-size': '80%', color: 'var(--vaadin-text-color-secondary)' }}
+      />
+    </HorizontalLayout>
+  );
+}
+
+function MembershipHeader() {
+  return (
+    <HorizontalLayout style={{ alignItems: 'center', gap: 'var(--vaadin-gap-xs)' }}>
+      <span>Membership</span>
+      <Icon
+        icon="vaadin:info-circle"
+        title="Membership levels determines which features a client has access to"
+        style={{ '--vaadin-icon-visual-size': '80%', color: 'var(--vaadin-text-color-secondary)' }}
+      />
+    </HorizontalLayout>
+  );
+}
+
+function subscriberRenderer({ item }: { item: Person }) {
+  return <span>{item.subscriber ? 'Yes' : 'No'}</span>;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people.map((person) => ({
+        ...person,
+        displayName: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value}>
+      <GridColumn path="displayName" header="Name" footer={<span>200 total members</span>} />
+
+      <GridColumn
+        header={<SubscriberHeader />}
+        footer={<span>102 subscribers</span>}
+        renderer={subscriberRenderer}
+      />
+
+      <GridColumn
+        path="membership"
+        header={<MembershipHeader />}
+        footer={<span>103 regular, 71 premium , 66 VIP</span>}
+      />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[Lit: grid-column-header-footer.ts]
+import '@vaadin/grid';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import {
+  columnBodyRenderer,
+  columnFooterRenderer,
+  columnHeaderRenderer,
+} from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-column-header-footer')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({
+      ...person,
+      displayName: `${person.firstName} ${person.lastName}`,
+    }));
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}">
+        <vaadin-grid-column
+          header="Name"
+          path="displayName"
+          ${columnFooterRenderer(() => html`<span>200 total members</span>`, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          ${columnHeaderRenderer(this.subscriberHeaderRenderer, [])}
+          ${columnBodyRenderer(this.subscriberRenderer, [])}
+          ${columnFooterRenderer(() => html`<span>102 subscribers</span>`, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          path="membership"
+          ${columnHeaderRenderer(this.membershipHeaderRenderer, [])}
+          ${columnFooterRenderer(() => html`<span>103 regular, 71 premium , 66 VIP</span>`, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private subscriberHeaderRenderer = () => html`
+    <vaadin-horizontal-layout style="align-items: center; gap: var(--vaadin-gap-xs);">
+      <span>Subscriber</span>
+      <vaadin-icon
+        icon="vaadin:info-circle"
+        title="Subscribers are paying customers"
+        style="--vaadin-icon-visual-size: 80%; color: var(--vaadin-text-color-secondary);"
+      ></vaadin-icon>
+    </vaadin-horizontal-layout>
+  `;
+
+  private subscriberRenderer: GridColumnBodyLitRenderer<Person> = (person) =>
+    html`<span>${person.subscriber ? 'Yes' : 'No'}</span>`;
+
+  private membershipHeaderRenderer = () => html`
+    <vaadin-horizontal-layout style="align-items: center; gap: var(--vaadin-gap-xs);">
+      <span>Membership</span>
+      <vaadin-icon
+        icon="vaadin:info-circle"
+        title="Membership levels determines which features a client has access to"
+        style="--vaadin-icon-visual-size: 80%; color: var(--vaadin-text-color-secondary);"
+      ></vaadin-icon>
+    </vaadin-horizontal-layout>
+  `;
+  // end::snippet[]
+}
+
+Column Visibility
+
+When you want, columns and column groups can be hidden. You can provide the user with a menu for toggling column visibilities, for example, using Popover. Allowing the user to hide columns is useful when only a subset of the columns is relevant to their task, and if there are plenty of columns.
+
+[Flow: PopoverAnchoredDialog.java]
+package com.vaadin.demo.component.popover;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-anchored-dialog")
+public class PopoverAnchoredDialog extends Div {
+
+    public PopoverAnchoredDialog() {
+        // tag::gridsnippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setKey("firstName")
+                .setHeader("First name");
+        grid.addColumn(Person::getLastName).setKey("lastName")
+                .setHeader("Last name");
+        grid.addColumn(Person::getEmail).setKey("email").setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone()).setKey("phone")
+                .setHeader("Phone");
+        grid.addColumn(new LocalDateRenderer<>(
+                PopoverAnchoredDialog::getPersonBirthday, "yyyy-MM-dd"))
+                .setKey("birthday").setHeader("Birthday");
+        grid.addColumn(Person::getProfession).setKey("profession")
+                .setHeader("Profession");
+        // end::gridsnippet[]
+
+        grid.getStyle().set("margin-top", "var(--vaadin-gap-s)");
+        grid.setItems(DataService.getPeople());
+
+        H3 title = new H3("Employees");
+
+        Button button = new Button(VaadinIcon.GRID_H.create());
+        button.addThemeVariants(ButtonVariant.LUMO_ICON);
+        button.setAriaLabel("Show / hide columns");
+
+        HorizontalLayout headerLayout = new HorizontalLayout(title);
+        headerLayout.addToEnd(button);
+        headerLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        Popover popover = new Popover();
+        popover.setModal(true);
+        popover.setBackdropVisible(true);
+        popover.setPosition(PopoverPosition.BOTTOM_END);
+        popover.setTarget(button);
+
+        Div heading = new Div("Configure columns");
+        heading.getStyle().set("font-weight", "600");
+
+        List<String> columns = List.of("firstName", "lastName", "email",
+                "phone", "birthday", "profession");
+        // tag::gridsnippet[]
+
+        CheckboxGroup<String> group = new CheckboxGroup<>();
+        group.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+        group.getStyle().set("padding", "0").set("margin",
+                "var(--vaadin-gap-s) 0");
+        group.setItems(columns);
+        group.setItemLabelGenerator((item) -> {
+            String label = StringUtils
+                    .join(StringUtils.splitByCharacterTypeCamelCase(item), " ");
+            return StringUtils.capitalize(label.toLowerCase());
+        });
+        group.addValueChangeListener((e) -> {
+            columns.stream().forEach((key) -> {
+                grid.getColumnByKey(key).setVisible(e.getValue().contains(key));
+            });
+        });
+        // end::gridsnippet[]
+
+        Set<String> defaultColumns = Set.of("firstName", "lastName", "email",
+                "profession");
+        group.setValue(defaultColumns);
+
+        Button showAll = new Button("Show all", (e) -> {
+            group.setValue(new HashSet<String>(columns));
+        });
+        showAll.addThemeVariants(ButtonVariant.SMALL);
+
+        Button reset = new Button("Reset", (e) -> {
+            group.setValue(defaultColumns);
+        });
+        reset.addThemeVariants(ButtonVariant.SMALL);
+
+        HorizontalLayout footer = new HorizontalLayout(showAll, reset);
+        footer.setSpacing("var(--vaadin-gap-xs)");
+        footer.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+        popover.add(heading, group, footer);
+
+        add(headerLayout, grid, popover);
+    }
+
+    private static LocalDate getPersonBirthday(Person person) {
+        return person.getBirthday().toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+}
+
+[React: popover-anchored-dialog.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Button,
+  Checkbox,
+  CheckboxGroup,
+  Grid,
+  GridColumn,
+  HorizontalLayout,
+  Icon,
+  Popover,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type ColumnConfig = { label: string; key: string; visible: boolean };
+
+const DEFAULT_COLUMNS: ColumnConfig[] = [
+  { label: 'First name', key: 'firstName', visible: true },
+  { label: 'Last name', key: 'lastName', visible: true },
+  { label: 'Email', key: 'email', visible: true },
+  { label: 'Phone', key: 'address.phone', visible: false },
+  { label: 'Birthday', key: 'birthday', visible: false },
+  { label: 'Profession', key: 'profession', visible: true },
+];
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const columns = useSignal<ColumnConfig[]>([...DEFAULT_COLUMNS]);
+  const visibleColumns = useComputed(() =>
+    columns.value.filter((column) => column.visible).map((column) => column.key)
+  );
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <>
+      <HorizontalLayout style={{ alignItems: 'baseline' }}>
+        <h3>Employees</h3>
+        <Button id="toggle-columns" slot="end" theme="icon" aria-label="Show / hide columns">
+          <Icon icon="vaadin:grid-h" />
+        </Button>
+      </HorizontalLayout>
+
+      <Popover for="toggle-columns" modal withBackdrop position="bottom-end">
+        <div style={{ fontWeight: '600' }}>Configure columns</div>
+        <CheckboxGroup
+          theme="vertical"
+          value={visibleColumns.value}
+          style={{ padding: '0', margin: 'var(--vaadin-gap-s) 0' }}
+        >
+          {columns.value.map((item) => (
+            <Checkbox
+              label={item.label}
+              value={item.key}
+              onChange={(event) => {
+                const idx = columns.value.findIndex(({ key }) => key === event.target.value);
+                columns.value = columns.value.map((column, index) => ({
+                  ...column,
+                  visible: idx === index ? event.target.checked : column.visible,
+                }));
+              }}
+            />
+          ))}
+        </CheckboxGroup>
+        <HorizontalLayout style={{ justifyContent: 'space-between', gap: 'var(--vaadin-gap-s)' }}>
+          <Button
+            theme="small"
+            onClick={() => {
+              columns.value = columns.value.map((column) => ({ ...column, visible: true }));
+            }}
+          >
+            Show all
+          </Button>
+          <Button
+            theme="small"
+            onClick={() => {
+              columns.value = columns.value.map((column, idx) => ({
+                ...column,
+                visible: DEFAULT_COLUMNS[idx].visible,
+              }));
+            }}
+          >
+            Reset
+          </Button>
+        </HorizontalLayout>
+      </Popover>
+
+      {/* tag::gridsnippet[] */}
+      <Grid items={items.value} style={{ marginTop: 'var(--vaadin-gap-s)' }}>
+        {columns.value.map((item) => (
+          <GridColumn path={item.key} hidden={!item.visible} key={item.key} />
+        ))}
+      </Grid>
+      {/* end::gridsnippet[] */}
+    </>
+  );
+}
+
+[Lit: popover-anchored-dialog.ts]
+import '@vaadin/button';
+import '@vaadin/checkbox-group';
+import '@vaadin/grid';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/popover';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CheckboxChangeEvent } from '@vaadin/checkbox';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+type ColumnConfig = { label: string; key: string; visible: boolean };
+
+const DEFAULT_COLUMNS = [
+  { label: 'First name', key: 'firstName', visible: true },
+  { label: 'Last name', key: 'lastName', visible: true },
+  { label: 'Email', key: 'email', visible: true },
+  { label: 'Phone', key: 'address.phone', visible: false },
+  { label: 'Birthday', key: 'birthday', visible: false },
+  { label: 'Profession', key: 'profession', visible: true },
+];
+
+@customElement('popover-anchored-dialog')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  @state()
+  private gridColumns: ColumnConfig[] = [...DEFAULT_COLUMNS];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout style="align-items: baseline">
+        <h3>Employees</h3>
+        <vaadin-button id="toggle-columns" slot="end" theme="icon" aria-label="Show / hide columns">
+          <vaadin-icon icon="vaadin:grid-h"></vaadin-icon>
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+
+      <vaadin-popover for="toggle-columns" modal with-backdrop position="bottom-end">
+        ${this.renderPopover(this.gridColumns)}
+      </vaadin-popover>
+
+      <!-- tag::gridsnippet[] -->
+      <vaadin-grid .items="${this.items}" style="margin-top: var(--vaadin-gap-s);">
+        ${this.gridColumns.map(
+          (column) => html`
+            <vaadin-grid-column
+              path="${column.key}"
+              .hidden="${!column.visible}"
+            ></vaadin-grid-column>
+          `
+        )}
+      </vaadin-grid>
+      <!-- end::gridsnippet[] -->
+    `;
+  }
+
+  renderPopover(columns: ColumnConfig[]) {
+    const visibleColumns = columns.filter((column) => column.visible).map((column) => column.key);
+
+    return html`
+      <div style="font-weight: 600;">Configure columns</div>
+      <vaadin-checkbox-group
+        theme="vertical"
+        .value="${visibleColumns}"
+        style="padding: 0; margin: var(--vaadin-gap-s) 0;"
+      >
+        ${columns.map(
+          (column) => html`
+            <vaadin-checkbox
+              .label="${column.label}"
+              .value="${column.key}"
+              @change="${this.onCheckboxChange}"
+            ></vaadin-checkbox>
+          `
+        )}
+      </vaadin-checkbox-group>
+      <vaadin-horizontal-layout style="justify-content: space-between; gap: var(--vaadin-gap-s);">
+        <vaadin-button theme="small" @click="${this.showAllColumns}">Show all</vaadin-button>
+        <vaadin-button theme="small" @click="${this.resetColumns}">Reset</vaadin-button>
+      </vaadin-horizontal-layout>
+    `;
+  }
+
+  onCheckboxChange(event: CheckboxChangeEvent) {
+    const idx = this.gridColumns.findIndex(({ key }) => key === event.target.value);
+    this.gridColumns = this.gridColumns.map((column, index) => ({
+      ...column,
+      visible: idx === index ? event.target.checked : column.visible,
+    }));
+  }
+
+  showAllColumns() {
+    this.gridColumns = this.gridColumns.map((column) => ({ ...column, visible: true }));
+  }
+
+  resetColumns() {
+    this.gridColumns = this.gridColumns.map((column, idx) => ({
+      ...column,
+      visible: DEFAULT_COLUMNS[idx].visible,
+    }));
+  }
+}
+
+Column Reordering & Resizing
+
+Enabling the user to reorder columns is useful when they want to compare data that isn’t adjacent by default. Grouped columns can only be reordered within their group. Resizing is helpful when a column’s content doesn’t fit and is cut off or varies in length.
+
+Instead of hiding columns as in the earlier example, in the example here the user can resize a truncated column to be able to read it, fully. Try doing that. Hover your mouse pointer over the space on the header row between the Street and City columns, until the mouse pointer changes to a resizing tool. Then, while holding the left mouse button, pull on the right edge of the Street column until you can see all of the street addresses.
+
+[Flow: GridColumnReorderingResizing.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-column-reordering-resizing")
+public class GridColumnReorderingResizing extends Div {
+
+    public GridColumnReorderingResizing() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.setColumnReorderingAllowed(true);
+        Grid.Column<Person> firstNameColumn = grid
+                .addColumn(Person::getFirstName).setHeader("First name")
+                .setResizable(true);
+        Grid.Column<Person> lastNameColumn = grid.addColumn(Person::getLastName)
+                .setHeader("Last name").setResizable(true);
+        Grid.Column<Person> streetColumn = grid
+                .addColumn(person -> person.getAddress().getStreet())
+                .setHeader("Street").setResizable(true);
+        Grid.Column<Person> cityColumn = grid
+                .addColumn(person -> person.getAddress().getCity())
+                .setHeader("City").setResizable(true);
+        Grid.Column<Person> zipColumn = grid
+                .addColumn(person -> person.getAddress().getZip())
+                .setHeader("Zip").setResizable(true);
+        Grid.Column<Person> stateColumn = grid
+                .addColumn(person -> person.getAddress().getState())
+                .setHeader("State").setResizable(true);
+
+        HeaderRow headerRow = grid.prependHeaderRow();
+        headerRow.join(firstNameColumn, lastNameColumn).setText("Name");
+        headerRow.join(streetColumn, cityColumn, zipColumn, stateColumn)
+                .setText("Address");
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-column-reordering-resizing.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridColumnGroup } from '@vaadin/react-components/GridColumnGroup.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value} columnReorderingAllowed>
+      <GridColumnGroup header="Name">
+        <GridColumn path="firstName" resizable />
+        <GridColumn path="lastName" resizable />
+      </GridColumnGroup>
+
+      <GridColumnGroup header="Address">
+        <GridColumn path="address.street" resizable />
+        <GridColumn path="address.city" resizable />
+        <GridColumn path="address.zip" resizable />
+        <GridColumn path="address.state" resizable />
+      </GridColumnGroup>
+    </Grid>
+  );
+  // end::snippet[]
+}
+
+[Lit: grid-column-reordering-resizing.ts]
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-column-group.js';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-column-reordering-resizing')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}" column-reordering-allowed>
+        <vaadin-grid-column-group header="Name">
+          <vaadin-grid-column path="firstName" resizable></vaadin-grid-column>
+          <vaadin-grid-column path="lastName" resizable></vaadin-grid-column>
+        </vaadin-grid-column-group>
+        <vaadin-grid-column-group header="Address">
+          <vaadin-grid-column path="address.street" resizable></vaadin-grid-column>
+          <vaadin-grid-column path="address.city" resizable></vaadin-grid-column>
+          <vaadin-grid-column path="address.zip" resizable></vaadin-grid-column>
+          <vaadin-grid-column path="address.state" resizable></vaadin-grid-column>
+        </vaadin-grid-column-group>
+      </vaadin-grid>
+    `;
+  }
+}
+// end::snippet[]
+
+Column Width
+
+Unless specified, all columns are the same width. You can set a specific width for any column, though, or allow the Grid to set the width based on the content. Column widths can be fixed or non-fixed, which is the default. Fixed-width columns don’t grow or shrink as the available space changes, while non-fixed-width columns do.
+
+Note: The em length unit is a relative setting for font sizes. Don’t use it for column widths. If the font sizes of the header, body or footer cells differ, may cause column widths to be inconsistent, leading to misaligned content. When length relative to the font size is needed, use instead the rem length unit — or make sure that the font size is consistent across the cells.
+
+In the following example, the first and last columns have fixed widths. The second column’s width is set to be based on the content, while the third consumes the remaining space.
+
+[Flow: GridColumnWidth.java]
+package com.vaadin.demo.component.grid;
+
+import java.util.List;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.DataService;
+
+@Route("grid-column-width")
+public class GridColumnWidth extends Div {
+
+    public GridColumnWidth() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.addColumn(Person::getFirstName).setHeader("First name")
+                .setWidth("7rem").setFlexGrow(0);
+        grid.addColumn(Person::getProfession).setHeader("Profession")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(person -> person.isSubscriber() ? "Yes" : "No")
+                .setHeader("Has Sub").setWidth("6rem").setFlexGrow(0);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+        grid.setWidth("100%");
+
+        SplitLayout splitLayout = new SplitLayout(grid, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: grid-column-width.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { GridSelectionColumn } from '@vaadin/react-components/GridSelectionColumn.js';
+import { SplitLayout } from '@vaadin/react-components/SplitLayout.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function subscriberRenderer({ item }: { item: Person }) {
+  return item.subscriber ? 'Yes' : 'No';
+}
+
+// tag::snippet[]
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <SplitLayout>
+      <Grid items={items.value} style={{ width: '100%' }}>
+        <GridSelectionColumn />
+        <GridColumn path="firstName" width="7rem" flexGrow={0} />
+        <GridColumn path="profession" autoWidth flexGrow={0} />
+        <GridColumn path="email" />
+        <GridColumn width="6rem" flexGrow={0} header="Has Sub" renderer={subscriberRenderer} />
+      </Grid>
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+// end::snippet[]
+
+[Lit: grid-column-width.ts]
+import '@vaadin/button';
+import '@vaadin/grid';
+import '@vaadin/grid/vaadin-grid-selection-column.js';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-column-width')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        <vaadin-grid .items="${this.items}" style="width: 100%;">
+          <vaadin-grid-selection-column></vaadin-grid-selection-column>
+          <vaadin-grid-column path="firstName" width="7rem" flex-grow="0"></vaadin-grid-column>
+          <vaadin-grid-column path="profession" auto-width flex-grow="0"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column
+            width="6rem"
+            flex-grow="0"
+            header="Has Sub"
+            ${columnBodyRenderer<Person>((item) => html`${item.subscriber ? 'Yes' : 'No'}`, [])}
+          ></vaadin-grid-column>
+        </vaadin-grid>
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+}
+// end::snippet[]

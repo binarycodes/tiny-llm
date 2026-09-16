@@ -1,0 +1,47 @@
+API Reference
+
+Links to Application Programming Interface documentation.
+
+The Application Programming Interface (API) documentation for all Java classes and interfaces.
+
+Javadoc
+
+Shortcuts
+
+Below are shortcuts to certain parts of the API documentation.
+
+Flow
+
+Binder
+
+com.vaadin.flow.data.binder
+
+DataProvider
+
+com.vaadin.flow.data.provider
+
+Router
+
+com.vaadin.flow.router
+
+Design System
+
+Components
+
+Links to component API docs are under the "API" page for each component. Browse components
+
+Collaboration Kit
+
+Core API
+
+com.vaadin.collaborationengine
+
+TestBench
+
+Core API
+
+com.vaadin.testbench
+
+Component API
+
+com.vaadin.flow.component.*.testbench

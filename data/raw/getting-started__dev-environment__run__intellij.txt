@@ -1,0 +1,47 @@
+Run in IntelliJ IDEA
+
+You can run and debug your Vaadin application in IntelliJ IDEA as you would any other Java application. When you imported the project into IntelliJ IDEA, a run/debug configuration called Application should have been created automatically. You can start the application by clicking the Debug button in the toolbar. It is indicated by a red circle in this screenshot:
+
+[image: Debug button in IntelliJ IDEA]
+
+The application starts up and you can access it at http://localhost:8080. Hot deploy of the frontend files is enabled automatically. However, to enable Java hotswap, you have to take some additional actions.
+
+Gradle Projects
+
+By default, IntelliJ IDEA delegates build and run actions to Gradle for Gradle-based projects. For a better development experience, configure IntelliJ IDEA to build and run using its own compiler instead:
+
+1. Go to Settings > Build, Execution, Deployment > Build Tools > Gradle.
+2. Under Build and run using, select IntelliJ IDEA.
+3. Under Run tests using, select IntelliJ IDEA.
+
+This avoids unnecessary Gradle task execution during development and provides faster compilation.
+
+Tip: When using hot deploy with Gradle, ensure that frontendHotdeploy is set to true in the vaadin {} block in build.gradle, not only in application.properties. The Gradle plugin does not read application.properties. See Vaadin Plugin Configuration for details. This is only needed if you explicitly run the vaadinPrepareFrontend task.
+
+Enabling Hotswap
+
+The easiest way of running a Vaadin application with hotswap in IntelliJ IDEA is by installing the Vaadin plugin. If you haven’t done so already, do it now.
+
+Click on the button with three small dots next to the run/debug configuration. It is highlighted on this screenshot with a red circle:
+
+[image: IntelliJ IDEA with a generated skeleton]
+
+This brings up a menu that looks like this:
+
+[image: The more actions menu in IntelliJ IDEA]
+
+Start the application by selecting Debug using HotswapAgent. If you can’t see this option, the Vaadin plugin has not been installed correctly.
+
+If the run/debug configuration was not automatically created, you can start the application in another way. Look up the main application class and right-click it in the project navigator. Then click More Run/Debug › Debug using HotswapAgent, as shown on this screenshot:
+
+[image: IntelliJ IDEA context menu]
+
+Your application now starts up with hotswap of Java classes enabled. Open the application in a browser and verify that everything is working through Vaadin Copilot. Move your mouse pointer over the Copilot button at the bottom-right corner:
+
+[image: Vaadin Copilot menu visible in a browser]
+
+Important: The Copilot button is only available when the application is running in development mode. It is not available in production mode.
+
+Now click Development workflow. You can see that both the IntelliJ IDEA plugin and hotswap are working correctly:
+
+[image: Vaadin Copilot development workflow dialog]

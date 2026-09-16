@@ -1,0 +1,40 @@
+Integrating Components
+
+How to use any third-party component from npm in your Hilla applications.
+
+To use 3rd-party components in Hilla, you first need to install the component from the npm package registry.
+
+For example, the following command installs the latest version of the vanilla-colorful color picker component and adds the dependency in the package.json file in your project:
+
+[terminal]
+npm i vanilla-colorful
+
+After installation, you can import and use the component in a view.
+
+The following example shows the hex triplet of the selected color in a Text Field:
+
+[color-picker-view.ts]
+import '@vaadin/text-field';
+import 'vanilla-colorful';
+import { html, LitElement } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import type { TextField } from '@vaadin/text-field';
+
+@customElement('color-picker-view')
+export class ColorPickerView extends LitElement {
+  @query('#hex')
+  hex!: TextField;
+
+  render() {
+    return html`
+      <vaadin-text-field id="hex" label="HEX" readonly></vaadin-text-field>
+      <hex-color-picker @color-changed="${this.colorChanged}"></hex-color-picker>
+    `;
+  }
+
+  colorChanged(e: CustomEvent) {
+    this.hex.value = e.detail.value;
+  }
+}
+
+[color-picker-view.ts]

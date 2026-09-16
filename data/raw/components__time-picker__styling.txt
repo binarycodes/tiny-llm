@@ -1,0 +1,303 @@
+Time Picker Styling
+
+Styling API reference for the Time Picker component.
+
+Style Variants
+
+The following style variants can be applied:
+
+Variant | Description | Supported by
+align-left | Aligns the text to the left side of the field (default) | Aura, Lumo
+align-center | Centers the text within the field | Aura, Lumo
+align-right | Aligns the text to the right side of the field. Recommended for numerical values when presented in vertical groups. | Aura, Lumo
+align-start | Aligns the text to the start side of the field, taking into account the current text direction (left for LTR, right for RTL) | Aura
+align-end | Aligns the text to the end side of the field, taking into account the current text direction (right for LTR, left for RTL) | Aura
+small | Renders a more compact field | Aura, Lumo
+filled | Uses a solid background color for hovered and active items in the overlay | Aura
+helper-above-field | Renders the helper above the field, and below the label | Aura, Lumo
+
+[Flow: TimePickerStyles.java]
+package com.vaadin.demo.component.timepicker;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.timepicker.TimePicker;
+import com.vaadin.flow.component.timepicker.TimePickerVariant;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalTime;
+
+@Route("time-picker-styles")
+public class TimePickerStyles extends HorizontalLayout {
+
+    public TimePickerStyles() {
+        setPadding(false);
+
+        // tag::snippet[]
+        TimePicker field = new TimePicker();
+        field.addThemeVariants(TimePickerVariant.SMALL,
+                TimePickerVariant.ALIGN_RIGHT, TimePickerVariant.HELPER_ABOVE);
+        // end::snippet[]
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setValue(LocalTime.of(7, 0));
+
+        add(field);
+    }
+
+}
+
+[React: time-picker-styles.tsx]
+import React from 'react';
+import { TimePicker } from '@vaadin/react-components/TimePicker.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TimePicker
+      theme="align-right small helper-above-field"
+      label="Label"
+      helperText="Helper text"
+      value="07:00"
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: time-picker-styles.ts]
+import '@vaadin/time-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('time-picker-styles')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-time-picker
+        theme="align-right small helper-above-field"
+        label="Label"
+        helper-text="Helper text"
+        value="07:00"
+      ></vaadin-time-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Note: Input Field Components Shared Styles
+
+Style properties whose names start with --vaadin-input-field are shared among all input field components. To apply them only to a specific type of component, use an element selector like vaadin-text-field {…​}
+
+Field Surface
+
+Common Properties
+
+Property | Supported by
+--vaadin-input-field-background | Aura, Lumo
+--vaadin-input-field-border-color | Aura, Lumo
+--vaadin-input-field-border-radius | Aura, Lumo
+--vaadin-input-field-border-width | Aura, Lumo
+--vaadin-input-field-bottom-end-radius | Aura, Lumo
+--vaadin-input-field-bottom-start-radius | Aura, Lumo
+--vaadin-input-field-container-gap | Aura
+--vaadin-input-field-height | Lumo
+--vaadin-input-field-padding | Aura
+--vaadin-input-field-placeholder-color | Aura, Lumo
+--vaadin-input-field-top-start-radius | Aura, Lumo
+--vaadin-input-field-top-end-radius | Aura, Lumo
+--vaadin-input-field-value-color | Aura, Lumo
+--vaadin-input-field-value-font-size | Aura, Lumo
+--vaadin-input-field-value-font-weight | Aura, Lumo
+--vaadin-input-field-value-line-height | Aura, Lumo
+
+Field States
+
+Property | Supported by
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+--vaadin-input-field-disabled-background | Aura, Lumo
+--vaadin-input-field-disabled-text-color | Aura
+--vaadin-input-field-disabled-value-color | Lumo
+--vaadin-input-field-hover-highlight | Lumo
+--vaadin-input-field-hover-highlight-opacity | Lumo
+--vaadin-input-field-invalid-background | Lumo
+--vaadin-input-field-invalid-hover-highlight | Lumo
+--vaadin-input-field-readonly-border | Lumo
+
+Label
+
+Property | Supported by
+--vaadin-input-field-focused-label-color | Lumo
+--vaadin-input-field-hovered-label-color | Lumo
+--vaadin-input-field-label-color | Aura, Lumo
+--vaadin-input-field-label-font-size | Aura, Lumo
+--vaadin-input-field-label-font-weight | Aura, Lumo
+--vaadin-input-field-label-line-height | Aura, Lumo
+--vaadin-input-field-required-indicator-color | Aura, Lumo
+--vaadin-input-field-required-indicator | Aura, Lumo
+
+Helper
+
+Property | Supported by
+--vaadin-input-field-helper-color | Aura, Lumo
+--vaadin-input-field-helper-font-size | Aura, Lumo
+--vaadin-input-field-helper-font-weight | Aura, Lumo
+--vaadin-input-field-helper-line-height | Aura, Lumo
+--vaadin-input-field-helper-spacing | Lumo
+
+Error Message
+
+Property | Supported by
+--vaadin-input-field-error-color | Aura, Lumo
+--vaadin-input-field-error-font-size | Aura, Lumo
+--vaadin-input-field-error-font-weight | Aura, Lumo
+--vaadin-input-field-error-line-height | Aura, Lumo
+
+Field Buttons
+
+Property | Supported by
+--vaadin-clickable-cursor | Aura
+--vaadin-disabled-cursor | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-input-field-button-text-color | Aura
+--vaadin-input-field-icon-size | Lumo
+--vaadin-input-field-icon-color | Lumo
+
+Overlay
+
+Property | Supported by
+--vaadin-time-picker-overlay-width | Aura, Lumo
+--vaadin-time-picker-overlay-max-height | Aura, Lumo
+--vaadin-item-overlay-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+
+Overlay Items
+
+Property | Supported by
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-time-picker
+
+States
+
+Required
+    vaadin-time-picker[required]
+Focused
+    vaadin-time-picker[focused]
+Keyboard focused
+    vaadin-time-picker[focus-ring]
+Read-only
+    vaadin-time-picker[readonly]
+Disabled
+    vaadin-time-picker[disabled]
+Not empty
+    vaadin-time-picker[has-value]
+With open overlay
+    vaadin-time-picker[opened]
+Hovered
+    vaadin-time-picker:hover
+
+Field
+
+Field surface (background, border)
+    vaadin-time-picker::part(input-field)
+Native input element
+    vaadin-time-picker > input
+Input field with placeholder shown
+    vaadin-time-picker > input:placeholder-shown
+Clear and Toggle buttons
+    vaadin-time-picker::part(field-button)
+Toggle button
+    vaadin-time-picker::part(toggle-button)
+Toggle button icon
+    vaadin-time-picker::part(toggle-button)::before
+Clear button
+    vaadin-time-picker::part(clear-button)
+Clear button icon
+    vaadin-time-picker::part(clear-button)::before
+Prefix element
+    vaadin-time-picker > [slot="prefix"]
+
+Label
+
+Field with label
+    vaadin-time-picker[has-label]
+Label
+    vaadin-time-picker::part(label)
+Label text
+    vaadin-time-picker > label
+Required indicator
+    vaadin-time-picker::part(required-indicator)
+
+Helper and Validation Error
+
+Field with helper
+    vaadin-time-picker[has-helper]
+Helper
+    vaadin-time-picker::part(helper-text)
+Helper text
+    vaadin-time-picker > [slot="helper"]
+Invalid field
+    vaadin-time-picker[invalid]
+Field with error message
+    vaadin-time-picker[has-error-message]
+Error message
+    vaadin-time-picker::part(error-message)
+Error message text
+    vaadin-time-picker > [slot="error-message"]
+Overlay background
+    vaadin-time-picker::part(overlay)
+Overlay content wrapper
+    vaadin-time-picker::part(content)
+
+Items
+
+Item element
+    vaadin-time-picker-item
+Selected item
+    vaadin-time-picker-item[selected]
+Item selection indicator
+    vaadin-time-picker-item::part(checkmark)
+Item selection indicator icon
+    vaadin-time-picker-item::part(checkmark)::before
+Focused item
+    vaadin-time-picker-item[focused]
+Item content wrapper
+    vaadin-time-picker-item::part(content)
+Hovered item
+    vaadin-time-picker-item:hover

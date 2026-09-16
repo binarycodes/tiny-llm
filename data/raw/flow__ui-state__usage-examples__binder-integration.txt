@@ -1,0 +1,331 @@
+Form Binding with Dynamic Validation
+
+Combine Vaadin Binder with signals for forms where validation rules depend on other field values, enabling reactive cross-field validation with dynamic error messages.
+
+This guide shows how to combine Vaadin Binder with signals for forms that have validation rules depending on other field values. You’ll learn how to use signals for cross-field validation and bind UI elements to validation status, all while leveraging Binder’s built-in validation features.
+
+The Use Case
+
+Forms often need validation rules that depend on other field values. For example, a registration form where age requirements change based on account type: personal accounts need users to be 14 or older, while business accounts require 18 or older. Additionally, you want to show real-time validation status and enable the submit button only when all fields are valid.
+
+Signals simplify this by making validation rules and UI state reactive. When a user changes the account type, validation rules automatically update and the UI reflects the new state immediately—no manual coordination needed.
+
+The Solution
+
+[BinderIntegrationExample.java]
+package com.vaadin.demo.flow.signals.usecase;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.BinderValidationStatus;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("form-binging-with-signals")
+public class BinderIntegrationExample extends VerticalLayout {
+
+    public BinderIntegrationExample() {
+        // Create binder for form validation
+        Binder<UserRegistration> binder = new Binder<>(UserRegistration.class);
+
+        // Create form fields
+        TextField usernameField = new TextField("Username");
+        EmailField emailField = new EmailField("Email");
+        PasswordField passwordField = new PasswordField("Password");
+        PasswordField confirmPasswordField = new PasswordField(
+                "Confirm Password");
+        ComboBox<AccountType> accountTypeSelect = new ComboBox<>("Account Type",
+                AccountType.values());
+        IntegerField ageField = new IntegerField("Age");
+
+        // Create signals for dynamic validation
+        ValueSignal<AccountType> accountTypeSignal = new ValueSignal<>(
+                AccountType.PERSONAL);
+        ValueSignal<Integer> ageSignal = new ValueSignal<>(0);
+
+        // Bind signals to form fields for two-way updates
+        accountTypeSelect.bindValue(accountTypeSignal, accountTypeSignal::set);
+        ageField.bindValue(ageSignal, ageSignal::set);
+
+        // Computed signal for age validation that depends on account type
+        Signal<Boolean> ageValidSignal = Signal.computed(() -> {
+            Integer age = ageSignal.get();
+            AccountType accountType = accountTypeSignal.get();
+            if (age == null) {
+                return false;
+            }
+            // Business accounts require age >= 18, Personal accounts >= 14
+            return accountType == AccountType.BUSINESS ? age >= 18 : age >= 14;
+        });
+
+        // Binder field validations
+        // username and email validation is skipped for brevity
+        binder.forField(usernameField).bind("username");
+        binder.forField(emailField).bind("email");
+
+        // Store password binding for cross-field validation
+        Binder.Binding<UserRegistration, String> pwBinding = binder
+                .forField(passwordField)
+                .withValidator(value -> value != null && value.length() >= 8,
+                        "Password must be at least 8 characters")
+                .bind("password");
+
+        // Cross-field validation using Binder.Binding.valueSignal()
+        // Runs each time the password field changes
+        binder.forField(confirmPasswordField)
+                .withValidator(
+                        value -> value != null
+                                && value.equals(pwBinding.valueSignal().get()),
+                        "Passwords do not match")
+                .bind("confirmPassword");
+
+        binder.forField(accountTypeSelect).bind("accountType");
+
+        // Cross-field validation using signals for dynamic error messages
+        // Runs each time the age or account field changes
+        binder.forField(ageField)
+                .withValidator(value -> ageValidSignal.get(), value -> {
+                    AccountType accountType = accountTypeSignal.get();
+                    return accountType == AccountType.BUSINESS
+                            ? "Business accounts require age 18 or older"
+                            : "Personal accounts require age 14 or older";
+                }).bind("age");
+
+        // Initialize the binder with an empty bean
+        binder.readBean(
+                new UserRegistration("", "", "", "", AccountType.PERSONAL, 0));
+
+        // Submit button enabled only when form is valid
+        Button submitButton = new Button("Register", e -> {
+            UserRegistration userRegistration = new UserRegistration();
+            binder.writeBeanIfValid(userRegistration);
+            // Handle registration...
+        });
+        submitButton.bindEnabled(binder.validationStatusSignal()
+                .map(BinderValidationStatus::isOk));
+
+        // Form status display with reactive styling
+        Div statusDiv = new Div();
+        Span statusLabel = new Span();
+        statusLabel.bindText(binder.validationStatusSignal()
+                .map(status -> status.isOk() ? "Form is valid - Ready to submit"
+                        : "Please complete all required fields correctly"));
+        statusLabel.getStyle().bind("color", binder.validationStatusSignal()
+                .map(status -> status.isOk() ? "green" : "orange"));
+        statusDiv.add(statusLabel);
+
+        add(usernameField, emailField, passwordField, confirmPasswordField,
+                accountTypeSelect, ageField, statusDiv, submitButton);
+    }
+
+    // Supporting classes
+    public static class UserRegistration {
+        private String username;
+        private String email;
+        private String password;
+        private String confirmPassword;
+        private AccountType accountType;
+        private Integer age;
+
+        public UserRegistration() {
+        }
+
+        public UserRegistration(String username, String email, String password,
+                String confirmPassword, AccountType accountType, Integer age) {
+            this.username = username;
+            this.email = email;
+            this.password = password;
+            this.confirmPassword = confirmPassword;
+            this.accountType = accountType;
+            this.age = age;
+        }
+
+        // Getters and setters omitted for brevity
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getConfirmPassword() {
+            return confirmPassword;
+        }
+
+        public void setConfirmPassword(String confirmPassword) {
+            this.confirmPassword = confirmPassword;
+        }
+
+        public AccountType getAccountType() {
+            return accountType;
+        }
+
+        public void setAccountType(AccountType accountType) {
+            this.accountType = accountType;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+    }
+
+    public enum AccountType {
+        PERSONAL, BUSINESS
+    }
+}
+
+How It Works
+
+Signals for Dynamic Values
+
+Create ValueSignal instances for fields that affect validation logic:
+
+[Java]
+ValueSignal<AccountType> accountTypeSignal = new ValueSignal<>(AccountType.PERSONAL);
+ValueSignal<Integer> ageSignal = new ValueSignal<>(0);
+
+These signals track the current values of fields that other validation rules depend on. When these values change, dependent validations update automatically.
+
+Two-Way Binding with Form Fields
+
+Use bindValue() to connect signals to form fields:
+
+[Java]
+accountTypeSelect.bindValue(accountTypeSignal, accountTypeSignal::set);
+ageField.bindValue(ageSignal, ageSignal::set);
+
+This creates a two-way connection: when the user changes the field, the signal updates, and when code updates the signal, the field updates. See Two-Way Signal Mapping for more details about bidirectional bindings.
+
+Computed Signals for Dynamic Validation
+
+Create a computed signal that derives the validation result from multiple signals:
+
+[Java]
+Signal<Boolean> ageValidSignal = Signal.computed(() -> {
+    Integer age = ageSignal.get();
+    AccountType accountType = accountTypeSignal.get();
+    if (age == null) {
+        return false;
+    }
+    return accountType == AccountType.BUSINESS ? age >= 18 : age >= 14;
+});
+
+This signal automatically recalculates whenever ageSignal or accountTypeSignal changes. The validation logic is centralized and reactive.
+
+Using Signals in Binder Validators
+
+Reference the computed signal in your Binder validator:
+
+[Java]
+binder.forField(ageField)
+    .withValidator(value -> ageValidSignal.get(), value -> {
+        AccountType accountType = accountTypeSignal.get();
+        return accountType == AccountType.BUSINESS
+            ? "Business accounts require age 18 or older"
+            : "Personal accounts require age 14 or older";
+    })
+    .bind("age");
+
+The validator checks ageValidSignal.get() and provides a dynamic error message based on the current account type. When the user changes the account type, Binder automatically re-runs validation because the signal value changed.
+
+Cross-Field Validation with Binding Values
+
+For simpler cross-field validation that doesn’t need separate signal variables, use Binder.Binding.valueSignal() — the binding validator re-runs whenever a binding signal value changes:
+
+[Java]
+Binder.Binding<UserRegistration, String> pwBinding = binder
+    .forField(passwordField)
+    .withValidator(value -> value != null && value.length() >= 8,
+        "Password must be at least 8 characters")
+    .bind("password");
+
+binder.forField(confirmPasswordField)
+    .withValidator(value -> value != null && value.equals(pwBinding.valueSignal().get()),
+        "Passwords do not match")
+    .bind("confirmPassword");
+
+You can mix binding.valueSignal() and signal.get() in the same validator — Binder re-validates whenever any referenced signal value changes, whether it comes from a binding or a standalone signal. Use standalone signals when you need to share validation state across multiple components or derive complex logic from multiple sources.
+
+Reactive Submit Button
+
+Enable the submit button only when the form is valid using bindEnabled():
+
+[Java]
+submitButton.bindEnabled(
+    binder.validationStatusSignal().map(BinderValidationStatus::isOk));
+
+The validationStatusSignal() method returns a signal that updates whenever validation state changes. The map() method transforms it to a boolean that controls the button’s enabled state.
+
+Reactive Status Display
+
+Show form status with reactive text and styling:
+
+[Java]
+Span statusLabel = new Span();
+statusLabel.bindText(binder.validationStatusSignal()
+    .map(status -> status.isOk() ? "Form is valid - Ready to submit"
+        : "Please complete all required fields correctly"));
+statusLabel.getStyle().bind("color", binder.validationStatusSignal()
+    .map(status -> status.isOk() ? "green" : "orange"));
+
+Multiple bindings to the same signal are efficient - the signal value is cached and shared across all dependent components.
+
+Key Patterns
+
+Use signals for dynamic validation
+    When validation rules depend on other field values, use a binding value or a signal that holds a dependency state. Binder automatically re-validates when binding or signal values change.
+Two-way binding with bindValue()
+    Connect form fields to signals so changes flow in both directions automatically.
+Computed signals for derived logic
+    Create computed signals that derive validation state from multiple source signals. This centralizes logic and makes dependencies explicit.
+Reactive UI elements
+    Bind buttons, labels, and styles to Binder’s validation status for real-time feedback.
+
+When to Use This Pattern
+
+This pattern is ideal when:
+
+- Validation rules depend on other form fields
+- Error messages need to be dynamic based on field values
+- You want real-time validation feedback as users type
+- You need to enable/disable submit buttons based on form validity
+
+For simpler forms with static validation rules, standard Binder validators without signals may be sufficient.
+
+Related Topics
+
+- CRUD Form Editor - Using Binder with a signal of a bean to create a CRUD editor for selected item
+- Local Signals - Understanding ValueSignal and two-way binding
+- Effects and Computed Signals - Creating derived values
+- Component Bindings - Binding signals to component properties
+- Binder Validation - Reference documentation for Binder validation patterns

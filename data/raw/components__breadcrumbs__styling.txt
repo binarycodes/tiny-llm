@@ -1,0 +1,84 @@
+Breadcrumbs Styling
+
+Styling API reference for the Breadcrumbs component.
+
+Style Variants
+
+Breadcrumbs supports the following style variants.
+
+Variant | Description | Supported by
+slash | Uses a slash (/) as the separator between items instead of the default separator | Lumo, Aura
+primary | Renders the links using the primary color for stronger emphasis | Lumo
+accent | Renders the links using the accent color for stronger emphasis | Aura
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Breadcrumbs Properties
+
+Property | Supported by
+--vaadin-breadcrumbs-font-size | Aura, Lumo
+--vaadin-breadcrumbs-font-weight | Aura, Lumo
+--vaadin-breadcrumbs-gap | Aura, Lumo
+--vaadin-breadcrumbs-line-height | Aura, Lumo
+--vaadin-breadcrumbs-link-color | Aura, Lumo
+--vaadin-breadcrumbs-overflow-icon | Aura, Lumo
+--vaadin-breadcrumbs-separator-icon | Aura, Lumo
+--vaadin-breadcrumbs-text-color | Aura, Lumo
+
+Breadcrumbs Item Properties
+
+Property | Supported by
+--vaadin-breadcrumbs-item-border-radius | Aura, Lumo
+--vaadin-breadcrumbs-item-gap | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-breadcrumbs
+
+Parts
+
+Item list
+    vaadin-breadcrumbs::part(list)
+Overflow wrapper
+    vaadin-breadcrumbs::part(overflow)
+Overflow button
+    vaadin-breadcrumbs::part(overflow-button)
+Overflow overlay
+    vaadin-breadcrumbs::part(overlay)
+Overflow overlay content
+    vaadin-breadcrumbs::part(overlay-content)
+
+States
+
+With collapsed items
+    vaadin-breadcrumbs[has-overflow]
+
+Breadcrumbs Item
+
+Item root element
+    vaadin-breadcrumbs-item
+Current page item
+    vaadin-breadcrumbs-item[current]
+Item link (with path)
+    vaadin-breadcrumbs-item::part(link)
+Item non-link (current page)
+    vaadin-breadcrumbs-item::part(nolink)
+Item label
+    vaadin-breadcrumbs-item::part(label)
+Item prefix element
+    vaadin-breadcrumbs-item > [slot="prefix"]
+Item with prefix content
+    vaadin-breadcrumbs-item[has-prefix]
+Disabled item
+    vaadin-breadcrumbs-item[disabled]

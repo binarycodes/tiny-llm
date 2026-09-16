@@ -1,0 +1,91 @@
+Context Menu Styling
+
+Styling API reference for the Context Menu component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Menu
+
+Property | Supported by
+--vaadin-context-menu-offset-bottom | Aura, Lumo
+--vaadin-context-menu-offset-end | Aura, Lumo
+--vaadin-context-menu-offset-start | Aura, Lumo
+--vaadin-context-menu-offset-top | Aura, Lumo
+--vaadin-item-overlay-padding | Aura
+
+Overlay
+
+Property | Supported by
+--vaadin-item-overlay-padding | Aura
+--vaadin-overlay-background | Aura
+--vaadin-overlay-border-color | Aura
+--vaadin-overlay-border-radius | Aura
+--vaadin-overlay-border-width | Aura
+--vaadin-overlay-shadow | Aura
+
+Overlay Items
+
+Property | Supported by
+--vaadin-item-border-radius | Aura
+--vaadin-item-checkmark-color | Aura
+--vaadin-icon-size | Aura
+--vaadin-icon-visual-size | Aura
+--vaadin-item-gap | Aura
+--vaadin-item-height | Aura
+--vaadin-item-padding | Aura
+--vaadin-focus-ring-width | Aura, Lumo
+--vaadin-focus-ring-color | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-context-menu
+
+Parts
+
+Overlay background
+    vaadin-context-menu::part(overlay)
+Overlay content wrapper
+    vaadin-context-menu::part(content)
+
+Items
+
+Item element
+    vaadin-context-menu-item
+Item content wrapper
+    vaadin-context-menu-item::part(content)
+Item selection indicator
+    vaadin-context-menu-item::part(checkmark)
+Item selection indicator icon
+    vaadin-context-menu-item::part(checkmark)::before
+Submenu indicator icon
+    vaadin-context-menu-item::after
+Separator
+    vaadin-context-menu-list-box [role="separator"]
+
+Item States
+
+Selected item
+    vaadin-context-menu-item[selected]
+Focused item
+    vaadin-context-menu-item[focused]
+Hovered item
+    vaadin-context-menu-item:hover
+Pressed item
+    vaadin-context-menu-item[active]
+Disabled item
+    vaadin-context-menu-item[disabled]
+Item with a nested sub-menu
+    vaadin-context-menu-item[aria-haspopup]
+Item with expanded sub-menu
+    vaadin-context-menu-item[expanded]

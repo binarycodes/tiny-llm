@@ -1,0 +1,69 @@
+Deploying a Vaadin Application to Azure Cloud
+
+How to deploy your Vaadin application to Microsoft’s Azure cloud.
+
+This tutorial shows you how to deploy a Vaadin application to Microsoft’s Azure cloud using the traditional App Service, that works well for most typical Vaadin applications. If you have specific requirements, Azure has several other options to host Vaadin applications, such as raw virtual machines, and Container Apps. Azure also has great Kubernetes support.
+
+Azure offers a 30-day free trial that includes 12 months of free commercial services. You can find details of their free and commercial services on the Azure website.
+
+Note: Azure account required
+
+To complete this tutorial, you need an Azure account. You can sign up at https://signup.azure.com/.
+
+Step 1: Install the Azure CLI
+
+You can find installation instructions for different platforms in the Azure CLI documentation.
+
+Step 2: Download a Starter App
+
+Download a minimal Vaadin project and unpack the downloaded zip into a folder on your computer.
+
+Download project
+
+Step 3: Add the Azure Plugin
+
+Open your pom.xml file and add the following section in the <plugins> tag in the <build> section:
+
+[pom.xml]
+<plugin>
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>azure-webapp-maven-plugin</artifactId>
+  <version>2.5.0</version>
+</plugin>
+
+Check the latest version of the plugin from the Azure App Service docs.
+
+Step 4: Create a Production Build
+
+Open the project directory from a terminal window, and enter the following command to generate a JAR file of your application:
+
+[terminal]
+mvn package
+
+Step 5: Configure Your Application
+
+From the terminal window, enter the following command:
+
+[terminal]
+mvn azure-webapp:config
+
+This command authenticates you with Azure via the browser, assuming you aren’t already logged in with Azure CLI. Then you are prompted to choose from various options. For example, you could select the following:
+
+1. <create> when asked to choose a Java SE Web App
+2. Linux when asked to choose an OS
+3. Java 11 for the Java version
+4. F1 for the pricingTier
+5. Enter 'Y' on your keyboard to confirm
+
+[image: Azure CLI choices]
+
+Step 6: Deploy Your Application
+
+Enter the following command to deploy your application:
+
+[terminal]
+mvn azure-webapp:deploy
+
+You may be required to authenticate again in the browser. Once authenticated, your application is deployed to Azure and you should see your application URL in the logs, as in the following screenshot.
+
+[image: Azure CLI log]

@@ -1,0 +1,754 @@
+Custom Field
+
+Use Custom Field for wrapping multiple components as a single field.
+
+Custom Field is a component for wrapping multiple components as a single field. It provides standard input field features like label, helper, validation, and data binding. Use it to create custom input components.
+
+[Flow: DateRangePicker.java]
+package com.vaadin.demo.component.customfield;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.customfield.CustomField;
+import com.vaadin.flow.component.datepicker.DatePicker;
+
+// tag::snippet[]
+public class DateRangePicker extends CustomField<LocalDateRange> {
+
+    private DatePicker start;
+    private DatePicker end;
+
+    public DateRangePicker(String label) {
+        this();
+        setLabel(label);
+    }
+
+    public DateRangePicker() {
+        start = new DatePicker();
+        start.setPlaceholder("Start date");
+        // Sets title for screen readers
+        start.setAriaLabel("Start date");
+
+        end = new DatePicker();
+        end.setPlaceholder("End date");
+        end.setAriaLabel("End date");
+
+        // Enable manual validation on both date pickers to
+        // be able to override their invalid state
+        start.setManualValidation(true);
+        end.setManualValidation(true);
+
+        add(start, new Text(" – "), end);
+    }
+
+    @Override
+    protected LocalDateRange generateModelValue() {
+        return new LocalDateRange(start.getValue(), end.getValue());
+    }
+
+    @Override
+    protected void setPresentationValue(LocalDateRange dateRange) {
+        start.setValue(dateRange.getStartDate());
+        end.setValue(dateRange.getEndDate());
+    }
+
+    @Override
+    public void setInvalid(boolean invalid) {
+        super.setInvalid(invalid);
+        // Propagate invalid state to both date pickers so
+        // that they show a red background
+        start.setInvalid(invalid);
+        end.setInvalid(invalid);
+    }
+}
+// end::snippet[]
+
+[Flow: CustomFieldBasic.java]
+package com.vaadin.demo.component.customfield;
+
+import com.vaadin.demo.domain.Appointment;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+import java.time.temporal.ChronoUnit;
+
+@Route("custom-field-basic")
+public class CustomFieldBasic extends Div {
+
+    public CustomFieldBasic() {
+        // tag::snippet[]
+        DateRangePicker dateRangePicker = new DateRangePicker();
+        dateRangePicker.setLabel("Enrollment period");
+        dateRangePicker.setHelperText("Cannot be longer than 30 days");
+        add(dateRangePicker);
+
+        Binder<Appointment> binder = new Binder();
+        binder.forField(dateRangePicker)
+                .asRequired("Enter a start and end date")
+                .withValidator(
+                        localDateRange -> localDateRange.getStartDate() == null
+                                || localDateRange.getEndDate() == null
+                                || ChronoUnit.DAYS.between(
+                                        localDateRange.getStartDate(),
+                                        localDateRange.getEndDate()) <= 30,
+                        "Dates cannot be more than 30 days apart")
+                .withValidator(
+                        localDateRange -> localDateRange.getStartDate() == null
+                                || localDateRange.getEndDate() == null
+                                || localDateRange.getStartDate()
+                                        .isBefore(localDateRange.getEndDate()),
+                        "Start date must be earlier than end date")
+                .bind(appointment -> new LocalDateRange(
+                        appointment.getStartDate(), appointment.getEndDate()),
+                        (appointment, localDateRange) -> {
+                            appointment.setStartDate(
+                                    localDateRange.getStartDate());
+                            appointment.setEndDate(localDateRange.getEndDate());
+                        });
+        // end::snippet[]
+    }
+
+}
+
+[Flow: LocalDateRange.java]
+package com.vaadin.demo.component.customfield;
+
+import java.time.LocalDate;
+
+// tag::snippet[]
+public class LocalDateRange {
+
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    public LocalDateRange(LocalDate startDate, LocalDate endDate) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+}
+// end::snippet[]
+
+[Flow: Appointment.java]
+package com.vaadin.demo.domain;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+// tag::snippet[]
+public class Appointment {
+
+    private LocalTime startTime;
+
+    private LocalDateTime startDateTime;
+
+    private LocalDate startDate;
+
+    private LocalTime endTime;
+
+    private LocalDateTime endDateTime;
+
+    private LocalDate endDate;
+
+    private String enrollmentPeriod;
+
+    private Integer id;
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getStartDateTime() {
+        return startDateTime;
+    }
+
+    public void setStartDateTime(LocalDateTime startDateTime) {
+        this.startDateTime = startDateTime;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
+    }
+
+    public void setEndDateTime(LocalDateTime endDateTime) {
+        this.endDateTime = endDateTime;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Appointment)) {
+            return false;
+        }
+        Appointment other = (Appointment) obj;
+        return id == other.id;
+    }
+
+    public String getEnrollmentPeriod() {
+        return enrollmentPeriod;
+    }
+
+    public void setEnrollmentPeriod(String enrollmentPeriod) {
+        this.enrollmentPeriod = enrollmentPeriod;
+    }
+}
+// end::snippet[]
+
+[React: custom-field-basic.tsx]
+import React from 'react';
+import { differenceInDays, isAfter, parseISO } from 'date-fns';
+import { useForm, useFormPart } from '@vaadin/hilla-react-form';
+import { CustomField } from '@vaadin/react-components/CustomField.js';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+import AppointmentModel from 'Frontend/generated/com/vaadin/demo/domain/AppointmentModel';
+
+function Example() {
+  const { model, field } = useForm(AppointmentModel);
+  const periodField = useFormPart(model.enrollmentPeriod);
+
+  periodField.addValidator({
+    message: 'Dates cannot be more than 30 days apart',
+    validate: (enrollmentPeriod: string) => {
+      const [from, to] = enrollmentPeriod.split('\t');
+
+      if (from === '' || to === '') {
+        return true;
+      }
+
+      return differenceInDays(parseISO(to), parseISO(from)) <= 30;
+    },
+  });
+
+  periodField.addValidator({
+    message: 'Start date must be earlier than end date',
+    validate: (enrollmentPeriod: string) => {
+      const [from, to] = enrollmentPeriod.split('\t');
+
+      if (from === '' || to === '') {
+        return true;
+      }
+
+      return isAfter(parseISO(to), parseISO(from));
+    },
+  });
+
+  return (
+    // tag::snippet[]
+    <CustomField
+      label="Enrollment period"
+      helperText="Cannot be longer than 30 days"
+      required
+      {...field(model.enrollmentPeriod)}
+    >
+      <DatePicker accessibleName="Start date" placeholder="Start date" />
+      &ndash;
+      <DatePicker accessibleName="End date" placeholder="End date" />
+    </CustomField>
+    // end::snippet[]
+  );
+}
+
+[Lit: custom-field-basic.ts]
+import '@vaadin/custom-field';
+import '@vaadin/date-picker';
+import { differenceInDays, isAfter, parseISO } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Binder, field } from '@vaadin/hilla-lit-form';
+import { applyTheme } from 'Frontend/demo/theme';
+import AppointmentModel from 'Frontend/generated/com/vaadin/demo/domain/AppointmentModel';
+
+@customElement('custom-field-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private binder = new Binder(this, AppointmentModel);
+
+  protected override firstUpdated() {
+    this.binder.for(this.binder.model.enrollmentPeriod).addValidator({
+      message: 'Dates cannot be more than 30 days apart',
+      validate: (enrollmentPeriod: string) => {
+        const [from, to] = enrollmentPeriod.split('\t');
+
+        if (from === '' || to === '') {
+          return true;
+        }
+
+        return differenceInDays(parseISO(to), parseISO(from)) <= 30;
+      },
+    });
+    this.binder.for(this.binder.model.enrollmentPeriod).addValidator({
+      message: 'Start date must be earlier than end date',
+      validate: (enrollmentPeriod: string) => {
+        const [from, to] = enrollmentPeriod.split('\t');
+
+        if (from === '' || to === '') {
+          return true;
+        }
+
+        return isAfter(parseISO(to), parseISO(from));
+      },
+    });
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-custom-field
+        label="Enrollment period"
+        helper-text="Cannot be longer than 30 days"
+        required
+        ${field(this.binder.model.enrollmentPeriod)}
+      >
+        <vaadin-date-picker
+          accessible-name="Start date"
+          placeholder="Start date"
+        ></vaadin-date-picker>
+        &ndash;
+        <vaadin-date-picker accessible-name="End date" placeholder="End date"></vaadin-date-picker>
+      </vaadin-custom-field>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Basic Usage
+
+Custom Field is optimized for wrapping the following components:
+
+- Text Field
+- Number Field
+- Password Field
+- Text Area
+- Select
+- Combo Box
+- Date Picker
+- Time Picker
+
+It can also be used to give a label, helper, and other field features for components that don’t have them built-in, such as List Box.
+
+Value Type & Format
+
+The type, format, and further propagation of the Custom Field value are handled differently in Java, and in Lit and React. The following two sections explain how you might configure these aspects depending on the programming language or approach you prefer.
+
+Java
+
+Custom Field is a generic class that accepts a value type. The value type can be anything: String, List, a bean, or something else.
+
+When the type is specified, you need to establish how the Custom Field’s value should propagate to the child components and vice versa. The value propagation heavily depends on the Custom Field’s structure, contained components, and their types. For this reason, no default implementation is provided. Instead, Custom Field provides two methods that should be implemented manually: generateModelValue; and setPresentationValue.
+
+The generateModelValue method defines how to generate a Custom Field value from the child components values. Custom Field triggers this method to update its value when a child component emits a change DOM event on the client-side. In this method, you typically need to collect values from all child components and return a single value of the Custom Field type based on those values.
+
+The setPresentationValue method receives a Custom Field value and defines how to distribute it to the child components. Custom Field triggers this method to update child component values when its value changes programmatically on the server-side. In this method, you typically need to split the given value into parts and apply them to each individual child component, respectively.
+
+The following example shows how to set up value propagation, using a bean as the value type:
+
+[Java]
+class Phone {
+    private final String code;
+    private final String number;
+
+    public Phone(String code, String number) {
+        this.code = code;
+        this.number = number;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+}
+
+class PhoneField extends CustomField<Phone> {
+    private final Select code = new Select();
+    private final TextField number = new TextField();
+
+    public PhoneField() {
+        ...
+
+        add(code, number);
+    }
+
+    @Override
+    protected Phone generateModelValue() {
+        return new Phone(code.getValue(), number.getValue());
+    }
+
+    @Override
+    protected void setPresentationValue(Phone value) {
+        code.setValue(value.getCode());
+        number.setValue(value.getNumber());
+    }
+}
+
+Lit & React
+
+Custom Field supports only string values. However, it does provide control over the format of the value with a parser and formatter. The parser and formatter define how Custom Field’s value should be split to child component values and vice versa. When a child component emits a change event or the Custom Field’s value changes programmatically, Custom Field propagates values based on the result of the parser or formatter.
+
+Parser
+
+When Custom Field’s value changes programmatically, Custom Field passes this value to the parser. The parser is supposed to convert this value into an array of child values, arranged in the order their components appear in the DOM. Custom Field then assigns these values to the child components using their value property.
+
+The default parser returns an array of child component values, splitting the value by the \t character.
+
+Formatter
+
+When Custom Field detects a change event from a child component, it collects the value properties from all child components and passes them as an array to the formatter. The array contains child values in the order their components appear in the DOM. The formatter is supposed to transform this array into a single string value. The Custom Field then updates its value based on the string returned by the formatter.
+
+The default formatter returns a concatenation of the child component values, separated by the \t character.
+
+You can customize the value format by defining your own value formatter and parser, as shown in the following example:
+
+[React: tsx]
+function Example() {
+  return (
+    // Phone Custom Field
+    <CustomField
+      formatValue={([code, number]: unknown[]) => (code && number ? [code, number].join('|') : '')}
+      parseValue={(value: string) => (value ? value.split('|') : ['', ''])}
+    >
+      {/* Country code */}
+      <Select />
+
+      {/* Phone number */}
+      <TextField />
+    </CustomField>
+  );
+}
+
+[React: tsx]
+
+[Lit: ts]
+render() {
+  return html`
+    <!-- Phone Custom Field -->
+    <vaadin-custom-field
+      .formatValue="${([code, number]: unknown[]) => {
+        return code && number ? [code, number].join('|') : '';
+      }}"
+      .parseValue="${(value: string) => {
+        return value ? value.split('|') : ['', ''];
+      }}"
+    >
+      <!-- Country code -->
+      <vaadin-select></vaadin-select>
+
+      <!-- Phone number -->
+      <vaadin-text-field></vaadin-text-field>
+    </vaadin-custom-field>
+  `
+}
+
+[Lit: ts]
+
+Native Input Fields
+
+Custom Field works with native HTML elements.
+
+[Flow: PaymentInformationField.java]
+package com.vaadin.demo.component.customfield;
+
+import com.vaadin.flow.component.customfield.CustomField;
+import com.vaadin.flow.component.html.Input;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
+// tag::snippet[]
+public class PaymentInformationField extends CustomField<PaymentInformation> {
+
+    private Input cardholderName;
+    private Input cardNumber;
+    private Input securityCode;
+
+    public PaymentInformationField(String label) {
+        this();
+        setLabel(label);
+    }
+
+    public PaymentInformationField() {
+        cardholderName = createInput("Cardholder name", "[\\p{L} \\-]+");
+        cardNumber = createInput("Card number", "[\\d ]{12,23}");
+        securityCode = createInput("Security code", "[0-9]{3,4}");
+
+        HorizontalLayout layout = new HorizontalLayout(cardholderName,
+                cardNumber, securityCode);
+        layout.setSpacing(false);
+        layout.getStyle().set("gap", "0.5rem");
+        layout.getStyle().set("padding-top", "0.25rem");
+
+        add(layout);
+    }
+
+    private Input createInput(String label, String pattern) {
+        Input input = new Input();
+        input.getElement().setAttribute("aria-label", label);
+        input.getElement().setAttribute("pattern", pattern);
+        input.getElement().setAttribute("required", true);
+        input.setPlaceholder(label);
+        input.setType("text");
+        return input;
+    }
+
+    @Override
+    protected PaymentInformation generateModelValue() {
+        return new PaymentInformation(cardholderName.getValue(),
+                cardNumber.getValue(), securityCode.getValue());
+    }
+
+    @Override
+    protected void setPresentationValue(PaymentInformation paymentInformation) {
+        cardholderName.setValue(paymentInformation.getCardholderName());
+        cardNumber.setValue(paymentInformation.getCardNumber());
+        securityCode.setValue(paymentInformation.getSecurityCode());
+    }
+}
+// end::snippet[]
+
+[Flow: CustomFieldNativeInput.java]
+package com.vaadin.demo.component.customfield;
+
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.router.Route;
+
+@Route("custom-field-native-input")
+public class CustomFieldNativeInput extends Div {
+
+    private Span value;
+
+    public CustomFieldNativeInput() {
+        // tag::snippet[]
+        PaymentInformationField paymentInformationField = new PaymentInformationField(
+                "Payment information");
+        paymentInformationField.addValueChangeListener(event -> {
+            value.setText(event.getValue().getCardholderName() + " "
+                    + event.getValue().getCardNumber() + " "
+                    + event.getValue().getSecurityCode());
+        });
+
+        value = new Span();
+        Paragraph paragraph = new Paragraph(
+                new Html("<span><b>Payment information:</b> </span>"), value);
+
+        add(paymentInformationField, paragraph);
+        // end::snippet[]
+    }
+
+}
+
+[Flow: PaymentInformation.java]
+package com.vaadin.demo.component.customfield;
+
+// tag::snippet[]
+public class PaymentInformation {
+
+    private String cardholderName;
+    private String cardNumber;
+    private String securityCode;
+
+    public PaymentInformation(String cardholderName, String cardNumber,
+            String securityCode) {
+        this.cardholderName = cardholderName;
+        this.cardNumber = cardNumber;
+        this.securityCode = securityCode;
+    }
+
+    public String getCardholderName() {
+        return cardholderName;
+    }
+
+    public void setCardholderName(String cardholderName) {
+        this.cardholderName = cardholderName;
+    }
+
+    public String getCardNumber() {
+        return cardNumber;
+    }
+
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
+    }
+
+    public String getSecurityCode() {
+        return securityCode;
+    }
+
+    public void setSecurityCode(String securityCode) {
+        this.securityCode = securityCode;
+    }
+}
+// end::snippet[]
+
+[React: custom-field-native-input.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { CustomField } from '@vaadin/react-components/CustomField.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const customFieldValue = useSignal('');
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <CustomField
+        label="Payment information"
+        onValueChanged={(event) => {
+          customFieldValue.value = event.detail.value ?? '';
+        }}
+      >
+        <HorizontalLayout style={{ gap: '0.5rem', paddingTop: '0.25rem' }}>
+          <input
+            aria-label="Cardholder name"
+            pattern="[\p{L} \-]+"
+            placeholder="Cardholder name"
+            required
+            type="text"
+          />
+          <input
+            aria-label="Card number"
+            pattern="[\d ]{12,23}"
+            placeholder="Card number"
+            required
+            type="text"
+          />
+          <input
+            aria-label="Security code"
+            pattern="[0-9]{3,4}"
+            placeholder="Security code"
+            required
+            type="text"
+          />
+        </HorizontalLayout>
+      </CustomField>
+      <p>
+        <b>Payment information:</b> {customFieldValue}
+      </p>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: custom-field-native-input.ts]
+import '@vaadin/custom-field';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { CustomFieldChangeEvent } from '@vaadin/custom-field';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('custom-field-native-input')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private customFieldValue = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-custom-field
+        label="Payment information"
+        @change="${(event: CustomFieldChangeEvent) => {
+          this.customFieldValue = event.target.value ?? '';
+        }}"
+      >
+        <vaadin-horizontal-layout style="gap: 0.5rem; padding-top: 0.25rem;">
+          <input
+            aria-label="Cardholder name"
+            pattern="[\\p{L} \\-]+"
+            placeholder="Cardholder name"
+            required
+            type="text"
+          />
+          <input
+            aria-label="Card number"
+            pattern="[\\d ]{12,23}"
+            placeholder="Card number"
+            required
+            type="text"
+          />
+          <input
+            aria-label="Security code"
+            pattern="[0-9]{3,4}"
+            placeholder="Security code"
+            required
+            type="text"
+          />
+        </vaadin-horizontal-layout>
+      </vaadin-custom-field>
+      <p><b>Payment information:</b> ${this.customFieldValue}</p>
+      <!-- end::snippet[] -->
+    `;
+  }
+}

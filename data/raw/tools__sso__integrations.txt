@@ -1,0 +1,10 @@
+SSO Kit Integrations
+
+How to use SSO Kit with vendor-specific tutorials.
+
+Azure Active Directory
+    How to use SSO Kit with Azure Active Directory (Microsoft Entra ID).
+Keycloak
+    Keycloak is an open-source identity and access management solution. This page explains how to use Keycloak together with SSO Kit.
+Okta
+    Okta is a commercial identity and access management solution. This page explains how to use Okta together with SSO Kit.

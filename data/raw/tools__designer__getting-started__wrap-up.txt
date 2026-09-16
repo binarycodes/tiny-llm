@@ -1,0 +1,12 @@
+Wrap Up
+
+You can find the complete source code of this tutorial on GitHub.
+
+You can find more information about Vaadin and Spring Boot here:
+
+- Spring Boot documentation
+- Vaadin Docs
+
+Send your thoughts about this Vaadin Designer documentation, and your ideas for other Designer-related topics you’d like covered.
+
+You can reach Vaadin on Twitter @vaadin.

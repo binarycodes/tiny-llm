@@ -1,0 +1,12 @@
+Advanced Styling
+
+Advanced styling techniques for Vaadin applications.
+
+Creating Reusable Themes
+    A guide on how to create reusable themes for Vaadin applications.
+Importing Resources from npm Packages
+    Describes how to use resources like fonts, icons, and stylesheets from npm packages.
+Styling Embedded Components
+    A guide on how to style embedded components in Vaadin applications.
+Loading Stylesheets Dynamically
+    Explains how dynamically to load stylesheets.

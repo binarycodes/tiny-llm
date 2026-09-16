@@ -1,0 +1,83 @@
+Using Vaadin Components in Hilla
+
+How to use Vaadin components in your Hilla views.
+
+When bootstrapping a Hilla project with the CLI, all Vaadin components are automatically installed. To use a component in a view, it’s enough to import it into the view .ts file. For example:
+
+[TypeScript]
+import '@vaadin/text-field';
+
+You can then use the Text Field component (the <vaadin-text-field> element) in your view’s render() method:
+
+[TypeScript]
+render() {
+  return html`
+    <vaadin-text-field id="firstname" label="First name"></vaadin-text-field>
+    <vaadin-text-field id="lastname" label="Last name"></vaadin-text-field>
+  `;
+}
+
+Component Class
+
+The class name of a <vaadin-component-name> element follows the pattern ComponentName. Importing the class gives type-safe access to the component’s API. For example:
+
+[greeting-view.ts]
+import '@vaadin/checkbox';
+import '@vaadin/combo-box';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ComboBoxValueChangedEvent } from '@vaadin/combo-box';
+
+@customElement('greeting-view')
+export class GreetingView extends LitElement {
+  @state()
+  private greetings = ['Hi', 'Hello', 'Dear'];
+
+  @state()
+  private allowCustomGreeting = false;
+
+  @state()
+  private greeting = 'Hi';
+
+  render() {
+    return html`
+      <vaadin-combo-box
+        label="Greeting"
+        .items="${this.greetings}"
+        .allowCustomValue="${this.allowCustomGreeting}"
+        .value="${this.greeting}"
+        @value-changed="${(e: ComboBoxValueChangedEvent) => (this.greeting = e.detail.value)}"
+      ></vaadin-combo-box>
+      <vaadin-checkbox
+        @change="${this.checkboxChange}"
+        label="Type Custom greeting"
+      ></vaadin-checkbox>
+    `;
+  }
+
+  checkboxChange(event: Event) {
+    this.allowCustomGreeting = (event.target as HTMLInputElement).checked;
+    if (!this.allowCustomGreeting) {
+      this.greeting = this.greetings[0];
+    }
+  }
+}
+
+[greeting-view.ts]
+
+In the preceding example, the Combo Box and Checkbox components with the IDs greeting and custom respectively are mapped to typed class variables of the same names via the @query decorator. The Checkbox event listener toggles the allowCustomValue property of the Combo Box, which defines whether the user can enter custom values into the field or is constrained to the alternatives in the items overlay. Having strongly typed class variables helps to catch errors at compile time and allows code completion in the IDE.
+
+HTML Attributes
+
+The following HTML attributes work as expected with most Vaadin components:
+
+disabled
+    Whether the component is enabled; a disabled component cannot be interacted with.
+title
+    Additional label associated with the component, shown as a tooltip.
+hidden
+    Visibility; set this attribute to hide the element.
+
+See the Vaadin documentation for a full list of components and detailed API documentation.
+
+See the Styling page to learn how to style the components.

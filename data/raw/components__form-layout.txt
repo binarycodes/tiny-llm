@@ -1,0 +1,1243 @@
+Form Layout
+
+Using Form Layout to build responsive forms with multiple columns and better positioned input labels.
+
+Form Layout allows you to build responsive forms with multiple columns, and to position input labels above or to the side of the input.
+
+[Flow: FormLayoutBasic.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-basic")
+public class FormLayoutBasic extends Div {
+
+    public FormLayoutBasic() {
+        // tag::snippet[]
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email address");
+        PasswordField password = new PasswordField("Password");
+        PasswordField confirmPassword = new PasswordField("Confirm password");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.addFormRow(firstName, lastName);
+        formLayout.addFormRow(email);
+        formLayout.addFormRow(password, confirmPassword);
+        // end::snippet[]
+
+        formLayout.setWidthFull();
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-basic.tsx]
+import React from 'react';
+import {
+  EmailField,
+  FormLayout,
+  FormRow,
+  PasswordField,
+  SplitLayout,
+  TextField,
+} from '@vaadin/react-components';
+
+function Example() {
+  function renderFormLayout() {
+    // tag::snippet[]
+    return (
+      <FormLayout style={{ width: '100%' }} autoResponsive>
+        <FormRow>
+          <TextField label="First name" />
+          <TextField label="Last name" />
+        </FormRow>
+        <FormRow>
+          <EmailField label="Email address" />
+        </FormRow>
+        <FormRow>
+          <PasswordField label="Password" />
+          <PasswordField label="Confirm password" />
+        </FormRow>
+      </FormLayout>
+    );
+    // end::snippet[]
+  }
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-basic.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-row.js';
+import '@vaadin/password-field';
+import '@vaadin/text-field';
+import '@vaadin/email-field';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  private renderFormLayout() {
+    // tag::snippet[]
+    return html`
+      <vaadin-form-layout style="width: 100%" auto-responsive>
+        <vaadin-form-row>
+          <vaadin-text-field label="First name"></vaadin-text-field>
+          <vaadin-text-field label="Last name"></vaadin-text-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-email-field label="Email address"></vaadin-email-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-password-field label="Password"></vaadin-password-field>
+          <vaadin-password-field label="Confirm password"></vaadin-password-field>
+        </vaadin-form-row>
+      </vaadin-form-layout>
+    `;
+    // end::snippet[]
+  }
+}
+
+Form Layout automatically adjusts how fields are laid out in columns and rows to utilize the available space and avoid overflow. There are two discrete layouting modes that determine how this works:
+
+- Auto-responsive mode, based on column width
+- Responsive steps mode, based on defined breakpoints
+
+Note: Default mode depends on feature flag
+
+The default mode depends on the feature flag defaultAutoResponsiveFormLayout. When enabled, auto-responsive mode is the default; otherwise, responsive steps mode is the default.
+
+Auto-Responsive Mode
+
+In auto-responsive mode, Form Layout automatically determines the appropriate number of columns based on the column width and spacing, and the available horizontal space.
+
+[Flow: Java]
+formLayout.setAutoResponsive(true);
+
+[Flow: Java]
+
+[React: tsx]
+<FormLayout autoResponsive>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-form-layout auto-responsive>
+
+[Lit: HTML]
+
+Note: Feature Flag Controls Default Mode
+
+Auto-responsive mode can be set as default by setting the feature flag defaultAutoResponsiveFormLayout to true.
+
+The sections below describe features available in auto-responsive mode.
+
+Form Rows
+
+In auto-responsive mode, all fields are laid out in a single column by default. To render multiple fields side-by-side, i.e. in multiple columns, they can be grouped into Form Rows.
+
+[Flow: FormLayoutBasic.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-basic")
+public class FormLayoutBasic extends Div {
+
+    public FormLayoutBasic() {
+        // tag::snippet[]
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email address");
+        PasswordField password = new PasswordField("Password");
+        PasswordField confirmPassword = new PasswordField("Confirm password");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.addFormRow(firstName, lastName);
+        formLayout.addFormRow(email);
+        formLayout.addFormRow(password, confirmPassword);
+        // end::snippet[]
+
+        formLayout.setWidthFull();
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-basic.tsx]
+import React from 'react';
+import {
+  EmailField,
+  FormLayout,
+  FormRow,
+  PasswordField,
+  SplitLayout,
+  TextField,
+} from '@vaadin/react-components';
+
+function Example() {
+  function renderFormLayout() {
+    // tag::snippet[]
+    return (
+      <FormLayout style={{ width: '100%' }} autoResponsive>
+        <FormRow>
+          <TextField label="First name" />
+          <TextField label="Last name" />
+        </FormRow>
+        <FormRow>
+          <EmailField label="Email address" />
+        </FormRow>
+        <FormRow>
+          <PasswordField label="Password" />
+          <PasswordField label="Confirm password" />
+        </FormRow>
+      </FormLayout>
+    );
+    // end::snippet[]
+  }
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-basic.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-row.js';
+import '@vaadin/password-field';
+import '@vaadin/text-field';
+import '@vaadin/email-field';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  private renderFormLayout() {
+    // tag::snippet[]
+    return html`
+      <vaadin-form-layout style="width: 100%" auto-responsive>
+        <vaadin-form-row>
+          <vaadin-text-field label="First name"></vaadin-text-field>
+          <vaadin-text-field label="Last name"></vaadin-text-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-email-field label="Email address"></vaadin-email-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-password-field label="Password"></vaadin-password-field>
+          <vaadin-password-field label="Confirm password"></vaadin-password-field>
+        </vaadin-form-row>
+      </vaadin-form-layout>
+    `;
+    // end::snippet[]
+  }
+}
+
+Form Rows automatically wrap their contents into multiple rows if the layout doesn’t have enough columns to fit them on a single row.
+
+Note: UX Tip: Group Related Fields Into Rows
+
+Forms are easier to understand if fields are grouped into rows based on how closely related they are, rather than arbitrarily. As an example, first name and last name are typically placed on the same row, while a date-of-birth field would typically be on a different row.
+
+Label Position
+
+By default, labels are rendered above the field. Labels can be rendered next to the field by wrapping fields into Form Items and switching to labels-aside mode.
+
+[Flow: FormLayoutLabelsAside.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-labels-aside")
+public class FormLayoutLabelsAside extends Div {
+
+    public FormLayoutLabelsAside() {
+        // tag::snippet[]
+        TextField firstName = new TextField();
+        TextField lastName = new TextField();
+        EmailField email = new EmailField();
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.setLabelsAside(true);
+        formLayout.addFormItem(firstName, "First name");
+        formLayout.addFormItem(lastName, "Last name");
+        formLayout.addFormItem(email, "Email address");
+        // end::snippet[]
+        formLayout.setWidthFull();
+
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-labels-aside.tsx]
+import React from 'react';
+import { EmailField, FormItem, FormLayout, SplitLayout, TextField } from '@vaadin/react-components';
+
+function Example() {
+  function renderFormLayout() {
+    // tag::snippet[]
+    return (
+      <FormLayout style={{ width: '100%' }} autoResponsive labelsAside>
+        <FormItem>
+          <label slot="label">First name</label>
+          <TextField />
+        </FormItem>
+        <FormItem>
+          <label slot="label">Last name</label>
+          <TextField />
+        </FormItem>
+        <FormItem>
+          <label slot="label">Email address</label>
+          <EmailField />
+        </FormItem>
+      </FormLayout>
+    );
+    // end::snippet[]
+  }
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-labels-aside.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-item.js';
+import '@vaadin/text-field';
+import '@vaadin/email-field';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-labels-aside')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  private renderFormLayout() {
+    // tag::snippet[]
+    return html`
+      <vaadin-form-layout style="width: 100%" auto-responsive labels-aside>
+        <vaadin-form-item>
+          <label slot="label">First name</label>
+          <vaadin-text-field></vaadin-text-field>
+        </vaadin-form-item>
+        <vaadin-form-item>
+          <label slot="label">Last name</label>
+          <vaadin-text-field></vaadin-text-field>
+        </vaadin-form-item>
+        <vaadin-form-item>
+          <label slot="label">Email address</label>
+          <vaadin-email-field></vaadin-email-field>
+        </vaadin-form-item>
+      </vaadin-form-layout>
+    `;
+    // end::snippet[]
+  }
+}
+
+The field label must be applied on the Form Item rather than the field itself.
+
+When the Form Layout’s width isn’t sufficient to render labels next to fields, it automatically reverts back to rendering them above fields.
+
+Note: UX Tip: Labels Aside Work Best In Single Column Forms
+
+Forms with labels next to the fields can be confusing if fields are rendered in multiple columns. Although Form Layout supports combining side-labels with multiple columns, this combination is not recommended.
+
+The width of side labels can be configured with the --vaadin-form-layout-label-width CSS property. The Flow API also has a dedicated setLabelWidth API for this.
+
+Column Width
+
+All columns in a Form Layout have the same width, which can be configured to any CSS length value in absolute or font-relative units like px, pt, em, rem, or ch (percentages and length keywords like auto or min-content are not supported).
+
+[Flow: Java]
+formLayout.setColumnWidth("8em");
+
+[Flow: Java]
+
+[React: tsx]
+<FormLayout columnWidth="8em">
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-form-layout column-width="8em">
+
+[Lit: HTML]
+
+Additionally, columns can be set to expand to fill any remaining available space in the layout:
+
+[Flow: FormLayoutExpandColumns.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-expand-columns")
+public class FormLayoutExpandColumns extends Div {
+
+    public FormLayoutExpandColumns() {
+        // tag::snippet[]
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        PasswordField password = new PasswordField("Password");
+        PasswordField confirmPassword = new PasswordField("Confirm password");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.setColumnWidth("8em");
+        formLayout.setExpandColumns(true);
+        formLayout.addFormRow(firstName, lastName);
+        formLayout.addFormRow(email);
+        formLayout.addFormRow(password, confirmPassword);
+        // end::snippet[]
+        formLayout.setWidthFull();
+
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-expand-columns.tsx]
+import React from 'react';
+import {
+  EmailField,
+  FormLayout,
+  FormRow,
+  PasswordField,
+  SplitLayout,
+  TextField,
+} from '@vaadin/react-components';
+
+function Example() {
+  function renderFormLayout() {
+    // tag::snippet[]
+    return (
+      <FormLayout style={{ width: '100%' }} autoResponsive columnWidth="8em" expandColumns>
+        <FormRow>
+          <TextField label="First name" />
+          <TextField label="Last name" />
+        </FormRow>
+        <FormRow>
+          <EmailField label="Email address" />
+        </FormRow>
+        <FormRow>
+          <PasswordField label="Password" />
+          <PasswordField label="Confirm password" />
+        </FormRow>
+      </FormLayout>
+    );
+    // end::snippet[]
+  }
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-expand-columns.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-row.js';
+import '@vaadin/password-field';
+import '@vaadin/text-field';
+import '@vaadin/email-field';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-expand-columns')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  private renderFormLayout() {
+    // tag::snippet[]
+    return html`
+      <vaadin-form-layout style="width: 100%" auto-responsive column-width="8em" expand-columns>
+        <vaadin-form-row>
+          <vaadin-text-field label="First name"></vaadin-text-field>
+          <vaadin-text-field label="Last name"></vaadin-text-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-email-field label="Email address"></vaadin-email-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-password-field label="Password"></vaadin-password-field>
+          <vaadin-password-field label="Confirm password"></vaadin-password-field>
+        </vaadin-form-row>
+      </vaadin-form-layout>
+    `;
+    // end::snippet[]
+  }
+}
+
+This is typically combined with expanding fields to fill the full width of their columns, as described below.
+
+Expanding Fields to Fill Their Columns
+
+In auto-responsive mode, fields do not fill the columns they’re in by default (although they are prevented from overflowing them). This can be changed by enabling field expansion:
+
+[Flow: FormLayoutExpandFields.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-expand-fields")
+public class FormLayoutExpandFields extends Div {
+
+    public FormLayoutExpandFields() {
+        // tag::snippet[]
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email");
+        PasswordField password = new PasswordField("Password");
+        PasswordField confirmPassword = new PasswordField("Confirm password");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.setColumnWidth("8em");
+        formLayout.setExpandColumns(true);
+        formLayout.setExpandFields(true);
+        formLayout.addFormRow(firstName, lastName);
+        formLayout.addFormRow(email);
+        formLayout.addFormRow(password, confirmPassword);
+        // end::snippet[]
+        formLayout.setWidthFull();
+
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-expand-fields.tsx]
+import React from 'react';
+import {
+  EmailField,
+  FormLayout,
+  FormRow,
+  PasswordField,
+  SplitLayout,
+  TextField,
+} from '@vaadin/react-components';
+
+function Example() {
+  function renderFormLayout() {
+    // tag::snippet[]
+    return (
+      <FormLayout
+        style={{ width: '100%' }}
+        autoResponsive
+        columnWidth="8em"
+        expandColumns
+        expandFields
+      >
+        <FormRow>
+          <TextField label="First name" />
+          <TextField label="Last name" />
+        </FormRow>
+        <FormRow>
+          <EmailField label="Email address" />
+        </FormRow>
+        <FormRow>
+          <PasswordField label="Password" />
+          <PasswordField label="Confirm password" />
+        </FormRow>
+      </FormLayout>
+    );
+    // end::snippet[]
+  }
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-expand-fields.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-row.js';
+import '@vaadin/password-field';
+import '@vaadin/text-field';
+import '@vaadin/email-field';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-expand-fields')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  private renderFormLayout() {
+    // tag::snippet[]
+    return html`
+      <vaadin-form-layout
+        style="width: 100%"
+        auto-responsive
+        column-width="8em"
+        expand-columns
+        expand-fields
+      >
+        <vaadin-form-row>
+          <vaadin-text-field label="First name"></vaadin-text-field>
+          <vaadin-text-field label="Last name"></vaadin-text-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-email-field label="Email address"></vaadin-email-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-password-field label="Password"></vaadin-password-field>
+          <vaadin-password-field label="Confirm password"></vaadin-password-field>
+        </vaadin-form-row>
+      </vaadin-form-layout>
+    `;
+    // end::snippet[]
+  }
+}
+
+If only certain fields should expand, this can be achieved by setting their widths to 100%.
+
+Note: UX Tip: Fields Should Match Their Typical Content Length
+
+Although a uniform field size may look nice, matching field widths to the typical length of their contents makes it easier to find the correct field and the form easier to understand. This can be achieved by leaving field expansion disabled, or by using column span to determine the relative widths of fields.
+
+Column Limit
+
+The number of columns can be limited by setting the maximum column count.
+
+[Flow: Java]
+formLayout.setMaxColumns(3);
+
+[Flow: Java]
+
+[React: tsx]
+<FormLayout maxColumns="3">
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-form-layout max-columns="3">
+
+[Lit: HTML]
+
+Responsive Steps Mode
+
+In responsive steps mode, columns are defined explicitly for a number of breakpoints, or steps, based on the layout’s width, and fields are automatically laid out in the available columns, wrapping to the next row as needed.
+
+The default breakpoint configuration is one column below a layout width of 40em, and two columns above that.
+
+Note: Feature Flag Controls Default Mode
+
+The feature flag defaultAutoResponsiveFormLayout makes auto-responsive mode the default. With the flag enabled, individual Form Layouts can be switched to responsive steps mode by defining the responsive steps manually.
+
+Setting the Breakpoints
+
+Each breakpoint defines the minimum layout width at which it is applied, and the number of columns rendered.
+
+The following example sets
+
+- One column when the layout is less than 320 pixels wide
+- Two columns when the layout is at least 320 pixels wide
+- Three columns when the layout is at least 500 pixels wide
+
+[Flow: FormLayoutStepsBasic.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-steps-basic")
+public class FormLayoutStepsBasic extends Div {
+
+    public FormLayoutStepsBasic() {
+        // tag::snippet[]
+        TextField firstName = new TextField("First name");
+        TextField lastName = new TextField("Last name");
+        EmailField email = new EmailField("Email address");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.add(firstName, lastName, email);
+        formLayout.setResponsiveSteps(
+                // Use one column by default
+                new ResponsiveStep("0", 1),
+                // Use two columns, if the layout's width exceeds 320px
+                new ResponsiveStep("320px", 2),
+                // Use three columns, if the layout's width exceeds 500px
+                new ResponsiveStep("500px", 3));
+        // end::snippet[]
+
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-steps-basic.tsx]
+import React from 'react';
+import { EmailField, FormLayout, SplitLayout, TextField } from '@vaadin/react-components';
+
+function Example() {
+  // tag::snippet[]
+  const responsiveSteps = [
+    // Use one column by default
+    { minWidth: '0', columns: 1 },
+    // Use two columns, if the layout's width exceeds 320px
+    { minWidth: '320px', columns: 2 },
+    // Use three columns, if the layout's width exceeds 500px
+    { minWidth: '500px', columns: 3 },
+  ];
+
+  function renderFormLayout() {
+    return (
+      <FormLayout responsiveSteps={responsiveSteps}>
+        <TextField label="First name" />
+        <TextField label="Last name" />
+        <EmailField label="Email address" />
+      </FormLayout>
+    );
+  }
+  // end::snippet[]
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-steps-basic.ts]
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/split-layout';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { FormLayoutResponsiveStep } from '@vaadin/form-layout';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-steps-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  // tag::snippet[]
+  private responsiveSteps: FormLayoutResponsiveStep[] = [
+    // Use one column by default
+    { minWidth: 0, columns: 1 },
+    // Use two columns, if the layout's width exceeds 320px
+    { minWidth: '320px', columns: 2 },
+    // Use three columns, if the layout's width exceeds 500px
+    { minWidth: '500px', columns: 3 },
+  ];
+
+  // end::snippet[]
+  // tag::snippet[]
+  private renderFormLayout() {
+    return html`
+      <vaadin-form-layout .responsiveSteps="${this.responsiveSteps}">
+        <vaadin-text-field label="First name"></vaadin-text-field>
+        <vaadin-text-field label="Last name"></vaadin-text-field>
+        <vaadin-email-field label="Email address"></vaadin-email-field>
+      </vaadin-form-layout>
+    `;
+  }
+  // end::snippet[]
+}
+
+Note that
+
+- The smallest breakpoint should always be at zero pixels;
+- The breakpoints must be ordered by width.
+
+Label Position
+
+By default, labels are rendered above the field. Labels can be rendered next to the field by wrapping the fields into Form Items.
+
+In responsive steps mode, fields wrapped in Form Items render their fields on the side by default, unless the breakpoint configuration defines the label position to be above the fields.
+
+[Flow: FormLayoutStepsLabelsAside.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-steps-labels-aside")
+public class FormLayoutStepsLabelsAside extends Div {
+
+    public FormLayoutStepsLabelsAside() {
+        // tag::snippet[]
+        TextField firstName = new TextField();
+        TextField lastName = new TextField();
+        EmailField email = new EmailField();
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setLabelWidth("92px");
+        formLayout.addFormItem(firstName, "First name");
+        formLayout.addFormItem(lastName, "Last name");
+        formLayout.addFormItem(email, "Email address");
+
+        // This is the default configuration shown for demonstration purposes
+        // formLayout.setResponsiveSteps(
+        //         new ResponsiveStep("0", 1, ResponsiveStep.LabelsPosition.TOP),
+        //         new ResponsiveStep("20em", 1),
+        //         new ResponsiveStep("40em", 2));
+        // end::snippet[]
+
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-steps-labels-aside.tsx]
+import React from 'react';
+import { EmailField, FormItem, FormLayout, SplitLayout, TextField } from '@vaadin/react-components';
+
+function Example() {
+  // tag::snippet[]
+  // This is the default configuration shown for demonstration purposes
+  // const responsiveSteps: FormLayoutResponsiveStep[] = [
+  //   { minWidth: 0, columns: 1, labelsPosition: 'top' },
+  //   { minWidth: '20em', columns: 1 },
+  //   { minWidth: '40em', columns: 2 },
+  // ];
+
+  function renderFormLayout() {
+    return (
+      <FormLayout style={{ '--vaadin-form-layout-label-width': '92px' }}>
+        {/* Wrap fields into form items, which displays labels on the side by default */}
+        <FormItem>
+          <label slot="label">First name</label>
+          <TextField />
+        </FormItem>
+        <FormItem>
+          <label slot="label">Last name</label>
+          <TextField />
+        </FormItem>
+        <FormItem>
+          <label slot="label">Email address</label>
+          <EmailField />
+        </FormItem>
+      </FormLayout>
+    );
+  }
+  // end::snippet[]
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-steps-labels-aside.ts]
+import '@vaadin/email-field';
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-item.js';
+import '@vaadin/split-layout';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-steps-labels-aside')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  // tag::snippet[]
+  // This is the default configuration shown for demonstration purposes
+  // private responsiveSteps: FormLayoutResponsiveStep[] = [
+  //   { minWidth: 0, columns: 1, labelsPosition: 'top' },
+  //   { minWidth: '20em', columns: 1 },
+  //   { minWidth: '40em', columns: 2 },
+  // ];
+
+  // end::snippet[]
+  // tag::snippet[]
+  private renderFormLayout() {
+    return html`
+      <vaadin-form-layout style="--vaadin-form-layout-label-width: 92px;">
+        <!-- Wrap fields into form items, which
+             displays labels on the side by default -->
+        <vaadin-form-item>
+          <label slot="label">First name</label>
+          <vaadin-text-field></vaadin-text-field>
+        </vaadin-form-item>
+        <vaadin-form-item>
+          <label slot="label">Last name</label>
+          <vaadin-text-field></vaadin-text-field>
+        </vaadin-form-item>
+        <vaadin-form-item>
+          <label slot="label">Email address</label>
+          <vaadin-email-field></vaadin-email-field>
+        </vaadin-form-item>
+      </vaadin-form-layout>
+    `;
+  }
+  // end::snippet[]
+}
+
+The default breakpoint configuration renders Form Item wrapped fields with labels on the side, but reverts to labels above fields when the layout is less than 20em wide.
+
+Note that
+
+- The field label must be applied on the Form Item rather than the field itself.
+- Fields wrapped into Form Items do not match the size of the wrapper by default. To avoid empty space or overflow in the column, set the widths of the fields to 100%.
+
+Note: UX Tip: Labels Aside Work Best In Single Column Forms
+
+Forms with labels next to the fields can be confusing if fields are rendered in multiple columns. Although Form Layout supports combining side-labels with multiple columns, this combination is not recommended.
+
+Row Breaks
+
+Fields can be forced to break into multiple rows using html <br> line break elements:
+
+[Flow: Java]
+formLayout.add(new TextField("First name"));
+formLayout.add(new TextField("Last name"));
+formLayout.getElement().appendChild(ElementFactory.createBr()); // row break
+formLayout.add(new EmailField("Email address"));
+
+[Flow: Java]
+
+[React: tsx]
+<FormLayout>
+  <TextField label="First name" />
+  <TextField label="Last name" />
+  <br/> {/* row break */}
+  <EmailField label="Email address" />
+</FormLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-form-layout>
+  <vaadin-text-field label="First name"></vaadin-text-field>
+  <vaadin-text-field label="Last name"></vaadin-text-field>
+  <br/> <!-- row break -->
+  <vaadin-email-field label="Email address"></vaadin-email-field>
+</vaadin-form-layout>
+
+[Lit: HTML]
+
+Field Width
+
+In responsive steps mode, fields are automatically scaled to fit and fill the columns. Overriding this by setting minimum or maximum width on the field breaks the layout.
+
+To prevent a field from stretching to fill the full width of the column, wrap it in a Form Item. Note that the field may overflow the Form Item and break the layout if its width is larger than the width of the column. To avoid this, set the field’s maximum width to 100%.
+
+Column Span
+
+Fields can span multiple columns. Note that fields wrapped into Form Items must have their columns span set on the Form Item instead of the field itself.
+
+[Flow: FormLayoutColspan.java]
+package com.vaadin.demo.component.formlayout;
+
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.formlayout.FormLayout.FormRow;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("form-layout-colspan")
+public class FormLayoutColspan extends Div {
+
+    public FormLayoutColspan() {
+        // tag::snippet[]
+        TextField streetAddress = new TextField("Street address");
+        TextField postalCode = new TextField("Postal code");
+        TextField city = new TextField("City/Town");
+        TextField country = new TextField("Country");
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.setExpandFields(true);
+        formLayout.setColumnWidth("8em");
+
+        FormRow firstRow = new FormRow();
+        firstRow.add(streetAddress, 3); // colspan 3
+
+        FormRow secondRow = new FormRow();
+        secondRow.add(postalCode);
+        secondRow.add(city, 2); // colspan 2
+
+        FormRow thirdRow = new FormRow();
+        thirdRow.add(country, 2); // colspan 2
+
+        formLayout.add(firstRow, secondRow, thirdRow);
+        // end::snippet[]
+
+        formLayout.setWidthFull();
+        SplitLayout splitLayout = new SplitLayout(formLayout, new Div());
+        add(splitLayout);
+    }
+
+}
+
+[React: form-layout-colspan.tsx]
+import React from 'react';
+import { FormLayout, FormRow, SplitLayout, TextField } from '@vaadin/react-components';
+
+function Example() {
+  function renderFormLayout() {
+    // tag::snippet[]
+    return (
+      <FormLayout style={{ width: '100%' }} autoResponsive columnWidth="8em" expandFields>
+        <FormRow>
+          <TextField label="Street address" data-colspan="3" />
+        </FormRow>
+        <FormRow>
+          <TextField label="Postal code" />
+          <TextField label="City/Town" data-colspan="2" />
+        </FormRow>
+        <FormRow>
+          <TextField label="Country" data-colspan="2" />
+        </FormRow>
+      </FormLayout>
+    );
+    // end::snippet[]
+  }
+
+  return (
+    <SplitLayout>
+      {renderFormLayout()}
+      <div></div>
+    </SplitLayout>
+  );
+}
+
+[Lit: form-layout-colspan.ts]
+import '@vaadin/form-layout';
+import '@vaadin/form-layout/vaadin-form-row.js';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('form-layout-colspan')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-split-layout>
+        ${this.renderFormLayout()}
+        <div></div>
+      </vaadin-split-layout>
+    `;
+  }
+
+  private renderFormLayout() {
+    // tag::snippet[]
+    return html`
+      <vaadin-form-layout style="width: 100%" auto-responsive column-width="8em" expand-fields>
+        <vaadin-form-row>
+          <vaadin-text-field label="Street address" data-colspan="3"></vaadin-text-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-text-field label="Postal code"></vaadin-text-field>
+          <vaadin-text-field label="City/Town" data-colspan="2"></vaadin-text-field>
+        </vaadin-form-row>
+        <vaadin-form-row>
+          <vaadin-text-field label="Country" data-colspan="2"></vaadin-text-field>
+        </vaadin-form-row>
+      </vaadin-form-layout>
+    `;
+    // end::snippet[]
+  }
+}
+
+Column span is capped to the number of columns currently in the layout to prevent overflow.
+
+AI Form Filler
+
+Use FormAIController to let users fill a Form Layout from natural-language input or attached files. See AI Form Filler Flow.
+
+Miscellaneous
+
+Form Item Usage
+
+Form Item is only intended for wrapping individual input field components or native html <input> elements. It automatically applies an aria-labelledby attribute to the element for screen reader support, which only works correctly with input fields and Web Components with an ariaTarget property that returns an appropriate element to which the aria-labelledby attribute can be applied.
+
+To combine multiple inputs in the same form field, or to provide a label to other elements that lack labels, use Custom Field instead. A Custom Field can be further wrapped into a Form Item for side-label support.
+
+Scrolling
+
+Form Layout does not provide its own scroll area. To make a scrollable form, wrap the layout into a Scroller, and make sure that its size is undefined in the desired scroll direction.
+
+Field Focus Order
+
+Fields in multi-column Form Layouts always flow from left to right, then down, and the focus order of the fields will match this order. To make a form where focus flows from top to bottom, column by column, split the form into multiple single-column Form Layouts instead.
+
+Buttons
+
+Forms usually have buttons at the bottom for saving or cancelling changes. While these can be placed in the Form Layout itself, it is usually better to put them in a separate layout below the Form Layout. The Button component documentation provides more recommendations on buttons in forms.

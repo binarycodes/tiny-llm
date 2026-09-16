@@ -1,0 +1,290 @@
+Grid Inline Editing Flow
+
+The Flow Grid component can be configured to allow inline editing. Editing can be either buffered or non-buffered. Buffered means changes must be explicitly committed, while non-buffered means it automatically commits changes on blur — that is to say, when a field loses focus.
+
+Buffered
+
+To see how buffered inline editing works, click on the Edit button for one of the rows in the example here. The styling for the row changes, the Edit button changes to Save, and a red X appears next to it for canceling any changes. Make a change to some of the data and click Save to see how it works. Next, test the Cancel button — the red X.
+
+[Flow: GridBufferedInlineEditor.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.editor.Editor;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.EmailValidator;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-buffered-inline-editor")
+public class GridBufferedInlineEditor extends VerticalLayout {
+
+    public GridBufferedInlineEditor() {
+        ValidationMessage firstNameValidationMessage = new ValidationMessage();
+        ValidationMessage lastNameValidationMessage = new ValidationMessage();
+        ValidationMessage emailValidationMessage = new ValidationMessage();
+
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        Editor<Person> editor = grid.getEditor();
+
+        Grid.Column<Person> firstNameColumn = grid
+                .addColumn(Person::getFirstName).setHeader("First name")
+                .setWidth("120px").setFlexGrow(0);
+        Grid.Column<Person> lastNameColumn = grid.addColumn(Person::getLastName)
+                .setHeader("Last name").setWidth("120px").setFlexGrow(0);
+        Grid.Column<Person> emailColumn = grid.addColumn(Person::getEmail)
+                .setHeader("Email");
+        Grid.Column<Person> editColumn = grid.addComponentColumn(person -> {
+            Button editButton = new Button("Edit");
+            editButton.addClickListener(e -> {
+                if (editor.isOpen())
+                    editor.cancel();
+                grid.getEditor().editItem(person);
+            });
+            return editButton;
+        }).setWidth("150px").setFlexGrow(0);
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        editor.setBinder(binder);
+        editor.setBuffered(true);
+
+        TextField firstNameField = new TextField();
+        firstNameField.setWidthFull();
+        binder.forField(firstNameField)
+                .asRequired("First name must not be empty")
+                .withStatusLabel(firstNameValidationMessage)
+                .bind(Person::getFirstName, Person::setFirstName);
+        firstNameColumn.setEditorComponent(firstNameField);
+
+        TextField lastNameField = new TextField();
+        lastNameField.setWidthFull();
+        binder.forField(lastNameField).asRequired("Last name must not be empty")
+                .withStatusLabel(lastNameValidationMessage)
+                .bind(Person::getLastName, Person::setLastName);
+        lastNameColumn.setEditorComponent(lastNameField);
+
+        EmailField emailField = new EmailField();
+        emailField.setWidthFull();
+        binder.forField(emailField).asRequired("Email must not be empty")
+                .withValidator(
+                        new EmailValidator("Enter a valid email address"))
+                .withStatusLabel(emailValidationMessage)
+                .bind(Person::getEmail, Person::setEmail);
+        emailColumn.setEditorComponent(emailField);
+
+        Button saveButton = new Button("Save", e -> editor.save());
+        Button cancelButton = new Button(VaadinIcon.CLOSE.create(),
+                e -> editor.cancel());
+        cancelButton.addThemeVariants(ButtonVariant.ERROR);
+        HorizontalLayout actions = new HorizontalLayout(saveButton,
+                cancelButton);
+        actions.setPadding(false);
+        editColumn.setEditorComponent(actions);
+        // end::snippet[]
+
+        editor.addCancelListener(e -> {
+            firstNameValidationMessage.setText("");
+            lastNameValidationMessage.setText("");
+            emailValidationMessage.setText("");
+        });
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        setSpacing("var(--vaadin-gap-s)");
+        add(grid, firstNameValidationMessage, lastNameValidationMessage,
+                emailValidationMessage);
+    }
+
+}
+
+[Flow: ValidationMessage.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.flow.component.HasText;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
+class ValidationMessage extends HorizontalLayout implements HasText {
+
+    private final Span span = new Span();
+
+    public ValidationMessage() {
+        setVisible(false);
+        setAlignItems(Alignment.CENTER);
+        getStyle().set("color", "red");
+        setSpacing("var(--vaadin-gap-s)");
+
+        Icon icon = VaadinIcon.EXCLAMATION_CIRCLE_O.create();
+        icon.setSize("16px");
+        add(icon, span);
+    }
+
+    @Override
+    public String getText() {
+        return span.getText();
+    }
+
+    @Override
+    public void setText(String text) {
+        span.setText(text);
+        this.setVisible(text != null && !text.isEmpty());
+    }
+}
+
+[Flow: ValidationMessage.java]
+
+Non-Buffered
+
+To see how non-buffered works, double-click a row in the example below to start editing it. The styling for the row changes slightly to indicate it’s in edit mode. Press Escape, or click on a different row to stop editing. Notice how the row style returns to its original setting and that changes are saved automatically.
+
+[Flow: GridUnbufferedInlineEditor.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Focusable;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.editor.Editor;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.EmailValidator;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-unbuffered-inline-editor")
+public class GridUnbufferedInlineEditor extends VerticalLayout {
+
+    public GridUnbufferedInlineEditor() {
+        ValidationMessage firstNameValidationMessage = new ValidationMessage();
+        ValidationMessage lastNameValidationMessage = new ValidationMessage();
+        ValidationMessage emailValidationMessage = new ValidationMessage();
+
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        Grid.Column<Person> firstNameColumn = grid
+                .addColumn(Person::getFirstName).setHeader("First name")
+                .setWidth("120px").setFlexGrow(0);
+        Grid.Column<Person> lastNameColumn = grid.addColumn(Person::getLastName)
+                .setHeader("Last name").setWidth("120px").setFlexGrow(0);
+        Grid.Column<Person> emailColumn = grid.addColumn(Person::getEmail)
+                .setHeader("Email");
+
+        Binder<Person> binder = new Binder<>(Person.class);
+        Editor<Person> editor = grid.getEditor();
+        editor.setBinder(binder);
+
+        TextField firstNameField = new TextField();
+        firstNameField.setWidthFull();
+        addCloseHandler(firstNameField, editor);
+        binder.forField(firstNameField)
+                .asRequired("First name must not be empty")
+                .withStatusLabel(firstNameValidationMessage)
+                .bind(Person::getFirstName, Person::setFirstName);
+        firstNameColumn.setEditorComponent(firstNameField);
+
+        TextField lastNameField = new TextField();
+        lastNameField.setWidthFull();
+        addCloseHandler(lastNameField, editor);
+        binder.forField(lastNameField).asRequired("Last name must not be empty")
+                .withStatusLabel(lastNameValidationMessage)
+                .bind(Person::getLastName, Person::setLastName);
+        lastNameColumn.setEditorComponent(lastNameField);
+
+        EmailField emailField = new EmailField();
+        emailField.setWidthFull();
+        addCloseHandler(emailField, editor);
+        binder.forField(emailField).asRequired("Email must not be empty")
+                .withValidator(
+                        new EmailValidator("Enter a valid email address"))
+                .withStatusLabel(emailValidationMessage)
+                .bind(Person::getEmail, Person::setEmail);
+        emailColumn.setEditorComponent(emailField);
+
+        grid.addItemDoubleClickListener(e -> {
+            editor.editItem(e.getItem());
+            Component editorComponent = e.getColumn().getEditorComponent();
+            if (editorComponent instanceof Focusable) {
+                ((Focusable) editorComponent).focus();
+            }
+        });
+        // end::snippet[]
+
+        editor.addCancelListener(e -> {
+            firstNameValidationMessage.setText("");
+            lastNameValidationMessage.setText("");
+            emailValidationMessage.setText("");
+        });
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        setSpacing("var(--vaadin-gap-s)");
+        add(grid, firstNameValidationMessage, lastNameValidationMessage,
+                emailValidationMessage);
+    }
+
+    private static void addCloseHandler(Component textField,
+            Editor<Person> editor) {
+        textField.getElement().addEventListener("keydown", e -> editor.cancel())
+                .setFilter("event.code === 'Escape'");
+    }
+
+}
+
+[Flow: ValidationMessage.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.flow.component.HasText;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
+class ValidationMessage extends HorizontalLayout implements HasText {
+
+    private final Span span = new Span();
+
+    public ValidationMessage() {
+        setVisible(false);
+        setAlignItems(Alignment.CENTER);
+        getStyle().set("color", "red");
+        setSpacing("var(--vaadin-gap-s)");
+
+        Icon icon = VaadinIcon.EXCLAMATION_CIRCLE_O.create();
+        icon.setSize("16px");
+        add(icon, span);
+    }
+
+    @Override
+    public String getText() {
+        return span.getText();
+    }
+
+    @Override
+    public void setText(String text) {
+        span.setText(text);
+        this.setVisible(text != null && !text.isEmpty());
+    }
+}
+
+[Flow: ValidationMessage.java]
+
+As an alternative, use Grid Pro for more streamlined inline editing, or CRUD for editing in a separate side panel or dialog.

@@ -1,0 +1,513 @@
+Tabs Styling
+
+Styling API reference for the Tab Sheet and Tabs components.
+
+Style Variants
+
+The following variants are supported by the Tabs:
+
+Variant | Description | Supported by
+centered | Aligns tab elements to the center | Lumo
+equal-width-tabs | Makes each tab share equally the available space | Lumo
+small | Reduces the size of tabs | Aura, Lumo
+minimal | Reduces visual styles to a minimum | Lumo
+hide-scroll-buttons | Hides scroll buttons when the content overflows | Aura, Lumo
+show-scroll-buttons | Shows scroll buttons when the content overflows | Aura, Lumo
+filled | Uses a solid background color for tabs | Aura
+
+In addition to the above, the following variants are supported by the Tab Sheet:
+
+Variant | Description | Supported by
+bordered | Shows border around the tab sheet component | Lumo
+no-border | Removes border around the tab sheet component | Aura
+no-padding | Removes the padding from the tab sheet content area | Aura, Lumo
+
+Centered
+
+By default, tabs are left-aligned. They can be centered using the centered variant.
+
+[Flow: TabsThemeCentered.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.tabs.TabsVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-theme-centered")
+public class TabsThemeCentered extends Div {
+
+    public TabsThemeCentered() {
+        // tag::snippet[]
+        Tab details = new Tab("Details");
+        Tab payment = new Tab("Payment");
+        Tab shipping = new Tab("Shipping");
+
+        Tabs tabs = new Tabs(details, payment, shipping);
+        tabs.addThemeVariants(TabsVariant.LUMO_CENTERED);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-theme-centered.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs theme="centered">
+      <Tab>Details</Tab>
+      <Tab>Payment</Tab>
+      <Tab>Shipping</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-theme-centered.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-theme-centered')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs theme="centered">
+        <vaadin-tab>Details</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+You can use this variant to suit your visual and stylistic preference. It’s typically used for top-level navigation. However, use it only where appropriate since by default left-aligned tabs are more discoverable and what most users expect.
+
+Equal-Width Tabs
+
+Apply the equal-width-tabs variant to make each tab share equally the available space. This disables the ability to scroll, though, since the content never overflows.
+
+[Flow: TabsThemeEqualWidth.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.tabs.TabsVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-theme-equal-width")
+public class TabsThemeEqualWidth extends Div {
+
+    public TabsThemeEqualWidth() {
+        // tag::snippet[]
+        Tab details = new Tab("Details");
+        Tab payment = new Tab("Payment");
+        Tab shipping = new Tab("Shipping");
+
+        Tabs tabs = new Tabs(details, payment, shipping);
+        tabs.addThemeVariants(TabsVariant.LUMO_EQUAL_WIDTH_TABS);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-theme-equal-width.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs theme="equal-width-tabs">
+      <Tab>Details</Tab>
+      <Tab>Payment</Tab>
+      <Tab>Shipping</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-theme-equal-width.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-theme-equal-width')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs theme="equal-width-tabs">
+        <vaadin-tab>Details</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Use this variant when there are a small number of tabs in a narrow space, such as for a tabbed sidebar and for mobile (i.e., portrait) layouts.
+
+Minimal
+
+The minimal variant reduces visual styles to a minimum.
+
+[Flow: TabsThemeMinimal.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.tabs.TabsVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-theme-minimal")
+public class TabsThemeMinimal extends Div {
+
+    public TabsThemeMinimal() {
+        // tag::snippet[]
+        Tab details = new Tab("Details");
+        Tab payment = new Tab("Payment");
+        Tab shipping = new Tab("Shipping");
+
+        Tabs tabs = new Tabs(details, payment, shipping);
+        tabs.addThemeVariants(TabsVariant.LUMO_MINIMAL);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-theme-minimal.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs theme="minimal">
+      <Tab>Details</Tab>
+      <Tab>Payment</Tab>
+      <Tab>Shipping</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-theme-minimal.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-theme-minimal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs theme="minimal">
+        <vaadin-tab>Details</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+You can generally use this to reduce visual clutter. However, use it with caution as it reduces the visual distinction of selected tabs to color only. This can be difficult to discern for many users.
+
+Small
+
+The small variant can be used to make the Tabs smaller. This can be good when space is limited. Compare the tabs here to previous ones. You can see these are slightly smaller.
+
+[Flow: TabsThemeSmall.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.tabs.TabsVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("tabs-theme-small")
+public class TabsThemeSmall extends Div {
+
+    public TabsThemeSmall() {
+        // tag::snippet[]
+        Tab details = new Tab("Details");
+        Tab payment = new Tab("Payment");
+        Tab shipping = new Tab("Shipping");
+
+        Tabs tabs = new Tabs(details, payment, shipping);
+        tabs.addThemeVariants(TabsVariant.LUMO_SMALL);
+        // end::snippet[]
+        add(tabs);
+    }
+
+}
+
+[React: tabs-theme-small.tsx]
+import React from 'react';
+import { Tab } from '@vaadin/react-components/Tab.js';
+import { Tabs } from '@vaadin/react-components/Tabs.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Tabs theme="small">
+      <Tab>Details</Tab>
+      <Tab>Payment</Tab>
+      <Tab>Shipping</Tab>
+    </Tabs>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabs-theme-small.ts]
+import '@vaadin/tabs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabs-theme-small')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabs theme="small">
+        <vaadin-tab>Details</vaadin-tab>
+        <vaadin-tab>Payment</vaadin-tab>
+        <vaadin-tab>Shipping</vaadin-tab>
+      </vaadin-tabs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Bordered
+
+The bordered variant adds a border around the Tab Sheet component.
+
+[Flow: TabSheetThemeBordered.java]
+package com.vaadin.demo.component.tabs;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.tabs.TabSheet;
+import com.vaadin.flow.component.tabs.TabSheetVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("tabsheet-theme-bordered")
+public class TabSheetThemeBordered extends Div {
+
+    public TabSheetThemeBordered() {
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.add("Dashboard",
+                new Div(new Text("This is the Dashboard tab content")));
+        tabSheet.add("Payment",
+                new Div(new Text("This is the Payment tab content")));
+        tabSheet.add("Shipping",
+                new Div(new Text("This is the Shipping tab content")));
+        // tag::snippet[]
+        tabSheet.addThemeVariants(TabSheetVariant.LUMO_BORDERED);
+        // end::snippet[]
+        add(tabSheet);
+    }
+
+}
+
+[React: tabsheet-theme-bordered.tsx]
+import React from 'react';
+import { TabSheet, TabSheetTab } from '@vaadin/react-components/TabSheet.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <TabSheet theme="bordered">
+      <TabSheetTab label="Dashboard">
+        <div>This is the Dashboard tab content</div>
+      </TabSheetTab>
+
+      <TabSheetTab label="Payment">
+        <div>This is the Payment tab content</div>
+      </TabSheetTab>
+
+      <TabSheetTab label="Shipping">
+        <div>This is the Shipping tab content</div>
+      </TabSheetTab>
+    </TabSheet>
+    // end::snippet[]
+  );
+}
+
+[Lit: tabsheet-theme-bordered.ts]
+import '@vaadin/tabs';
+import '@vaadin/tabsheet';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('tabsheet-theme-bordered')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-tabsheet theme="bordered">
+        <vaadin-tabs slot="tabs">
+          <vaadin-tab id="dashboard-tab">Dashboard</vaadin-tab>
+          <vaadin-tab id="payment-tab">Payment</vaadin-tab>
+          <vaadin-tab id="shipping-tab">Shipping</vaadin-tab>
+        </vaadin-tabs>
+
+        <div tab="dashboard-tab">This is the Dashboard tab content</div>
+        <div tab="payment-tab">This is the Payment tab content</div>
+        <div tab="shipping-tab">This is the Shipping tab content</div>
+      </vaadin-tabsheet>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Tab Properties
+
+Property | Supported by
+--vaadin-tab-background | Aura
+--vaadin-tab-border-color | Aura
+--vaadin-tab-border-radius | Aura
+--vaadin-tab-border-width | Aura
+--vaadin-tab-font-size | Aura
+--vaadin-tab-font-weight | Aura
+--vaadin-tab-gap | Aura
+--vaadin-tab-line-height | Aura
+--vaadin-tab-padding | Aura
+--vaadin-tab-text-color | Aura
+
+Tabs Properties
+
+Property | Supported by
+--vaadin-tabs-background | Aura
+--vaadin-tabs-border-color | Aura
+--vaadin-tabs-border-radius | Aura
+--vaadin-tabs-border-width | Aura
+--vaadin-tabs-gap | Aura
+--vaadin-tabs-padding | Aura
+
+Tab Sheet Properties
+
+Property | Supported by
+--vaadin-tabsheet-border-color | Aura
+--vaadin-tabsheet-border-radius | Aura
+--vaadin-tabsheet-border-width | Aura
+--vaadin-tabsheet-gap | Aura
+--vaadin-tabsheet-padding | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Tabsheet
+
+Root element
+    vaadin-tabsheet
+Tabs wrapper
+    vaadin-tabsheet::part(tabs-container)
+Content wrapper
+    vaadin-tabsheet::part(content)
+Content loading indicator
+    vaadin-tabsheet::part(loader)
+
+Tabs
+
+Root element
+    vaadin-tabs
+Horizontal tabs
+    vaadin-tabs[orientation="horizontal"]
+Vertical tabs
+    vaadin-tabs[orientation="vertical"]
+Tab container
+    vaadin-tabs::part(tabs)
+Back button
+    vaadin-tabs::part(back-button)
+Back button icon
+    vaadin-tabs::part(back-button)::after
+Forward button
+    vaadin-tabs::part(forward-button)
+Forward button icon
+    vaadin-tabs::part(forward-button)::after
+
+Tab
+
+Root element
+    vaadin-tab
+Selected
+    vaadin-tab[selected]
+Focused
+    vaadin-tab[focused]
+Keyboard focused
+    vaadin-tab[focus-ring]
+Pressed
+    vaadin-tab[active]
+Hovered
+    vaadin-tab:hover
+Disabled
+    vaadin-tab[disabled]
+Selection indicator
+    vaadin-tab::before
+Icon in tab
+    vaadin-tab > vaadin-icon

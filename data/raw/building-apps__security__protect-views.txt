@@ -1,0 +1,220 @@
+Protect Views
+
+Learn how to protect views in a Vaadin application based on user roles.
+
+Logging in and out ensures that only authenticated users can access the application. However, most business applications require more than just authentication—different types of users often have varying levels of access.
+
+In role-based applications, users are assigned specific roles that determine what data they can access and which actions they can perform. To enforce these restrictions, you must implement proper authorization for your views.
+
+Declarative View Security
+
+The easiest way to grant or deny access to a Vaadin view is to use annotations. The following annotations are supported:
+
+- @AnonymousAllowed allows access to unauthenticated users.
+- @PermitAll allows any authenticated user to navigate to the view.
+- @RolesAllowed allows users having the roles specified in the annotation value to navigate to the view.
+- @DenyAll prevents everyone from navigating to the view. By default, all views are inaccessible unless explicitly annotated.
+
+Note: Different Security Annotations
+
+The @AnonymousAllowed annotation is a Vaadin-specific annotation; the others are Jakarta annotations (JSR-250). The Spring Security annotations @Secured and @PreAuthorize are not supported on views.
+
+The following example uses @AnonymousAllowed to allow all users — both authenticated and unauthenticated — to access the view:
+
+[Java]
+@Route("public")
+@PageTitle("Public View")
+@AnonymousAllowed
+public class PublicView extends Main {
+    ...
+}
+
+In business applications that require authentication for everything, you typically have to do this on the login view.
+
+The next example uses @PermitAll to allow only authenticated users — with any role — to access the view:
+
+[Java]
+@Route("private")
+@PageTitle("Private View")
+@PermitAll
+public class PrivateView extends Main {
+    ...
+}
+
+This example uses @RolesAllowed to allow users with the ADMIN role to navigate to the view:
+
+[Java]
+@Route("admin")
+@PageTitle("Admin View")
+@RolesAllowed("ADMIN")
+public class AdminView extends Main {
+    ...
+}
+
+Important: Router layouts are also protected
+
+When protecting views, ensure the router layout also allows access. If a view is accessible but its parent layout is restricted, users will still be blocked.
+
+Note: Error Views Need Security Annotations Too
+
+Custom error handler views — such as a class extending RouteNotFoundError — are also subject to access control. Add an appropriate security annotation (e.g., @AnonymousAllowed) to ensure they are accessible. With Spring Security, a custom not-found view additionally requires relaxing the catch-all request rule, so that requests for non-existing pages reach the application instead of being denied at the HTTP layer. See Router Exception Handling for more details.
+
+Annotation Inheritance
+
+Security annotations are inherited from the closest superclass that has them. Annotating a subclass overrides any inherited annotations. Interfaces aren’t checked for annotations, only classes.
+
+In the following example, UserListingView requires the ADMIN role:
+
+[Java]
+@RolesAllowed("ADMIN")
+public abstract class AbstractAdminView extends VerticalLayout {
+    ...
+}
+
+@Route(value = "user-listing")
+public class UserListingView extends AbstractAdminView {
+    ...
+}
+
+While multiple security annotations can be applied to a single view, doing so can cause conflicts and is not recommended. However, if multiple annotations exist on a view, they override each other in this order:
+
+- @DenyAll overrides all other annotations;
+- @AnonymousAllowed overrides @RolesAllowed and @PermitAll; and
+- @RolesAllowed overrides @PermitAll.
+
+Programmatic View Security
+
+Vaadin provides API:s for protecting views programmatically. It’s more verbose than using the annotations, but gives you greater control.
+
+Making a Custom Navigation Access Checker
+
+If you need more fine-grained control over how access is granted to views, you can implement a custom NavigationAccessChecker:
+
+[Java]
+@Component 1
+class CustomAccessChecker implements NavigationAccessChecker {
+
+    @Override
+    public AccessCheckResult check(NavigationContext context) {
+        // Check whether to allow or deny access
+    }
+}
+
+1. Registers the navigation access checker as a singleton Spring bean.
+
+The NavigationContext object contains information about where you’re trying to navigate, such as the view class, route parameters, and query parameters. It also contains the principal of the current user.
+
+Since the access checker is a Spring bean, you inject other beans into it. For example, you may want to lookup more information to make the access decision.
+
+Once you’ve made a decision, you have to return an AccessCheckResult. The AccessCheckResult determines whether navigation is allowed, denied, or deferred. There are four possible outcomes:
+
+AccessCheckResult.allow()
+    Access is granted.
+AccessCheckResult.neutral()
+    The access checker cannot make a decision based on the given navigation information. Another access checker have to make the decision, or access will be denied.
+AccessCheckResult.deny()
+    Access is denied.
+AccessCheckResult.reject()
+    Access is denied because of a misconfiguration or critical development time error.
+
+Note: The security annotations are actually enforced by a built-in access checker.
+
+Enabling a Navigation Access Checker
+
+To enable a custom NavigationAccessChecker, create a new NavigationAccessControlConfigurer Spring bean:
+
+[SecurityConfig.java]
+@EnableWebSecurity
+@Configuration
+class SecurityConfig {
+
+    @Bean
+    static NavigationAccessControlConfigurer navigationAccessControlConfigurer( 1
+            CustomAccessChecker customAccessChecker) {
+        return new NavigationAccessControlConfigurer()
+                .withNavigationAccessChecker(customAccessChecker); 2
+    }
+    ...
+}
+
+1. The @Bean method must be static to prevent bootstrap errors caused by circular dependencies in bean definitions.
+2. CustomAccessChecker is now the only enabled access checker.
+
+You can have multiple access checkers active at the same time. When you navigate to a view, they will all be consulted.
+
+Note: To enable the built-in annotated view access checker, call NavigationAccessControlConfigurer.withAnnotatedViewAccessChecker().
+
+An AccessCheckDecisionResolver computes the final access decision based on the results of every access checker. The default implementation makes the decision by applying the following rules:
+
+Navigation Access Checkers Results | Decision
+ALL ALLOW | ALLOW
+ALLOW + NEUTRAL | ALLOW
+ALL DENY | DENY
+DENY + NEUTRAL | DENY
+ALL NEUTRAL | DENY
+ALLOW + DENY | REJECT
+ALLOW + DENY + NEUTRAL | REJECT
+
+Important: The built-in annotated view access checker never returns NEUTRAL. It either grants or denies access.
+
+By default, having access checkers both allowing and denying access at the same time is considered a configuration error. This can happen if you combine the built-in annotated view access checker with a custom access checker. If this is what you want, you have to create a custom AccessCheckDecisionResolver. This, and more, is covered in the Navigation Access Control Reference Guide.
+
+Controlling Access within Views
+
+Sometimes, you want multiple roles to be able to access a view, but limit what they can do within it. For instance, one role may have full read-write access whereas another role has only read-only access. To check the roles of the current user, inject an AuthenticationContext object into your view:
+
+[Java]
+@Route("")
+@PermitAll 1
+public class MyView extends Main {
+
+    public MyView(AuthenticationContext authenticationContext) {
+        if (authenticationContext.hasRole("ADMIN")) { 2
+            // Set up the UI for an admin
+        } else {
+            // Set up the UI for normal users
+        }
+    }
+    ...
+}
+
+1. All authenticated user have access to the view.
+2. Administrators can do more inside the view than normal users.
+
+AuthenticationContext has multiple methods for checking the roles and authorities of the current user. Refer to the Javadoc for more information.
+
+Role Constants
+
+To reduce the risk of typos, consider defining all your application’s roles as constants. In the security package, make a Roles class:
+
+[Roles.java]
+public final class Roles {
+    public static final String ADMIN = "ADMIN";
+    public static final String USER = "USER";
+
+    private Roles() {}
+}
+
+Then refer to the constants in annotations and method calls:
+
+[Java]
+@Route
+@RolesAllowed(Roles.ADMIN)
+public class AdminView extends Main {
+    ...
+}
+
+[Java]
+@Route("")
+@PermitAll
+public class MyView extends Main {
+
+    public MyView(AuthenticationContext authenticationContext) {
+        if (authenticationContext.hasRole(Roles.ADMIN)) {
+            // Set up the UI for an admin
+        } else {
+            // Set up the UI for normal users
+        }
+    }
+    ...
+}

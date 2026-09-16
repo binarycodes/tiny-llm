@@ -1,0 +1,20 @@
+Architecture Deep Dive
+
+Deep Dive articles about architecting full-stack business applications with Vaadin.
+
+Important: Deep Dive - Recommended Approach
+
+This opinionated deep-dive explains core concepts (for example, architectural layers and monoliths) and gives a practical, recommended way to architect Vaadin applications. If you’re new, this is a good place to start; if you’re experienced, feel free to use whatever patterns work for you.
+
+Conceptual Layers
+    Introduces the UI layer and the application layer in Vaadin apps.
+Monoliths
+    Essential concepts, as well as advantages and disadvantages of developing and using monolithic applications.
+Microservices
+    How Vaadin fits into microservice-based systems.
+APIs and SPIs
+    The use of Application Programming Interfaces and Service Provider Interfaces in Vaadin applications.
+Package Structure
+    Different ways of structuring the Java packages in Vaadin projects.
+Project Structure
+    The basics of structuring and packaging Vaadin projects.

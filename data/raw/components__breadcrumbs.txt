@@ -1,0 +1,378 @@
+Breadcrumbs
+
+Breadcrumbs show the user’s location within a hierarchy and provide links back to higher levels.
+
+Breadcrumbs show the user’s location within an application’s hierarchy and provide links back to higher levels.
+
+Note: Preview Feature
+
+This is a preview version of Breadcrumbs. You need to enable it with the feature flag com.vaadin.experimental.breadcrumbsComponent. Preview versions may lack some planned features, and breaking changes may be introduced in any Vaadin version. We encourage you to try it out and provide feedback in the Forum so that we can make it stable. You can report bugs and request additional features on GitHub.
+
+Basic Usage
+
+A Breadcrumbs component contains an ordered set of items that represent the path from a top-level location to the current page. Each item that has a path renders as a link, while the last item — which has no path — represents the current page and isn’t a link.
+
+Note: Navigation Disabled in Examples
+
+For technical reasons, actual navigation is disabled in the examples on this page.
+
+[Flow: BreadcrumbsBasic.java]
+package com.vaadin.demo.component.breadcrumbs;
+
+import com.vaadin.flow.component.breadcrumbs.Breadcrumbs;
+import com.vaadin.flow.component.breadcrumbs.BreadcrumbsItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("breadcrumbs-basic")
+public class BreadcrumbsBasic extends Div {
+
+    public BreadcrumbsBasic() {
+
+        // tag::snippet[]
+        Breadcrumbs breadcrumbs = new Breadcrumbs(Breadcrumbs.Mode.MANUAL);
+
+        BreadcrumbsItem home = new BreadcrumbsItem("Home", "/");
+        BreadcrumbsItem components = new BreadcrumbsItem("Components",
+                "/components");
+        BreadcrumbsItem current = new BreadcrumbsItem("Breadcrumbs");
+
+        breadcrumbs.add(home, components, current);
+        // end::snippet[]
+
+        add(breadcrumbs);
+    }
+
+}
+
+[React: breadcrumbs-basic.tsx]
+import React, { useEffect, useRef } from 'react';
+import { Breadcrumbs, type BreadcrumbsElement } from '@vaadin/react-components/Breadcrumbs.js';
+import { BreadcrumbsItem } from '@vaadin/react-components/BreadcrumbsItem.js';
+
+function Example() {
+  const breadcrumbsRef = useRef<BreadcrumbsElement>(null);
+
+  useEffect(() => {
+    if (breadcrumbsRef.current) {
+      // Example-specific workaround
+      patchBreadcrumbsNavigation(breadcrumbsRef.current);
+    }
+  }, [breadcrumbsRef.current]);
+
+  return (
+    // tag::snippet[]
+    <Breadcrumbs ref={breadcrumbsRef}>
+      <BreadcrumbsItem path="/">Home</BreadcrumbsItem>
+      <BreadcrumbsItem path="/components">Components</BreadcrumbsItem>
+      <BreadcrumbsItem>Breadcrumbs</BreadcrumbsItem>
+    </Breadcrumbs>
+    // end::snippet[]
+  );
+}
+
+[Lit: breadcrumbs-basic.ts]
+import '@vaadin/breadcrumbs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('breadcrumbs-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-breadcrumbs>
+        <vaadin-breadcrumbs-item path="/">Home</vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item path="/components">Components</vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item>Breadcrumbs</vaadin-breadcrumbs-item>
+      </vaadin-breadcrumbs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Items
+
+Each item in a Breadcrumbs is a BreadcrumbsItem (Flow) or a <vaadin-breadcrumbs-item> (Lit) / <BreadcrumbsItem> (React). An item’s role depends on whether it has a path:
+
+- An item with a path renders as a link that navigates to the corresponding location.
+- An item without a path represents the current page. The component automatically marks the last path-less item as current, rendering it as plain, non-interactive text.
+
+Prefix Icons
+
+An item can include an icon, or other content, in its prefix slot. This is useful for adding a visual cue, such as a home icon for the root of the hierarchy.
+
+[Flow: BreadcrumbsIcons.java]
+package com.vaadin.demo.component.breadcrumbs;
+
+import com.vaadin.flow.component.breadcrumbs.Breadcrumbs;
+import com.vaadin.flow.component.breadcrumbs.BreadcrumbsItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.router.Route;
+
+@Route("breadcrumbs-icons")
+public class BreadcrumbsIcons extends Div {
+
+    public BreadcrumbsIcons() {
+
+        // tag::snippet[]
+        Breadcrumbs breadcrumbs = new Breadcrumbs(Breadcrumbs.Mode.MANUAL);
+
+        BreadcrumbsItem home = new BreadcrumbsItem("Home", "/",
+                VaadinIcon.HOME.create());
+        BreadcrumbsItem orders = new BreadcrumbsItem("Orders", "/orders",
+                VaadinIcon.PACKAGE.create());
+        BreadcrumbsItem current = new BreadcrumbsItem("Order Details");
+
+        breadcrumbs.add(home, orders, current);
+        // end::snippet[]
+
+        add(breadcrumbs);
+    }
+
+}
+
+[React: breadcrumbs-icons.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import { Breadcrumbs, type BreadcrumbsElement } from '@vaadin/react-components/Breadcrumbs.js';
+import { BreadcrumbsItem } from '@vaadin/react-components/BreadcrumbsItem.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+
+function Example() {
+  const breadcrumbsRef = useRef<BreadcrumbsElement>(null);
+
+  useEffect(() => {
+    if (breadcrumbsRef.current) {
+      // Example-specific workaround
+      patchBreadcrumbsNavigation(breadcrumbsRef.current);
+    }
+  }, [breadcrumbsRef.current]);
+
+  return (
+    // tag::snippet[]
+    <Breadcrumbs ref={breadcrumbsRef}>
+      <BreadcrumbsItem path="/">
+        <Icon icon="vaadin:home" slot="prefix" />
+        Home
+      </BreadcrumbsItem>
+      <BreadcrumbsItem path="/orders">
+        <Icon icon="vaadin:package" slot="prefix" />
+        Orders
+      </BreadcrumbsItem>
+      <BreadcrumbsItem>Order Details</BreadcrumbsItem>
+    </Breadcrumbs>
+    // end::snippet[]
+  );
+}
+
+[Lit: breadcrumbs-icons.ts]
+import '@vaadin/breadcrumbs';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('breadcrumbs-icons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-breadcrumbs>
+        <vaadin-breadcrumbs-item path="/">
+          <vaadin-icon icon="vaadin:home" slot="prefix"></vaadin-icon>
+          Home
+        </vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item path="/orders">
+          <vaadin-icon icon="vaadin:package" slot="prefix"></vaadin-icon>
+          Orders
+        </vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item>Order Details</vaadin-breadcrumbs-item>
+      </vaadin-breadcrumbs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Modes
+
+In Flow, the Breadcrumbs component operates in one of two modes, defined by the Breadcrumbs.Mode enum: ROUTER (the default) and MANUAL.
+
+Router Mode
+
+In ROUTER mode — the default — the trail is built automatically from the route hierarchy. On every navigation, the component resolves the chain of routes leading to the current view, adding a linked item for each ancestor route and a non-link item for the current page.
+
+Parent routes are resolved from the @RouteParent annotation or, when routes follow the URL structure, from the URL path. Each item’s label is the route’s page title (set with @PageTitle, HasDynamicTitle, or a PageTitleGenerator), resolved without instantiating the ancestor views. For more, see Route Hierarchy and Page Titles.
+
+[Java]
+@Route("orders")
+@PageTitle("Orders")
+public class OrdersView extends VerticalLayout {
+}
+
+@Route("order-details")
+@RouteParent(OrdersView.class)
+@PageTitle("Order Details")
+public class OrderDetailsView extends VerticalLayout {
+
+    public OrderDetailsView() {
+        // In ROUTER mode, the trail is built automatically from the route
+        // hierarchy; no items are added manually.
+        add(new Breadcrumbs());
+    }
+}
+
+Note: In ROUTER mode, adding, removing, or replacing items manually throws an IllegalStateException. To manage items yourself, use MANUAL mode.
+
+Manual Mode
+
+In MANUAL mode, you build the trail explicitly by adding BreadcrumbsItem instances. This is useful when the breadcrumb structure doesn’t map directly onto the route hierarchy. Switching modes clears the existing trail.
+
+[Java]
+Breadcrumbs breadcrumbs = new Breadcrumbs(Breadcrumbs.Mode.MANUAL);
+
+BreadcrumbsItem home = new BreadcrumbsItem("Home", "/");
+BreadcrumbsItem orders = new BreadcrumbsItem("Orders", "/orders");
+BreadcrumbsItem current = new BreadcrumbsItem("Order Details");
+
+breadcrumbs.add(home, orders, current);
+
+Overflow
+
+Breadcrumbs adapts responsively to the available width. When the items don��’t all fit, the leading items collapse into an overflow menu, accessible through a button at the start of the trail. The last item, representing the current page, never collapses.
+
+[Flow: BreadcrumbsOverflow.java]
+package com.vaadin.demo.component.breadcrumbs;
+
+import com.vaadin.flow.component.breadcrumbs.Breadcrumbs;
+import com.vaadin.flow.component.breadcrumbs.BreadcrumbsItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("breadcrumbs-overflow")
+public class BreadcrumbsOverflow extends Div {
+
+    public BreadcrumbsOverflow() {
+
+        // tag::snippet[]
+        Breadcrumbs breadcrumbs = new Breadcrumbs(Breadcrumbs.Mode.MANUAL);
+
+        breadcrumbs.add(new BreadcrumbsItem("Home", "/"),
+                new BreadcrumbsItem("Catalog", "/catalog"),
+                new BreadcrumbsItem("Electronics", "/catalog/electronics"),
+                new BreadcrumbsItem("Computers",
+                        "/catalog/electronics/computers"),
+                new BreadcrumbsItem("Laptops",
+                        "/catalog/electronics/computers/laptops"),
+                new BreadcrumbsItem("Model X1"));
+
+        breadcrumbs.setWidth("300px");
+        // end::snippet[]
+
+        add(breadcrumbs);
+    }
+
+}
+
+[React: breadcrumbs-overflow.tsx]
+import React, { useEffect, useRef } from 'react';
+import { Breadcrumbs, type BreadcrumbsElement } from '@vaadin/react-components/Breadcrumbs.js';
+import { BreadcrumbsItem } from '@vaadin/react-components/BreadcrumbsItem.js';
+
+function Example() {
+  const breadcrumbsRef = useRef<BreadcrumbsElement>(null);
+
+  useEffect(() => {
+    if (breadcrumbsRef.current) {
+      // Example-specific workaround
+      patchBreadcrumbsNavigation(breadcrumbsRef.current);
+    }
+  }, [breadcrumbsRef.current]);
+
+  return (
+    // tag::snippet[]
+    <Breadcrumbs ref={breadcrumbsRef} style={{ width: '300px' }}>
+      <BreadcrumbsItem path="/">Home</BreadcrumbsItem>
+      <BreadcrumbsItem path="/catalog">Catalog</BreadcrumbsItem>
+      <BreadcrumbsItem path="/catalog/electronics">Electronics</BreadcrumbsItem>
+      <BreadcrumbsItem path="/catalog/electronics/computers">Computers</BreadcrumbsItem>
+      <BreadcrumbsItem path="/catalog/electronics/computers/laptops">Laptops</BreadcrumbsItem>
+      <BreadcrumbsItem>Model X1</BreadcrumbsItem>
+    </Breadcrumbs>
+    // end::snippet[]
+  );
+}
+
+[Lit: breadcrumbs-overflow.ts]
+import '@vaadin/breadcrumbs';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('breadcrumbs-overflow')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-breadcrumbs style="width: 300px">
+        <vaadin-breadcrumbs-item path="/">Home</vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item path="/catalog">Catalog</vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item path="/catalog/electronics">Electronics</vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item path="/catalog/electronics/computers">
+          Computers
+        </vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item path="/catalog/electronics/computers/laptops">
+          Laptops
+        </vaadin-breadcrumbs-item>
+        <vaadin-breadcrumbs-item>Model X1</vaadin-breadcrumbs-item>
+      </vaadin-breadcrumbs>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Internationalization (i18n)
+
+Breadcrumbs provides an API for localization. Currently, only the accessible label for the overflow menu button (announced by screen readers) can be customized.
+
+[Flow: Java]
+breadcrumbs.setI18n(new Breadcrumbs.BreadcrumbsI18n().setMoreItems("More items"));
+
+[Flow: Java]
+
+[React: tsx]
+<Breadcrumbs i18n={{ moreItems: 'More items' }}>
+  {/* ... */}
+</Breadcrumbs>
+
+[React: tsx]
+
+[Lit: TypeScript]
+breadcrumbs.i18n = { moreItems: 'More items' };
+
+[Lit: TypeScript]
+
+Accessibility
+
+The component renders with the navigation landmark role, so assistive technologies announce it as a navigation region. The current page — the last path-less item — is marked with aria-current="page". Items that have a path are rendered as links and are reachable and operable with the keyboard.

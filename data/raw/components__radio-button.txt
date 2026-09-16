@@ -1,0 +1,1236 @@
+Radio Button
+
+Radio Button Group allows users to select one value among multiple choices.
+
+Radio Button Group allows users to select one value among multiple choices.
+
+[Flow: RadioButtonBasic.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-basic")
+public class RadioButtonBasic extends Div {
+
+    public RadioButtonBasic() {
+        // tag::snippet[]
+        RadioButtonGroup<String> radioGroup = new RadioButtonGroup<>();
+        radioGroup.setLabel("Travel class");
+        radioGroup.setItems("Economy", "Business", "First Class");
+        add(radioGroup);
+        // end::snippet[]
+        // Only for Lumo
+        radioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: radio-button-basic.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Travel class" theme="vertical">
+      <RadioButton value="economy" label="Economy" />
+      <RadioButton value="business" label="Business" />
+      <RadioButton value="firstClass" label="First Class" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-basic.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Travel class" theme="vertical">
+        <vaadin-radio-button value="economy" label="Economy"></vaadin-radio-button>
+        <vaadin-radio-button value="business" label="Business"></vaadin-radio-button>
+        <vaadin-radio-button value="firstClass" label="First Class"></vaadin-radio-button>
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+States
+
+Read-Only
+
+Use read-only when content needs to be accessible but not editable. Read-only elements can’t be edited, but they’re part of the tabbing order and can thus receive focus. The content of a read-only input can be selected and copied.
+
+[Flow: RadioButtonReadonly.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-readonly")
+public class RadioButtonReadonly extends Div {
+
+    public RadioButtonReadonly() {
+        // tag::snippet[]
+        RadioButtonGroup<String> radioGroup = new RadioButtonGroup<>();
+        radioGroup.setLabel("Status");
+        radioGroup.setItems("In progress", "Done", "Cancelled");
+        radioGroup.setValue("In progress");
+        radioGroup.setReadOnly(true);
+        add(radioGroup);
+        // end::snippet[]
+        // Only for Lumo
+        radioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: radio-button-readonly.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Status" theme="vertical" readonly>
+      <RadioButton value="inProgress" label="In progress" checked />
+      <RadioButton value="done" label="Done" />
+      <RadioButton value="cancelled" label="Cancelled" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-readonly.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-readonly')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Status" theme="vertical" readonly>
+        <vaadin-radio-button value="inProgress" label="In progress" checked></vaadin-radio-button>
+        <vaadin-radio-button value="done" label="Done"></vaadin-radio-button>
+        <vaadin-radio-button value="cancelled" label="Cancelled"></vaadin-radio-button>
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Disabled
+
+Disable a field to mark it as currently unavailable. The disabled state is used for fields that aren’t editable and don’t need to be readable. Disabled elements can’t be focused and may be inaccessible to assistive technologies such as screen readers.
+
+Disabling can be preferable to hiding an element to prevent changes in layout when the element’s visibility changes, and to make users aware of its existence even when it’s currently unavailable.
+
+[Flow: RadioButtonDisabled.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-disabled")
+public class RadioButtonDisabled extends Div {
+
+    public RadioButtonDisabled() {
+        // tag::snippet[]
+        RadioButtonGroup<String> radioGroup = new RadioButtonGroup<>();
+        radioGroup.setLabel("Status");
+        radioGroup.setItems("In progress", "Done", "Cancelled");
+        radioGroup.setValue("In progress");
+        radioGroup.setEnabled(false);
+        add(radioGroup);
+        // end::snippet[]
+        // Only for Lumo
+        radioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: radio-button-disabled.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Status" theme="vertical" disabled>
+      <RadioButton value="inProgress" label="In progress" checked />
+      <RadioButton value="done" label="Done" />
+      <RadioButton value="cancelled" label="Cancelled" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-disabled.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Status" theme="vertical" disabled>
+        <vaadin-radio-button value="inProgress" label="In progress" checked></vaadin-radio-button>
+        <vaadin-radio-button value="done" label="Done"></vaadin-radio-button>
+        <vaadin-radio-button value="cancelled" label="Cancelled"></vaadin-radio-button>
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Orientation
+
+The default Radio Button Group orientation depends on the theme: horizontal in Lumo, and vertical in Aura. Vertical orientation is recommended whenever possible, since it’s generally easier for the user to scan a vertical list of options:
+
+[Flow: RadioButtonVertical.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-vertical")
+public class RadioButtonVertical extends Div {
+
+    public RadioButtonVertical() {
+        // tag::snippet[]
+        RadioButtonGroup<String> radioGroup = new RadioButtonGroup<>();
+        // Only for Lumo
+        radioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        radioGroup.setLabel("Status");
+        radioGroup.setItems("Pending", "Submitted", "Confirmed");
+        radioGroup.setValue("Pending");
+        add(radioGroup);
+        // end::snippet[]
+    }
+
+}
+
+[React: radio-button-vertical.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Status" theme="vertical">
+      <RadioButton value="pending" label="Pending" checked />
+      <RadioButton value="submitted" label="Submitted" />
+      <RadioButton value="confirmed" label="Confirmed" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-vertical.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-vertical')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Status" theme="vertical">
+        <vaadin-radio-button value="pending" label="Pending" checked></vaadin-radio-button>
+        <vaadin-radio-button value="submitted" label="Submitted"></vaadin-radio-button>
+        <vaadin-radio-button value="confirmed" label="Confirmed"></vaadin-radio-button>
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+In cases where vertical space needs to be conserved, horizontal orientation can be used. However, it’s recommended that there be no more than three options:
+
+[Flow: RadioButtonHorizontal.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-horizontal")
+public class RadioButtonHorizontal extends Div {
+
+    public RadioButtonHorizontal() {
+        // tag::snippet[]
+        RadioButtonGroup<String> radioGroup = new RadioButtonGroup<>();
+        // Only for Aura
+        radioGroup.addThemeVariants(RadioGroupVariant.AURA_HORIZONTAL);
+        radioGroup.setLabel("Status");
+        radioGroup.setItems("Pending", "Submitted", "Confirmed");
+        radioGroup.setValue("Pending");
+        add(radioGroup);
+        // end::snippet[]
+    }
+
+}
+
+[React: radio-button-horizontal.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Status" theme="horizontal">
+      <RadioButton value="pending" label="Pending" checked />
+      <RadioButton value="submitted" label="Submitted" />
+      <RadioButton value="confirmed" label="Confirmed" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-horizontal.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-horizontal')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Status" theme="horizontal">
+        <vaadin-radio-button value="pending" label="Pending" checked></vaadin-radio-button>
+        <vaadin-radio-button value="submitted" label="Submitted"></vaadin-radio-button>
+        <vaadin-radio-button value="confirmed" label="Confirmed"></vaadin-radio-button>
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+In cases where more options are needed, the Select component can be used instead.
+
+Custom Item Presentation
+
+Items can be customized to include more than a single line of text:
+
+[Flow: RadioButtonPresentation.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+import java.util.List;
+
+import com.vaadin.demo.domain.Card;
+import com.vaadin.demo.domain.DataService;
+
+@Route("radio-button-custom-item-presentation")
+public class RadioButtonPresentation extends Div {
+
+    public RadioButtonPresentation() {
+        // tag::snippet[]
+        RadioButtonGroup<Card> radioGroup = new RadioButtonGroup<>();
+        radioGroup.setLabel("Payment method");
+
+        List<Card> cards = DataService.getCards();
+        radioGroup.setItems(cards);
+        radioGroup.setValue(cards.get(0));
+        radioGroup.setRenderer(new ComponentRenderer<>(card -> {
+            Image logo = new Image(card.getPictureUrl(), card.getName());
+            logo.setHeight("1em");
+            Span number = new Span(new Text(card.getAccountNumber()));
+            Text expiryDate = new Text("Expiry date:" + card.getExpiryDate());
+
+            return new Div(new HorizontalLayout(logo, number),
+                    new Div(expiryDate));
+        }));
+
+        add(radioGroup);
+        // end::snippet[]
+        // Only for Lumo
+        radioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[Flow: Card.java]
+package com.vaadin.demo.domain;
+
+// tag::snippet[]
+public class Card {
+
+    private String name;
+
+    private String accountNumber;
+
+    private String pictureUrl;
+
+    private String expiryDate;
+
+    private String cvv;
+
+    private Integer id;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public String getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(String expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public String getCvv() {
+        return cvv;
+    }
+
+    public void setCvv(String cvv) {
+        this.cvv = cvv;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Card)) {
+            return false;
+        }
+        Card other = (Card) obj;
+        return id == other.id;
+    }
+}
+// end::snippet[]
+
+[Flow: Card.java]
+
+[Flow: DataService.java]
+package com.vaadin.demo.domain;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import tools.jackson.databind.ObjectMapper;
+
+import org.springframework.core.io.ClassPathResource;
+
+public class DataService {
+
+    public static <T> T getItems(Class<T> clazz, String dataFileName) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            InputStream stream = new ClassPathResource("data/" + dataFileName)
+                    .getInputStream();
+            return mapper.readValue(stream, clazz);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static List<Person> getPeople() {
+        List<Person> people = Arrays
+                .asList(getItems(Person[].class, "people.json"));
+        List<String> peopleImages = Arrays
+                .asList(getItems(String[].class, "peopleImages.json"));
+        for (int index = 0; index < people.size(); index++) {
+            String pictureUrl = peopleImages.get(index % peopleImages.size());
+            people.get(index).setPictureUrl(pictureUrl);
+        }
+        return people;
+    }
+
+    public static List<Person> getPeople(int count) {
+        return getPeople().subList(0, count);
+    }
+
+    public static List<Person> getPeople(int count, Integer managerId) {
+        List<Person> people = getPeople(managerId);
+        return people.subList(0, count);
+    }
+
+    public static List<String> getProfessions() {
+        List<Person> people = Arrays
+                .asList(getItems(Person[].class, "people.json"));
+        ArrayList<String> professions = new ArrayList<>();
+        for (Person person : people) {
+            String profession = person.getProfession();
+            if (!professions.contains(profession)) {
+                professions.add(profession);
+            }
+        }
+        return professions;
+    }
+
+    /**
+     * Get employees for a given manager.
+     */
+    public static List<Person> getPeople(Integer managerId) {
+        List<Person> people = new ArrayList<>(getPeople());
+        people.removeIf(person -> person.getManagerId() == null
+                || !person.getManagerId().equals(managerId));
+        return people;
+    }
+
+    /**
+     * Get all managers.
+     */
+    public static List<Person> getManagers() {
+        List<Person> people = new ArrayList<>(getPeople());
+        people.removeIf(person -> !person.isManager());
+        return people;
+    }
+
+    public static Templates getTemplates() {
+        return getItems(Templates.class, "templates.json");
+    }
+
+    public static List<Card> getCards() {
+        return Arrays.asList(getItems(Card[].class, "cards.json"));
+    }
+
+    public static List<Country> getCountries() {
+        return Arrays.asList(getItems(Country[].class, "countries.json"));
+    }
+
+    public static List<UserPermissions> getUserPermissions() {
+        return Arrays
+                .asList(getItems(UserPermissions[].class, "permissions.json"));
+    }
+
+    public static List<Report> getReports() {
+        return Arrays.asList(getItems(Report[].class, "reports.json"));
+    }
+}
+
+[Flow: DataService.java]
+
+[React: radio-button-presentation.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+import { getCards } from 'Frontend/demo/domain/DataService';
+import type Card from 'Frontend/generated/com/vaadin/demo/domain/Card';
+
+function Example() {
+  const value = useSignal<string>('');
+  const items = useSignal<Card[]>([]);
+
+  useEffect(() => {
+    getCards().then((cards) => {
+      items.value = cards;
+      value.value = String(cards[0].id);
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <RadioGroup
+      label="Payment method"
+      theme="vertical"
+      value={value.value}
+      onValueChanged={(event) => {
+        value.value = event.detail.value;
+      }}
+    >
+      {items.value.map((card) => (
+        <RadioButton value={String(card.id)} key={card.id}>
+          <label slot="label">
+            <HorizontalLayout theme="spacing">
+              <img src={card.pictureUrl} alt={card.name} style={{ height: '1em' }} />
+              <span>{card.accountNumber}</span>
+            </HorizontalLayout>
+            <div>Expiry date:{card.expiryDate}</div>
+          </label>
+        </RadioButton>
+      ))}
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-presentation.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getCards } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Card from 'Frontend/generated/com/vaadin/demo/domain/Card';
+
+@customElement('radio-button-presentation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private value: string | undefined;
+
+  @state()
+  private items: Card[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCards();
+    this.value = String(this.items[0].id);
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Payment method" theme="vertical" .value="${this.value}">
+        ${this.items.map(
+          (card) => html`
+            <vaadin-radio-button .value="${String(card.id)}">
+              <label slot="label">
+                <vaadin-horizontal-layout theme="spacing">
+                  <img src="${card.pictureUrl}" alt="${card.name}" style="height: 1em;" />
+                  <span>${card.accountNumber}</span>
+                </vaadin-horizontal-layout>
+                <div>Expiry date:${card.expiryDate}</div>
+              </label>
+            </vaadin-radio-button>
+          `
+        )}
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-radio-group accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-radio-group accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: RadioButtonGroupBasicFeatures.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-group-basic-features")
+public class RadioButtonGroupBasicFeatures extends HorizontalLayout {
+
+    public RadioButtonGroupBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        RadioButtonGroup<String> field = new RadioButtonGroup<>();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setTooltipText("Tooltip text");
+        // end::snippet[]
+        field.setItems("Item 1", "Item 2", "Item 3");
+        // Only for Lumo
+        field.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+
+        add(field);
+    }
+
+}
+
+[React: radio-button-group-basic-features.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+import { Tooltip } from '@vaadin/react-components/Tooltip.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Label" helperText="Helper text" theme="vertical">
+      <Tooltip slot="tooltip" text="Tooltip text" />
+
+      <RadioButton value="1" label="Item 1" />
+      <RadioButton value="2" label="Item 2" />
+      <RadioButton value="3" label="Item 3" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-group-basic-features.ts]
+import '@vaadin/radio-group';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-group-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Label" helper-text="Helper text" theme="vertical">
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <!-- tag::snippet[] -->
+        <vaadin-radio-button value="1" label="Item 1"></vaadin-radio-button>
+        <vaadin-radio-button value="2" label="Item 2"></vaadin-radio-button>
+        <vaadin-radio-button value="3" label="Item 3"></vaadin-radio-button>
+        <!-- end::snippet[] -->
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Best Practices
+
+Group Labels
+
+It’s important to provide labels for Radio Button Groups to distinguish them from each other, especially with multiple adjacent groups.
+
+[Flow: RadioButtonGroupLabels.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("radio-button-group-labels")
+public class RadioButtonGroupLabels extends VerticalLayout {
+
+    public RadioButtonGroupLabels() {
+        setPadding(false);
+        setSpacing("15px");
+
+        // tag::snippet[]
+        RadioButtonGroup<String> jobTitleGroup = new RadioButtonGroup<>();
+        jobTitleGroup.setLabel("Job title");
+        jobTitleGroup.setItems("Analyst", "Administrator", "Engineer");
+        jobTitleGroup.setValue("Analyst");
+        add(jobTitleGroup);
+
+        RadioButtonGroup<String> departmentGroup = new RadioButtonGroup<>();
+        departmentGroup.setLabel("Department");
+        departmentGroup.setItems("Engineering", "Human Resources", "Marketing");
+        departmentGroup.setValue("Engineering");
+        add(departmentGroup);
+        // end::snippet[]
+        // Only for Lumo
+        jobTitleGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+        departmentGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: radio-button-group-labels.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  return (
+    <VerticalLayout style={{ gap: '15px' }}>
+      {/* tag::snippet[] */}
+      <RadioGroup label="Job title" theme="vertical" value="analyst">
+        <RadioButton value="analyst" label="Analyst" />
+        <RadioButton value="administrator" label="Administrator" />
+        <RadioButton value="engineer" label="Engineer" />
+      </RadioGroup>
+
+      <RadioGroup label="Department" theme="vertical" value="engineering">
+        <RadioButton value="engineering" label="Engineering" />
+        <RadioButton value="humanResources" label="Human Resources" />
+        <RadioButton value="marketing" label="Marketing" />
+      </RadioGroup>
+      {/* end::snippet[] */}
+    </VerticalLayout>
+  );
+}
+
+[Lit: radio-button-group-labels.ts]
+import '@vaadin/radio-group';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-group-labels')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout style="gap: 15px">
+        <!-- tag::snippet[] -->
+        <vaadin-radio-group label="Job title" theme="vertical">
+          <vaadin-radio-button value="analyst" label="Analyst" checked></vaadin-radio-button>
+          <vaadin-radio-button value="administrator" label="Administrator"></vaadin-radio-button>
+          <vaadin-radio-button value="engineer" label="Engineer"></vaadin-radio-button>
+        </vaadin-radio-group>
+
+        <vaadin-radio-group label="Department" theme="vertical">
+          <vaadin-radio-button
+            value="engineering"
+            label="Engineering"
+            checked
+          ></vaadin-radio-button>
+          <vaadin-radio-button value="humanResources" label="Human Resources"></vaadin-radio-button>
+          <vaadin-radio-button value="marketing" label="Marketing"></vaadin-radio-button>
+        </vaadin-radio-group>
+        <!-- end::snippet[] -->
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+Custom Option
+
+To enable the user to enter a custom option instead of picking one from the list, use an "Other" radio button choice at the bottom of the list with an associated Text Field for entry. The field should be hidden or disabled until the "Other" option is selected.
+
+[Flow: RadioButtonCustomOption.java]
+package com.vaadin.demo.component.radiobutton;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.Route;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.vaadin.demo.domain.Card;
+import com.vaadin.demo.domain.DataService;
+
+@Route("radio-button-custom-option")
+public class RadioButtonCustomOption extends VerticalLayout {
+
+    public RadioButtonCustomOption() {
+        setPadding(false);
+        setSpacing(false);
+
+        // tag::snippet[]
+        RadioButtonGroup<Card> radioGroup = new RadioButtonGroup<>();
+        radioGroup.setLabel("Payment method");
+
+        List<Card> cards = new ArrayList<>(DataService.getCards());
+        Card other = new Card();
+        other.setId(-1);
+        cards.add(other);
+        radioGroup.setItems(cards);
+        radioGroup.setValue(cards.get(0));
+
+        radioGroup.setRenderer(new ComponentRenderer<>(card -> {
+            if (other.equals(card)) {
+                return new Text("Other");
+            } else {
+                Image logo = new Image(card.getPictureUrl(), card.getName());
+                logo.setHeight("1em");
+                Span number = new Span(new Text(card.getAccountNumber()));
+                return new HorizontalLayout(logo, number);
+            }
+        }));
+
+        TextField textField = new TextField("Card number");
+        textField.setVisible(false);
+        radioGroup.addValueChangeListener(
+                e -> textField.setVisible(other.equals(e.getValue())));
+
+        add(radioGroup, textField);
+        // end::snippet[]
+        // Only for Lumo
+        radioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
+    }
+
+}
+
+[React: radio-button-custom-option.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+import { getCards } from 'Frontend/demo/domain/DataService';
+import type Card from 'Frontend/generated/com/vaadin/demo/domain/Card';
+
+function Example() {
+  const value = useSignal<string>('');
+  const items = useSignal<Card[]>([]);
+
+  useEffect(() => {
+    getCards().then((cards) => {
+      items.value = cards;
+      value.value = String(cards[0].id);
+    });
+  }, []);
+
+  return (
+    <VerticalLayout>
+      {/* tag::snippet[] */}
+      <RadioGroup
+        label="Payment method"
+        theme="vertical"
+        value={value.value}
+        onValueChanged={(event) => {
+          value.value = event.detail.value;
+        }}
+      >
+        {items.value.map((card) => (
+          <RadioButton value={String(card.id)} key={card.id}>
+            <label slot="label">
+              <HorizontalLayout theme="spacing">
+                <img src={card.pictureUrl} alt={card.name} style={{ height: '1em' }} />
+                <span>{card.accountNumber}</span>
+              </HorizontalLayout>
+            </label>
+          </RadioButton>
+        ))}
+        <RadioButton value="-1" label="Other" />
+      </RadioGroup>
+      {/* end::snippet[] */}
+
+      <TextField label="Card number" hidden={value.value !== '-1'} />
+    </VerticalLayout>
+  );
+}
+
+[Lit: radio-button-custom-option.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/radio-group';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { RadioGroupValueChangedEvent } from '@vaadin/radio-group';
+import { getCards } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Card from 'Frontend/generated/com/vaadin/demo/domain/Card';
+
+@customElement('radio-button-custom-option')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private value: string | undefined;
+
+  @state()
+  private items: Card[] = [];
+
+  protected override async firstUpdated() {
+    this.items = await getCards();
+    this.value = String(this.items[0].id);
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-vertical-layout>
+        <vaadin-radio-group
+          label="Payment method"
+          theme="vertical"
+          .value="${this.value}"
+          @value-changed="${(event: RadioGroupValueChangedEvent) => {
+            this.value = event.detail.value;
+          }}"
+        >
+          ${this.items.map(
+            (card) => html`
+              <vaadin-radio-button .value="${String(card.id)}">
+                <label slot="label">
+                  <vaadin-horizontal-layout theme="spacing">
+                    <img src="${card.pictureUrl}" alt="${card.name}" style="height: 1em;" />
+                    <span>${card.accountNumber}</span>
+                  </vaadin-horizontal-layout>
+                </label>
+              </vaadin-radio-button>
+            `
+          )}
+          <vaadin-radio-button value="-1" label="Other"></vaadin-radio-button>
+        </vaadin-radio-group>
+
+        <vaadin-text-field label="Card number" .hidden="${this.value !== '-1'}"></vaadin-text-field>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Default Value & Blank Option
+
+It’s recommended that you set the most common option as the default value for Radio Button Groups. Place the default option at the top of the list.
+
+In cases where it’s important that the user make a conscious choice, the Radio Button Group should be blank by default.
+
+In situations where the user isn’t required to select a value, use a "blank" option:
+
+[React: radio-button-default-value.tsx]
+import React from 'react';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <RadioGroup label="Repeat" theme="vertical" value="none">
+      <RadioButton value="none" label="None" checked />
+      <RadioButton value="daily" label="Daily" />
+      <RadioButton value="weekly" label="Weekly" />
+      <RadioButton value="monthly" label="Monthly" />
+    </RadioGroup>
+    // end::snippet[]
+  );
+}
+
+[Lit: radio-button-default-value.ts]
+import '@vaadin/radio-group';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-default-value')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-radio-group label="Repeat" theme="vertical">
+        <vaadin-radio-button value="none" label="None" checked></vaadin-radio-button>
+        <vaadin-radio-button value="daily" label="Daily"></vaadin-radio-button>
+        <vaadin-radio-button value="weekly" label="Weekly"></vaadin-radio-button>
+        <vaadin-radio-button value="monthly" label="Monthly"></vaadin-radio-button>
+      </vaadin-radio-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Alternative to Checkbox
+
+Two Radio Buttons can sometimes be a good alternative to a single Checkbox. If the Checkbox doesn’t represent a simple yes/no choice, and its label can’t clearly communicate the meaning of its unchecked state, it’s better to use a Radio Button Group with two options:
+
+[React: radio-button-checkbox-alternative.tsx]
+import React from 'react';
+import { Checkbox } from '@vaadin/react-components/Checkbox.js';
+import { RadioButton } from '@vaadin/react-components/RadioButton.js';
+import { RadioGroup } from '@vaadin/react-components/RadioGroup.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  return (
+    <VerticalLayout style={{ gap: '10px' }}>
+      {/* tag::snippet[] */}
+      <Checkbox checked>
+        <label slot="label">Reply All by default (unchecked state not clear)</label>
+      </Checkbox>
+      <RadioGroup label="Default reply behavior" value="Reply">
+        <RadioButton label="Reply" checked value="Reply" />
+        <RadioButton label="Reply to all" value="Reply to all" />
+      </RadioGroup>
+      {/* end::snippet[] */}
+    </VerticalLayout>
+  );
+}
+
+[Lit: radio-button-checkbox-alternative.ts]
+import '@vaadin/checkbox';
+import '@vaadin/radio-group';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('radio-button-checkbox-alternative')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-vertical-layout style="gap: 10px">
+        <!-- tag::snippet[] -->
+        <vaadin-checkbox checked>
+          <label slot="label">Reply All by default (unchecked state not clear)</label>
+        </vaadin-checkbox>
+        <vaadin-radio-group label="Default reply behavior" theme="horizontal">
+          <vaadin-radio-button label="Reply" checked></vaadin-radio-button>
+          <vaadin-radio-button label="Reply to all"></vaadin-radio-button>
+        </vaadin-radio-group>
+        <!-- end::snippet[] -->
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+In a Horizontal Layout, Radio Button Groups also align better with other input fields than a single checkbox.
+
+Related Components
+
+Component | Usage Recommendation
+Select | A drop-down field for selecting an item from a list of options. Recommended when there is insufficient space for a Radio Button Group.
+Combo Box | A filterable, lazy-loading alternative to Select. Recommended for ten or more items.
+List Box | A scrollable list of options. Supports single and multi-select.
+Checkbox Group | A corresponding component for multi-select options.

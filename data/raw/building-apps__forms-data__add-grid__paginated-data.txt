@@ -1,0 +1,627 @@
+Add a Paginated Grid
+
+Learn how to populate a grid with paginated data from an application service.
+
+Paginated data refers to datasets that are too large to fit in memory, even after filtering. Instead, the data is loaded in chunks (pages) from an application service as needed. Both filtering and sorting are delegated to the service layer (typically a database).
+
+In Vaadin, the Grid component has built-in support for paginated data (often referred to as lazy loading in API documentation). When the user scrolls or changes the sorting/filtering criteria, the grid requests the appropriate data page from the backend service. To the user, this appears as a seamless scrolling experience.
+
+This guide starts with a complete example that you can copy-paste into your project if you want. It then breaks down the example into sections that explain how to populate, filter, and sort the grid. The guide does not cover setting up the Grid component itself; for that, see the Grid component documentation.
+
+Copy-Paste into Your Project
+
+If you want to quickly try out a paginated grid in your Vaadin application, copy-paste the following code into your project:
+
+[PaginatedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/paginated-grid")
+public class PaginatedGridView extends VerticalLayout {
+
+    PaginatedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortProperty("id");
+        grid.addColumn(Item::name).setHeader("Name").setSortProperty("name");
+        // Fetch a slice from the service whenever the grid needs more data.
+        // Include sorting and filtering info.
+        grid.setItems(query -> service
+                .findItems(
+                        query.getOffset(),
+                        query.getLimit(),
+                        query.getSortOrders(),
+                        filterField.getValue())
+                .stream());
+
+        // Refresh the grid whenever the text field changes
+        filterField.addValueChangeListener(
+                e -> grid.getDataProvider().refreshAll());
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private final List<Item> items = new ArrayList<>();
+
+        ItemService() {
+            for (int i = 0; i < 1000; ++i) {
+                items.add(new Item(i, "Item " + i));
+            }
+        }
+
+        public List<Item> findItems(int offset, int limit,
+                List<QuerySortOrder> sortOrders, String filterString) {
+            // In a real application, this would query a database
+            var filterLower = filterString.toLowerCase().trim();
+            var stream = items.stream();
+            if (!filterLower.isEmpty()) {
+                stream = stream.filter(item -> item
+                    .name()
+                    .toLowerCase()
+                    .contains(filterLower));
+            }
+            return stream
+                    .sorted(toComparator(sortOrders))
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+        }
+
+        // In a real application, the sorting would take place in the database,
+        // NOT in memory as shown here
+        private final Comparator<Item> defaultComparator = Comparator
+                .comparing(Item::id);
+
+        private Comparator<Item> toComparator(List<QuerySortOrder> sortOrders) {
+            return sortOrders.stream().map(this::toComparator)
+                    .reduce(Comparator::thenComparing)
+                    .orElse(defaultComparator);
+        }
+
+        private Comparator<Item> toComparator(QuerySortOrder sortOrder) {
+            if (sortOrder.getSorted().equals("name")) {
+                return observeSortDirection(Comparator.comparing(Item::name),
+                        sortOrder.getDirection());
+            } else {
+                return observeSortDirection(defaultComparator,
+                        sortOrder.getDirection());
+            }
+        }
+
+        private Comparator<Item> observeSortDirection(
+                Comparator<Item> ascendingComparator,
+                SortDirection sortDirection) {
+            return sortDirection == SortDirection.ASCENDING
+                    ? ascendingComparator
+                    : ascendingComparator.reversed();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+For more detailed walk-through of the example code, continue reading below.
+
+Getting the Data
+
+The Grid component can request pages either by using a page number and size, or by using an offset and limit. If the dataset is sorted, you have to sort it before applying pagination.
+
+This example uses offset-based pagination and uses Vaadin’s QuerySortOrder API to pass sorting information to the application service:
+
+[PaginatedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/paginated-grid")
+public class PaginatedGridView extends VerticalLayout {
+
+    PaginatedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortProperty("id");
+        grid.addColumn(Item::name).setHeader("Name").setSortProperty("name");
+        // Fetch a slice from the service whenever the grid needs more data.
+        // Include sorting and filtering info.
+        grid.setItems(query -> service
+                .findItems(
+                        query.getOffset(),
+                        query.getLimit(),
+                        query.getSortOrders(),
+                        filterField.getValue())
+                .stream());
+
+        // Refresh the grid whenever the text field changes
+        filterField.addValueChangeListener(
+                e -> grid.getDataProvider().refreshAll());
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private final List<Item> items = new ArrayList<>();
+
+        ItemService() {
+            for (int i = 0; i < 1000; ++i) {
+                items.add(new Item(i, "Item " + i));
+            }
+        }
+
+        public List<Item> findItems(int offset, int limit,
+                List<QuerySortOrder> sortOrders, String filterString) {
+            // In a real application, this would query a database
+            var filterLower = filterString.toLowerCase().trim();
+            var stream = items.stream();
+            if (!filterLower.isEmpty()) {
+                stream = stream.filter(item -> item
+                    .name()
+                    .toLowerCase()
+                    .contains(filterLower));
+            }
+            return stream
+                    .sorted(toComparator(sortOrders))
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+        }
+
+        // In a real application, the sorting would take place in the database,
+        // NOT in memory as shown here
+        private final Comparator<Item> defaultComparator = Comparator
+                .comparing(Item::id);
+
+        private Comparator<Item> toComparator(List<QuerySortOrder> sortOrders) {
+            return sortOrders.stream().map(this::toComparator)
+                    .reduce(Comparator::thenComparing)
+                    .orElse(defaultComparator);
+        }
+
+        private Comparator<Item> toComparator(QuerySortOrder sortOrder) {
+            if (sortOrder.getSorted().equals("name")) {
+                return observeSortDirection(Comparator.comparing(Item::name),
+                        sortOrder.getDirection());
+            } else {
+                return observeSortDirection(defaultComparator,
+                        sortOrder.getDirection());
+            }
+        }
+
+        private Comparator<Item> observeSortDirection(
+                Comparator<Item> ascendingComparator,
+                SortDirection sortDirection) {
+            return sortDirection == SortDirection.ASCENDING
+                    ? ascendingComparator
+                    : ascendingComparator.reversed();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+In a real world application, the service would be in its own file and the data would be queried from a database.
+
+Populating the Grid
+
+You populate the grid with paginated data by passing it a callback function that fetches data pages on demand. The callback function receives a Query object that contains information about the requested page, sorting, and filtering criteria.
+
+[PaginatedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/paginated-grid")
+public class PaginatedGridView extends VerticalLayout {
+
+    PaginatedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortProperty("id");
+        grid.addColumn(Item::name).setHeader("Name").setSortProperty("name");
+        // Fetch a slice from the service whenever the grid needs more data.
+        // Include sorting and filtering info.
+        grid.setItems(query -> service
+                .findItems(
+                        query.getOffset(),
+                        query.getLimit(),
+                        query.getSortOrders(),
+                        filterField.getValue())
+                .stream());
+
+        // Refresh the grid whenever the text field changes
+        filterField.addValueChangeListener(
+                e -> grid.getDataProvider().refreshAll());
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private final List<Item> items = new ArrayList<>();
+
+        ItemService() {
+            for (int i = 0; i < 1000; ++i) {
+                items.add(new Item(i, "Item " + i));
+            }
+        }
+
+        public List<Item> findItems(int offset, int limit,
+                List<QuerySortOrder> sortOrders, String filterString) {
+            // In a real application, this would query a database
+            var filterLower = filterString.toLowerCase().trim();
+            var stream = items.stream();
+            if (!filterLower.isEmpty()) {
+                stream = stream.filter(item -> item
+                    .name()
+                    .toLowerCase()
+                    .contains(filterLower));
+            }
+            return stream
+                    .sorted(toComparator(sortOrders))
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+        }
+
+        // In a real application, the sorting would take place in the database,
+        // NOT in memory as shown here
+        private final Comparator<Item> defaultComparator = Comparator
+                .comparing(Item::id);
+
+        private Comparator<Item> toComparator(List<QuerySortOrder> sortOrders) {
+            return sortOrders.stream().map(this::toComparator)
+                    .reduce(Comparator::thenComparing)
+                    .orElse(defaultComparator);
+        }
+
+        private Comparator<Item> toComparator(QuerySortOrder sortOrder) {
+            if (sortOrder.getSorted().equals("name")) {
+                return observeSortDirection(Comparator.comparing(Item::name),
+                        sortOrder.getDirection());
+            } else {
+                return observeSortDirection(defaultComparator,
+                        sortOrder.getDirection());
+            }
+        }
+
+        private Comparator<Item> observeSortDirection(
+                Comparator<Item> ascendingComparator,
+                SortDirection sortDirection) {
+            return sortDirection == SortDirection.ASCENDING
+                    ? ascendingComparator
+                    : ascendingComparator.reversed();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+Spring Data Support
+
+If you are using Spring Data, use the setItemsPageable() method. It passes a Pageable object to the callback function that you can use directly with Spring Data repositories:
+
+[Java]
+// Spring Data Repository:
+public interface ItemReposiory<Item, Long> extends PagingAndSortingRepository<Item, Long> {
+    Slice<Item> findByNameContainingIgnoreCase(String name, Pageable pageable);
+}
+
+// In the view class:
+grid.setItemsPageable(pageable -> repository
+    .findByNameContainingIgnoreCase(filterField.getValue(), pageable)
+    .getContent()
+);
+
+Note: Can you call a repository directly from the UI?
+
+Yes, if you’re not using method security or any other service layer logic. Otherwise, it’s better to have an application service between the UI and the repository.
+
+Filtering
+
+The filtering happens in the application service and the filter string is passed to the service via the callback function. Because of this, you have to refresh the grid whenever the filter string changes:
+
+[PaginatedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/paginated-grid")
+public class PaginatedGridView extends VerticalLayout {
+
+    PaginatedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortProperty("id");
+        grid.addColumn(Item::name).setHeader("Name").setSortProperty("name");
+        // Fetch a slice from the service whenever the grid needs more data.
+        // Include sorting and filtering info.
+        grid.setItems(query -> service
+                .findItems(
+                        query.getOffset(),
+                        query.getLimit(),
+                        query.getSortOrders(),
+                        filterField.getValue())
+                .stream());
+
+        // Refresh the grid whenever the text field changes
+        filterField.addValueChangeListener(
+                e -> grid.getDataProvider().refreshAll());
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private final List<Item> items = new ArrayList<>();
+
+        ItemService() {
+            for (int i = 0; i < 1000; ++i) {
+                items.add(new Item(i, "Item " + i));
+            }
+        }
+
+        public List<Item> findItems(int offset, int limit,
+                List<QuerySortOrder> sortOrders, String filterString) {
+            // In a real application, this would query a database
+            var filterLower = filterString.toLowerCase().trim();
+            var stream = items.stream();
+            if (!filterLower.isEmpty()) {
+                stream = stream.filter(item -> item
+                    .name()
+                    .toLowerCase()
+                    .contains(filterLower));
+            }
+            return stream
+                    .sorted(toComparator(sortOrders))
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+        }
+
+        // In a real application, the sorting would take place in the database,
+        // NOT in memory as shown here
+        private final Comparator<Item> defaultComparator = Comparator
+                .comparing(Item::id);
+
+        private Comparator<Item> toComparator(List<QuerySortOrder> sortOrders) {
+            return sortOrders.stream().map(this::toComparator)
+                    .reduce(Comparator::thenComparing)
+                    .orElse(defaultComparator);
+        }
+
+        private Comparator<Item> toComparator(QuerySortOrder sortOrder) {
+            if (sortOrder.getSorted().equals("name")) {
+                return observeSortDirection(Comparator.comparing(Item::name),
+                        sortOrder.getDirection());
+            } else {
+                return observeSortDirection(defaultComparator,
+                        sortOrder.getDirection());
+            }
+        }
+
+        private Comparator<Item> observeSortDirection(
+                Comparator<Item> ascendingComparator,
+                SortDirection sortDirection) {
+            return sortDirection == SortDirection.ASCENDING
+                    ? ascendingComparator
+                    : ascendingComparator.reversed();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+Sorting
+
+Sorting happens in the application service and the sort orders are passed to the service via the callback function. Only columns with a specific sort property are sortable:
+
+[PaginatedGridView.java]
+package com.vaadin.demo.buildingapps.grid;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.Route;
+
+@Route("building-apps/grid/paginated-grid")
+public class PaginatedGridView extends VerticalLayout {
+
+    PaginatedGridView() {
+        // In a real application, this would be injected or
+        // retrieved via a service locator
+        var service = new ItemService();
+
+        // Create components
+        var filterField = new TextField();
+        filterField.setPlaceholder("Filter items");
+        // Update the filter value as soon as the user stops typing
+        filterField.setValueChangeMode(ValueChangeMode.LAZY);
+
+        var grid = new Grid<Item>();
+        grid.addColumn(Item::id).setHeader("ID").setSortProperty("id");
+        grid.addColumn(Item::name).setHeader("Name").setSortProperty("name");
+        // Fetch a slice from the service whenever the grid needs more data.
+        // Include sorting and filtering info.
+        grid.setItems(query -> service
+                .findItems(
+                        query.getOffset(),
+                        query.getLimit(),
+                        query.getSortOrders(),
+                        filterField.getValue())
+                .stream());
+
+        // Refresh the grid whenever the text field changes
+        filterField.addValueChangeListener(
+                e -> grid.getDataProvider().refreshAll());
+
+        // Layout components
+        add(filterField);
+        add(grid);
+        setSizeFull();
+    }
+
+    // In a real application, this would be in its own file
+    static class ItemService {
+        private final List<Item> items = new ArrayList<>();
+
+        ItemService() {
+            for (int i = 0; i < 1000; ++i) {
+                items.add(new Item(i, "Item " + i));
+            }
+        }
+
+        public List<Item> findItems(int offset, int limit,
+                List<QuerySortOrder> sortOrders, String filterString) {
+            // In a real application, this would query a database
+            var filterLower = filterString.toLowerCase().trim();
+            var stream = items.stream();
+            if (!filterLower.isEmpty()) {
+                stream = stream.filter(item -> item
+                    .name()
+                    .toLowerCase()
+                    .contains(filterLower));
+            }
+            return stream
+                    .sorted(toComparator(sortOrders))
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+        }
+
+        // In a real application, the sorting would take place in the database,
+        // NOT in memory as shown here
+        private final Comparator<Item> defaultComparator = Comparator
+                .comparing(Item::id);
+
+        private Comparator<Item> toComparator(List<QuerySortOrder> sortOrders) {
+            return sortOrders.stream().map(this::toComparator)
+                    .reduce(Comparator::thenComparing)
+                    .orElse(defaultComparator);
+        }
+
+        private Comparator<Item> toComparator(QuerySortOrder sortOrder) {
+            if (sortOrder.getSorted().equals("name")) {
+                return observeSortDirection(Comparator.comparing(Item::name),
+                        sortOrder.getDirection());
+            } else {
+                return observeSortDirection(defaultComparator,
+                        sortOrder.getDirection());
+            }
+        }
+
+        private Comparator<Item> observeSortDirection(
+                Comparator<Item> ascendingComparator,
+                SortDirection sortDirection) {
+            return sortDirection == SortDirection.ASCENDING
+                    ? ascendingComparator
+                    : ascendingComparator.reversed();
+        }
+    }
+
+    record Item(long id, String name) {
+    }
+}
+
+Sort properties are strings that are passed to the application service. They typically correspond to database column names, but in this example they are mapped to the record fields in the Item class.

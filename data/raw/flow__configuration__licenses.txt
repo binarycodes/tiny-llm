@@ -1,0 +1,183 @@
+License Validation & Troubleshooting
+
+How commercial product license validation works, and how to get and use license keys.
+
+Vaadin core includes an extensive set of technologies and components that are free to use. Vaadin core is available under the terms of the Apache License 2.0, which allows you to use what’s included in any project — even commercially.
+
+You need a commercial license only if you use one of the commercial components (e.g., Vaadin Charts) or one of the tools (e.g., Vaadin TestBench). If a project includes such components or tools, a commercial license is needed for development, and to build a production application.
+
+For other use cases, you don’t need a license after deploying an application to production.
+
+Using Free Trials
+
+The Vaadin Trial experience lets you evaluate all Vaadin commercial features - such as Vaadin Copilot, commercial components (e.g., Charts), Acceleration Kits - with minimal effort:
+
+- 7‑day Trial (no registration needed): Start instantly by clicking a button in the development tooling of a started Vaadin application,
+- 30‑day Commercial Trial (registration required): Extend your evaluation by signing in to vaadin.com.
+
+Both trials enable commercial features in development. Production builds during trials are allowed with an opt‑in flag and will display a visible runtime banner.
+
+A trial period can be activated through Vaadin Dev Tools by clicking the }> button in the right bottom corner of the application’s page and also through the automatic splash screen shown when a commercial component is used without a license.
+
+7-day Trial Workflow (Seven-Day, No Registration)
+
+When you use a commercial feature (for example, place a commercial component on a view or trigger a Vaadin Copilot function that makes changes to source code) and no valid license is found, a modal splash screen appears in development mode once you navigate to a view that uses a commercial component. It explains that a subscription or trial is required and offers two choices:
+
+- Try for 7 days (no registration): Starts the 7‑day trial immediately.
+- Log in / Sign up (to acquire or extend a license/trial): Opens Vaadin web-site to sign in and retrieve a license key or start the 30‑day trial.
+
+It also shows the following information: - Link to the commercial license terms - Examples of Vaadin commercial products you have full access to.
+
+30‑Day Commercial Trial Workflow (Registration Required)
+
+If you choose Log in / Sign up from the splash screen, or when your 7-day Trial has expired, you’ll be guided to authenticate and start a 30‑day trial. This enables all commercial features for 30 days.
+
+When a 7-day Trial expires, the splash screen shows guidance to "Extend trial 30 days" (via the login path). Once button is clicked, the trial starts immediately.
+
+The 30‑day trial can be started again after 90 days per user/account.
+
+Production Builds While Using a Trial
+
+Production builds do not enable commercial features if you don’t have a valid license. However, you can opt‑in to enable commercial features in production builds by adding a -Dvaadin.commercialWithBanner system property or commercialWithBanner Vaadin plugin parameter that shows a visible persistent banner on the bottom of the page in runtime.
+
+The banner links to the Commercial License Info page. It is closable, but reappears on page reload.
+
+[Maven: terminal]
+mvn package -Dvaadin.commercialWithBanner
+
+[Maven: terminal]
+
+[Gradle: terminal]
+./gradlew build -Pvaadin.productionMode -Pvaadin.commercialWithBanner
+
+[Gradle: terminal]
+
+Local License Validation
+
+On a local machine, the licenses for commercial components and tools are checked automatically using your Vaadin account. The first time you use a commercial component or tool, you’ll be asked to log into vaadin.com to validate your license.
+
+Once validated, you can continue developing your project. A license key is created on your machine in the following location:
+
+[Windows: filesystem]
+%userprofile%\.vaadin\proKey
+
+[Windows: filesystem]
+
+[macOS/Linux: filesystem]
+~/.vaadin/proKey
+
+[macOS/Linux: filesystem]
+
+The license key can also be downloaded beforehand without using a commercial component or tool, by using the Vaadin Maven plugin download-license goal. The goal can be launched from any location, as it does not require a Maven project to be executed.
+
+[terminal]
+mvn com.vaadin:vaadin-maven-plugin:download-license
+
+Offline License Key
+
+If your local development environment is offline and can’t reach vaadin.com, you’ll need to get an offline license key.
+
+Each offline license key is tied to the machine ID, in the form of mid-xxxxxxxx-xxxxxxxx (legacy) or mid2-xxxxxxxx-xxxxxxxx (the V2 key). You’ll have to submit that to vaadin.com/myaccount/licenses, so as to download an offline license key.
+
+The machine ID format you need depends on your Vaadin version:
+
+Machine ID Format | Key File | Vaadin Version
+mid2-xxxxxxxx-xxxxxxxx | offlineKeyV2 | 14.14+, 23.6+, 24.9+, and all 25.x
+mid-xxxxxxxx-xxxxxxxx | offlineKey | Earlier versions
+
+Support for the mid2/offlineKeyV2 format was backported to Vaadin 14.14, 23.6, and 24.9, so it’s available in those and all later versions. Versions that support the V2 key still also accept the legacy mid/offlineKey format.
+
+Using the wrong key type causes an "Invalid offline key" error. If you work with both old and new Vaadin versions, download both key types.
+
+Once you’ve downloaded the offlineKey or offlineKeyV2 file — remove any .txt suffix-- you should place it in your home directory:
+
+[Windows: filesystem]
+%userprofile%\.vaadin\offlineKey
+%userprofile%\.vaadin\offlineKeyV2
+
+[Windows: filesystem]
+
+[macOS/Linux: filesystem]
+~/.vaadin/offlineKey
+~/.vaadin/offlineKeyV2
+
+[macOS/Linux: filesystem]
+
+If working with recent and legacy Vaadin versions, download both offlineKey or offlineKeyV2 keys.
+
+Offline Key Download URL
+
+You can find the URL to download the offline key in the logs when you try to use a commercial component or tool offline without an existing license key. You can also find it by running the following command on your machine (does not need a Maven project, can be executed from any folder on the filesystem):
+
+[terminal]
+mvn com.vaadin:vaadin-maven-plugin:download-offline-license
+
+Important: The download-offline-license goal is only available in the Vaadin 24.10+ Maven plugin, where it always generates a mid2 machine ID.
+
+Vaadin 14.14, 23.6, and 24.9 also accept the mid2/offlineKeyV2 key, but they don’t include the goal. On these versions — and on any earlier version, which support only the legacy mid/offlineKey format — obtain the machine ID manually:
+
+1. Attempt to build or run your project with a commercial component while offline. The machine ID and the offline key download URL are printed in the build error output — a mid2 on versions that support the V2 key, or a mid on older versions.
+2. Use that machine ID to download the matching offline key from vaadin.com/myaccount/licenses.
+
+Validation on CI/CD or Build Server
+
+For CI/CD/build servers, you’ll need to download a server license key. These can only be used for production builds. You can download such a key (i.e., an offlineKey file) from vaadin.com/myaccount/licenses.
+
+You should place the offlineKey file in the home directory of the CI server like so:
+
+[Windows: filesystem]
+%userprofile%\.vaadin\offlineKey
+
+[Windows: filesystem]
+
+[macOS/Linux: filesystem]
+~/.vaadin/offlineKey
+
+[macOS/Linux: filesystem]
+
+You can also give the license key by using the vaadin.offlineKey system property or the VAADIN_OFFLINE_KEY environment variable. Copy the license key string value from the offlineKey file.
+
+[Maven: terminal]
+mvn -Dvaadin.offlineKey=[contents of offlineKey file here] ...
+
+[Maven: terminal]
+
+[Gradle: terminal]
+./gradlew build -Pvaadin.productionMode -Dvaadin.offlineKey=[contents of offlineKey file here] ...
+
+[Gradle: terminal]
+
+[Environment variable: terminal]
+VAADIN_OFFLINE_KEY=[contents of offlineKey file here] ...
+
+[Environment variable: terminal]
+
+Note: If you are using Quarkus with Gradle, the -D system property may not be propagated to the build process. See License Validation in Quarkus Builds for details.
+
+Validation on Production Server
+
+Applications built using the newer Vaadin Extended Maintenance releases will also check the license key when the application starts in production mode. If the license key is not found, or if the check fails due to an expired key, or if the key does not include Extended Maintenance access, an error will be logged. This is not a blocking license check, so the application will still start. When you provide a valid license key by using the vaadin.offlineKey system property or the VAADIN_OFFLINE_KEY environment variable, the error will not be logged.
+
+Troubleshooting
+
+If you encounter license‑related issues such as receiving a trial message despite having a valid license, offline validation errors, or CI/CD build issues, see our Licensing FAQ and Troubleshooting Guide for detailed assistance.
+
+You can contact license@vaadin.com for further help.
+
+Verify that you have a valid license by going to vaadin.com/pro/validate-license. If not, either your company’s license administrator hasn’t yet assigned a seat for you, or the license is no longer valid.
+
+This is a known error in SSLHandshakeException reported by users of WebSphere Liberty and WildFly in Docker. See the following discussion for more details: vaadin.com/forum/t/running-mpr-project-on-websphere-liberty-fails-with-suncertpathbuilderexcep/160675.
+
+This message appears when a version 1 offline key (mid-xxxxxxxx-xxxxxxxx) is installed, but the License Checker can’t compute this machine’s version 1 machine ID. There are two common causes:
+
+- The version 1 machine ID can’t be computed. The mid machine ID is derived from hardware details through the OSHI library and its native JNA component. If the JNA native library (for example, jna.dll on Windows) is blocked — commonly by antivirus or endpoint-security software — or otherwise fails to load, the version 1 machine ID can’t be generated, and this message is shown instead of the real error. Re-run the build with debug logging (mvn -X or ./gradlew --debug) and look for a Failed to generate v1 Machine ID entry to confirm, then resolve the underlying JNA or native-library problem (for example, allow-list the file, or use a JNA version compatible with your environment).
+- You want to migrate to a version 2 key. Version 2 keys (mid2-xxxxxxxx-xxxxxxxx) don’t rely on OSHI or JNA. Go to vaadin.com/myaccount/licenses#offline-license-key and download and install a version 2 key.
+
+Either offlineKey contains a version 2 offline key (mid2-xxxxxxxx-xxxxxxxx) or offlineKeyV2 contains a version 1 key (mid-xxxxxxxx-xxxxxxxx). Verify that you have a valid license by going to vaadin.com/myaccount/licenses#offline-license-key and download and install the correct key type.
+
+This error can occur in the following situations:
+
+- Version mismatch: The offline key type does not match your Vaadin version. The mid2/offlineKeyV2 format is supported in Vaadin 14.14, 23.6, and 24.9 and later; earlier versions accept only the legacy mid/offlineKey format. In Vaadin 24.10 and later, run mvn com.vaadin:vaadin-maven-plugin:download-offline-license to obtain the mid2 machine ID. In earlier versions — which don’t include that goal — obtain the machine ID from the build or run logs and download the correct key from vaadin.com/myaccount/licenses.
+- Wrong key file: The offlineKey or offlineKeyV2 file contains an invalid or corrupted key.
+
+See Offline License Key for details on which key type to use for your Vaadin version.

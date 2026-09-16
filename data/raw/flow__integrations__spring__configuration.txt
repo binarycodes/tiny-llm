@@ -1,0 +1,268 @@
+Vaadin Spring Configuration
+
+Configuring Spring properties in a Vaadin application.
+
+You can use many properties to configure a Vaadin application. For example, com.vaadin.server.DeploymentConfiguration and com.vaadin.server.Constants classes are available for the numerous property names. Additionally, you can set Spring properties as system properties. Spring configuration properties use the same names, but are prefixed with vaadin..
+
+See the complete list of configuration properties.
+
+Special Configuration Parameters
+
+Spring has several special configuration parameters, such as ones for scanning packages, preventing the handling of specific URLs, and more. They’re described in the sections that follow.
+
+Configure Packages Scanning
+
+To decrease startup time during development, as well as the build time for the production bundle, Vaadin Flow excludes many packages from being scanned for annotations — such as ones belonging to the java and springframework packages. The set of packages that Flow excludes by default is defined in the VaadinServletContextInitializer class.
+
+You can extend this list of packages to exclude from scanning, by using the vaadin.blocked-packages property. It accepts a comma-separated string. To do that, you would do something like the following:
+
+[application.properties]
+vaadin.blocked-packages=org/bouncycastle,com/my/db/package
+
+The allowed-packages also contains a comma-separated string, but it’s a list of only packages that need to be scanned for UI components and views. You should set this property to improve performance during development, especially in large applications. The com/vaadin/flow/component package is implicitly included and is always scanned.
+
+[application.properties]
+vaadin.allowed-packages=com/foo/myapp/ui,com/foo/components
+
+Use either allowed-packages or blocked-packages — not both. If both are used and have values, though, blocked-packages is ignored.
+
+Important: The previous vaadin.whitelisted-packages and vaadin.blacklisted-packages properties have been deprecated, and will be removed in the future.
+
+JAR Packages Scanning
+
+To optimize package scanning within a JAR file, add a META-INF/VAADIN/package.properties file inside the JAR to define JAR specific scanning rules. In a Maven artifact with jar packaging, create a src/main/resources/META-INF/VAADIN directory and add a package.properties file with the desired configuration.
+
+The package.properties file affects only the target JAR content. It supports vaadin.allowed-packages and vaadin.blocked-packages properties in the same way as in the application.properties file. The vaadin.blocked-jar=true property is used to disable scanning of the JAR, entirely.
+
+Prevent Handling of Specific URLs
+
+For some use cases, it’s desirable to exclude specific URLs from being handled by Vaadin, without changing the Vaadin URL mapping. For example, to integrate Swagger-UI, Vaadin shouldn’t handle requests for resources accessed by /swagger-ui.html.
+
+The list of URL patterns that should not be handled by the Vaadin servlet, can be configured using the vaadin.exclude-urls property in the form of a comma-separated string.
+
+[application.properties]
+vaadin.exclude-urls=/swagger-ui/**,/custom-service/**
+
+This configuration only applies when the Vaadin servlet is mapped to the root mapping.
+
+Launch Browser in Development Mode
+
+You can configure a Spring Boot project to launch the default browser when starting the application in development mode by setting the following property:
+
+[application.properties]
+vaadin.launch-browser = true
+
+After a server restart, the application refrains from opening a new browser tab until a thirty-minute interval has elapsed to avoid excessive tab proliferation. This delay is reset upon each server restart. In the event of a restart occurring before the interval lapses, a new tab will be opened thirty minutes post-restart.
+
+The delay duration can be changed by configuring the vaadin.launch-browser-delay property to specify the number of minutes before initiating a new tab launch.
+
+To trigger the tab opening immediately, you can perform a project cleanup (e.g., mvn clean or gradle clean). Or you can delete the tab.launch file in the build directory (e.g., target for Maven, build for Gradle). Another option is to set vaadin.launch-browser-delay=0 in application.properties.
+
+The example below shows how to set the duration, with the value in minutes:
+
+[application.properties]
+vaadin.launch-browser-delay = 30
+
+Initial Data Cache in Development Mode
+
+During development of a project, Vaadin caches automatically some initialization data. For instance, cached data includes details about resources to load, as well as dynamically generated white-lists of packages that need to be scanned for annotations. This caching is done to shorten the turnaround time of automatic restart on class modification.
+
+Automatic caching won’t occur if your application is running in production mode. Plus, it requires that Spring Boot Development Tools be enabled.
+
+Some project resources and classes always need to be scanned, though, and cannot rely on caching. Also, caching can produce unexpected errors after reloads. For these reasons, you may want to disable caching. This can be done using the following property:
+
+[application.properties]
+vaadin.devmode-caching = false
+
+Customizing Vaadin Servlet and Service
+
+In some cases you may need to override functionality in VaadinServlet or VaadinService classes. In a Spring application, customization of these classes is a bit different. With Spring it can be done by providing a custom configuration class as shown in the example below:
+
+[Java]
+@Configuration
+public class OverriddenServletConfiguration {
+
+    @Autowired
+    private WebApplicationContext context;
+
+    @Bean
+    public ServletRegistrationBean<SpringServlet> servletRegistrationBean(
+            ObjectProvider<MultipartConfigElement> multipartConfig,
+            VaadinConfigurationProperties configurationProperties) {
+        boolean rootMapping = RootMappedCondition
+                .isRootMapping(configurationProperties.getUrlMapping());
+        // Calls default configuration for ServletRegistrationBean at
+        // com.vaadin.flow.spring.SpringBootAutoConfiguration.configureServletRegistrationBean
+        ServletRegistrationBean<SpringServlet> registrationBean = configureServletRegistrationBean(multipartConfig,
+                configurationProperties,
+                new OverriddenSpringServlet(context, rootMapping));
+        // Configure additional servlet settings if needed, e.g. init parameters
+        // registrationBean.addInitParameter("closeIdleSessions", "true");
+        return registrationBean;
+    }
+
+    public static class OverriddenSpringServlet extends SpringServlet {
+
+        public OverriddenSpringServlet(ApplicationContext context,
+                                       boolean rootMapping) {
+            // SpringServlet customization can be done here
+        }
+
+        @Override
+        protected VaadinServletService createServletService(
+                DeploymentConfiguration deploymentConfiguration)
+                throws ServiceException {
+            // VaadinServletService customization can be done here
+        }
+    }
+}
+
+Spring Boot Properties
+
+You can set properties for Spring Boot in your application.properties file. An example of this would be setting Spring URL mapping in application.properties:
+
+[properties]
+vaadin.url-mapping=/my_mapping/*
+
+By default, URL mapping is /*.
+
+Vaadin URL Mapping
+
+When using a custom servlet URL mapping in a Vaadin application, special care must be taken to reference static resources (e.g., images) in Vaadin views. For example, if the application provides images in src/main/resources/META-INF/resources/images or in src/main/resources/static/images, these images are served from the root of the web application context (e.g., http://localhost:8080/images/logo.png). If your Vaadin views involve a custom mapping (e.g., http://localhost:8080/my_mapping/), you need to ensure that the correct path is provided for the images.
+
+To reference an image from the application root, you can use a relative path, such as new Image("../images/logo.png", "Company Logo"). However, this approach is not ideal when the same application can be deployed with different URL mappings, or without any custom mapping, as it may lead to inconsistencies.
+
+A solution could be to use a helper method to compute a path relative to the context root:
+
+[Java]
+public static String resolveStaticResource(String path) {
+  return UI.getCurrentOrThrow().getInternals().getContextRootRelativePath()
+    + path.replaceFirst("^/", "");
+}
+
+public class MyView extends Div {
+  public MyView() {
+    add(new Image(resolveStaticResource("images/logo.png")));
+  }
+}
+
+Another option is to register a Servlet Filter that intercepts static resource referenced by the Vaadin UI and forwards the request to the correct path.
+
+[Java]
+@Bean
+@ConditionalOnProperty(name = "vaadin.url-mapping")
+FilterRegistrationBean<?> publicImagesAliasFilter(@Value("${vaadin.url-mapping}") String urlMapping) {
+  String baseMapping = urlMapping.replaceFirst("/\\*$", "");
+  FilterRegistrationBean<OncePerRequestFilter> registrationBean = new FilterRegistrationBean<>(
+    new OncePerRequestFilter() {
+      @Override
+      protected void doFilterInternal(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      FilterChain filterChain)
+                        throws ServletException, IOException {
+        // Remove Vaadin URL mapping from the path and forward the request
+        String path = request.getRequestURI().substring(baseMapping.length());
+        request.getRequestDispatcher(path).forward(request, response);
+      }
+    });
+  registrationBean.addUrlPatterns(baseMapping + "/images/*");
+  registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+  return registrationBean;
+}
+
+Configure Custom Vaadin Executor
+
+When running a Vaadin application in a Spring environment, the SpringVaadinServletService automatically selects an appropriate executor for asynchronous operations using the following process:
+
+1. Look for TaskExecutor beans defined in the Spring application context
+2. If no TaskExecutor beans are found, fall back to Vaadin’s default executor
+3. If TaskExecutor beans are found, apply specific selection rules to choose the most appropriate one
+
+When multiple TaskExecutor beans exist in your application, Vaadin follows these rules to select the appropriate one:
+
+1. If any bean is annotated with @VaadinTaskExecutor or named VaadinTaskExecutor, it will be chosen
+2. If multiple beans remain after this filtering, regular executors are preferred over schedulers
+3. If Spring’s default applicationTaskExecutor is among multiple candidates, it is discarded to prefer application-defined beans
+4. If multiple candidates still remain, Vaadin will throw an IllegalStateException with suggestions to resolve the conflict
+
+There are several ways to customize the executor used by Vaadin in your Spring application. If you define a single TaskExecutor bean in your Spring application context, Vaadin will automatically use it. If you have multiple TaskExecutor beans in your application, you can specifically designate one for Vaadin using the @VaadinTaskExecutor annotation or you can name your bean VaadinTaskExecutor.
+
+[Single TaskExecutor Bean: Java]
+@Bean
+public TaskExecutor vaadinExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(50);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("vaadin-custom-executor-");
+    return executor;
+}
+
+[Single TaskExecutor Bean: Java]
+
+[Annotated TaskExecutor Bean: Java]
+@Bean
+@VaadinTaskExecutor
+public TaskExecutor vaadinSpecificExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(50);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("vaadin-annotated-executor-");
+    return executor;
+}
+
+[Annotated TaskExecutor Bean: Java]
+
+[Named TaskExecutor Bean: Java]
+@Bean("VaadinTaskExecutor")
+public TaskExecutor customVaadinExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(50);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("vaadin-named-executor-");
+    return executor;
+}
+
+[Named TaskExecutor Bean: Java]
+
+Configure Spring MVC Applications
+
+If you use Spring MVC, and hence the VaadinMVCWebAppInitializer sub-class, you need to populate your configuration properties.
+
+Setting configuration properties, for example, in a Spring MVC application would look like this:
+
+[Java]
+@Configuration
+@ComponentScan
+@PropertySource("classpath:application.properties")
+public class MyConfiguration {
+
+}
+
+The application.properties file here is still used, but you can use any name and any property source.
+
+Configure Spring Boot Development Tools
+
+Sometimes when using Spring Boot Development Tools with automatic restart enabled, more than one restart can be triggered. It depends on how many files are changed at once, and how the IDE is changing monitored files. As a result, this may slow the overall restart time.
+
+Spring Development tools has two properties in the application.properties file that can be adjusted to improve the restart time: spring.devtools.restart.poll-interval; and spring.devtools.restart.quiet-period.
+
+Poll interval is the frequency in which classpath directories are polled for changes. The default is 1 second. The quiet period ensures that there are no additional changes. Its default is 400 milliseconds.
+
+In a small project developed with Eclipse, for example, using the following smaller values can increase the restart time when changing one or a few classes:
+
+[application.properties]
+spring.devtools.restart.poll-interval=100ms
+spring.devtools.restart.quiet-period=50ms
+
+As another example, in a project developed with IntelliJ IDEA, increasing values can ensure that restart happens only once after changing one or a few classes:
+
+[application.properties]
+spring.devtools.restart.poll-interval=2000ms
+spring.devtools.restart.quiet-period=1000ms
+
+For larger applications, try to increase the values for these properties to avoid multiple restarts. An additional second for the poll interval doesn’t matter much if everything else takes more than ten seconds to restart.
+
+There isn’t a best value for all development environments. The examples here are presented to show how to make adjustments — not as recommended values.

@@ -1,0 +1,1677 @@
+Notification
+
+Notification is used to provide feedback to the user about activities, processes, and events in the application.
+
+Notification is used to provide feedback to the user about activities, processes, and events in the application.
+
+[Flow: NotificationBasic.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-basic")
+public class NotificationBasic extends Div {
+
+    public NotificationBasic() {
+        // tag::snippet[]
+        // When creating a notification using the `show` static method,
+        // the duration is 5-sec by default.
+        Notification notification = Notification
+                .show("Financial report generated");
+        // end::snippet[]
+        notification.setPosition(Notification.Position.MIDDLE);
+        notification.setDuration(0);
+    }
+
+}
+
+[React: notification-basic.tsx]
+import React from 'react';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  // tag::snippet[]
+  const notification = Notification.show('Financial report generated', {
+    position: 'middle',
+    duration: 0,
+  });
+  // end::snippet[]
+
+  return <></>;
+}
+
+[Lit: notification-basic.ts]
+import { LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Notification } from '@vaadin/notification';
+
+@customElement('notification-basic')
+export class Example extends LitElement {
+  firstUpdated() {
+    // tag::snippet[]
+    const notification = Notification.show('Financial report generated', {
+      position: 'middle',
+      duration: 0,
+    });
+    // end::snippet[]
+  }
+}
+
+Duration
+
+By default, notifications stay on-screen for five seconds. The duration can be set — in milliseconds — and should be done so based on the content and its importance:
+
+- Use short durations for notifications that contain short text, are of lesser importance (e.g., operations that finished without errors), and have no interactive elements.
+- Use longer durations for notifications that contain longer text, are of higher importance (e.g., errors), and have interactive elements (e.g., links or "undo" actions).
+
+A duration of at least five seconds (i.e., 5000 milliseconds) is recommended — this is why it’s the default — to ensure that the user has a chance to read and understand the notification.
+
+Persistent Notifications
+
+Setting the duration to 0 milliseconds disables auto-closing. It keeps the notification visible until it’s explicitly dismissed by the user. This should be used for notifications that provide vital information to the user, such as errors.
+
+Persistent notifications should contain a Button that closes the notification, or allows the user to take appropriate action. Less-important notifications shouldn’t be persistent, and instead disappear automatically after an appropriate delay.
+
+Position
+
+Notifications can be positioned in the viewport in seven non-stretched positions, or stretched across the top or bottom:
+
+[Flow: NotificationPosition.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.Notification.Position;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-position")
+public class NotificationPosition extends Div {
+
+    public NotificationPosition() {
+        setClassName("notification-position-example");
+
+        // tag::snippet[]
+        add(createButton(Position.TOP_STRETCH),
+                createButton(Position.TOP_START),
+                createButton(Position.TOP_CENTER),
+                createButton(Position.TOP_END), createButton(Position.MIDDLE),
+                createButton(Position.BOTTOM_START),
+                createButton(Position.BOTTOM_CENTER),
+                createButton(Position.BOTTOM_END),
+                createButton(Position.BOTTOM_STRETCH));
+        // end::snippet[]
+    }
+
+    private Button createButton(Notification.Position position) {
+        Button button = new Button(position.getClientName());
+        button.addClickListener(event -> show(position));
+        return button;
+    }
+
+    private void show(Notification.Position position) {
+        Notification.show(position.getClientName(), 5000, position);
+    }
+
+}
+
+[Flow: notification-position-example.css]
+.notification-position-example,
+:host(.notification-position-example) {
+  display: grid !important;
+  grid-gap: 1em;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  height: calc(100vh - var(--docs-space-l) * 2);
+}
+
+.notification-position-example vaadin-button,
+:host(.notification-position-example) vaadin-button {
+  margin: 0;
+  max-width: 100%;
+}
+
+.notification-position-example vaadin-button:nth-child(2),
+.notification-position-example vaadin-button:nth-child(6),
+:host(.notification-position-example) vaadin-button:nth-child(2),
+:host(.notification-position-example) vaadin-button:nth-child(6) {
+  margin-inline-end: auto;
+}
+
+.notification-position-example vaadin-button:nth-child(3),
+.notification-position-example vaadin-button:nth-child(5),
+.notification-position-example vaadin-button:nth-child(7),
+:host(.notification-position-example) vaadin-button:nth-child(3),
+:host(.notification-position-example) vaadin-button:nth-child(5),
+:host(.notification-position-example) vaadin-button:nth-child(7) {
+  margin: 0 auto;
+}
+
+.notification-position-example vaadin-button:nth-child(4),
+.notification-position-example vaadin-button:nth-child(8),
+:host(.notification-position-example) vaadin-button:nth-child(4),
+:host(.notification-position-example) vaadin-button:nth-child(8) {
+  margin-inline-start: auto;
+}
+
+.notification-position-example vaadin-button:nth-child(1),
+.notification-position-example vaadin-button:nth-child(5),
+.notification-position-example vaadin-button:nth-child(9),
+:host(.notification-position-example) vaadin-button:nth-child(1),
+:host(.notification-position-example) vaadin-button:nth-child(5),
+:host(.notification-position-example) vaadin-button:nth-child(9) {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+[React: notification-position.tsx]
+import React from 'react';
+import { Button } from '@vaadin/react-components/Button.js';
+import { Notification, type NotificationPosition } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  const show = (position: NotificationPosition) => {
+    Notification.show(position, { position });
+  };
+
+  return (
+    <div className="notification-position-example">
+      {/* tag::snippet[] */}
+      <Button onClick={() => show('top-stretch')}>top-stretch</Button>
+      <Button onClick={() => show('top-start')}>top-start</Button>
+      <Button onClick={() => show('top-center')}>top-center</Button>
+      <Button onClick={() => show('top-end')}>top-end</Button>
+      <Button onClick={() => show('middle')}>middle</Button>
+      <Button onClick={() => show('bottom-start')}>bottom-start</Button>
+      <Button onClick={() => show('bottom-center')}>bottom-center</Button>
+      <Button onClick={() => show('bottom-end')}>bottom-end</Button>
+      <Button onClick={() => show('bottom-stretch')}>bottom-stretch</Button>
+      {/* end::snippet[] */}
+    </div>
+  );
+}
+
+[React: notification-position-example.css]
+.notification-position-example,
+:host(.notification-position-example) {
+  display: grid !important;
+  grid-gap: 1em;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  height: calc(100vh - var(--docs-space-l) * 2);
+}
+
+.notification-position-example vaadin-button,
+:host(.notification-position-example) vaadin-button {
+  margin: 0;
+  max-width: 100%;
+}
+
+.notification-position-example vaadin-button:nth-child(2),
+.notification-position-example vaadin-button:nth-child(6),
+:host(.notification-position-example) vaadin-button:nth-child(2),
+:host(.notification-position-example) vaadin-button:nth-child(6) {
+  margin-inline-end: auto;
+}
+
+.notification-position-example vaadin-button:nth-child(3),
+.notification-position-example vaadin-button:nth-child(5),
+.notification-position-example vaadin-button:nth-child(7),
+:host(.notification-position-example) vaadin-button:nth-child(3),
+:host(.notification-position-example) vaadin-button:nth-child(5),
+:host(.notification-position-example) vaadin-button:nth-child(7) {
+  margin: 0 auto;
+}
+
+.notification-position-example vaadin-button:nth-child(4),
+.notification-position-example vaadin-button:nth-child(8),
+:host(.notification-position-example) vaadin-button:nth-child(4),
+:host(.notification-position-example) vaadin-button:nth-child(8) {
+  margin-inline-start: auto;
+}
+
+.notification-position-example vaadin-button:nth-child(1),
+.notification-position-example vaadin-button:nth-child(5),
+.notification-position-example vaadin-button:nth-child(9),
+:host(.notification-position-example) vaadin-button:nth-child(1),
+:host(.notification-position-example) vaadin-button:nth-child(5),
+:host(.notification-position-example) vaadin-button:nth-child(9) {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+[Lit: notification-position.ts]
+import '@vaadin/button';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { NotificationPosition } from '@vaadin/notification';
+import { Notification } from '@vaadin/notification';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-position')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  constructor() {
+    super();
+    this.classList.add('notification-position-example');
+  }
+
+  // tag::snippet[]
+  protected override render() {
+    return html`
+      <vaadin-button @click="${this.show}">top-stretch</vaadin-button>
+      <vaadin-button @click="${this.show}">top-start</vaadin-button>
+      <vaadin-button @click="${this.show}">top-center</vaadin-button>
+      <vaadin-button @click="${this.show}">top-end</vaadin-button>
+      <vaadin-button @click="${this.show}">middle</vaadin-button>
+      <vaadin-button @click="${this.show}">bottom-start</vaadin-button>
+      <vaadin-button @click="${this.show}">bottom-center</vaadin-button>
+      <vaadin-button @click="${this.show}">bottom-end</vaadin-button>
+      <vaadin-button @click="${this.show}">bottom-stretch</vaadin-button>
+    `;
+  }
+
+  show(event: MouseEvent) {
+    // Use the button label as the location
+    const position = (event.target as HTMLElement).textContent as NotificationPosition;
+
+    Notification.show(position, { position });
+  }
+
+  // end::snippet[]
+}
+
+[Lit: notification-position-example.css]
+.notification-position-example,
+:host(.notification-position-example) {
+  display: grid !important;
+  grid-gap: 1em;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  height: calc(100vh - var(--docs-space-l) * 2);
+}
+
+.notification-position-example vaadin-button,
+:host(.notification-position-example) vaadin-button {
+  margin: 0;
+  max-width: 100%;
+}
+
+.notification-position-example vaadin-button:nth-child(2),
+.notification-position-example vaadin-button:nth-child(6),
+:host(.notification-position-example) vaadin-button:nth-child(2),
+:host(.notification-position-example) vaadin-button:nth-child(6) {
+  margin-inline-end: auto;
+}
+
+.notification-position-example vaadin-button:nth-child(3),
+.notification-position-example vaadin-button:nth-child(5),
+.notification-position-example vaadin-button:nth-child(7),
+:host(.notification-position-example) vaadin-button:nth-child(3),
+:host(.notification-position-example) vaadin-button:nth-child(5),
+:host(.notification-position-example) vaadin-button:nth-child(7) {
+  margin: 0 auto;
+}
+
+.notification-position-example vaadin-button:nth-child(4),
+.notification-position-example vaadin-button:nth-child(8),
+:host(.notification-position-example) vaadin-button:nth-child(4),
+:host(.notification-position-example) vaadin-button:nth-child(8) {
+  margin-inline-start: auto;
+}
+
+.notification-position-example vaadin-button:nth-child(1),
+.notification-position-example vaadin-button:nth-child(5),
+.notification-position-example vaadin-button:nth-child(9),
+:host(.notification-position-example) vaadin-button:nth-child(1),
+:host(.notification-position-example) vaadin-button:nth-child(5),
+:host(.notification-position-example) vaadin-button:nth-child(9) {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+Top End or Bottom Start are recommended for most notifications. They’re unobtrusive, but still noticeable. Middle is the most disruptive position, and should be used only for important notifications, such as errors. Bottom End is the least obtrusive position, but can go unnoticed. Stretch notifications, which span the full width of the viewport, are disruptive, and should be reserved for important notifications whose content requires more space.
+
+Applications with a notification button, or a drop-down in the header or footer, should position notifications to appear in the same part of the screen. For a consistent user experience, use one or two positions throughout the application. Avoid using positions that may obstruct important parts of the UI, such as navigation.
+
+Stacking
+
+Multiple simultaneously displayed notifications are stacked vertically. The ordering of them, though, depends on their positioning.
+
+When using the bottom half of the screen as the position, a new notification appears below the older notifications. With the position set to the top half, a new notification appears above the existing notifications.
+
+Size
+
+The notification card is automatically sized based on its content.
+
+In large viewports, the card’s maximum width is one-third of the viewport. In small viewports, the card always consumes the entire width of the viewport.
+
+Interactive Elements
+
+Notifications can contain interactive content (e.g., Buttons or links) that allow the user to perform related actions.
+
+For example, if an operation fails, the error notification could offer the user the opportunity to try again. Or it could contain a link to a view that allows the user to resolve the problem.
+
+[Flow: NotificationRetry.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-retry")
+public class NotificationRetry extends Div {
+
+    public NotificationRetry() {
+        Button button = new Button("Show notification");
+        button.addClickListener(clickEvent -> {
+            button.setEnabled(false);
+
+            Notification notification = show();
+            notification
+                    .addDetachListener(detachEvent -> button.setEnabled(true));
+        });
+
+        add(button);
+        show();
+    }
+
+    private Notification show() {
+        // tag::snippet[]
+        Notification notification = new Notification();
+        notification.addThemeVariants(NotificationVariant.ERROR);
+
+        // this is the default, 0 or negative means the Notification
+        // is not closed automatically
+        notification.setDuration(0);
+
+        // Now we can compose the content from components
+        Button retryButton = new RetryButton();
+        Button closeButton = new CloseButton();
+
+        HorizontalLayout layout = new HorizontalLayout(
+                new Text("Failed to generate report"));
+        layout.addToEnd(retryButton, closeButton);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setMinWidth("350px");
+        notification.add(layout);
+
+        notification.open();
+        // end::snippet[]
+
+        notification.setPosition(Notification.Position.MIDDLE);
+
+        return notification;
+    }
+
+    public class RetryButton extends Button {
+        public RetryButton() {
+            super("Retry");
+            addClickListener(e -> findAncestor(Notification.class).close());
+        }
+    }
+
+    public class CloseButton extends Button {
+        public CloseButton() {
+            super(new Icon("lumo", "cross"));
+            setAriaLabel("Close");
+            addClickListener(e -> findAncestor(Notification.class).close());
+        }
+    }
+
+}
+
+[React: notification-retry.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  const notificationOpened = useSignal(true);
+
+  const open = () => {
+    notificationOpened.value = true;
+  };
+
+  const close = () => {
+    notificationOpened.value = false;
+  };
+
+  return (
+    <>
+      <Button disabled={notificationOpened.value} onClick={open}>
+        Show notification
+      </Button>
+
+      {/* tag::snippet[] */}
+      {/* The duration is set to 0-sec to prevent the notification from auto-close. */}
+      <Notification
+        theme="error"
+        duration={0}
+        position="middle"
+        opened={notificationOpened.value}
+        onClosed={() => {
+          notificationOpened.value = false;
+        }}
+      >
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center', minWidth: '350px' }}>
+          <div>Failed to generate report</div>
+          <Button slot="end" onClick={close}>
+            Retry
+          </Button>
+
+          <Button slot="end" theme="icon" aria-label="Close" onClick={close}>
+            <Icon icon="lumo:cross" />
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: notification-retry.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/notification';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { NotificationLitRenderer } from '@vaadin/notification/lit.js';
+import { notificationRenderer } from '@vaadin/notification/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-retry')
+export class Example extends LitElement {
+  @state()
+  private notificationOpened = true;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button .disabled="${this.notificationOpened}" @click="${this.open}">
+        Show notification
+      </vaadin-button>
+
+      <!-- tag::snippet[] -->
+      <!-- The duration is set to 0-sec to prevent the notification from auto-close. -->
+      <vaadin-notification
+        theme="error"
+        duration="0"
+        position="middle"
+        .opened="${this.notificationOpened}"
+        @closed="${() => {
+          this.notificationOpened = false;
+        }}"
+        ${notificationRenderer(this.renderer, [])}
+      ></vaadin-notification>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderer: NotificationLitRenderer = () => html`
+    <vaadin-horizontal-layout theme="spacing" style="align-items: center; min-width: 350px;">
+      <div>Failed to generate report</div>
+      <vaadin-button slot="end" @click="${this.close}">Retry</vaadin-button>
+      <vaadin-button slot="end" theme="icon" @click="${this.close}" aria-label="Close">
+        <vaadin-icon icon="lumo:cross"></vaadin-icon>
+      </vaadin-button>
+    </vaadin-horizontal-layout>
+  `;
+
+  private open() {
+    this.notificationOpened = true;
+  }
+
+  private close() {
+    this.notificationOpened = false;
+  }
+}
+
+In situations where the user might want to revert an action, display an "Undo" button.
+
+[Flow: NotificationUndo.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-undo")
+public class NotificationUndo extends Div {
+
+    public NotificationUndo() {
+        Button button = new Button("Show notification");
+        button.addClickListener(clickEvent -> {
+            button.setEnabled(false);
+
+            Notification notification = show();
+            notification
+                    .addDetachListener(detachEvent -> button.setEnabled(true));
+        });
+
+        add(button);
+        show();
+    }
+
+    public Notification show() {
+        // tag::snippet[]
+        Notification notification = new Notification();
+        notification.setDuration(10000);
+
+        Button undoButton = new UndoButton();
+        undoButton.addClickListener(event -> {
+            // In this example we just close the Notification
+            notification.close();
+        });
+
+        HorizontalLayout layout = new HorizontalLayout(
+                new Text("5 tasks deleted"));
+        layout.addToEnd(undoButton, new CloseButton());
+        layout.setAlignItems(Alignment.CENTER);
+        layout.setMinWidth("300px");
+        notification.add(layout);
+
+        notification.open();
+        // end::snippet[]
+
+        notification.setPosition(Notification.Position.MIDDLE);
+
+        return notification;
+    }
+
+    public class UndoButton extends Button {
+        public UndoButton() {
+            super("Undo");
+        }
+    }
+
+    public class CloseButton extends Button {
+        public CloseButton() {
+            super(new Icon("lumo", "cross"));
+            setAriaLabel("Close");
+            addClickListener(e -> findAncestor(Notification.class).close());
+        }
+    }
+
+}
+
+[React: notification-undo.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  const notificationOpened = useSignal(true);
+
+  function open() {
+    notificationOpened.value = true;
+  }
+
+  function close() {
+    notificationOpened.value = false;
+  }
+
+  return (
+    <>
+      <Button disabled={notificationOpened.value} onClick={open}>
+        Show notification
+      </Button>
+
+      {/* tag::snippet[] */}
+      <Notification
+        duration={10000}
+        position="middle"
+        opened={notificationOpened.value}
+        onClosed={() => {
+          notificationOpened.value = false;
+        }}
+      >
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center', minWidth: '300px' }}>
+          <div>5 tasks deleted</div>
+          <Button slot="end" onClick={close}>
+            Undo
+          </Button>
+
+          <Button slot="end" theme="icon" aria-label="Close" onClick={close}>
+            <Icon icon="lumo:cross" />
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: notification-undo.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/notification';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { NotificationLitRenderer } from '@vaadin/notification/lit.js';
+import { notificationRenderer } from '@vaadin/notification/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-undo')
+export class Example extends LitElement {
+  @state()
+  private notificationOpened = true;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button .disabled="${this.notificationOpened}" @click="${this.open}">
+        Show notification
+      </vaadin-button>
+
+      <!-- tag::snippet[] -->
+      <vaadin-notification
+        duration="10000"
+        position="middle"
+        .opened="${this.notificationOpened}"
+        @closed="${() => {
+          this.notificationOpened = false;
+        }}"
+        ${notificationRenderer(this.renderer, [])}
+      ></vaadin-notification>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderer: NotificationLitRenderer = () => html`
+    <vaadin-horizontal-layout theme="spacing" style="align-items: center; min-width: 300px">
+      <div>5 tasks deleted</div>
+      <vaadin-button slot="end" @click="${this.close}">Undo</vaadin-button>
+      <vaadin-button slot="end" theme="icon" aria-label="Close" @click="${this.close}">
+        <vaadin-icon icon="lumo:cross"></vaadin-icon>
+      </vaadin-button>
+    </vaadin-horizontal-layout>
+  `;
+
+  private open() {
+    this.notificationOpened = true;
+  }
+
+  private close() {
+    this.notificationOpened = false;
+  }
+}
+
+Notifications can also contain links to relevant information.
+
+[Flow: NotificationLink.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-link")
+public class NotificationLink extends Div {
+
+    public NotificationLink() {
+        Button button = new Button("Show notification");
+        button.addClickListener(clickEvent -> {
+            button.setEnabled(false);
+
+            Notification notification = show();
+            notification
+                    .addDetachListener(detachEvent -> button.setEnabled(true));
+        });
+
+        add(button);
+        show();
+    }
+
+    public Notification show() {
+        // tag::snippet[]
+        // When creating a notification using the constructor,
+        // the duration is 0-sec by default which means that
+        // the notification does not close automatically.
+        Notification notification = new Notification();
+
+        Div text = new Div(new Text("Jason Bailey mentioned you in "),
+                new Anchor("#", "Project Q4"));
+
+        Button closeButton = new Button(new Icon("lumo", "cross"));
+        closeButton.addThemeVariants(ButtonVariant.TERTIARY);
+        closeButton.setAriaLabel("Close");
+        closeButton.addClickListener(event -> {
+            notification.close();
+        });
+
+        HorizontalLayout layout = new HorizontalLayout(text);
+        layout.addToEnd(closeButton);
+        layout.setAlignItems(Alignment.CENTER);
+
+        notification.add(layout);
+        notification.open();
+        // end::snippet[]
+
+        notification.setPosition(Notification.Position.MIDDLE);
+
+        return notification;
+    }
+
+}
+
+[React: notification-link.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  const notificationOpened = useSignal(true);
+
+  const open = () => {
+    notificationOpened.value = true;
+  };
+
+  const close = () => {
+    notificationOpened.value = false;
+  };
+
+  return (
+    <>
+      <Button disabled={notificationOpened.value} onClick={open}>
+        Show notification
+      </Button>
+
+      {/* tag::snippet[] */}
+      {/* The duration is set to 0-sec to prevent the notification from auto-close. */}
+      <Notification
+        duration={0}
+        position="middle"
+        opened={notificationOpened.value}
+        onClosed={() => {
+          notificationOpened.value = false;
+        }}
+      >
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center' }}>
+          <div>
+            Jason Bailey mentioned you in <a href="#">Project Q4</a>
+          </div>
+
+          <Button slot="end" theme="tertiary" aria-label="Close" onClick={close}>
+            <Icon icon="lumo:cross" />
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: notification-link.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/notification';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { NotificationLitRenderer } from '@vaadin/notification/lit.js';
+import { notificationRenderer } from '@vaadin/notification/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-link')
+export class Example extends LitElement {
+  @state()
+  private notificationOpened = true;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-button .disabled="${this.notificationOpened}" @click="${this.open}">
+        Show notification
+      </vaadin-button>
+
+      <!-- tag::snippet[] -->
+      <!-- The duration is set to 0-sec to prevent the notification from auto-close. -->
+      <vaadin-notification
+        duration="0"
+        position="middle"
+        .opened="${this.notificationOpened}"
+        @closed="${() => {
+          this.notificationOpened = false;
+        }}"
+        ${notificationRenderer(this.renderer, [])}
+      ></vaadin-notification>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderer: NotificationLitRenderer = () => html`
+    <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+      <div>Jason Bailey mentioned you in <a href="#">Project Q4</a></div>
+      <vaadin-button slot="end" theme="tertiary" aria-label="Close" @click="${this.close}">
+        <vaadin-icon icon="lumo:cross"></vaadin-icon>
+      </vaadin-button>
+    </vaadin-horizontal-layout>
+  `;
+
+  private open() {
+    this.notificationOpened = true;
+  }
+
+  private close() {
+    this.notificationOpened = false;
+  }
+}
+
+Keyboard-Accessible
+
+Make sure that keyboard-only users can access interactive elements in notifications.
+
+Make the notification persistent to prevent it from disappearing before the user has had a chance to react. Provide a keyboard shortcut — either to trigger the action itself or to move focus to the notification card — in cases where multiple interactive elements are present. Finally, make the shortcut discoverable, for example, by displaying it as part of the notification’s content.
+
+[Flow: NotificationKeyboardA11y.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-keyboard-a11y")
+public class NotificationKeyboardA11y extends Div {
+
+    public NotificationKeyboardA11y() {
+        Button button = new Button("Show notification");
+        button.addClickListener(clickEvent -> {
+            button.setEnabled(false);
+
+            Notification notification = show();
+            notification
+                    .addDetachListener(detachEvent -> button.setEnabled(true));
+            setupUndoShortcut(notification);
+        });
+
+        add(button);
+        show();
+    }
+
+    // tag::snippet[]
+    public Notification show() {
+        Notification notification = new Notification();
+        notification.setDuration(10000);
+
+        Div statusText = new Div(new Text("5 tasks deleted"));
+
+        HorizontalLayout layout = new HorizontalLayout(statusText);
+        layout.addToEnd(new CloseButtonWithShortcutHint());
+        layout.setMinWidth("300px");
+        layout.setAlignItems(Alignment.CENTER);
+
+        notification.add(layout);
+        notification.open();
+        // end::snippet[]
+
+        notification.setPosition(Notification.Position.MIDDLE);
+        // tag::snippet[]
+
+        return notification;
+    }
+    // end::snippet[]
+
+    public class CloseButtonWithShortcutHint extends Button {
+
+        public CloseButtonWithShortcutHint() {
+            getElement().executeJs(
+                    """
+                            const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/.test(window.navigator.platform);
+                            this.textContent = `Undo ${isMac ? '⌘' : 'Ctrl-'}Z`;
+                                        """);
+            addClickListener(event -> findAncestor(Notification.class).close());
+        }
+    }
+
+    public void setupUndoShortcut(Notification notification) {
+        Shortcuts.addShortcutListener(notification, notification::close,
+                Key.of("z"), KeyModifier.META);
+        Shortcuts.addShortcutListener(notification, notification::close,
+                Key.of("z"), KeyModifier.CONTROL);
+    }
+
+}
+
+[React: notification-keyboard-a11y.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+  const notificationOpened = useSignal(true);
+  const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/.test(window.navigator.platform);
+
+  const open = () => {
+    notificationOpened.value = true;
+  };
+
+  const close = () => {
+    notificationOpened.value = false;
+  };
+
+  // tag::snippet[]
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (notificationOpened.value && (event.metaKey || event.ctrlKey) && event.key === 'z') {
+        event.preventDefault();
+        close();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [notificationOpened.value]);
+
+  return (
+    <>
+      <Button disabled={notificationOpened.value} onClick={open}>
+        Show notification
+      </Button>
+
+      <Notification
+        duration={10000}
+        position="middle"
+        opened={notificationOpened.value}
+        onClosed={() => {
+          notificationOpened.value = false;
+        }}
+      >
+        <HorizontalLayout style={{ alignItems: 'center', minWidth: '300px' }}>
+          <div>5 tasks deleted</div>
+          <Button slot="end" onClick={close}>
+            Undo
+            {isMac ? '⌘' : 'Ctrl-'}Z
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: notification-keyboard-a11y.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/notification';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { NotificationLitRenderer } from '@vaadin/notification/lit.js';
+import { notificationRenderer } from '@vaadin/notification/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-keyboard-a11y')
+export class Example extends LitElement {
+  @state()
+  private notificationOpened = true;
+
+  @state()
+  private isMac = /Macintosh|MacIntel|MacPPC|Mac68K/.test(window.navigator.platform);
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  protected override render() {
+    return html`
+      <!-- end::snippet[] -->
+      <vaadin-button .disabled="${this.notificationOpened}" @click="${this.open}">
+        Show notification
+      </vaadin-button>
+
+      <!-- tag::snippet[] -->
+      <vaadin-notification
+        duration="10000"
+        position="middle"
+        .opened="${this.notificationOpened}"
+        @closed="${() => {
+          this.notificationOpened = false;
+        }}"
+        ${notificationRenderer(this.renderer, [])}
+      ></vaadin-notification>
+    `;
+  }
+
+  // end::snippet[]
+
+  // tag::renderer[]
+  renderer: NotificationLitRenderer = () => html`
+    <vaadin-horizontal-layout style="align-items: center; min-width: 300px;">
+      <div>5 tasks deleted</div>
+      <vaadin-button slot="end" @click="${this.close}">
+        Undo
+        <!-- Ideally, this should be hidden if the
+                 device does not have a physical keyboard -->
+        ${this.isMac ? '⌘' : 'Ctrl-'}Z
+      </vaadin-button>
+    </vaadin-horizontal-layout>
+  `;
+
+  // end::renderer[]
+
+  // tag::key-down[]
+  connectedCallback() {
+    super.connectedCallback();
+
+    document.addEventListener('keydown', this.onKeyDown);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+
+    document.removeEventListener('keydown', this.onKeyDown);
+  }
+
+  onKeyDown = (event: KeyboardEvent) => {
+    if (this.notificationOpened && (event.metaKey || event.ctrlKey) && event.key === 'z') {
+      // Handle your custom undo logic here
+      // Avoid triggering the native undo action
+      event.preventDefault();
+      this.close();
+    }
+  };
+  // end::key-down[]
+
+  private open() {
+    this.notificationOpened = true;
+  }
+
+  private close() {
+    this.notificationOpened = false;
+  }
+}
+
+Icons & Other Rich Formatting
+
+Icons and other content formatting can be used to provide information and helpful visual cues. For example, you might do this to make error and success notifications easier to distinguish for users with color blindness.
+
+[Flow: NotificationRich.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+import java.util.function.Supplier;
+
+import static com.vaadin.flow.component.button.ButtonVariant.*;
+
+@Route("notification-rich")
+public class NotificationRich extends HorizontalLayout {
+    public NotificationRich() {
+        openNotification(this::createSubmitSuccess);
+        openNotification(this::createReportError);
+        openNotification(this::createMentionNotification);
+    }
+
+    private void openNotification(Supplier<Notification> notificationSupplier) {
+        Notification notification = notificationSupplier.get();
+        notification.setPosition(Notification.Position.MIDDLE);
+        notification.setDuration(0);
+        notification.open();
+    };
+
+    // tag::snippet[]
+    public Notification createSubmitSuccess() {
+        Notification notification = new Notification();
+        notification.addThemeVariants(NotificationVariant.SUCCESS);
+
+        Icon icon = VaadinIcon.CHECK_CIRCLE.create();
+
+        Button viewBtn = new Button("View");
+
+        HorizontalLayout layout = new HorizontalLayout(icon,
+                new Text("Application submitted!"));
+        layout.addToEnd(viewBtn, createCloseBtn());
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setMinWidth("350px");
+
+        notification.add(layout);
+
+        return notification;
+    }
+
+    public Notification createReportError() {
+        Notification notification = new Notification();
+        notification.addThemeVariants(NotificationVariant.ERROR);
+
+        Icon icon = VaadinIcon.WARNING.create();
+        Button retryBtn = new Button("Retry");
+
+        HorizontalLayout layout = new HorizontalLayout(icon,
+                new Text("Failed to generate report!"));
+        layout.addToEnd(retryBtn, createCloseBtn());
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setMinWidth("350px");
+
+        notification.add(layout);
+
+        return notification;
+    }
+
+    public Notification createMentionNotification() {
+        Notification notification = new Notification();
+
+        Avatar avatar = new Avatar("Jason Bailey");
+
+        Span name = new Span("Jason Bailey");
+        name.getStyle().set("font-weight", "500");
+
+        Div info = new Div(name, new Text(" mentioned you in "),
+                new Anchor("#", "Project Q4"));
+
+        HorizontalLayout layout = new HorizontalLayout(avatar, info);
+        layout.addToEnd(createCloseBtn());
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setMinWidth("350px");
+
+        notification.add(layout);
+
+        return notification;
+    }
+
+    public static Button createCloseBtn() {
+        Button closeBtn = new Button(VaadinIcon.CLOSE_SMALL.create());
+
+        return closeBtn;
+    }
+    // end::snippet[]
+
+}
+
+[React: notification-rich.tsx]
+import '@vaadin/icons';
+import '@vaadin/vaadin-lumo-styles/icons.js';
+import React from 'react';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Button } from '@vaadin/react-components/Button.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { Notification } from '@vaadin/react-components/Notification.js';
+
+function Example() {
+
+  return (
+    <>
+      {/* tag::snippet[] */}
+      {/* The duration is set to 0-sec to prevent the notification from auto-close. */}
+      <Notification duration={0} theme="success" position="middle" opened>
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center', minWidth: '350px' }}>
+          <Icon icon="vaadin:check-circle" />
+          <div>Application submitted!</div>
+          <Button slot="end">View</Button>
+          <Button slot="end" theme="icon" aria-label="Close">
+            <Icon icon="lumo:cross" />
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+
+      <Notification duration={0} theme="error" position="middle" opened>
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center', minWidth: '350px' }}>
+          <Icon icon="vaadin:warning" />
+          <div>Failed to generate report</div>
+          <Button slot="end">Retry</Button>
+          <Button slot="end" theme="icon" aria-label="Close">
+            <Icon icon="lumo:cross" />
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+
+      <Notification duration={0} position="middle" opened>
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center', minWidth: '350px' }}>
+          <Avatar name="Jason Bailey" />
+          <div>
+            <b>Jason Bailey</b> mentioned you in <a href="#">Project Q4</a>
+          </div>
+          <Button slot="end" theme="icon" aria-label="Close">
+            <Icon icon="lumo:cross" />
+          </Button>
+        </HorizontalLayout>
+      </Notification>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: notification-rich.ts]
+import '@vaadin/avatar';
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/notification';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { Notification } from '@vaadin/notification';
+import { notificationRenderer } from '@vaadin/notification/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-rich')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override firstUpdated() {
+    this.renderRoot
+      .querySelectorAll<Notification>('vaadin-notification')
+      .forEach((notification) => notification.open());
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <!-- The duration is set to 0-sec to prevent the notification from auto-close. -->
+      <vaadin-notification
+        duration="0"
+        ${notificationRenderer(
+          () => html`
+            <vaadin-horizontal-layout
+              theme="spacing"
+              style="align-items: center; min-width: 350px;"
+            >
+              <vaadin-icon icon="vaadin:check-circle"></vaadin-icon>
+              <div>Application submitted!</div>
+              <vaadin-button slot="end">View</vaadin-button>
+              <vaadin-button slot="end" theme="icon" aria-label="Close">
+                <vaadin-icon icon="lumo:cross"></vaadin-icon>
+              </vaadin-button>
+            </vaadin-horizontal-layout>
+          `,
+          []
+        )}
+        theme="success"
+        position="middle"
+      ></vaadin-notification>
+
+      <vaadin-notification
+        duration="0"
+        ${notificationRenderer(
+          () => html`
+            <vaadin-horizontal-layout
+              theme="spacing"
+              style="align-items: center; min-width: 350px;"
+            >
+              <vaadin-icon icon="vaadin:warning"></vaadin-icon>
+              <div>Failed to generate report</div>
+              <vaadin-button slot="end">Retry</vaadin-button>
+              <vaadin-button slot="end" theme="icon" aria-label="Close">
+                <vaadin-icon icon="lumo:cross"></vaadin-icon>
+              </vaadin-button>
+            </vaadin-horizontal-layout>
+          `,
+          []
+        )}
+        theme="error"
+        position="middle"
+      ></vaadin-notification>
+
+      <vaadin-notification
+        duration="0"
+        ${notificationRenderer(
+          () => html`
+            <vaadin-horizontal-layout
+              theme="spacing"
+              style="align-items: center; min-width: 350px;"
+            >
+              <vaadin-avatar name="Jason Bailey"></vaadin-avatar>
+              <div><b>Jason Bailey</b> mentioned you in <a href="#">Project Q4</a></div>
+              <vaadin-button slot="end" theme="icon" aria-label="Close">
+                <vaadin-icon icon="lumo:cross"></vaadin-icon>
+              </vaadin-button>
+            </vaadin-horizontal-layout>
+          `,
+          []
+        )}
+        position="middle"
+      ></vaadin-notification>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Static Helper
+
+For simple, one-off notifications, it’s convenient to use the static show() helper method. The helper manages the notification’s lifecycle, and adds and removes it from the DOM, automatically.
+
+[Flow: Java]
+// Show a simple text-based notification
+Notification notification = Notification.show("Financial report generated");
+notification.setPosition(Notification.Position.MIDDLE);
+
+[Flow: Java]
+
+[React: tsx]
+import { Notification } from '@vaadin/react-components';
+
+// Show a simple text-based notification
+Notification.show('Financial report generated', {
+  position: 'middle',
+});
+
+[React: tsx]
+
+[Lit: TypeScript]
+import { html } from 'lit';
+import { Notification } from '@vaadin/notification';
+
+// Show a simple text-based notification
+Notification.show('Financial report generated', {
+  position: 'middle',
+});
+
+// Show a notification with markup using a Lit template
+Notification.show(
+  html`
+    <b>@John:</b>
+    &nbsp;
+    <span>
+      How about lunch at
+      <i>12:30pm</i>?
+    </span>
+  `,
+  { position: 'middle' }
+);
+
+[Lit: TypeScript]
+
+Best Practices
+
+Use Sparingly
+
+Notifications are disruptive by design and should be used sparingly. Use fewer notifications by reserving them for more-important information that might otherwise go unnoticed by the user.
+
+Less-urgent notifications can be provided through a link or a drop-down in the application header or footer, instead of via immediate notifications.
+
+[Flow: NotificationPopup.java]
+package com.vaadin.demo.component.notification;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+import com.vaadin.flow.dom.Style;
+import com.vaadin.flow.router.Route;
+
+@Route("notification-popup")
+public class NotificationPopup extends Div {
+
+    public NotificationPopup() {
+        // tag::snippet[]
+        var bellBtn = new MessagesButton();
+        bellBtn.setUnreadMessages(4);
+        bellBtn.setAriaLabel("notifications");
+
+        Popover popover = new Popover();
+        popover.setTarget(bellBtn);
+        Div content = new Div("Show notifications here");
+        popover.add(content);
+        // end::snippet[]
+
+        add(bellBtn, popover);
+    }
+
+    public class MessagesButton extends Button {
+
+        private final Badge numberOfNotifications;
+
+        public MessagesButton() {
+            super(LumoIcon.BELL.create());
+            addThemeVariants(ButtonVariant.TERTIARY);
+            numberOfNotifications = new Badge();
+            numberOfNotifications.getStyle()
+                    .setPosition(Style.Position.ABSOLUTE)
+                    .setTransform("translate(-40%, -30%)");
+            numberOfNotifications.addThemeVariants(BadgeVariant.ERROR,
+                    BadgeVariant.FILLED);
+        }
+
+        public void setUnreadMessages(int unread) {
+            numberOfNotifications.setNumber(unread);
+            if (unread > 0 && numberOfNotifications.getParent() == null) {
+                getElement().appendChild(numberOfNotifications.getElement());
+            } else if (numberOfNotifications.isAttached()) {
+                numberOfNotifications.removeFromParent();
+            }
+        }
+
+    }
+
+}
+
+[React: notification-popup.tsx]
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import React from 'react';
+import { Badge, Button, Icon, Popover } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <>
+      <Button id="target" aria-label="notifications" theme="tertiary icon">
+        <Icon icon="lumo:bell" />
+        <Badge
+          number={4}
+          theme="error filled"
+          style={{ position: 'absolute', transform: 'translate(-40%, -30%)' }}
+        />
+      </Button>
+      <Popover for="target">
+        <div>Show notifications here</div>
+      </Popover>
+    </>
+    // end::snippet[]
+  );
+}
+
+[Lit: notification-popup.ts]
+import '@vaadin/button';
+import '@vaadin/icon';
+import '@vaadin/popover';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('notification-popup')
+export class Example extends LitElement {
+  static override styles = [
+    css`
+      vaadin-badge {
+        position: absolute;
+        transform: translate(-40%, -30%);
+      }
+    `,
+  ];
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  protected override render() {
+    return html`
+      <vaadin-button id="target" aria-label="notifications" theme="tertiary icon">
+        <vaadin-icon icon="lumo:bell"></vaadin-icon>
+        <vaadin-badge number="4" theme="error filled"></vaadin-badge>
+      </vaadin-button>
+      <vaadin-popover for="target">
+        <div>Show notifications here</div>
+      </vaadin-popover>
+    `;
+  }
+  // end::snippet[]
+}
+
+Limit Content Length
+
+Notifications should be brief and to the point. Try to limit the content to one or two lines. More information can be provided through an embedded link or Button.
+
+[notification-content-length-do.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/notification';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import { html, LitElement } from 'lit';
+import { applyTheme } from 'Frontend/demo/theme';
+
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-notification-card slot="middle">
+        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+          <div>
+            <div>Aria Bailey</div>
+            <div style="font-size: 0.875rem; color: var(--vaadin-text-color-secondary);">
+              Yeah, I know. But could you help me with...
+            </div>
+          </div>
+          <vaadin-button slot="end">View</vaadin-button>
+          <vaadin-button slot="end" theme="icon">
+            <vaadin-icon icon="lumo:cross"></vaadin-icon>
+          </vaadin-button>
+        </vaadin-horizontal-layout>
+      </vaadin-notification-card>
+    `;
+  }
+}
+
+[notification-content-length-do.ts]
+
+[notification-content-length-dont.ts]
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/notification';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import { html, LitElement } from 'lit';
+import { applyTheme } from 'Frontend/demo/theme';
+
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-notification-card slot="middle">
+        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+          <div>
+            <div>New message from Aria Bailey</div>
+            <div style="font-size: 0.875rem; color: var(--vaadin-text-color-secondary);">
+              Yeah, I know. But could you help me with this. I’m not sure where the bug is in my
+              CSS? The checkmark doesn’t get the right color. I’m trying to use the CSS custom
+              properties from our design system, but for some reason it’s not working.
+            </div>
+          </div>
+          <vaadin-button slot="end" theme="icon">
+            <vaadin-icon icon="lumo:cross"></vaadin-icon>
+          </vaadin-button>
+        </vaadin-horizontal-layout>
+      </vaadin-notification-card>
+    `;
+  }
+}
+
+[notification-content-length-dont.ts]
+
+Related Components
+
+Component | Usage Recommendation
+Dialog | Dialog should be used instead of Notification for anything that requires immediate user action.

@@ -1,0 +1,39 @@
+Using Shadow Roots in Elements
+
+Create shadow roots from the server.
+
+The Element API supports adding a shadow root to element types that support this. This allows you to create Web Components using a server-side Java API.
+
+Use the Element.attachShadow() method to add a shadow root.
+
+Example 1. Using the Element.attachShadow() method to add a shadow root node
+
+[Java]
+Element element = new Element("custom-element");
+ShadowRoot shadowRoot = element.attachShadow();
+
+Note: A ShadowRoot isn’t an actual element. Its purpose is to support handling child elements and getting the host element that contains the shadow root.
+
+Elements added to a ShadowRoot parent are only visible if the ShadowRoot contains a <slot></slot> element. See Server-side components in templates for more.
+
+To ensure that new elements are encapsulated in the shadow tree of the hosting element, you should add all new elements to the ShadowRoot element.
+
+Example 2. Adding an element to the ShadowRoot
+
+[Java]
+@Tag("my-label")
+public class MyLabel extends Component {
+
+    public MyLabel() {
+        ShadowRoot shadowRoot = getElement().attachShadow();
+        Span textSpan = new Span("In the shadow");
+        shadowRoot.appendChild(textSpan.getElement());
+    }
+}
+
+Elements That Don’t Support a Shadow Root
+
+The DOM specification defines a list of elements that can’t host a shadow tree. Typical reasons for this include:
+
+- The browser already hosts its own internal shadow DOM for the element, for example <textarea> and <input>.
+- It doesn’t make sense for the element to host a shadow DOM, for example <img>.

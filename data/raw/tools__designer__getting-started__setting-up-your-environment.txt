@@ -1,0 +1,31 @@
+Getting Started
+
+Getting started with Vaadin Designer made easy.
+
+- Overview
+- IntelliJ IDEA
+- Eclipse
+
+This page lists and describes the basics to getting started with Vaadin Designer. This includes downloading files to make getting started easier, as well as installing Designer and starting a project.
+
+Download a Vaadin Project
+
+To begin a Vaadin project, download and import an empty Vaadin starter project. The starter is used throughout this page to add views created with Vaadin Designer.
+
+Click on the following button to download the starter application zip file: Download Starter
+
+Next, extract the downloaded project. Import it as a Maven project into IntelliJ IDEA or Eclipse.
+
+Install Designer
+
+Vaadin Designer can work with either IntelliJ IDEA or Eclipse. Follow the Designer installation instructions for your IDE. This page uses IntelliJ IDEA, but everything demonstrated is also available in Eclipse.
+
+IntelliJ IDEA or Eclipse
+
+Start Project
+
+You should start the project without the pre-compiled frontend bundle. To do this, disable it as described in the Development Mode documentation.
+
+Next, create the folder src/main/webapp/frontend/views.
+
+Launch the application once. It’ll trigger Vaadin plugins to run npm install, which loads the needed client side dependencies like Vaadin components.

@@ -1,0 +1,8 @@
+Additional Guides
+
+Additional guides related to routing and navigation.
+
+Query Parameters
+    Pass parameters to a given route in the form of name-value pairs.
+Route Templates
+    How to customize methods to include parameters in a route.

@@ -1,0 +1,18 @@
+Configuring Push in Embedded Applications
+
+How to configure push in an embedded application.
+
+You can configure and enable Push in your embedded applications. Push can be configured in two ways. One way is to use the @Push annotation in your WebComponentExporter class.
+
+Here’s an example of this using the @Push annotation in the PushComponentExporter class:
+
+[Java]
+@Push
+public class PushComponentExporter
+        extends WebComponentExporter<Div> {
+
+Another way is to declare Push on the servlet level, by defining them in the servlet configuration.
+
+Note: The @Push annotation declaration has a limitation: it’s only possible to configure Push for one exporter. Declaring different @Push annotations for different exporter classes results in an exception during start-up.
+
+See Server Push Configuration for more about configuring Push.

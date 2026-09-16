@@ -1,0 +1,559 @@
+Real-Time Chat & Commenting Components
+
+You can add a real-time chat to your application by using the CollaborationMessageList and CollaborationMessageInput components.
+
+[image: A Chat with three messages and controls for entering new messages]
+
+Example of CollaborationMessageList & CollaborationMessageInput
+
+These enhance the regular MessageList and MessageInput components by synchronizing the messages for all users connected to the same topic. The message list only renders the submitted messages, while the message input provides controls for submitting new messages. Here’s an example of how to set them:
+
+[MessageListDocumentation.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationMessageInput;
+import com.vaadin.collaborationengine.CollaborationMessageList;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.demo.domain.MessageService;
+import com.vaadin.demo.domain.User;
+import com.vaadin.demo.domain.User.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
+
+/**
+ * Code snippets used in CollaborationMessageList's reference documentation.
+ */
+public class MessageListDocumentation extends VerticalLayout {
+
+    private CollaborationMessageList messageList;
+    private UserInfo userInfo;
+    private String topicId;
+
+    private UserService userService;
+
+    private MessageService messageService;
+
+    public MessageListDocumentation() {
+        User userEntity = userService.getCurrentUser();
+        UserInfo userInfo = new UserInfo(userEntity.getId(),
+                userEntity.getName(), userEntity.getImageUrl());
+        String topicId = "general";
+
+        CollaborationMessageList messageList = new CollaborationMessageList(
+                userInfo, topicId);
+        CollaborationMessageInput messageInput = new CollaborationMessageInput(
+                messageList);
+        VerticalLayout chatLayout = new VerticalLayout(messageList,
+                messageInput);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(messageList);
+        messageInput.setWidthFull();
+        add(chatLayout);
+    }
+
+    CollaborationMessageList createWithPersister(MyMessagePersister persister) {
+        return new CollaborationMessageList(userInfo, "general", persister);
+    }
+
+    private void customSubmitter() {
+        TextField field = new TextField("Message");
+        Button button = new Button("Submit");
+        button.setEnabled(false);
+
+        messageList.setSubmitter(activationContext -> {
+            button.setEnabled(true);
+            Registration registration = button.addClickListener(
+                    event -> activationContext.appendMessage(field.getValue()));
+            return () -> {
+                registration.remove();
+                button.setEnabled(false);
+            };
+        });
+    }
+
+    private void messageConfigurator() {
+        UserInfo localUser = this.userInfo;
+        CollaborationMessageList collaborationMessageList = new CollaborationMessageList(
+                userInfo, topicId);
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            if (user.equals(localUser)) {
+                message.addThemeNames("current-user");
+            }
+        });
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            // Example: Replace all occurrences of "badword" with "***"
+            String censored = message.getText().replaceAll("badword", "***");
+            message.setText(censored);
+        });
+    }
+
+}
+
+Note: Example Classes
+
+User and UserService are application-specific example classes. They’re not part of the Collaboration Kit API.
+
+The CollaborationMessageList constructor takes two arguments: information about the end user associated with this session; and a topic identifier. The user information is used to render the user name and avatar in the messages submitted by the user. See the CollaborationAvatarGroup documentation for more details on how the avatars are rendered, or how to load images from a backend with the setImageHandler() method.
+
+The topic identifier works the same as for other Collaboration Kit features. The data in Collaboration Kit is shared among those users who are connected to the same topic. With these components, the topic acts like a chat room.
+
+In the example above, the topic identifier is hard-coded as "general". This means that every user in this view sees each other’s messages. You can dynamically change the topic with the setTopic() method when the user makes a selection in the UI.
+
+CollaborationMessageInput takes the message list component as its constructor argument. It connects with the list to submit messages to its current topic. When the topic identifier for the list component is null, no messages are displayed: the connected message input is disabled.
+
+After constructing the components, the last required step is to place them somewhere in your view. Here’s an example of placing the message list on top of the input in a layout with a defined size:
+
+[MessageListDocumentation.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationMessageInput;
+import com.vaadin.collaborationengine.CollaborationMessageList;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.demo.domain.MessageService;
+import com.vaadin.demo.domain.User;
+import com.vaadin.demo.domain.User.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
+
+/**
+ * Code snippets used in CollaborationMessageList's reference documentation.
+ */
+public class MessageListDocumentation extends VerticalLayout {
+
+    private CollaborationMessageList messageList;
+    private UserInfo userInfo;
+    private String topicId;
+
+    private UserService userService;
+
+    private MessageService messageService;
+
+    public MessageListDocumentation() {
+        User userEntity = userService.getCurrentUser();
+        UserInfo userInfo = new UserInfo(userEntity.getId(),
+                userEntity.getName(), userEntity.getImageUrl());
+        String topicId = "general";
+
+        CollaborationMessageList messageList = new CollaborationMessageList(
+                userInfo, topicId);
+        CollaborationMessageInput messageInput = new CollaborationMessageInput(
+                messageList);
+        VerticalLayout chatLayout = new VerticalLayout(messageList,
+                messageInput);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(messageList);
+        messageInput.setWidthFull();
+        add(chatLayout);
+    }
+
+    CollaborationMessageList createWithPersister(MyMessagePersister persister) {
+        return new CollaborationMessageList(userInfo, "general", persister);
+    }
+
+    private void customSubmitter() {
+        TextField field = new TextField("Message");
+        Button button = new Button("Submit");
+        button.setEnabled(false);
+
+        messageList.setSubmitter(activationContext -> {
+            button.setEnabled(true);
+            Registration registration = button.addClickListener(
+                    event -> activationContext.appendMessage(field.getValue()));
+            return () -> {
+                registration.remove();
+                button.setEnabled(false);
+            };
+        });
+    }
+
+    private void messageConfigurator() {
+        UserInfo localUser = this.userInfo;
+        CollaborationMessageList collaborationMessageList = new CollaborationMessageList(
+                userInfo, topicId);
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            if (user.equals(localUser)) {
+                message.addThemeNames("current-user");
+            }
+        });
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            // Example: Replace all occurrences of "badword" with "***"
+            String censored = message.getText().replaceAll("badword", "***");
+            message.setText(censored);
+        });
+    }
+
+}
+
+Persisting Messages
+
+The topic data in Collaboration Kit is stored only in the application memory. This applies also to messages in a CollaborationMessageList. This means that all submitted messages are lost when restarting the server.
+
+To solve this problem, you can provide a CollaborationMessagePersister to store the messages in a backend. This is described in the Message Manager documentation. This component uses the manager, internally.
+
+You can set the message persister in the message list’s constructor like so:
+
+[MessageListDocumentation.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationMessageInput;
+import com.vaadin.collaborationengine.CollaborationMessageList;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.demo.domain.MessageService;
+import com.vaadin.demo.domain.User;
+import com.vaadin.demo.domain.User.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
+
+/**
+ * Code snippets used in CollaborationMessageList's reference documentation.
+ */
+public class MessageListDocumentation extends VerticalLayout {
+
+    private CollaborationMessageList messageList;
+    private UserInfo userInfo;
+    private String topicId;
+
+    private UserService userService;
+
+    private MessageService messageService;
+
+    public MessageListDocumentation() {
+        User userEntity = userService.getCurrentUser();
+        UserInfo userInfo = new UserInfo(userEntity.getId(),
+                userEntity.getName(), userEntity.getImageUrl());
+        String topicId = "general";
+
+        CollaborationMessageList messageList = new CollaborationMessageList(
+                userInfo, topicId);
+        CollaborationMessageInput messageInput = new CollaborationMessageInput(
+                messageList);
+        VerticalLayout chatLayout = new VerticalLayout(messageList,
+                messageInput);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(messageList);
+        messageInput.setWidthFull();
+        add(chatLayout);
+    }
+
+    CollaborationMessageList createWithPersister(MyMessagePersister persister) {
+        return new CollaborationMessageList(userInfo, "general", persister);
+    }
+
+    private void customSubmitter() {
+        TextField field = new TextField("Message");
+        Button button = new Button("Submit");
+        button.setEnabled(false);
+
+        messageList.setSubmitter(activationContext -> {
+            button.setEnabled(true);
+            Registration registration = button.addClickListener(
+                    event -> activationContext.appendMessage(field.getValue()));
+            return () -> {
+                registration.remove();
+                button.setEnabled(false);
+            };
+        });
+    }
+
+    private void messageConfigurator() {
+        UserInfo localUser = this.userInfo;
+        CollaborationMessageList collaborationMessageList = new CollaborationMessageList(
+                userInfo, topicId);
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            if (user.equals(localUser)) {
+                message.addThemeNames("current-user");
+            }
+        });
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            // Example: Replace all occurrences of "badword" with "***"
+            String censored = message.getText().replaceAll("badword", "***");
+            message.setText(censored);
+        });
+    }
+
+}
+
+Using Custom Input Components
+
+Instead of using the provided CollaborationMessageInput component, you can configure your own component to submit messages. The component can be registered with CollaborationMessageList::setSubmitter().
+
+The following example shows how to submit messages with the TextField and Button components:
+
+[MessageListDocumentation.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationMessageInput;
+import com.vaadin.collaborationengine.CollaborationMessageList;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.demo.domain.MessageService;
+import com.vaadin.demo.domain.User;
+import com.vaadin.demo.domain.User.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
+
+/**
+ * Code snippets used in CollaborationMessageList's reference documentation.
+ */
+public class MessageListDocumentation extends VerticalLayout {
+
+    private CollaborationMessageList messageList;
+    private UserInfo userInfo;
+    private String topicId;
+
+    private UserService userService;
+
+    private MessageService messageService;
+
+    public MessageListDocumentation() {
+        User userEntity = userService.getCurrentUser();
+        UserInfo userInfo = new UserInfo(userEntity.getId(),
+                userEntity.getName(), userEntity.getImageUrl());
+        String topicId = "general";
+
+        CollaborationMessageList messageList = new CollaborationMessageList(
+                userInfo, topicId);
+        CollaborationMessageInput messageInput = new CollaborationMessageInput(
+                messageList);
+        VerticalLayout chatLayout = new VerticalLayout(messageList,
+                messageInput);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(messageList);
+        messageInput.setWidthFull();
+        add(chatLayout);
+    }
+
+    CollaborationMessageList createWithPersister(MyMessagePersister persister) {
+        return new CollaborationMessageList(userInfo, "general", persister);
+    }
+
+    private void customSubmitter() {
+        TextField field = new TextField("Message");
+        Button button = new Button("Submit");
+        button.setEnabled(false);
+
+        messageList.setSubmitter(activationContext -> {
+            button.setEnabled(true);
+            Registration registration = button.addClickListener(
+                    event -> activationContext.appendMessage(field.getValue()));
+            return () -> {
+                registration.remove();
+                button.setEnabled(false);
+            };
+        });
+    }
+
+    private void messageConfigurator() {
+        UserInfo localUser = this.userInfo;
+        CollaborationMessageList collaborationMessageList = new CollaborationMessageList(
+                userInfo, topicId);
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            if (user.equals(localUser)) {
+                message.addThemeNames("current-user");
+            }
+        });
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            // Example: Replace all occurrences of "badword" with "***"
+            String censored = message.getText().replaceAll("badword", "***");
+            message.setText(censored);
+        });
+    }
+
+}
+
+The setSubmitter() method takes a callback. Collaboration Kit calls it when a new topic connection is established (i.e., the topic identifier is set to a non-null value).
+
+This callback should be used to configure any listeners for submitting new messages to CollaborationMessageList through the provided ActivationContext. The callback should return another callback for clean-up when the topic connection is deactivated (i.e., topic identifier is changed). Notice how the submit button is enabled only when there’s an active topic connection.
+
+Tip: Use MessageManager
+
+Messages can also be submitted programmatically to the list using a MessageManager instance with the same topic identifier. This is described in the Message Manager documentation.
+
+Customizing Messages
+
+CollaborationMessageList enables changing the properties of MessageListItem items after they’re generated. You can do that by providing a MessageConfigurator.
+
+The following example shows how to use a message configurator to add a custom style to the current user’s messages:
+
+[MessageListDocumentation.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationMessageInput;
+import com.vaadin.collaborationengine.CollaborationMessageList;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.demo.domain.MessageService;
+import com.vaadin.demo.domain.User;
+import com.vaadin.demo.domain.User.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
+
+/**
+ * Code snippets used in CollaborationMessageList's reference documentation.
+ */
+public class MessageListDocumentation extends VerticalLayout {
+
+    private CollaborationMessageList messageList;
+    private UserInfo userInfo;
+    private String topicId;
+
+    private UserService userService;
+
+    private MessageService messageService;
+
+    public MessageListDocumentation() {
+        User userEntity = userService.getCurrentUser();
+        UserInfo userInfo = new UserInfo(userEntity.getId(),
+                userEntity.getName(), userEntity.getImageUrl());
+        String topicId = "general";
+
+        CollaborationMessageList messageList = new CollaborationMessageList(
+                userInfo, topicId);
+        CollaborationMessageInput messageInput = new CollaborationMessageInput(
+                messageList);
+        VerticalLayout chatLayout = new VerticalLayout(messageList,
+                messageInput);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(messageList);
+        messageInput.setWidthFull();
+        add(chatLayout);
+    }
+
+    CollaborationMessageList createWithPersister(MyMessagePersister persister) {
+        return new CollaborationMessageList(userInfo, "general", persister);
+    }
+
+    private void customSubmitter() {
+        TextField field = new TextField("Message");
+        Button button = new Button("Submit");
+        button.setEnabled(false);
+
+        messageList.setSubmitter(activationContext -> {
+            button.setEnabled(true);
+            Registration registration = button.addClickListener(
+                    event -> activationContext.appendMessage(field.getValue()));
+            return () -> {
+                registration.remove();
+                button.setEnabled(false);
+            };
+        });
+    }
+
+    private void messageConfigurator() {
+        UserInfo localUser = this.userInfo;
+        CollaborationMessageList collaborationMessageList = new CollaborationMessageList(
+                userInfo, topicId);
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            if (user.equals(localUser)) {
+                message.addThemeNames("current-user");
+            }
+        });
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            // Example: Replace all occurrences of "badword" with "***"
+            String censored = message.getText().replaceAll("badword", "***");
+            message.setText(censored);
+        });
+    }
+
+}
+
+See the Message List Styling documentation for details on how to style individual messages.
+
+The message configurator can also be used to change the text content of messages. For example, it could censor certain words in messages, as is shown in the following example:
+
+[MessageListDocumentation.java]
+package com.vaadin.demo.collaboration;
+
+import com.vaadin.collaborationengine.CollaborationMessageInput;
+import com.vaadin.collaborationengine.CollaborationMessageList;
+import com.vaadin.collaborationengine.UserInfo;
+import com.vaadin.demo.domain.MessageService;
+import com.vaadin.demo.domain.User;
+import com.vaadin.demo.domain.User.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
+
+/**
+ * Code snippets used in CollaborationMessageList's reference documentation.
+ */
+public class MessageListDocumentation extends VerticalLayout {
+
+    private CollaborationMessageList messageList;
+    private UserInfo userInfo;
+    private String topicId;
+
+    private UserService userService;
+
+    private MessageService messageService;
+
+    public MessageListDocumentation() {
+        User userEntity = userService.getCurrentUser();
+        UserInfo userInfo = new UserInfo(userEntity.getId(),
+                userEntity.getName(), userEntity.getImageUrl());
+        String topicId = "general";
+
+        CollaborationMessageList messageList = new CollaborationMessageList(
+                userInfo, topicId);
+        CollaborationMessageInput messageInput = new CollaborationMessageInput(
+                messageList);
+        VerticalLayout chatLayout = new VerticalLayout(messageList,
+                messageInput);
+        chatLayout.setHeight("500px");
+        chatLayout.setWidth("400px");
+        chatLayout.expand(messageList);
+        messageInput.setWidthFull();
+        add(chatLayout);
+    }
+
+    CollaborationMessageList createWithPersister(MyMessagePersister persister) {
+        return new CollaborationMessageList(userInfo, "general", persister);
+    }
+
+    private void customSubmitter() {
+        TextField field = new TextField("Message");
+        Button button = new Button("Submit");
+        button.setEnabled(false);
+
+        messageList.setSubmitter(activationContext -> {
+            button.setEnabled(true);
+            Registration registration = button.addClickListener(
+                    event -> activationContext.appendMessage(field.getValue()));
+            return () -> {
+                registration.remove();
+                button.setEnabled(false);
+            };
+        });
+    }
+
+    private void messageConfigurator() {
+        UserInfo localUser = this.userInfo;
+        CollaborationMessageList collaborationMessageList = new CollaborationMessageList(
+                userInfo, topicId);
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            if (user.equals(localUser)) {
+                message.addThemeNames("current-user");
+            }
+        });
+        collaborationMessageList.setMessageConfigurator((message, user) -> {
+            // Example: Replace all occurrences of "badword" with "***"
+            String censored = message.getText().replaceAll("badword", "***");
+            message.setText(censored);
+        });
+    }
+
+}

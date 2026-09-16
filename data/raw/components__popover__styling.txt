@@ -1,0 +1,66 @@
+Popover Styling
+
+Styling API reference for the Popover component.
+
+Style Variants
+
+Popover supports the following style variants.
+
+Variant | Description | Supported by
+arrow | Makes the arrow visible | Aura, Lumo
+no-padding | Used to remove the content area’s built-in padding | Aura, Lumo
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-popover-arrow-border-radius | Aura, Lumo
+--vaadin-popover-arrow-size | Aura, Lumo
+--vaadin-popover-background | Aura
+--vaadin-popover-border-color | Aura
+--vaadin-popover-border-radius | Aura
+--vaadin-popover-border-width | Aura
+--vaadin-popover-offset-bottom | Aura, Lumo
+--vaadin-popover-offset-end | Aura, Lumo
+--vaadin-popover-offset-start | Aura, Lumo
+--vaadin-popover-offset-top | Aura, Lumo
+--vaadin-popover-padding | Aura
+--vaadin-popover-shadow | Aura
+--vaadin-overlay-backdrop-background | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-popover
+
+States
+
+Modal
+    vaadin-popover[modal]
+With backdrop
+    vaadin-popover[with-backdrop]
+
+Parts
+
+Modality curtain (backdrop)
+    vaadin-popover::part(backdrop)
+Popover surface
+    vaadin-popover::part(overlay)
+Content wrapper
+    vaadin-popover::part(content)
+Arrow element
+    vaadin-popover::part(arrow)
+
+Style Variants
+
+Arrow
+    vaadin-popover[theme~="arrow"]

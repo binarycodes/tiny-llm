@@ -1,0 +1,22 @@
+Exception Handling
+
+How exceptions are handled when using Swing Kit, and how to configure it.
+
+Any exception not handled by the remote View is by default handled by Swing. Further, Swing shows the exception in a JOptionPane. This behaviour can be configured to catch any Vaadin exceptions from Swing, directly.
+
+Custom Handling
+
+A custom handler for the exception can be used after disabling the default behaviour with the following:
+
+[Java]
+vaadinPanel.disableDefaultExceptionHandler();
+
+Add a custom exception handler by adding the following:
+
+[Java]
+vaadinPanel.addEventListener(EventType.EXCEPTION, event -> {
+    // Print to standard output the exception content
+    System.out.println(event.getParams().get("content"));
+});
+
+Notice, that the event contains only String values instead of the original Exception. This is to avoid serialization errors due to different classpaths from the Vaadin application and the Swing application.

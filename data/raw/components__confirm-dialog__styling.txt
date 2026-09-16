@@ -1,0 +1,69 @@
+Confirm Dialog Styling
+
+Styling API reference for the Confirm Dialog component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-confirm-dialog-min-width | Aura
+--vaadin-confirm-dialog-max-width | Aura
+--vaadin-dialog-background | Aura
+--vaadin-dialog-border-color | Aura
+--vaadin-dialog-border-radius | Aura
+--vaadin-dialog-border-width | Aura
+--vaadin-dialog-padding | Aura
+--vaadin-dialog-shadow | Aura
+--vaadin-dialog-title-color | Aura
+--vaadin-dialog-title-font-size | Aura
+--vaadin-dialog-title-font-weight | Aura
+--vaadin-dialog-title-line-height | Aura
+--vaadin-overlay-backdrop-background | Aura
+--vaadin-overlay-viewport-inset | Aura, Lumo
+
+See also Dialog Style Properties for common properties that can be applied to Confirm Dialog.
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Overlay
+
+Root element
+    vaadin-confirm-dialog
+Modality curtain (backdrop)
+    vaadin-confirm-dialog::part(backdrop)
+Dialog surface
+    vaadin-confirm-dialog::part(overlay)
+
+Header
+
+Header
+    vaadin-confirm-dialog::part(header)
+Default title element
+    vaadin-confirm-dialog > [slot="header"]
+
+Content Area
+
+Content area
+    vaadin-confirm-dialog::part(content)
+Message
+    vaadin-confirm-dialog::part(message)
+
+Footer
+
+Footer
+    vaadin-confirm-dialog::part(footer)
+Confirm button
+    vaadin-confirm-dialog > [slot="confirm-button"]
+Reject button
+    vaadin-confirm-dialog > [slot="reject-button"]
+Cancel button
+    vaadin-confirm-dialog > [slot="cancel-button"]

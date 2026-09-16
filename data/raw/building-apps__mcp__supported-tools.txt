@@ -1,0 +1,91 @@
+MCP Setup Guide
+
+Configure your AI development tool to use the Vaadin MCP server for enhanced Vaadin documentation access
+
+This guide provides configuration instructions for connecting your AI development tool to the Vaadin MCP server. The Vaadin MCP server gives AI assistants direct access to comprehensive Vaadin documentation, enabling accurate and context-aware responses.
+
+Choose Your AI Tool
+
+Select your AI development tool for specific configuration instructions:
+
+Claude Code
+
+Anthropic’s official CLI tool with native HTTP MCP support.
+
+See setup guide for Claude Code
+
+Cursor
+
+AI-powered code editor with native HTTP MCP support.
+
+See setup guide for Cursor
+
+Windsurf
+
+Codeium’s AI-native IDE with built-in HTTP MCP support.
+
+See setup guide for Windsurf
+
+Junie
+
+JetBrains’s AI assistant (requires stdio-to-HTTP adapter).
+
+See setup guide for Junie
+
+GitHub Copilot
+
+GitHub’s AI pair programmer in VS Code and JetBrains IDEs Agent mode.
+
+See setup guide for GitHub Copilot
+
+Codex (OpenAI)
+
+OpenAI’s code generation tool with native HTTP support.
+
+See setup guide for Codex
+
+Gemini CLI (Google)
+
+Google’s Gemini CLI with native HTTP support.
+
+See setup guide for Gemini CLI
+
+Other Clients
+
+Configuration for any MCP-compatible client.
+
+See setup guides for other MCP-compatible clients
+
+Transport Types
+
+Important: The Vaadin MCP server uses HTTP transport (streamable-http). This is natively supported by Claude Code, Cursor, Windsurf, GitHub Copilot (VS Code and JetBrains IDEs), Codex, and Gemini CLI.
+
+For stdio-only tools like Junie, you can use @pyroprompts/mcp-stdio-to-streamable-http-adapter as a bridge between the two transport types.
+
+General Setup Steps
+
+Most tools follow these general steps:
+
+1. Locate your tool’s MCP configuration file (varies by tool)
+2. Add the Vaadin MCP server configuration
+3. Restart your tool to load the MCP server
+4. Start asking questions about Vaadin development
+
+See the specific instructions for your tool in the tabs above for exact configuration details.
+
+Tip: If you use Claude Code or Codex, you can skip manual configuration. The Vaadin Agent Marketplace installs the Vaadin MCP server and Vaadin development skills together as a single plugin. See the Claude Code and Codex setup guides for the install commands.
+
+Resources
+
+Vaadin Agent Marketplace
+
+- Vaadin Agent Marketplace — MCP server and skills as a plugin for Claude Code and Codex
+
+Vaadin MCP Server
+
+- MCP Server Endpoint
+
+Model Context Protocol
+
+- MCP Documentation
+- MCP Specification

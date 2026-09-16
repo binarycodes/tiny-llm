@@ -1,0 +1,478 @@
+Handle Downloads
+
+Download a file or arbitrary content from server to browser.
+
+The DownloadHandler API provides a flexible high-level abstraction to implement file and arbitrary contents downloads from server to browser in Vaadin applications. This API supports various download scenarios, from simple file downloads to complex streaming with progress tracking.
+
+DownloadHandler is supported by multiple Vaadin components where applicable.
+
+This documentation covers the main features of the DownloadHandler API, including:
+
+- Common download scenarios
+- Creating custom download handlers
+- Download progress tracking
+- Low-level API features
+
+Common Download Scenarios
+
+The DownloadHandler can be in a form of lambda, where you can control the data transfer and UI updates thanks to DownloadEvent API, or can use several provided static helper methods to simplify common download scenarios.
+
+Using DownloadEvent And Lambda Expression
+
+The DownloadHandler is a FunctionalInterface and can be created using a lambda expression:
+
+[Java]
+Anchor downloadLink = new Anchor((DownloadEvent event) -> {
+    event.setFileName("readme.md");
+    var anchor = event.getOwningComponent();
+    event.getResponse().setHeader("Cache-Control", "public, max-age=3600");
+    try (OutputStream outputStream = event.getOutputStream()) {
+        // Write data to the output stream
+    }
+    event.getUI().access(() -> { /* UI updates */});
+}, "Download me!");
+
+Using DownloadEvent and lambda is particularly useful for:
+
+- Writing arbitrary data to the response output stream
+- Setting file meta-data like file name, content type, and content length
+- Update UI or owner component during the download
+- Having access to the VaadinRequest, VaadinResponse, and VaadinSession instances
+
+Download Content from InputStream
+
+The fromInputStream method allows you to serve content from any InputStream. This is the most flexible helper method as it can be used with any data source that can provide an InputStream.
+
+[InputStreamDownloadView.java]
+package com.vaadin.demo.flow.advanced.download;
+
+import java.sql.Blob;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
+
+@Route("/download-attachment")
+public class InputStreamDownloadView extends Div {
+    public InputStreamDownloadView(AttachmentRepository attachmentsRepository) {
+        long attachmentId = 1L; // Example attachment ID
+        Anchor downloadAttachment = new Anchor(
+                DownloadHandler.fromInputStream((event) -> {
+                    try {
+                        Attachment attachment = attachmentsRepository
+                                .findById(attachmentId);
+                        return new DownloadResponse(
+                                attachment.getData().getBinaryStream(),
+                                attachment.getName(), attachment.getMime(),
+                                attachment.getSize());
+                    } catch (Exception e) {
+                        return DownloadResponse.error(500);
+                    }
+                }), "Download attachment");
+        add(downloadAttachment);
+    }
+
+    @Entity
+    @Table(name = "attachment")
+    public static class Attachment {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long id;
+
+        @Lob
+        @Column(name = "data", nullable = false)
+        private Blob data;
+
+        @Column(name = "size", nullable = false)
+        private Integer size;
+
+        @Column(name = "name", nullable = false)
+        private String name;
+
+        @Column(name = "mime", nullable = false)
+        private String mime;
+
+        public Blob getData() {
+            return data;
+        }
+
+        public Integer getSize() {
+            return size;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getMime() {
+            return mime;
+        }
+
+        // other class fields and methods are omitted
+    }
+
+    public interface AttachmentRepository
+            extends JpaRepository<Attachment, Long>,
+            JpaSpecificationExecutor<Attachment> {
+        Attachment findById(long id);
+        // other class fields and methods are omitted
+    }
+}
+
+This method is particularly useful for:
+
+- Serving content from databases or file storage
+- Generating dynamic content
+- Streaming large files
+
+Overriding the File Name
+
+By default, the file name of the download comes from the DownloadResponse returned by the callback, and the download URL is a random-looking string. The fromInputStream overload that takes a fileNameOverride parameter lets you define the file name already when the handler is created:
+
+[Java]
+Anchor downloadLink = new Anchor(DownloadHandler.fromInputStream(event -> {
+    byte[] report = reportService.generateReport();
+    return new DownloadResponse(new ByteArrayInputStream(report),
+            event.getFileName(), "application/pdf", report.length);
+}, "monthly-report.pdf"), "Download Monthly Report");
+
+The given file name is appended to the download URL as a postfix (see URL Postfix), and getFileName() of the DownloadEvent returns it inside the callback, as shown above. This is useful when serving generated content under a stable, user-friendly file name, without writing a custom download handler. An overload that additionally accepts a TransferProgressListener is also available.
+
+Render Or Download Static Resource
+
+The forClassResource and forServletResource methods allows you to serve resources from the classpath or servlet context. For instance, for the file src/main/resources/com/example/ui/vaadin.jpeg and class com.example.ui.MainView the code would be:
+
+[Java]
+Image logoImage = new Image(DownloadHandler.forClassResource(
+        MainView.class, "vaadin.jpeg"), "Vaadin Logo");
+
+This method is useful for serving static resources like images, templates, fonts, and other types of files that are packaged with your application.
+
+If the resource name starts with /, it will then look from /src/main/resources without the class path prepended.
+
+Download A File From File System
+
+The forFile method allows you to serve files from the server’s file system.
+
+[Java]
+Anchor download = new Anchor(DownloadHandler.forFile(new File("/path/to/terms-and-conditions.md")), "Download Terms and Conditions");
+
+This method is useful for serving files that are stored on the server’s file system.
+
+The Anchor component sets the download attribute by default and download handlers extending AbstractDownloadHandler also set the Content-Disposition to attachment. If the content should be inlined to the page, this have to be set explicitly by calling the inline() method on the DownloadHandler instance and using AttachmentType.INLINE:
+
+[Java]
+Anchor download = new Anchor(DownloadHandler.forFile(new File("/path/to/terms-and-conditions.md")).inline(), AttachmentType.INLINE, "View Terms and Conditions");
+
+Custom Download Handlers
+
+For more complex download scenarios, you can create custom download handlers by implementing the DownloadHandler interface or extending existing implementations.
+
+Creating an implementation is needed only when overriding some of the default methods from the interface, e.g. getUrlPostfix, isAllowInert or getDisabledUpdateMode:
+
+[Java]
+Anchor downloadLink = new Anchor(new DownloadHandler() {
+    @Override
+    public void handleDownloadRequest(DownloadEvent event) {
+        // Custom download handling logic
+    }
+
+    @Override
+    public String getUrlPostfix() {
+        return "custom-download.txt";
+    }
+}, "Download me!");
+
+Custom Download Handler Examples
+
+Here’s an example of how a custom download handler can be written with lambda. It adds a header to the response, write data to OutputStream, updates the UI, and tracks the number of downloads per session:
+
+[Java]
+String filename = getFileName();
+String contentType = getContentType();
+AtomicInteger numberOfDownloads = new AtomicInteger(0);
+Anchor link = new Anchor(event -> {
+    try {
+        event.setFileName(filename);
+        event.setContentType(contentType);
+        byte[] data = loadFileFromS3(filename, contentType);
+        event.getResponse().setHeader("Cache-Control", "public, max-age=3600");
+        event.getOutputStream().write(data);
+        // Remember to enable @Push
+        // Use event.getUI().push() if push is manual
+        event.getUI().access(() -> Notification.show(
+                "Download completed, number of downloads: " +
+                    numberOfDownloads.incrementAndGet()));
+        event.getSession().lock();
+        try {
+            event.getSession().setAttribute("downloads-number-" + fileName,
+                    numberOfDownloads.get());
+        } finally {
+            event.getSession().unlock();
+        }
+    } catch (IOException e) {
+        event.getResponse().setStatus(500);
+    }
+}, "Download from S3");
+
+private byte[] loadFileFromS3(String fileName, String contentType) {
+    byte[] bytes = new byte[1024 * 1024 * 10]; // 10 MB buffer
+    // load from file storage by file name and content type
+    return bytes;
+}
+
+This example shows how to:
+
+- Set file meta-data with helpers in DownloadEvent
+- Set a header to the response
+- Write data directly to the response output stream
+- Update the UI after the download completes
+- Store download statistics in the session
+
+The DownloadEvent gives the access to the following information and helper methods:
+
+- VaadinRequest, VaadinResponse, VaadinSession instances
+- getOutputStream method to write the download content represented as a stream of bytes to response
+- getWriter method to write the download content represented as a formatted text to response
+- The owner component and element of the download that you can change when download is in progress, e.g. disable the component, or get attributes or properties
+- UI instance that you can use to call UI.access() for asynchronous updates
+- The helper setFileName method sets the file name for the download, empty name gives a default name and null value doesn’t set anything
+- The helper setContentType method sets the content type for the download
+- The helper setContentLength method sets the content length for the download or does nothing if the -1 value is given
+
+Note: UI.access is needed for updating the UI and also session locking if you want to access the session.
+
+Note: Methods getOutputStream and getWriter cannot be used simultaneously for the same response, either one or the other.
+
+Another example is how to generate and render a dynamic content using a DownloadHandler.
+
+[Java]
+TextField name = new TextField("Input a name...");
+HtmlObject image = new HtmlObject();
+image.setType("image/svg+xml");
+image.getStyle().set("display", "block");
+Button button = new Button("Generate Image", click -> image.setData(
+    DownloadHandler.fromInputStream(event -> new DownloadResponse(
+            getImageInputStream(name), "image.svg", "image/svg+xml", -1))));
+
+The HtmlObject component is used to render the SVG image in the browser that is generated dynamically based on the input from the TextField. On a button click the DownloadHandler is created with the fromInputStream method that is set to HtmlObject component and that sends content to a client. And here is an example of how to generate a svg image and create an input stream:
+
+[Java]
+private InputStream getImageInputStream(TextField name) {
+    String value = name.getValue();
+    if (value == null) {
+        value = "";
+    }
+    String svg = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>"
+        + "<svg xmlns='http://www.w3.org/2000/svg' "
+        + "xmlns:xlink='http://www.w3.org/1999/xlink'>"
+        + "<rect x='10' y='10' height='100' width='100' "
+        + "style=' fill: #90C3D4'/><text x='30' y='30' fill='red'>"
+        + value + "</text>" + "</svg>";
+    return new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8));
+}
+
+When DownloadHandler is used with Anchor component, the data is downloaded as a file. This can be changed to render the data in the browser by using inline() method:
+
+[Java]
+Anchor downloadLink = new Anchor(DownloadHandler.fromFile(
+        new File("/path/to/document.pdf"), "report.pdf").inline(), "Download Report");
+
+The second parameter of the fromFile method is the file name that will be used for download. This name is also used as a URL postfix.
+
+Finally, the DownloadHandler can be created from an abstract base class AbstractDownloadHandler:
+
+[Java]
+public class MyDownloadHandler extends AbstractDownloadHandler<MyDownloadHandler> {
+    @Override
+    public void handleDownloadRequest(DownloadEvent downloadEvent) {
+        byte[] data;
+        // load data from backend...
+        try (OutputStream outputStream = downloadEvent.getOutputStream();
+             ByteArrayInputStream inputStream = new ByteArrayInputStream(data)) {
+            TransferUtil.transfer(inputStream, outputStream,
+                    getTransferContext(downloadEvent), getListeners());
+        } catch (IOException ioe) {
+            downloadEvent.getResponse().setStatus(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR.getCode());
+            notifyError(downloadEvent, ioe);
+        }
+    }
+}
+
+This example shows how to:
+
+- Extend the AbstractDownloadHandler class
+- Override the handleDownloadRequest method to implement custom download handling logic
+- Use the TransferUtil class to transfer data from an InputStream to an OutputStream. This helper method also fires progress events to the listeners so no need to implement this logic manually, see also Download progress tracking
+- Notify progress listeners about errors by calling the notifyError method
+
+Download Progress Listeners
+
+The DownloadHandler API provides two ways to track download progress:
+
+1. Using the fluent API with shorthand methods
+2. Implementing the TransferProgressListener interface
+
+Asynchronous UI updates in progress listeners are automatically wrapped into UI.access() calls by Vaadin, thus you don’t need to call it manually. Vaadin @Push should be enabled in your application to be able to see UI updates while download is in progress.
+
+Fluent API for Progress Tracking
+
+The fluent API provides a concise way to track download progress using method chaining.
+
+[Java]
+InputStreamDownloadHandler handler = DownloadHandler.fromInputStream(event ->
+        new DownloadResponse(getInputStream(), "download.bin",
+            "application/octet-stream", contentSize))
+    .whenStart(() -> {
+        Notification.show("Download started", 3000, Notification.Position.BOTTOM_START);
+        progressBar.setVisible(true);
+    })
+    .onProgress((transferred, total) -> progressBar.setValue((double) transferred / total))
+    .whenComplete(success -> {
+        progressBar.setVisible(false);
+        if (success) {
+            Notification.show("Download completed", 3000, Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.SUCCESS);
+        } else {
+            Notification.show("Download failed", 3000, Notification.Position.BOTTOM_START)
+                    .addThemeVariants(NotificationVariant.ERROR);
+        }
+    });
+
+The fluent API provides the following methods:
+
+- whenStart(Runnable): Called when the download starts
+- onProgress(BiConsumer<Long, Long>): Called during the download with transferred and total bytes
+- onProgress(BiConsumer<Long, Long>, Long): Called during the download with transferred and total bytes and with the given progress interval in bytes
+- whenComplete(Consumer<Boolean>): Called when the download completes successfully or with a failure
+
+These methods have overloads that accept also the TransferContext object that gives more information and references:
+
+- VaadinRequest, VaadinResponse, VaadinSession instances
+- The owner component and element of the data transfer that you can change when transfer is in progress, e.g. disable the component, or get attributes or properties
+- UI instance that you can use to call UI.access() for asynchronous updates in threads
+- The name of the file being transferred, might be <code>null</code> if the file name is not known
+- The content length of the file being transferred, might be <code>-1</code> if the content length is not known
+
+TransferProgressListener Interface
+
+For more control over download progress tracking, you can implement the TransferProgressListener interface.
+
+[Java]
+InputStreamDownloadHandler handler = DownloadHandler.fromInputStream(event ->
+        new DownloadResponse(getInputStream(), "download.bin",
+            "application/octet-stream", contentSize),
+        "download.bin", new TransferProgressListener() {
+    @Override
+    public void onStart(TransferContext context) {
+        Notification.show("Download started for file " + context.fileName(),
+                3000, Notification.Position.BOTTOM_START);
+        progressBar.setVisible(true);
+    }
+
+    @Override
+    public void onProgress(TransferContext context, long transferredBytes,
+                             long totalBytes) {
+        progressBar.setValue((double) transferredBytes / totalBytes);
+    }
+
+    @Override
+    public void onError(TransferContext context, IOException reason) {
+        progressBar.setVisible(false);
+        Notification.show("Download failed, reason: " + reason.getMessage(),
+                3000, Notification.Position.BOTTOM_START);
+    }
+
+    @Override
+    public void onComplete(TransferContext context, long transferredBytes) {
+        progressBar.setVisible(false);
+        Notification.show("Download completed, total bytes " + transferredBytes,
+                        3000, Notification.Position.BOTTOM_START);
+    }
+
+    @Override
+    public long progressReportInterval() {
+        return 1024 * 1024 * 2; // 2 MB
+    }
+});
+
+The TransferProgressListener interface provides the following methods:
+
+- onStart(TransferContext): Called when the download starts
+- onProgress(TransferContext, long, long): Called during the download with transferred and total bytes
+- onError(TransferContext, IOException): Called when the download fails with an exception
+- onComplete(TransferContext, long): Called when the download completes with the total transferred bytes
+- progressReportInterval(): Defines how often progress updates are sent (in bytes)
+
+The TransferContext objects are the same as in the fluent API.
+
+Low-Level DownloadHandler API
+
+The DownloadHandler API provides several low-level features for advanced use cases.
+
+Inert Property
+
+The inert property controls whether the download should be handled when the owner component is in an inert state, e.g. when a modal dialog is opened while the owner component is on the underlined page. See the Server-Side Modality for details.
+
+DownloadHandler allows to handle download request from inert component by overriding the isAllowInert() method.
+
+Disabled Update Mode
+
+The DisabledUpdateMode controls whether downloads are allowed when the owner component is disabled.
+
+The available modes are:
+
+- ONLY_WHEN_ENABLED: Download handling is rejected when the owner component is disabled (default)
+- ALWAYS: Download handling is allowed even when the owner component is disabled
+
+DownloadHandler allows to override this mode by overriding the getDisabledUpdateMode() method.
+
+URL Postfix
+
+The getUrlPostfix() method allows you to specify an optional URL postfix that appends application-controlled string, e.g. the logical name of the target file, to the end of the otherwise random-looking download URL. If defined, requests that would otherwise be servable are still rejected if the postfix is missing or invalid. DownloadHandler factory methods have overloads that accept the postfix as a parameter.
+
+This is useful for:
+
+- Providing a meaningful filename into the download handler callback
+- Making the download request URL look more user-friendly as otherwise it is a random-looking URL
+
+The request URL looks like when the postfix is set: /VAADIN/dynamic/resource/0/5298ee8b-9686-4a5a-ae1d-b38c62767d6a/meeting-notes.txt.
+
+By default, the postfix is not set and the request URL looks like: /VAADIN/dynamic/resource/0/5298ee8b-9686-4a5a-ae1d-b38c62767d6a.
+
+[Java]
+Anchor downloadLink = new Anchor(new DownloadHandler() {
+    @Override
+    public void handleDownloadRequest(DownloadEvent event) {
+        // download handling...
+    }
+
+    @Override
+    public boolean isAllowInert() {
+        return true; // default is false
+    }
+
+    @Override
+    public DisabledUpdateMode getDisabledUpdateMode() {
+        return DisabledUpdateMode.ALWAYS; // the default is ONLY_WHEN_ENABLED
+    }
+
+    @Override
+    public String getUrlPostfix() {
+        return "meeting-notes.txt";
+    }
+}, "Download meeting notes");

@@ -1,0 +1,10 @@
+Step-by-Step Guide
+
+This document guides you through a series of steps to upgrade a working Vaadin 7 or Vaadin 8 application to Vaadin Flow.
+
+It’s easier to get started by changing things inside the existing Vaadin application than starting from a Flow Starter.
+
+The first step is to configure the Maven dependencies and plugins for MPR to work. The settings depend on which Vaadin version you use:
+
+- Application uses Vaadin 7 →
+- Application uses Vaadin 8 →

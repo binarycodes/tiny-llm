@@ -1,0 +1,2210 @@
+Context Menu
+
+Context Menu is a component that can be attached to any component to display a context menu.
+
+Context Menu is a component that you can attach to any component to display a context menu. The menu appears on the right by default, or with a left click. On a touch device, a long press opens the context menu.
+
+Important: Open the Context Menu by right-clicking (i.e., with a mouse), or by long-pressing (i.e., on a touch screen), a Grid row.
+
+[Flow: ContextMenuBasic.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("context-menu-basic")
+public class ContextMenuBasic extends Div {
+
+    private List<Person> people = DataService.getPeople(5);
+
+    public ContextMenuBasic() {
+        Grid<Person> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(people);
+
+        grid.addColumn(person -> person.getFirstName()).setHeader("First name");
+        grid.addColumn(person -> person.getLastName()).setHeader("Last name");
+        grid.addColumn(person -> person.getEmail()).setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone())
+                .setHeader("Phone number");
+
+        // tag::snippet[]
+        GridContextMenu<Person> menu = grid.addContextMenu();
+        menu.addItem("View", event -> {
+        });
+        menu.addItem("Edit", event -> {
+        });
+        menu.addItem("Delete", event -> {
+        });
+        // end::snippet[]
+
+        add(grid);
+    }
+
+}
+
+[React: context-menu-basic.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ContextMenu } from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const gridItems = useSignal<Person[]>([]);
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      gridItems.value = people;
+    });
+  }, []);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Workaround: Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  // tag::snippet[]
+  const items = [{ text: 'View' }, { text: 'Edit' }, { text: 'Delete' }];
+
+  return (
+    <ContextMenu items={items}>
+      <Grid allRowsVisible items={gridItems.value} ref={gridRef}>
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn header="Phone number" path="address.phone" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-basic.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Grid } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('context-menu-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [{ text: 'View' }, { text: 'Edit' }, { text: 'Delete' }];
+  // end::snippet[]
+
+  @state()
+  private gridItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    this.gridItems = (await getPeople({ count: 5 })).people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu .items=${this.items}>
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column header="Phone number" path="address.phone"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<Person>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+Dividers
+
+You can use dividers to separate and group related content. Use dividers sparingly to avoid creating unnecessary visual clutter.
+
+Important: Open the Context Menu by right-clicking (i.e., with a mouse), or by long-pressing (i.e., on a touch screen), a Grid row.
+
+[Flow: ContextMenuDividers.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("context-menu-dividers")
+public class ContextMenuDividers extends Div {
+
+    private List<Person> people = DataService.getPeople(5);
+
+    public ContextMenuDividers() {
+        Grid<Person> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(people);
+
+        grid.addColumn(person -> person.getFirstName()).setHeader("First name");
+        grid.addColumn(person -> person.getLastName()).setHeader("Last name");
+        grid.addColumn(person -> person.getEmail()).setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone())
+                .setHeader("Phone number");
+
+        // tag::snippet[]
+        GridContextMenu<Person> menu = grid.addContextMenu();
+        menu.addItem("View", event -> {
+        });
+        menu.addSeparator();
+        menu.addItem("Edit", event -> {
+        });
+        menu.addItem("Delete", event -> {
+        });
+        menu.addSeparator();
+        menu.addItem("Email", event -> {
+        });
+        menu.addItem("Call", event -> {
+        });
+        // end::snippet[]
+
+        add(grid);
+    }
+
+}
+
+[React: context-menu-dividers.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ContextMenu } from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const gridItems = useSignal<Person[]>([]);
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      gridItems.value = people;
+    });
+  }, []);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  return (
+    // tag::snippet[]
+    <ContextMenu
+      items={[
+        { text: 'View' },
+        { component: 'hr' },
+        { text: 'Edit' },
+        { text: 'Delete' },
+        { component: 'hr' },
+        { text: 'Email' },
+        { text: 'Call' },
+      ]}
+    >
+      <Grid allRowsVisible items={gridItems.value} ref={gridRef}>
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn header="Phone number" path="address.phone" />
+      </Grid>
+    </ContextMenu>
+    // end::snippet[]
+  );
+}
+
+[Lit: context-menu-dividers.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Grid } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('context-menu-dividers')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private gridItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    this.gridItems = (await getPeople({ count: 5 })).people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-context-menu
+        .items=${[
+          { text: 'View' },
+          { component: 'hr' },
+          { text: 'Edit' },
+          { text: 'Delete' },
+          { component: 'hr' },
+          { text: 'Email' },
+          { text: 'Call' },
+        ]}
+      >
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column header="Phone number" path="address.phone"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<Person>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+Checkable Menu Items
+
+Checkable Menu Items can be used to toggle a setting on and off.
+
+[Flow: ContextMenuCheckable.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("context-menu-checkable")
+public class ContextMenuCheckable extends Div {
+
+    private final ContextMenu menu;
+    private final Span assignee;
+
+    public ContextMenuCheckable() {
+        // tag::snippet1[]
+        assignee = new Span();
+        menu = new ContextMenu();
+        menu.setTarget(assignee);
+
+        List<Person> people = DataService.getPeople(5);
+        for (Person person : people) {
+            MenuItem menuItem = menu.addItem(person.getFullName(), event -> {
+                setAssignee(person);
+            });
+            menuItem.setCheckable(true);
+        }
+
+        setAssignee(people.get(0));
+        // end::snippet1[]
+
+        Div assigneeInfo = new Div(new Span("Assignee: "), assignee);
+        assignee.getStyle().set("font-weight", "bold");
+
+        add(assigneeInfo);
+    }
+
+    private void setAssignee(Person person) {
+        // Update checked state of menu items
+        menu.getItems().forEach(item -> item
+                .setChecked(item.getText().equals(person.getFullName())));
+
+        assignee.setText(person.getFullName());
+    }
+
+}
+
+[React: context-menu-checkable.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  ContextMenu,
+  type ContextMenuItem,
+  type ContextMenuItemSelectedEvent,
+} from '@vaadin/react-components/ContextMenu.js';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<ContextMenuItem[]>([
+    { text: 'Abigail Lewis', checked: true },
+    { text: 'Allison Torres' },
+    { text: 'Anna Myers' },
+    { text: 'Lauren Wright' },
+    { text: 'Tamaki Ryushi' },
+  ]);
+
+  const selectedItem = items.value.find((item) => item.checked);
+
+  function itemSelected(e: ContextMenuItemSelectedEvent) {
+    items.value = items.value.map((item) => ({ ...item, checked: item === e.detail.value }));
+  }
+
+  return (
+    <ContextMenu items={items.value} onItemSelected={itemSelected}>
+      <span>
+        Assignee: <b>{selectedItem?.text}</b>
+      </span>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-checkable.ts]
+import '@vaadin/context-menu';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ContextMenuItem, ContextMenuItemSelectedEvent } from '@vaadin/context-menu';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('context-menu-checkable')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: ContextMenuItem[] = [
+    { text: 'Abigail Lewis', checked: true },
+    { text: 'Allison Torres' },
+    { text: 'Anna Myers' },
+    { text: 'Lauren Wright' },
+    { text: 'Tamaki Ryushi' },
+  ];
+
+  protected override render() {
+    const selectedItem = this.items.find((item) => item.checked);
+
+    return html`
+      <vaadin-context-menu .items="${this.items}" @item-selected="${this.itemSelected}">
+        <span>Assignee: <b>${selectedItem?.text}</b></span>
+      </vaadin-context-menu>
+    `;
+  }
+
+  itemSelected(e: ContextMenuItemSelectedEvent) {
+    this.items.forEach((item) => {
+      item.checked = item === e.detail.value;
+    });
+    this.items = [...this.items];
+  }
+  // end::snippet[]
+}
+
+Hierarchical Menu
+
+Context Menu, like Menu Bar, supports multi-level sub-menus. You can use a hierarchical menu to organize a large set of options and group related items.
+
+Important: Open the Context Menu by right-clicking (i.e., with a mouse), or by long-pressing (i.e., on a touch screen), a Grid row.
+
+[Flow: ContextMenuHierarchical.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
+import com.vaadin.flow.component.grid.contextmenu.GridSubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+
+@Route("context-menu-hierarchical")
+public class ContextMenuHierarchical extends Div {
+
+    public ContextMenuHierarchical() {
+        Grid<File> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(getFiles());
+
+        grid.addColumn(File::getName).setHeader("Name");
+        grid.addColumn(File::getDisplaySize).setHeader("Size");
+
+        // tag::snippet[]
+        GridContextMenu<File> menu = grid.addContextMenu();
+        // end::snippet[]
+        menu.addItem("Preview", event -> {
+        });
+        menu.addItem("Edit", event -> {
+        });
+        menu.addSeparator();
+
+        // tag::snippet[]
+        GridMenuItem<File> export = menu.addItem("Export");
+        GridSubMenu<File> exportSubMenu = export.getSubMenu();
+        exportSubMenu.addItem("Portable Document Format (.pdf)", event -> {
+        });
+        exportSubMenu.addItem("Rich Text Format (.rtf)", event -> {
+        });
+        exportSubMenu.addItem("Plain text (.txt)", event -> {
+        });
+        // end::snippet[]
+
+        GridMenuItem<File> share = menu.addItem("Share");
+        GridSubMenu<File> shareSubMenu = share.getSubMenu();
+        shareSubMenu.addItem("Copy link", event -> {
+        });
+        shareSubMenu.addItem("Email", event -> {
+        });
+        menu.addSeparator();
+
+        menu.addItem("Delete", event -> {
+        });
+
+        add(grid);
+    }
+
+    private File[] getFiles() {
+        return new File[] { new File("Annual Report.docx", 25165824),
+                new File("Financials.xlsx", 44040192) };
+    }
+
+    private class File {
+
+        private String name;
+        private long size;
+
+        File(String name, long size) {
+            this.name = name;
+            this.size = size;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        public String getDisplaySize() {
+            return byteCountToDisplaySize(size);
+        }
+    }
+
+}
+
+[React: context-menu-hierarchical.tsx]
+import React, { useEffect, useRef } from 'react';
+import { ContextMenu } from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+
+interface FileItem {
+  name: string;
+  size: string;
+}
+
+function Example() {
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  // tag::snippet[]
+  const items = [
+    { text: 'Preview' },
+    { text: 'Edit' },
+    { component: 'hr' },
+    {
+      text: 'Export',
+      children: [
+        { text: 'Portable Document Format (.pdf)' },
+        { text: 'Rich Text Format (.rtf)' },
+        { text: 'Plain text (.txt)' },
+      ],
+    },
+    { text: 'Share', children: [{ text: 'Copy link' }, { text: 'Email' }] },
+    { component: 'hr' },
+    { text: 'Delete' },
+  ];
+
+  const gridItems: FileItem[] = [
+    { name: 'Annual Report.docx', size: '24 MB' },
+    { name: 'Financials.xlsx', size: '42 MB' },
+  ];
+
+  return (
+    <ContextMenu items={items}>
+      <Grid allRowsVisible items={gridItems} ref={gridRef}>
+        <GridColumn path="name" />
+        <GridColumn path="size" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-hierarchical.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Grid } from '@vaadin/grid';
+import { applyTheme } from 'Frontend/demo/theme';
+
+interface FileItem {
+  name: string;
+  size: string;
+}
+
+@customElement('context-menu-hierarchical')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [
+    { text: 'Preview' },
+    { text: 'Edit' },
+    { component: 'hr' },
+    {
+      text: 'Export',
+      children: [
+        { text: 'Portable Document Format (.pdf)' },
+        { text: 'Rich Text Format (.rtf)' },
+        { text: 'Plain text (.txt)' },
+      ],
+    },
+    { text: 'Share', children: [{ text: 'Copy link' }, { text: 'Email' }] },
+    { component: 'hr' },
+    { text: 'Delete' },
+  ];
+  // end::snippet[]
+
+  @state()
+  private gridItems: FileItem[] = [
+    { name: 'Annual Report.docx', size: '24 MB' },
+    { name: 'Financials.xlsx', size: '42 MB' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu .items=${this.items}>
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column path="name"></vaadin-grid-column>
+          <vaadin-grid-column path="size"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<FileItem>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+Tooltips
+
+Menu items can be configured with tooltips to provide additional information.
+
+[Flow: ContextMenuTooltip.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
+import com.vaadin.flow.component.grid.contextmenu.GridSubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.shared.Tooltip.TooltipPosition;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("context-menu-tooltip")
+public class ContextMenuTooltip extends Div {
+
+    private List<Person> people = DataService.getPeople(5);
+
+    public ContextMenuTooltip() {
+        Grid<Person> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(people);
+
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        // tag::snippet[]
+        GridContextMenu<Person> menu = grid.addContextMenu();
+        GridMenuItem<Person> edit = menu.addItem("Edit");
+        edit.setTooltipText("Edit selected person");
+
+        GridMenuItem<Person> share = menu.addItem("Share");
+        GridSubMenu<Person> shareSubMenu = share.getSubMenu();
+        shareSubMenu.addItem("Copy link")
+                .setTooltipText("Copy a shareable link to the clipboard");
+        GridMenuItem<Person> email = shareSubMenu.addItem("Email");
+        email.setTooltipText("Send the contact details by email");
+        email.setTooltipPosition(TooltipPosition.END);
+        // end::snippet[]
+
+        add(grid);
+    }
+
+}
+
+[React: context-menu-tooltip.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ContextMenu, Tooltip } from '@vaadin/react-components';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const gridItems = useSignal<Person[]>([]);
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      gridItems.value = people;
+    });
+  }, []);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Workaround: Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  // tag::snippet[]
+  const items = [
+    { text: 'Edit', tooltip: 'Edit selected person' },
+    {
+      text: 'Share',
+      children: [
+        { text: 'Copy link', tooltip: 'Copy a shareable link to the clipboard' },
+        {
+          text: 'Email',
+          tooltip: 'Send the contact details by email',
+          tooltipPosition: 'end',
+        },
+      ],
+    },
+  ];
+
+  return (
+    <ContextMenu items={items}>
+      <Tooltip slot="tooltip" />
+      <Grid allRowsVisible items={gridItems.value} ref={gridRef}>
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-tooltip.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Grid } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('context-menu-tooltip')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [
+    { text: 'Edit', tooltip: 'Edit selected person' },
+    {
+      text: 'Share',
+      children: [
+        { text: 'Copy link', tooltip: 'Copy a shareable link to the clipboard' },
+        {
+          text: 'Email',
+          tooltip: 'Send the contact details by email',
+          tooltipPosition: 'end',
+        },
+      ],
+    },
+  ];
+  // end::snippet[]
+
+  @state()
+  private gridItems: Person[] = [];
+
+  protected override async firstUpdated() {
+    this.gridItems = (await getPeople({ count: 5 })).people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu .items=${this.items}>
+        <vaadin-tooltip slot="tooltip"></vaadin-tooltip>
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<Person>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+See the Tooltips documentation page for details on tooltip configuration.
+
+Tooltips are also useful on disabled menu items to explain why an action is unavailable, but they are not shown by default. See Disabled Menu Items for how to enable them.
+
+Custom Items
+
+You can customize the items to include more than a single line of text.
+
+Important: Open the Context Menu by right-clicking (i.e., with a mouse), or by long-pressing (i.e., on a touch screen), a Grid row.
+
+[Flow: ContextMenuPresentation.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
+import com.vaadin.flow.component.grid.contextmenu.GridSubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+import java.util.Random;
+
+@Route("context-menu-presentation")
+public class ContextMenuPresentation extends Div {
+
+    private List<Person> people = DataService.getPeople(10);
+    private Random random = new Random(1);
+
+    public ContextMenuPresentation() {
+        Grid<Person> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(people.subList(0, 5));
+
+        grid.addColumn(person -> person.getFullName()).setHeader("Applicant");
+        grid.addColumn(person -> person.getEmail()).setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone())
+                .setHeader("Phone number");
+
+        // tag::snippet1[]
+        GridContextMenu<Person> menu = grid.addContextMenu();
+        // end::snippet1[]
+
+        GridMenuItem<Person> open = menu.addItem("Open", event -> {
+        });
+        open.addComponentAsFirst(createIcon(VaadinIcon.FILE_SEARCH));
+
+        GridMenuItem<Person> assign = menu.addItem("Assign");
+        assign.addComponentAsFirst(createIcon(VaadinIcon.USER_CHECK));
+
+        GridSubMenu<Person> assignSubMenu = assign.getSubMenu();
+        people.subList(5, 10).forEach(person -> {
+            assignSubMenu.addItem(createPersonItem(person), event -> {
+            });
+        });
+        menu.addSeparator();
+
+        GridMenuItem<Person> delete = menu.addItem("Delete", event -> {
+        });
+        delete.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
+
+        add(grid);
+    }
+
+    private Component createIcon(VaadinIcon vaadinIcon) {
+        Icon icon = vaadinIcon.create();
+        icon.getStyle().set("color", "var(--vaadin-text-color-secondary)")
+                .set("margin-inline-end", "var(--vaadin-gap-s")
+                .set("--vaadin-icon-visual-size", "80%");
+        return icon;
+    }
+
+    private Component createPersonItem(Person person) {
+        Avatar avatar = new Avatar(person.getFullName(),
+                person.getPictureUrl());
+        Span name = new Span(person.getFullName());
+        Span profession = new Span(person.getProfession());
+
+        Div personItem = new Div(avatar, name, profession);
+        personItem.addClassName("person-item");
+        return personItem;
+    }
+
+    private String getApplicationCount() {
+        // Randomised dummy data
+        return random.nextInt(20) + 1 + " applications";
+    }
+
+}
+
+[Flow: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Flow: person-item.css]
+
+[React: context-menu-presentation.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { ContextMenu, type ContextMenuItem } from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Item({ person }: { person: Person }) {
+  return (
+    <div className="person-item">
+      <Avatar img={person.pictureUrl} name={`${person.firstName} ${person.lastName}`} />
+      <span>
+        {person.firstName} {person.lastName}
+      </span>
+      <span>{person.profession}</span>
+    </div>
+  );
+}
+
+function createItem(iconName: string, text: string) {
+  return (
+    <>
+      <Icon
+        icon={iconName}
+        style={{
+          color: 'var(--vaadin-text-color-secondary)',
+          marginInlineEnd: 'var(--vaadin-gap-s)',
+          '--vaadin-icon-visual-size': '80%',
+        }}
+      />
+      {text}
+    </>
+  );
+}
+
+function renderApplicant({ item }: { item: Person }) {
+  return (
+    <span>
+      {item.firstName} {item.lastName}
+    </span>
+  );
+}
+
+function Example() {
+  const gridItems = useSignal<Person[]>([]);
+  const items = useSignal<ContextMenuItem[]>([]);
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      gridItems.value = people;
+      // tag::snippet[]
+      const contextMenuItems: ContextMenuItem[] = [
+        { component: createItem('vaadin:file-search', 'Open') },
+        {
+          component: createItem('vaadin:user-check', 'Assign'),
+          children: [
+            {
+              component: <Item person={people[0]} />,
+            },
+            {
+              component: <Item person={people[1]} />,
+            },
+            {
+              component: <Item person={people[2]} />,
+            },
+            {
+              component: <Item person={people[3]} />,
+            },
+            {
+              component: <Item person={people[4]} />,
+            },
+          ],
+        },
+        { component: 'hr' },
+        { component: createItem('vaadin:trash', 'Delete') },
+      ];
+
+      items.value = contextMenuItems;
+      // end::snippet[]
+    });
+  }, []);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Workaround: Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  // tag::snippet[]
+  return (
+    <ContextMenu items={items.value}>
+      <Grid allRowsVisible items={gridItems.value} ref={gridRef}>
+        <GridColumn header="Applicant" renderer={renderApplicant} />
+        <GridColumn path="email" />
+        <GridColumn header="Phone number" path="address.phone" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[React: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[React: person-item.css]
+
+[Lit: context-menu-presentation.ts]
+import '@vaadin/avatar';
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import { html, LitElement, render } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ContextMenuItem } from '@vaadin/context-menu';
+import type { Grid } from '@vaadin/grid';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('context-menu-presentation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private gridItems: Person[] = [];
+
+  @state()
+  private items: ContextMenuItem[] | undefined;
+
+  // tag::snippet[]
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 10 });
+
+    this.gridItems = people.slice(0, 5);
+    const itemsArray = this.createItemsArray(people.slice(5, 10));
+
+    this.items = [
+      { component: this.createItem('vaadin:file-search', 'Open') },
+      {
+        component: this.createItem('vaadin:user-check', 'Assign'),
+        children: [
+          { component: itemsArray[0] },
+          { component: itemsArray[1] },
+          { component: itemsArray[2] },
+          { component: itemsArray[3] },
+          { component: itemsArray[4] },
+        ],
+      },
+      { component: 'hr' },
+      { component: this.createItem('vaadin:trash', 'Delete') },
+    ];
+  }
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu .items=${this.items}>
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column
+            header="Applicant"
+            ${columnBodyRenderer<Person>(
+              (person) => html`<span>${person.firstName} ${person.lastName}</span>`,
+              []
+            )}
+          ></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column header="Phone number" path="address.phone"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  createItemsArray(people: Person[]) {
+    return people.map((person, index) => {
+      const item = document.createElement('vaadin-context-menu-item');
+      if (index === 0) {
+        item.setAttribute('selected', '');
+      }
+      render(
+        html`
+          <div class="person-item">
+            <vaadin-avatar
+              .img="${person.pictureUrl}"
+              .name="${`${person.firstName} ${person.lastName}`}"
+            ></vaadin-avatar>
+            <span>${person.firstName} ${person.lastName}</span>
+            <span>${person.profession}</span>
+          </div>
+        `,
+        item
+      );
+      return item;
+    });
+  }
+
+  createItem(iconName: string, text: string) {
+    const item = document.createElement('vaadin-context-menu-item');
+    const icon = document.createElement('vaadin-icon');
+
+    icon.style.color = 'var(--vaadin-text-color-secondary)';
+    icon.style.marginInlineEnd = 'var(--vaadin-gap-s)';
+    icon.style.setProperty('--vaadin-icon-visual-size', '80%');
+
+    icon.setAttribute('icon', iconName);
+    item.appendChild(icon);
+    if (text) {
+      item.appendChild(document.createTextNode(text));
+    }
+    return item;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<Person>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+[Lit: person-item.css]
+.person-item {
+    display: grid;
+    grid-template-columns: min-content auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "avatar name"
+        "avatar title";
+    gap: 0 var(--vaadin-gap-s);
+    align-items: center;
+    line-height: 1.2;
+
+    & > :is(vaadin-avatar, img) {
+        grid-area: avatar;
+    }
+
+    & > span:first-of-type {
+        grid-area: name;
+    }
+
+    & > span:last-of-type {
+        grid-area: title;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--vaadin-text-color-secondary);
+    }
+}
+
+[Lit: person-item.css]
+
+Styling Menu Items
+
+Individual menu items can be styled by applying custom class names to them, and writing CSS style blocks targeting those class names.
+
+[Flow: ContextMenuClassname.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("context-menu-classname")
+public class ContextMenuClassname extends Div {
+
+    public ContextMenuClassname() {
+        Button button = new Button("Actions");
+        ContextMenu menu = new ContextMenu();
+
+        menu.setTarget(button);
+        menu.setOpenOnClick(true);
+
+        menu.addItem("Share");
+        menu.addItem("Duplicate");
+        // tag::snippet[]
+        MenuItem item = menu.addItem("Delete");
+        item.setClassName("custom");
+        // end::snippet[]
+
+        add(button);
+    }
+
+}
+
+[Flow: context-menu-class-name.css]
+vaadin-context-menu-item.custom {
+   color: red;
+}
+
+[Flow: context-menu-class-name.css]
+
+[React: context-menu-classname.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Button } from '@vaadin/react-components/Button.js';
+import { ContextMenu, type ContextMenuItem } from '@vaadin/react-components/ContextMenu.js';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<ContextMenuItem[]>([
+    { text: 'Share' },
+    { text: 'Duplicate' },
+    { text: 'Delete', className: 'custom' },
+  ]);
+  // end::snippet[]
+
+  return (
+    <ContextMenu items={items.value} openOn="click">
+      <Button>Actions</Button>
+    </ContextMenu>
+  );
+}
+
+[React: context-menu-class-name.css]
+vaadin-context-menu-item.custom {
+   color: red;
+}
+
+[React: context-menu-class-name.css]
+
+[Lit: context-menu-classname.ts]
+import '@vaadin/button';
+import '@vaadin/context-menu';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ContextMenuItem } from '@vaadin/context-menu';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('context-menu-classname')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: ContextMenuItem[] = [
+    { text: 'Share' },
+    { text: 'Duplicate' },
+    { text: 'Delete', className: 'custom' },
+  ];
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <vaadin-context-menu .items="${this.items}" open-on="click">
+        <vaadin-button>Actions</vaadin-button>
+      </vaadin-context-menu>
+    `;
+  }
+}
+
+[Lit: context-menu-class-name.css]
+vaadin-context-menu-item.custom {
+   color: red;
+}
+
+[Lit: context-menu-class-name.css]
+
+Disabled Menu Items
+
+You can disable menu items to show that they are unavailable.
+
+Important: Open the Context Menu by right-clicking (i.e., with a mouse), or by long-pressing (i.e., on a touch screen), a Grid row.
+
+[Flow: ContextMenuDisabled.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
+import com.vaadin.flow.component.grid.contextmenu.GridSubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+
+@Route("context-menu-disabled")
+public class ContextMenuDisabled extends Div {
+
+    public ContextMenuDisabled() {
+        Grid<File> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(getFiles());
+
+        grid.addColumn(File::getName).setHeader("Name");
+        grid.addColumn(File::getDisplaySize).setHeader("Size");
+
+        // tag::snippet1[]
+        GridContextMenu<File> menu = grid.addContextMenu();
+        // end::snippet1[]
+        menu.addItem("Preview", event -> {
+        });
+        menu.addItem("Edit", event -> {
+        });
+        menu.addSeparator();
+
+        GridMenuItem<File> export = menu.addItem("Export");
+        GridSubMenu<File> exportSubMenu = export.getSubMenu();
+        GridMenuItem<File> exportPDF = exportSubMenu
+                .addItem("Portable Document Format (.pdf)", event -> {
+                });
+        exportPDF.setEnabled(false);
+        exportSubMenu.addItem("Rich Text Format (.rtf)", event -> {
+        });
+        exportSubMenu.addItem("Plain text (.txt)", event -> {
+        });
+
+        GridMenuItem<File> share = menu.addItem("Share");
+        GridSubMenu<File> shareSubMenu = share.getSubMenu();
+        shareSubMenu.addItem("Copy link", event -> {
+        });
+        shareSubMenu.addItem("Email", event -> {
+        });
+        menu.addSeparator();
+
+        GridMenuItem<File> delete = menu.addItem("Delete", event -> {
+        });
+        delete.setEnabled(false);
+
+        add(grid);
+    }
+
+    private File[] getFiles() {
+        return new File[] { new File("Annual Report.pdf", 25165824),
+                new File("Financials.pdf", 44040192) };
+    }
+
+    private class File {
+
+        private String name;
+        private long size;
+
+        File(String name, long size) {
+            this.name = name;
+            this.size = size;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        public String getDisplaySize() {
+            return byteCountToDisplaySize(size);
+        }
+    }
+
+}
+
+[React: context-menu-disabled.tsx]
+import React, { useEffect, useRef } from 'react';
+import { ContextMenu } from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+
+interface FileItem {
+  name: string;
+  size: string;
+}
+
+function Example() {
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Workaround: Prevent opening context menu on header row.
+      // @ts-expect-error vaadin-contextmenu isn't a GridElement event.
+      grid.addEventListener('vaadin-contextmenu', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  // tag::snippet[]
+  const items = [
+    { text: 'Preview' },
+    { text: 'Edit' },
+    { component: 'hr' },
+    {
+      text: 'Export',
+      children: [
+        { text: 'Portable Document Format (.pdf)', disabled: true },
+        { text: 'Rich Text Format (.rtf)' },
+        { text: 'Plain text (.txt)' },
+      ],
+    },
+    { text: 'Share', children: [{ text: 'Copy link' }, { text: 'Email' }] },
+    { component: 'hr' },
+    { text: 'Delete', disabled: true },
+  ];
+
+  const gridItems: FileItem[] = [
+    { name: 'Annual Report.pdf', size: '24 MB' },
+    { name: 'Financials.pdf', size: '42 MB' },
+  ];
+
+  return (
+    <ContextMenu items={items}>
+      <Grid allRowsVisible items={gridItems} ref={gridRef}>
+        <GridColumn path="name" />
+        <GridColumn path="size" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-disabled.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Grid } from '@vaadin/grid';
+import { applyTheme } from 'Frontend/demo/theme';
+
+interface FileItem {
+  name: string;
+  size: string;
+}
+
+@customElement('context-menu-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [
+    { text: 'Preview' },
+    { text: 'Edit' },
+    { component: 'hr' },
+    {
+      text: 'Export',
+      children: [
+        { text: 'Portable Document Format (.pdf)', disabled: true },
+        { text: 'Rich Text Format (.rtf)' },
+        { text: 'Plain text (.txt)' },
+      ],
+    },
+    { text: 'Share', children: [{ text: 'Copy link' }, { text: 'Email' }] },
+    { component: 'hr' },
+    { text: 'Delete', disabled: true },
+  ];
+  // end::snippet[]
+
+  @state()
+  private gridItems: FileItem[] = [
+    { name: 'Annual Report.pdf', size: '24 MB' },
+    { name: 'Financials.pdf', size: '42 MB' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu .items=${this.items}>
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column path="name"></vaadin-grid-column>
+          <vaadin-grid-column path="size"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<FileItem>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+By default, disabled menu items aren’t focusable or hoverable, which hides them from assistive technologies and prevents Tooltips on disabled items from showing. The accessibleDisabledMenuItems feature flag can be enabled to make them focusable and hoverable without allowing them to be triggered:
+
+[Flow]
+# Add this line to src/main/resources/vaadin-featureflags.properties
+com.vaadin.experimental.accessibleDisabledMenuItems=true
+
+[Lit & React]
+// Set before any menu is added to the DOM
+window.Vaadin.featureFlags.accessibleDisabledMenuItems = true;
+
+Disable on Click (Flow)
+
+To prevent duplicate clicks while the server is processing a request, call the setDisableOnClick(true) method on a menu item instance to disable immediately that menu item on the client-side when it’s clicked.
+
+[Flow: ContextMenuDisableOnClick.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.router.Route;
+
+@Route("context-menu-disable-on-click")
+public class ContextMenuDisableOnClick extends Div {
+
+    public ContextMenuDisableOnClick() {
+        Paragraph paragraph = new Paragraph();
+        paragraph.setText(
+                "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.");
+        add(paragraph);
+
+        ContextMenu menu = new ContextMenu(paragraph);
+        // tag::snippet[]
+        MenuItem summarize = menu.addItem("Summarize with AI");
+        summarize.setDisableOnClick(true);
+        // end::snippet[]
+        summarize.setKeepOpen(true);
+        summarize.addClickListener(event -> {
+            // Simulate long-running operation
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+            summarize.setEnabled(true);
+            paragraph.setText("Lorem ipsum dolor sit amet.");
+        });
+    }
+
+}
+
+Left-Click
+
+You can use left-click to open Context Menu in situations where left-click doesn’t have any other function (e.g., a Grid without selection support).
+
+Important: Open the Context Menu by clicking a Grid row.
+
+[Flow: ContextMenuLeftClick.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("context-menu-left-click")
+public class ContextMenuLeftClick extends Div {
+
+    private List<Person> people = DataService.getPeople(5);
+
+    public ContextMenuLeftClick() {
+        Grid<Person> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(people);
+
+        grid.addColumn(person -> person.getFirstName()).setHeader("First name");
+        grid.addColumn(person -> person.getLastName()).setHeader("Last name");
+        grid.addColumn(person -> person.getEmail()).setHeader("Email");
+        grid.addColumn(person -> person.getAddress().getPhone())
+                .setHeader("Phone number");
+
+        // tag::snippet[]
+        GridContextMenu<Person> menu = grid.addContextMenu();
+        menu.setOpenOnClick(true);
+        menu.addItem("View", event -> {
+        });
+        menu.addItem("Edit", event -> {
+        });
+        menu.addItem("Delete", event -> {
+        });
+        // end::snippet[]
+
+        add(grid);
+    }
+
+}
+
+[React: context-menu-left-click.tsx]
+import React, { useEffect, useRef } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ContextMenu } from '@vaadin/react-components/ContextMenu.js';
+import { Grid, type GridElement } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal([{ text: 'View' }, { text: 'Edit' }, { text: 'Delete' }]);
+  const gridItems = useSignal<Person[]>([]);
+  const gridRef = useRef<GridElement>(null);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      // Workaround: Prevent opening context menu on header row.
+      grid.addEventListener('click', (e) => {
+        if (grid.getEventContext(e).section !== 'body') {
+          e.stopPropagation();
+        }
+      });
+    }
+  }, [gridRef.current]);
+
+  useEffect(() => {
+    getPeople({ count: 5 }).then(({ people }) => {
+      gridItems.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  return (
+    <ContextMenu openOn="click" items={items.value}>
+      <Grid allRowsVisible items={gridItems.value} ref={gridRef}>
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn header="Phone number" path="address.phone" />
+      </Grid>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-left-click.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ContextMenuOpenedChangedEvent } from '@vaadin/context-menu';
+import type { Grid } from '@vaadin/grid';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('context-menu-left-click')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [{ text: 'View' }, { text: 'Edit' }, { text: 'Delete' }];
+  // end::snippet[]
+
+  @state()
+  private gridItems: Person[] = [];
+
+  private contextMenuOpened?: boolean;
+
+  private onClick = (e: MouseEvent) => {
+    // Prevent opening context menu on header row click.
+    const target = e.currentTarget as Grid<Person>;
+    if (!this.contextMenuOpened && target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  };
+
+  protected override async firstUpdated() {
+    this.gridItems = (await getPeople({ count: 5 })).people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu
+        open-on="click"
+        .items=${this.items}
+        @opened-changed="${(event: ContextMenuOpenedChangedEvent) => {
+          this.contextMenuOpened = event.detail.value;
+        }}"
+      >
+        <vaadin-grid all-rows-visible .items=${this.gridItems} @click=${this.onClick}>
+          <vaadin-grid-column path="firstName"></vaadin-grid-column>
+          <vaadin-grid-column path="lastName"></vaadin-grid-column>
+          <vaadin-grid-column path="email"></vaadin-grid-column>
+          <vaadin-grid-column header="Phone number" path="address.phone"></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+Custom Item Data
+
+Context Menu allows you to associate custom data with menu items. This can be useful for storing additional information about the item, such as an item type or a value. The data can then be used to trigger actions when an item is selected.
+
+[Flow: ContextMenuCustomItemData.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.router.Route;
+
+@Route("context-menu-custom-item-data")
+public class ContextMenuCustomItemData extends Div {
+
+    public ContextMenuCustomItemData() {
+        // tag::snippet[]
+        Div wrapper = new Div(new H1("Context Menu"), new Paragraph(
+                "Menu Bar is a horizontal button bar with hierarchical drop-down menus."));
+
+        ContextMenu menu = new ContextMenu();
+        menu.setTarget(wrapper);
+
+        menu.addItem("Copy as plain text", event -> {
+            // Provide a custom value by adding a click listener that holds a
+            // reference to that value
+            String value = "Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.";
+            copyToClipboard(value);
+        });
+
+        menu.addItem("Copy as HTML", event -> {
+            String value = "<h1>Menu Bar</h1><p>Menu Bar is a horizontal button bar with hierarchical drop-down menus.</p>";
+            copyToClipboard(value);
+        });
+
+        menu.addItem("Copy as Markdown", event -> {
+            String value = "# Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.";
+            copyToClipboard(value);
+        });
+        // end::snippet[]
+
+        add(wrapper);
+    }
+
+    private void copyToClipboard(String value) {
+        getUI().ifPresent(ui -> ui.getPage()
+                .executeJs("window.navigator.clipboard.writeText($0);", value));
+    }
+
+}
+
+[React: context-menu-custom-item-data.tsx]
+import React from 'react';
+import { ContextMenu, type ContextMenuItem } from '@vaadin/react-components';
+
+function Example() {
+  // tag::snippet[]
+  const items: Array<ContextMenuItem<{ value: string }>> = [
+    {
+      text: 'Copy as plain text',
+      value:
+        'Context Menu\n\nContext Menu is a component that you can attach to any component to display a context menu.',
+    },
+    {
+      text: 'Copy as HTML',
+      value:
+        '<h1>Context Menu</h1><p>Context Menu is a component that you can attach to any component to display a context menu.</p>',
+    },
+    {
+      text: 'Copy as Markdown',
+      value:
+        '# Context Menu\n\nContext Menu is a component that you can attach to any component to display a context menu.',
+    },
+  ];
+
+  return (
+    <ContextMenu
+      items={items}
+      onItemSelected={(event) => {
+        const { value } = event.detail.value;
+        if (value) {
+          navigator.clipboard.writeText(value);
+        }
+      }}
+    >
+      <h1>Context Menu</h1>
+      <p>
+        Context Menu is a component that you can attach to any component to display a context menu.
+      </p>
+    </ContextMenu>
+  );
+  // end::snippet[]
+}
+
+[Lit: context-menu-custom-item-data.ts]
+import '@vaadin/context-menu';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ContextMenuItem, ContextMenuItemSelectedEvent } from '@vaadin/context-menu';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('context-menu-custom-item-data')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Array<ContextMenuItem<{ value: string }>> = [
+    {
+      text: 'Copy as plain text',
+      value:
+        'Context Menu\n\nContext Menu is a component that you can attach to any component to display a context menu.',
+    },
+    {
+      text: 'Copy as HTML',
+      value:
+        '<h1>Context Menu</h1><p>Context Menu is a component that you can attach to any component to display a context menu.</p>',
+    },
+    {
+      text: 'Copy as Markdown',
+      value:
+        '# Context Menu\n\nContext Menu is a component that you can attach to any component to display a context menu.',
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <vaadin-context-menu .items="${this.items}" @item-selected="${this.itemSelected}">
+        <h1>Context Menu</h1>
+        <p>
+          Context Menu is a component that you can attach to any component to display a context
+          menu.
+        </p>
+      </vaadin-context-menu>
+    `;
+  }
+
+  itemSelected(e: ContextMenuItemSelectedEvent<ContextMenuItem<{ value?: string }>>) {
+    const { value } = e.detail.value;
+    if (value) {
+      navigator.clipboard.writeText(value);
+    }
+  }
+
+  // end::snippet[]
+}
+
+Best Practices
+
+Context Menu is used to provide shortcuts to the user. You shouldn’t use it as the only or primary means to complete a task. The primary way should be accessible elsewhere in the UI.
+
+Important: Open the Context Menu by right-clicking (i.e., for desktops) or long-pressing (i.e., for mobile devices) a Grid row, or use the Menu Bar in the last column.
+
+[Flow: ContextMenuBestPractices.java]
+package com.vaadin.demo.component.contextmenu;
+
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+
+@Route("context-menu-best-practices")
+public class ContextMenuBestPractices extends Div {
+
+    public ContextMenuBestPractices() {
+        Grid<File> grid = new Grid();
+        grid.setAllRowsVisible(true);
+        grid.setItems(getFiles());
+
+        grid.addColumn(File::getName).setHeader("Name");
+        grid.addColumn(File::getDisplaySize).setHeader("Size");
+        // tag::snippet[]
+        grid.addComponentColumn(file -> {
+            MenuBar menuBar = new MenuBar();
+            menuBar.addThemeVariants(MenuBarVariant.TERTIARY);
+            menuBar.addItem("Preview", event -> {
+            });
+            menuBar.addItem("Edit", event -> {
+            });
+            menuBar.addItem("Delete", event -> {
+            });
+            return menuBar;
+        }).setWidth("70px").setFlexGrow(0);
+
+        GridContextMenu<File> menu = grid.addContextMenu();
+        menu.addItem("Preview", event -> {
+        });
+        menu.addItem("Edit", event -> {
+        });
+        menu.addItem("Delete", event -> {
+        });
+        // end::snippet[]
+
+        add(grid);
+    }
+
+    private File[] getFiles() {
+        return new File[] { new File("Annual Report.docx", 25165824),
+                new File("Financials.xlsx", 44040192) };
+    }
+
+    private class File {
+
+        private String name;
+        private long size;
+
+        File(String name, long size) {
+            this.name = name;
+            this.size = size;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        public String getDisplaySize() {
+            return byteCountToDisplaySize(size);
+        }
+    }
+
+}
+
+[React: context-menu-best-practices.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { ContextMenu } from '@vaadin/react-components/ContextMenu.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { MenuBar } from '@vaadin/react-components/MenuBar.js';
+
+interface FileItem {
+  name: string;
+  size: string;
+}
+
+function Example() {
+  const items = useSignal([{ text: 'View' }, { text: 'Edit' }, { text: 'Delete' }]);
+  const gridItems = useSignal<FileItem[]>([
+    { name: 'Annual Report.docx', size: '24 MB' },
+    { name: 'Financials.xlsx', size: '42 MB' },
+  ]);
+
+  const renderMenuBar = useCallback(() => <MenuBar items={items.value} theme="tertiary" />, []);
+
+  return (
+    // tag::snippet[]
+    <ContextMenu items={items.value}>
+      <Grid allRowsVisible items={gridItems.value}>
+        <GridColumn path="name" />
+        <GridColumn path="size" />
+        <GridColumn width="70px" flexGrow={0} renderer={renderMenuBar} />
+      </Grid>
+    </ContextMenu>
+    // end::snippet[]
+  );
+}
+
+[Lit: context-menu-best-practices.ts]
+import '@vaadin/context-menu';
+import '@vaadin/grid';
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { Grid } from '@vaadin/grid';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+interface FileItem {
+  name: string;
+  size: string;
+}
+
+@customElement('context-menu-best-practices')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [{ text: 'View' }, { text: 'Edit' }, { text: 'Delete' }];
+  // end::snippet[]
+
+  @state()
+  private gridItems: FileItem[] = [
+    { name: 'Annual Report.docx', size: '24 MB' },
+    { name: 'Financials.xlsx', size: '42 MB' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-context-menu .items=${this.items}>
+        <vaadin-grid
+          all-rows-visible
+          .items=${this.gridItems}
+          @vaadin-contextmenu=${this.onContextMenu}
+        >
+          <vaadin-grid-column path="name"></vaadin-grid-column>
+          <vaadin-grid-column path="size"></vaadin-grid-column>
+          <vaadin-grid-column
+            width="70px"
+            flex-grow="0"
+            ${columnBodyRenderer(
+              () => html`
+                <vaadin-menu-bar .items=${this.items} theme="tertiary"></vaadin-menu-bar>
+              `,
+              []
+            )}
+          ></vaadin-grid-column>
+        </vaadin-grid>
+      </vaadin-context-menu>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  onContextMenu(e: MouseEvent) {
+    // Prevent opening context menu on header row.
+    const target = e.currentTarget as Grid<FileItem>;
+    if (target.getEventContext(e).section !== 'body') {
+      e.stopPropagation();
+    }
+  }
+}
+
+Context Menu vs. Menu Bar
+
+You should use Context Menu when there is no dedicated button for opening an overlay menu, such as right-clicking a grid row. When there is a dedicated element or component, such as an overflow menu, use Menu Bar.
+
+Icons
+
+Use icons when applicable to help improve recognition. It’s recommended to use commonly recognized icons to avoid confusion. Use icons consistently throughout a list of options.
+
+Labelling
+
+Suffix a menu item with "…​" when the associated action won’t be executed, but instead reveal some UI, like a dialog, for completing the action.
+
+Related Components
+
+Component | Usage Recommendations
+Menu Bar | Component for displaying a horizontal menu with multi-level sub-menus.
+Popover | A generic overlay whose position is anchored to an element in the UI.

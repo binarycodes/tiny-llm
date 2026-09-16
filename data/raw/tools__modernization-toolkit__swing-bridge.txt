@@ -1,0 +1,49 @@
+SwingBridge
+
+Wrap your Swing application to serve UI over web.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use SwingBridge in your project.
+
+- Start Free Trial
+- See Pricing
+
+Your existing Swing application runs in a web browser without requiring you to rewrite any of your Swing code. Users interact with it through their browser while the actual Swing application runs on the server.
+
+When to Use SwingBridge
+
+SwingBridge fits when:
+
+- The Swing application is feature-complete and tested, and a full rewrite is not justified.
+- Users need access through a browser instead of installing a desktop client.
+- A staged modernization is preferred over a one-shot port to a web stack.
+
+For deeper refactoring of the Swing source itself, see the tools listed under Modernization Toolkit.
+
+Topics
+
+Quick Start
+    Run a Swing application in the browser in minutes with the SwingBridge skeleton starter.
+Installation from Scratch
+    Install the SwingBridge license and set up a Maven project from scratch.
+Adding Your Swing Application
+    Wire your Swing application's JARs into SwingBridge and create a Vaadin view that hosts it.
+Configuration
+    System properties and runtime knobs for tuning SwingBridge.
+Display and Rendering
+    The virtual screen SwingBridge reports, HiDPI rendering, and the back-buffer format.
+Logging & Identifying Logs per User
+    Attribute server log output to the Swing application user who produced it, and integrate old and new logging frameworks.
+Interoperability
+    Type-safe API and tooling to call between Vaadin and an embedded Swing application.
+NetBeans RCP
+    Run a pre-built NetBeans Platform application in the browser with SwingBridge, with no changes to the RCP source.
+Running and Debugging
+    Run SwingBridge applications from Maven and attach a remote debugger from IntelliJ IDEA or VS Code.
+Troubleshooting
+    Common SwingBridge launch failures and how to fix them.
+Reference
+    Public API summary, lifecycle hooks, and the recommended sample project.
+Frequently Asked Questions
+    Frequently Asked Questions for SwingBridge

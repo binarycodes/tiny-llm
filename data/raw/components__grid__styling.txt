@@ -1,0 +1,1429 @@
+Grid Styling
+
+Styling API reference for the Grid component.
+
+The look and feel of the Grid component can be customized in several ways: a set of built-in theme variants, customizable style properties and CSS selectors, and several different APIs for applying part names to header, footer and body cells.
+
+Style Variants
+
+Grid supports the following style variants:
+
+Variant | Description | Supported by
+wrap-cell-content | Makes cell content wrap instead of being truncated | Aura, Lumo
+no-border | Removes the outer border of the grid | Aura, Lumo
+no-row-borders | Removes the horizontal borders between rows | Aura, Lumo
+column-borders | Adds vertical borders between columns | Aura, Lumo
+row-stripes | Adds a background color to every other row | Aura, Lumo
+compact | Reduces the row and header heights and spacing to make the grid denser | Lumo
+
+Wrap Cell Content
+
+Cell content that overflows is normally clipped or truncated. However, the wrap-cell-content variant makes the content wrap instead.
+
+Notice in the example here that the text in the Address cells is wrapped. If you click on the gray icon at the top right corner of the example, it opens the table in a separate browser tab. When you do that, can see the addresses on one line. You can also resize that window to see how it wraps and unwraps the text.
+
+[Flow: GridWrapCellContent.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.Address;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-wrap-cell-content")
+public class GridWrapCellContent extends Div {
+
+    public GridWrapCellContent() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createAvatarRenderer()).setHeader("Image")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(GridWrapCellContent::formatAddress).setHeader("Address");
+
+        grid.addThemeVariants(GridVariant.WRAP_CELL_CONTENT);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static String formatAddress(Person person) {
+        Address address = person.getAddress();
+
+        return String.format("%s %s %s %s", address.getStreet(),
+                address.getCity(), address.getZip(), address.getState());
+    }
+
+    private static Renderer<Person> createAvatarRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\" alt=\"User avatar\"></vaadin-avatar>")
+                .withProperty("pictureUrl", Person::getPictureUrl);
+    }
+
+}
+
+[React: grid-wrap-cell-content.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function avatarRenderer({ item }: { item: Person }) {
+  return <Avatar img={item.pictureUrl} name={`${item.firstName} ${item.lastName}`} />;
+}
+
+function addressRenderer({ item: { address } }: { item: Person }) {
+  return (
+    <span>
+      {address.street} {address.city} {address.zip} {address.state}
+    </span>
+  );
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} theme="wrap-cell-content">
+      <GridColumn header="Image" flexGrow={0} autoWidth renderer={avatarRenderer} />
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn header="Address" renderer={addressRenderer} />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-wrap-cell-content.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+@customElement('grid-wrap-cell-content')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}" theme="wrap-cell-content">
+        <vaadin-grid-column
+          header="Image"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.avatarRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Address"
+          ${columnBodyRenderer(this.addressRenderer, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private avatarRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-avatar
+      img="${person.pictureUrl}"
+      name="${person.firstName} ${person.lastName}"
+    ></vaadin-avatar>
+  `;
+
+  private addressRenderer: GridColumnBodyLitRenderer<Person> = ({ address }) => html`
+    <span>${address.street} ${address.city} ${address.zip} ${address.state}</span>
+  `;
+}
+// end::snippet[]
+
+Tooltips can also be used to display content that doesn’t fit into the cell.
+
+No Border
+
+The no-border theme variant removes the outer border of the grid. Compare the example here with the previous one. Notice that the outer border, surrounding all of the rows is missing here.
+
+[Flow: GridNoBorder.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-no-border")
+public class GridNoBorder extends Div {
+
+    public GridNoBorder() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createAvatarRenderer()).setHeader("Image")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        grid.addThemeVariants(GridVariant.NO_BORDER);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createAvatarRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\" alt=\"User avatar\"></vaadin-avatar>")
+                .withProperty("pictureUrl", Person::getPictureUrl);
+    }
+
+}
+
+[React: grid-no-border.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function avatarRenderer({ item }: { item: Person }) {
+  return <Avatar img={item.pictureUrl} name={`${item.firstName} ${item.lastName}`} />;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} theme="no-border">
+      <GridColumn header="Image" flexGrow={0} autoWidth renderer={avatarRenderer} />
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-no-border.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-no-border')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" theme="no-border">
+        <vaadin-grid-column
+          header="Image"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.avatarRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private avatarRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-avatar
+      img="${person.pictureUrl}"
+      name="${person.firstName} ${person.lastName}"
+    ></vaadin-avatar>
+  `;
+}
+
+No Row Border
+
+This theme variant removes the horizontal row borders. This is best suited for small datasets. Viewing larger datasets may be difficult unless paired with the row-stripes theme variant. You can see this in the example here. There’s no border between the rows. With so much space, notice how it’s a little difficult to be sure you’re reading the email address of a particular person — and not the email address of a different row. It would be worse with a wider table containing many columns of data.
+
+[Flow: GridNoRowBorder.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-no-row-border")
+public class GridNoRowBorder extends Div {
+
+    public GridNoRowBorder() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createAvatarRenderer()).setHeader("Image")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        grid.addThemeVariants(GridVariant.NO_ROW_BORDERS);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createAvatarRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\" alt=\"User avatar\"></vaadin-avatar>")
+                .withProperty("pictureUrl", Person::getPictureUrl);
+    }
+
+}
+
+[React: grid-no-row-border.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function avatarRenderer({ item }: { item: Person }) {
+  return <Avatar img={item.pictureUrl} name={`${item.firstName} ${item.lastName}`} />;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} theme="no-row-borders">
+      <GridColumn header="Image" flexGrow={0} autoWidth renderer={avatarRenderer} />
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-no-row-border.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-no-row-border')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" theme="no-row-borders">
+        <vaadin-grid-column
+          header="Image"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.avatarRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private avatarRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-avatar
+      img="${person.pictureUrl}"
+      name="${person.firstName} ${person.lastName}"
+    ></vaadin-avatar>
+  `;
+}
+
+Column Borders
+
+You can add vertical borders between columns by using the column-borders theme variant. Datasets with a lot of cramped columns, or where content is truncated, can benefit from the extra separation that vertical borders bring. Compare the table here to previous ones. You can see that this one has a border between each column. While this can sometimes make reading the data easier, it can be aesthetically displeasing — look too rigid.
+
+[Flow: GridColumnBorders.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-column-borders")
+public class GridColumnBorders extends Div {
+
+    public GridColumnBorders() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createAvatarRenderer()).setHeader("Image")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        grid.addThemeVariants(GridVariant.COLUMN_BORDERS);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createAvatarRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\" alt=\"User avatar\"></vaadin-avatar>")
+                .withProperty("pictureUrl", Person::getPictureUrl);
+    }
+
+}
+
+[React: grid-column-borders.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function avatarRenderer({ item }: { item: Person }) {
+  return <Avatar img={item.pictureUrl} name={`${item.firstName} ${item.lastName}`} />;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} theme="column-borders">
+      <GridColumn header="Image" flexGrow={0} autoWidth renderer={avatarRenderer} />
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-column-borders.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-column-borders')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" theme="column-borders">
+        <vaadin-grid-column
+          header="Image"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.avatarRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private avatarRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-avatar
+      img="${person.pictureUrl}"
+      name="${person.firstName} ${person.lastName}"
+    ></vaadin-avatar>
+  `;
+}
+
+Row Stripes
+
+The row-stripes theme variant produces a background color for every other row. This can make scanning the rows of data easier. You can see in the example here that the odd rows have a light gray background, while the even ones have none or a white background. This is particularly useful with very wide tables, with many columns of data.
+
+[Flow: GridRowStripes.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-row-stripes")
+public class GridRowStripes extends Div {
+
+    public GridRowStripes() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(createAvatarRenderer()).setHeader("Image")
+                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        grid.addThemeVariants(GridVariant.ROW_STRIPES);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static Renderer<Person> createAvatarRenderer() {
+        return LitRenderer.<Person> of(
+                "<vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\" alt=\"User avatar\"></vaadin-avatar>")
+                .withProperty("pictureUrl", Person::getPictureUrl);
+    }
+
+}
+
+[React: grid-row-stripes.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components/Avatar.js';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function avatarRenderer({ item }: { item: Person }) {
+  return <Avatar img={item.pictureUrl} name={`${item.firstName} ${item.lastName}`} />;
+}
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} theme="row-stripes">
+      <GridColumn header="Image" flexGrow={0} autoWidth renderer={avatarRenderer} />
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-row-stripes.ts]
+import '@vaadin/avatar';
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-row-stripes')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" theme="row-stripes">
+        <vaadin-grid-column
+          header="Image"
+          flex-grow="0"
+          auto-width
+          ${columnBodyRenderer(this.avatarRenderer, [])}
+        ></vaadin-grid-column>
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  private avatarRenderer: GridColumnBodyLitRenderer<Person> = (person) => html`
+    <vaadin-avatar
+      img="${person.pictureUrl}"
+      name="${person.firstName} ${person.lastName}"
+    ></vaadin-avatar>
+  `;
+}
+
+Compact (Lumo-only)
+
+The compact Lumo theme variant makes a grid denser by reducing the header and row heights, as well as the spacing between columns.
+
+This is useful for displaying more information on-screen without having to scroll. It can also help improve scannability and comparability between rows. Notice that there are more rows displayed in the example here, compared to the number of rows visible in the same space in the earlier example.
+
+[Flow: GridCompact.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-compact")
+public class GridCompact extends Div {
+
+    public GridCompact() {
+        // tag::snippet[]
+        Grid<Person> grid = new Grid<>(Person.class, false);
+        grid.addColumn(Person::getFirstName).setHeader("First name");
+        grid.addColumn(Person::getLastName).setHeader("Last name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        // end::snippet[]
+
+        List<Person> people = DataService.getPeople();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+}
+
+[React: grid-compact.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Grid items={items.value} theme="compact">
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="email" />
+    </Grid>
+    // end::snippet[]
+  );
+}
+
+[Lit: grid-compact.ts]
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('grid-compact')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-grid .items="${this.items}" theme="compact">
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="email"></vaadin-grid-column>
+      </vaadin-grid>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported By
+--vaadin-grid-background | Aura
+--vaadin-grid-border-width | Aura
+--vaadin-grid-border-color | Aura
+--vaadin-grid-border-radius | Aura
+--vaadin-grid-row-border-width | Aura
+--vaadin-grid-column-border-width | Aura
+--vaadin-grid-header-font-size | Aura
+--vaadin-grid-header-font-weight | Aura
+--vaadin-grid-header-text-color | Aura
+--vaadin-grid-row-background-color | Aura
+--vaadin-grid-row-selected-background-color | Aura
+--vaadin-grid-row-hover-background-color | Aura
+--vaadin-grid-row-odd-background-color | Aura
+--vaadin-grid-cell-background-color | Aura
+--vaadin-grid-cell-background | Lumo
+--vaadin-grid-cell-padding | Aura, Lumo
+--vaadin-grid-cell-text-overflow | Aura, Lumo
+--vaadin-grid-column-resize-handle-color | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-grid
+
+Rows
+
+Row (any)
+    vaadin-grid::part(row)
+First row
+    vaadin-grid::part(first-row)
+Last row
+    vaadin-grid::part(last-row)
+Even row
+    vaadin-grid::part(even-row)
+Odd row
+    vaadin-grid::part(odd-row)
+Selected row
+    vaadin-grid::part(selected-row)
+Hovered row
+    vaadin-grid::part(row):hover
+
+Note: To set background colors based on row selectors, use the --vaadin-grid-cell-background style property.
+
+Cells
+
+Cell (any)
+    vaadin-grid::part(cell)
+Header row cell
+    vaadin-grid::part(header-cell)
+Body cell
+    vaadin-grid::part(body-cell)
+Footer row cell
+    vaadin-grid::part(footer-cell)
+Focused cell
+    vaadin-grid::part(focused-cell)
+Cell content wrapper
+    vaadin-grid-cell-content
+Cell in first column
+    vaadin-grid::part(first-column-cell)
+Cell in last column
+    vaadin-grid::part(last-column-cell)
+Cell in first row
+    vaadin-grid::part(first-row-cell)
+Cell in last row
+    vaadin-grid::part(last-row-cell)
+Cell in even row
+    vaadin-grid::part(even-row-cell)
+Cell in odd row
+    vaadin-grid::part(odd-row-cell)
+Cell in selected row
+    vaadin-grid::part(selected-row-cell)
+Cell in first header row
+    vaadin-grid::part(first-header-row-cell)
+Cell in last header row
+    vaadin-grid::part(last-header-row-cell)
+Cell focus ring
+    vaadin-grid::part(cell)::before
+Row focus ring
+    vaadin-grid::part(row)::before
+Collapsed cell
+    vaadin-grid::part(collapsed-row-cell)
+Expanded cell
+    vaadin-grid::part(expanded-row-cell)
+
+You can style individual cells, rows, and columns by applying custom part names to them. Cell padding can be configured using the --vaadin-grid-cell-padding style property.
+
+Selection Checkboxes
+
+Row selection checkbox
+    vaadin-grid > vaadin-checkbox
+Select All checkbox
+    vaadin-grid > #selectAllCheckbox
+
+Sorters
+
+Element
+    vaadin-grid-sorter
+Active sorter
+    vaadin-grid-sorter[direction]
+Column header content
+    vaadin-grid-sorter::part(content)
+Sort indicators
+    vaadin-grid-sorter::part(indicators)
+Sort indicator icons
+    vaadin-grid-sorter::part(indicators)::before
+Sort order indicator
+    vaadin-grid-sorter::part(order)
+
+Item Details
+
+Item details cell (spans entire row)
+    vaadin-grid::part(details-cell)
+Cell in row with open details
+    vaadin-grid::part(details-opened-row-cell)
+Row with open details
+    vaadin-grid::part(details-opened-row)
+
+Drag & Drop
+
+The following terminology is used in the description of these part names:
+
+- Ghost: the semi-transparent copy of the row that is dragged around by the pointer.
+- Drag-source: the non-moving rows that are being dragged.
+- Drop-target: a row or a gap between rows that the ghost can be dropped onto.
+
+The cells in the “ghost” row
+    vaadin-grid::part(dragstart-row-cell)
+The cells in the drag source row
+    vaadin-grid::part(drag-source-row-cell)
+The cells of a row when the drop target is between this row and the row before it (i.e., above this row)
+    vaadin-grid::part(dragover-above-row-cell)
+The cells of a row when the drop target is between this row and the row after it (i.e., below this row)
+    vaadin-grid::part(dragover-below-row-cell)
+The cells of a row when the drop target is the row itself (i.e., on top of this row)
+    vaadin-grid::part(dragover-on-top-row-cell)
+The cells of a row that isn’t draggable
+    vaadin-grid::part(drag-disabled-row-cell)
+The cells of a row that isn’t a drop target
+    vaadin-grid::part(drop-disabled-row-cell)
+The dragged row (i.e., the “ghost”)
+    vaadin-grid::part(dragstart-row)
+The row which is the drop target, and the target is between this row and the row before it (i.e., above this row)
+    vaadin-grid::part(dragover-above-row)
+The row which is the drop target, and the target is between this row and the row after it (i.e., below this row)
+    vaadin-grid::part(dragover-below-row)
+The row which is the drop target, and the target is the row itself (i.e., on top of this row)
+    vaadin-grid::part(dragover-on-top-row)
+A row that isn’t draggable
+    vaadin-grid::part(drag-disabled-row)
+A row that isn’t a drop target
+    vaadin-grid::part(drop-disabled-row)
+
+Dynamically Styling Rows & Columns
+
+Cells can be styled dynamically, based on application logic and the data in the grid, through custom part names. This can be used, for example, to highlight specific rows and apply custom styling to specific columns.
+
+In the example below, bold font weight is applied to the Rating column with a font-weight-bold part name, and the rows are colored red and green, based on their rating, with low-rating and high-rating part names, respectively. The styling itself is applied in a stylesheet with vaadin-grid::part() selectors (e.g., vaadin-grid::part(high-rating)).
+
+[Flow: GridStyling.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-styling")
+public class GridStyling extends Div {
+
+    public GridStyling() {
+        // tag::snippet[]
+        Grid<PersonWithRating> grid = new Grid<>(PersonWithRating.class, false);
+        grid.addColumn(PersonWithRating::getFirstName).setHeader("First name");
+        grid.addColumn(PersonWithRating::getLastName).setHeader("Last name");
+        grid.addColumn(PersonWithRating::getProfession).setHeader("Profession");
+        grid.addColumn(PersonWithRating::getFormattedRating)
+                .setHeader("Customer rating (0-10)")
+                .setPartNameGenerator(person -> "font-weight-bold");
+
+        grid.setPartNameGenerator(person -> {
+            if (person.getRating() >= 8)
+                return "high-rating";
+            if (person.getRating() <= 4)
+                return "low-rating";
+            return null;
+        });
+        // end::snippet[]
+
+        List<PersonWithRating> people = createDataSet();
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static List<PersonWithRating> createDataSet() {
+        return DataService.getPeople().stream()
+                .map(PersonWithRating::generateFromPerson).toList();
+    }
+
+}
+
+[Flow: grid-styling.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid::part(high-rating) {
+    background: rgba(122, 201, 122, 0.2);
+}
+
+vaadin-grid::part(low-rating) {
+    background: rgba(255, 128, 114, 0.2);
+}
+
+vaadin-grid::part(font-weight-bold) {
+    font-weight: bold;
+}
+
+[Flow: grid-styling.css]
+
+[React: grid-styling.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid, type GridCellPartNameGenerator } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+interface PersonWithRating extends Person {
+  customerRating: number;
+}
+
+const cellPartNameGenerator: GridCellPartNameGenerator<PersonWithRating> = (column, model) => {
+  const { item } = model;
+  let parts = '';
+  // Make the customer rating column bold
+  if (column.header?.startsWith('Customer rating')) {
+    parts += ' font-weight-bold';
+  }
+  // Add high-rating part to customer ratings of 8 or higher
+  if (item.customerRating >= 8.0) {
+    parts += ' high-rating';
+    // Add low-rating part to customer ratings of 4 or lower
+  } else if (item.customerRating <= 4.0) {
+    parts += ' low-rating';
+  }
+  return parts;
+};
+
+const ratingFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const ratingRenderer = ({ item: person }: { item: PersonWithRating }) => (
+  <span>{ratingFormatter.format(person.customerRating)}</span>
+);
+
+function Example() {
+  const items = useSignal<PersonWithRating[]>([]);
+
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      const peopleWithRating = people.map((person) => ({
+        ...person,
+        customerRating: Math.random() * 10,
+      }));
+      items.value = peopleWithRating;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value} cellPartNameGenerator={cellPartNameGenerator}>
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="profession" />
+      <GridColumn header="Customer rating (0-10)" renderer={ratingRenderer} />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[React: grid-styling.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid::part(high-rating) {
+    background: rgba(122, 201, 122, 0.2);
+}
+
+vaadin-grid::part(low-rating) {
+    background: rgba(255, 128, 114, 0.2);
+}
+
+vaadin-grid::part(font-weight-bold) {
+    font-weight: bold;
+}
+
+[React: grid-styling.css]
+
+[Lit: grid-styling.ts]
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridItemModel } from '@vaadin/grid';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer } from '@vaadin/grid/lit.js';
+import type { GridColumn } from '@vaadin/grid/vaadin-grid-column.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+interface PersonWithRating extends Person {
+  customerRating: number;
+}
+
+@customElement('grid-styling')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: PersonWithRating[] = [];
+
+  private ratingFormatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({ ...person, customerRating: Math.random() * 10 }));
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}" .cellPartNameGenerator="${this.cellPartNameGenerator}">
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Customer rating (0-10)"
+          ${columnBodyRenderer(this.ratingRenderer, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private ratingRenderer: GridColumnBodyLitRenderer<PersonWithRating> = (person) => html`
+    <span>${this.ratingFormatter.format(person.customerRating)}</span>
+  `;
+
+  private cellPartNameGenerator(column: GridColumn, model: GridItemModel<PersonWithRating>) {
+    const { item } = model;
+    let parts = '';
+    // Make the customer rating column bold
+    if (column.header?.startsWith('Customer rating')) {
+      parts += ' font-weight-bold';
+    }
+    // Add high-rating part to customer ratings of 8 or higher
+    if (item.customerRating >= 8.0) {
+      parts += ' high-rating';
+      // Add low-rating part to customer ratings of 4 or lower
+    } else if (item.customerRating <= 4.0) {
+      parts += ' low-rating';
+    }
+    return parts;
+  }
+}
+// end::snippet[]
+
+[Lit: grid-styling.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid::part(high-rating) {
+    background: rgba(122, 201, 122, 0.2);
+}
+
+vaadin-grid::part(low-rating) {
+    background: rgba(255, 128, 114, 0.2);
+}
+
+vaadin-grid::part(font-weight-bold) {
+    font-weight: bold;
+}
+
+[Lit: grid-styling.css]
+
+Styling Header & Footer Cells
+
+Header and footer cells can be similarly styled through their own custom part names.
+
+[Flow: GridHeaderFooterStyling.java]
+package com.vaadin.demo.component.grid;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("grid-header-footer-styling")
+public class GridHeaderFooterStyling extends Div {
+
+    public GridHeaderFooterStyling() {
+        List<PersonWithRating> people = createDataSet();
+
+        // tag::snippet[]
+        Grid<PersonWithRating> grid = new Grid<>(PersonWithRating.class, false);
+        grid.addClassName("styling-header-footer");
+        grid.addColumn(PersonWithRating::getFirstName).setHeader("First name");
+        grid.addColumn(PersonWithRating::getLastName).setHeader("Last name");
+        grid.addColumn(PersonWithRating::getProfession).setHeader("Profession");
+        grid.addColumn(PersonWithRating::getFormattedRating)
+                .setHeader("Customer rating (0-10)")
+                .setHeaderPartName("rating-header")
+                .setFooter("Avg rating: 5.32")
+                .setFooterPartName("rating-footer");
+        // end::snippet[]
+
+        grid.setItems(people);
+
+        add(grid);
+    }
+
+    private static List<PersonWithRating> createDataSet() {
+        return DataService.getPeople().stream()
+                .map(PersonWithRating::generateFromPerson).toList();
+    }
+
+}
+
+[Flow: grid-header-footer-styling.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid.styling-header-footer::part(rating-header) {
+    font-size: 0.8125rem;
+    white-space: unset;
+    color: var(--blue-600);
+}
+
+vaadin-grid.styling-header-footer::part(rating-footer) {
+    color: var(--blue-600);
+}
+
+[Flow: grid-header-footer-styling.css]
+
+[React: grid-header-footer-styling.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Grid } from '@vaadin/react-components/Grid.js';
+import { GridColumn } from '@vaadin/react-components/GridColumn.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+interface PersonWithRating extends Person {
+  customerRating: number;
+}
+
+const ratingFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const ratingRenderer = ({ item: person }: { item: PersonWithRating }) => (
+  <span>{ratingFormatter.format(person.customerRating)}</span>
+);
+
+function Example() {
+  const items = useSignal<PersonWithRating[]>([]);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      const peopleWithRating = people.map((person) => ({
+        ...person,
+        customerRating: Math.random() * 10,
+      }));
+      items.value = peopleWithRating;
+    });
+  }, []);
+
+  return (
+    <Grid items={items.value} className="styling-header-footer">
+      <GridColumn path="firstName" />
+      <GridColumn path="lastName" />
+      <GridColumn path="profession" />
+      <GridColumn
+        header="Customer rating (0-10)"
+        header-part-name="rating-header"
+        footer-part-name="rating-footer"
+        renderer={ratingRenderer}
+        footer={<span>Avg rating: 5.32</span>}
+      />
+    </Grid>
+  );
+}
+
+// end::snippet[]
+
+[React: grid-header-footer-styling.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid.styling-header-footer::part(rating-header) {
+    font-size: 0.8125rem;
+    white-space: unset;
+    color: var(--blue-600);
+}
+
+vaadin-grid.styling-header-footer::part(rating-footer) {
+    color: var(--blue-600);
+}
+
+[React: grid-header-footer-styling.css]
+
+[Lit: grid-header-footer-styling.ts]
+import '@vaadin/grid';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { GridColumnBodyLitRenderer } from '@vaadin/grid/lit.js';
+import { columnBodyRenderer, columnFooterRenderer } from '@vaadin/grid/lit.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+// tag::snippet[]
+interface PersonWithRating extends Person {
+  customerRating: number;
+}
+
+@customElement('grid-header-footer-styling')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: PersonWithRating[] = [];
+
+  private ratingFormatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople();
+    this.items = people.map((person) => ({ ...person, customerRating: Math.random() * 10 }));
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-grid .items="${this.items}" class="styling-header-footer">
+        <vaadin-grid-column path="firstName"></vaadin-grid-column>
+        <vaadin-grid-column path="lastName"></vaadin-grid-column>
+        <vaadin-grid-column path="profession"></vaadin-grid-column>
+        <vaadin-grid-column
+          header="Customer rating (0-10)"
+          header-part-name="rating-header"
+          footer-part-name="rating-footer"
+          ${columnFooterRenderer(() => html`<span>Avg rating: 5.32</span>`, [])}
+          ${columnBodyRenderer(this.ratingRenderer, [])}
+        ></vaadin-grid-column>
+      </vaadin-grid>
+    `;
+  }
+
+  private ratingRenderer: GridColumnBodyLitRenderer<PersonWithRating> = (person) => html`
+    <span>${this.ratingFormatter.format(person.customerRating)}</span>
+  `;
+}
+// end::snippet[]
+
+[Lit: grid-header-footer-styling.css]
+/* Add this to your global CSS, for example in: */
+/* frontend/theme/[my-theme]/styles.css */
+
+vaadin-grid.styling-header-footer::part(rating-header) {
+    font-size: 0.8125rem;
+    white-space: unset;
+    color: var(--blue-600);
+}
+
+vaadin-grid.styling-header-footer::part(rating-footer) {
+    color: var(--blue-600);
+}
+
+[Lit: grid-header-footer-styling.css]

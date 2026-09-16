@@ -1,0 +1,680 @@
+Accordion Styling
+
+Styling API reference for the Accordion component.
+
+Style Variants
+
+Accordion supports the following style variants. Variants must be applied to individual panels, not to the Accordion itself.
+
+Variant | Description | Supported by
+filled | Makes the panel’s boundaries visible | Aura, Lumo
+no-padding | Removes the padding from the panel content area | Aura
+small | Used for compact UIs | Aura, Lumo
+reverse | Places the toggle icon after the summary contents | Aura, Lumo
+
+Filled Panels
+
+The filled style variant makes the panel’s boundaries visible. This helps tie its content together visually and distinguishes it from the surrounding UI.
+
+[Flow: AccordionFilledPanels.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-filled-panels")
+public class AccordionFilledPanels extends Div {
+
+    public AccordionFilledPanels() {
+        // tag::snippet[]
+        Accordion accordion = new Accordion();
+        // end::snippet[]
+
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout personalInformationLayout = new VerticalLayout(name,
+                email, phone);
+        personalInformationLayout.setSpacing(false);
+        personalInformationLayout.setPadding(false);
+
+        // tag::snippet[]
+        AccordionPanel personalInfoPanel = accordion.add("Personal information",
+                personalInformationLayout);
+        personalInfoPanel.addThemeVariants(DetailsVariant.FILLED);
+        // end::snippet[]
+
+        Span street = new Span("4027 Amber Lake Canyon");
+        Span zipCode = new Span("72333-5884 Cozy Nook");
+        Span city = new Span("Arkansas");
+
+        VerticalLayout billingAddressLayout = new VerticalLayout();
+        billingAddressLayout.setSpacing(false);
+        billingAddressLayout.setPadding(false);
+        billingAddressLayout.add(street, zipCode, city);
+
+        AccordionPanel billingAddressPanel = accordion.add("Billing address",
+                billingAddressLayout);
+        billingAddressPanel.addThemeVariants(DetailsVariant.FILLED);
+
+        Span cardBrand = new Span("Mastercard");
+        Span cardNumber = new Span("1234 5678 9012 3456");
+        Span expiryDate = new Span("Expires 06/21");
+
+        VerticalLayout paymentLayout = new VerticalLayout();
+        paymentLayout.setSpacing(false);
+        paymentLayout.setPadding(false);
+        paymentLayout.add(cardBrand, cardNumber, expiryDate);
+
+        AccordionPanel paymentPanel = accordion.add("Payment", paymentLayout);
+        paymentPanel.addThemeVariants(DetailsVariant.FILLED);
+
+        add(accordion);
+    }
+
+}
+
+[React: accordion-filled-panels.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Personal information" theme="filled">
+        <VerticalLayout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Billing address" theme="filled">
+        <VerticalLayout>
+          <span>4027 Amber Lake Canyon</span>
+          <span>72333-5884 Cozy Nook</span>
+          <span>Arkansas</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Payment" theme="filled">
+        <VerticalLayout>
+          <span>MasterCard</span>
+          <span>1234 5678 9012 3456</span>
+          <span>Expires 06/21</span>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-filled-panels.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-filled-panels')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Personal information" theme="filled">
+          <vaadin-vertical-layout>
+            <span>Sophia Williams</span>
+            <span>sophia.williams@company.com</span>
+            <span>(501) 555-9128</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- end::snippet[] -->
+
+        <vaadin-accordion-panel summary="Billing address" theme="filled">
+          <vaadin-vertical-layout>
+            <span>4027 Amber Lake Canyon</span>
+            <span>72333-5884 Cozy Nook</span>
+            <span>Arkansas</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Payment" theme="filled">
+          <vaadin-vertical-layout>
+            <span>MasterCard</span>
+            <span>1234 5678 9012 3456</span>
+            <span>Expires 06/21</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- tag::snippet[] -->
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+No-Padding Panels
+
+The no-padding style variant removes the padding from the panel content area. This is useful when the content needs to extend to the edges of the panel.
+
+[Flow: AccordionNoPaddingPanels.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-no-padding-panels")
+public class AccordionNoPaddingPanels extends Div {
+
+    public AccordionNoPaddingPanels() {
+        // tag::snippet[]
+        Accordion accordion = new Accordion();
+        // end::snippet[]
+
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout personalInformationLayout = new VerticalLayout(name,
+                email, phone);
+        personalInformationLayout.setSpacing(false);
+        personalInformationLayout.setPadding(false);
+
+        // tag::snippet[]
+        AccordionPanel personalInfoPanel = accordion.add("Personal information",
+                personalInformationLayout);
+        personalInfoPanel.addThemeVariants(DetailsVariant.AURA_NO_PADDING);
+        // end::snippet[]
+
+        Span street = new Span("4027 Amber Lake Canyon");
+        Span zipCode = new Span("72333-5884 Cozy Nook");
+        Span city = new Span("Arkansas");
+
+        VerticalLayout billingAddressLayout = new VerticalLayout();
+        billingAddressLayout.setSpacing(false);
+        billingAddressLayout.setPadding(false);
+        billingAddressLayout.add(street, zipCode, city);
+
+        AccordionPanel billingAddressPanel = accordion.add("Billing address",
+                billingAddressLayout);
+        billingAddressPanel.addThemeVariants(DetailsVariant.AURA_NO_PADDING);
+
+        Span cardBrand = new Span("Mastercard");
+        Span cardNumber = new Span("1234 5678 9012 3456");
+        Span expiryDate = new Span("Expires 06/21");
+
+        VerticalLayout paymentLayout = new VerticalLayout();
+        paymentLayout.setSpacing(false);
+        paymentLayout.setPadding(false);
+        paymentLayout.add(cardBrand, cardNumber, expiryDate);
+
+        AccordionPanel paymentPanel = accordion.add("Payment", paymentLayout);
+        paymentPanel.addThemeVariants(DetailsVariant.AURA_NO_PADDING);
+
+        add(accordion);
+    }
+
+}
+
+[React: accordion-no-padding-panels.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Personal information" theme="no-padding">
+        <VerticalLayout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Billing address" theme="no-padding">
+        <VerticalLayout>
+          <span>4027 Amber Lake Canyon</span>
+          <span>72333-5884 Cozy Nook</span>
+          <span>Arkansas</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Payment" theme="no-padding">
+        <VerticalLayout>
+          <span>MasterCard</span>
+          <span>1234 5678 9012 3456</span>
+          <span>Expires 06/21</span>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-no-padding-panels.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-no-padding-panels')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Personal information" theme="no-padding">
+          <vaadin-vertical-layout>
+            <span>Sophia Williams</span>
+            <span>sophia.williams@company.com</span>
+            <span>(501) 555-9128</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- end::snippet[] -->
+
+        <vaadin-accordion-panel summary="Billing address" theme="no-padding">
+          <vaadin-vertical-layout>
+            <span>4027 Amber Lake Canyon</span>
+            <span>72333-5884 Cozy Nook</span>
+            <span>Arkansas</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Payment" theme="no-padding">
+          <vaadin-vertical-layout>
+            <span>MasterCard</span>
+            <span>1234 5678 9012 3456</span>
+            <span>Expires 06/21</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- tag::snippet[] -->
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Small Panels
+
+Use the small style variant for compact UIs.
+
+[Flow: AccordionSmallPanels.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-small-panels")
+public class AccordionSmallPanels extends Div {
+
+    public AccordionSmallPanels() {
+        Accordion accordion = new Accordion();
+
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout personalInformationLayout = new VerticalLayout(name,
+                email, phone);
+        personalInformationLayout.setSpacing(false);
+        personalInformationLayout.setPadding(false);
+
+        AccordionPanel personalInfoPanel = accordion.add("Personal information",
+                personalInformationLayout);
+        personalInfoPanel.addThemeVariants(DetailsVariant.SMALL);
+
+        Span street = new Span("4027 Amber Lake Canyon");
+        Span zipCode = new Span("72333-5884 Cozy Nook");
+        Span city = new Span("Arkansas");
+
+        VerticalLayout billingAddressLayout = new VerticalLayout();
+        billingAddressLayout.setSpacing(false);
+        billingAddressLayout.setPadding(false);
+        billingAddressLayout.add(street, zipCode, city);
+
+        AccordionPanel billingAddressPanel = accordion.add("Billing address",
+                billingAddressLayout);
+        billingAddressPanel.addThemeVariants(DetailsVariant.SMALL);
+
+        Span cardBrand = new Span("Mastercard");
+        Span cardNumber = new Span("1234 5678 9012 3456");
+        Span expiryDate = new Span("Expires 06/21");
+
+        VerticalLayout paymentLayout = new VerticalLayout();
+        paymentLayout.setSpacing(false);
+        paymentLayout.setPadding(false);
+        paymentLayout.add(cardBrand, cardNumber, expiryDate);
+
+        // tag::snippet[]
+        AccordionPanel paymentPanel = accordion.add("Payment", paymentLayout);
+        paymentPanel.addThemeVariants(DetailsVariant.SMALL);
+        // end::snippet[]
+
+        add(accordion);
+    }
+
+}
+
+[React: accordion-small-panels.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Personal information" theme="small">
+        <VerticalLayout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Billing address" theme="small">
+        <VerticalLayout>
+          <span>4027 Amber Lake Canyon</span>
+          <span>72333-5884 Cozy Nook</span>
+          <span>Arkansas</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Payment" theme="small">
+        <VerticalLayout>
+          <span>MasterCard</span>
+          <span>1234 5678 9012 3456</span>
+          <span>Expires 06/21</span>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-small-panels.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-small-panels')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Personal information" theme="small">
+          <vaadin-vertical-layout>
+            <span>Sophia Williams</span>
+            <span>sophia.williams@company.com</span>
+            <span>(501) 555-9128</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- end::snippet[] -->
+
+        <vaadin-accordion-panel summary="Billing address" theme="small">
+          <vaadin-vertical-layout>
+            <span>4027 Amber Lake Canyon</span>
+            <span>72333-5884 Cozy Nook</span>
+            <span>Arkansas</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Payment" theme="small">
+          <vaadin-vertical-layout>
+            <span>MasterCard</span>
+            <span>1234 5678 9012 3456</span>
+            <span>Expires 06/21</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- tag::snippet[] -->
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Reverse Panels
+
+The reverse style variant places the toggle icon after the summary contents. This can be useful for aligning visually the summary with other content.
+
+[Flow: AccordionReversePanels.java]
+package com.vaadin.demo.component.accordion;
+
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("accordion-reverse-panels")
+public class AccordionReversePanels extends Div {
+
+    public AccordionReversePanels() {
+        Accordion accordion = new Accordion();
+
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout personalInformationLayout = new VerticalLayout(name,
+                email, phone);
+        personalInformationLayout.setSpacing(false);
+        personalInformationLayout.setPadding(false);
+
+        AccordionPanel personalInfoPanel = accordion.add("Personal information",
+                personalInformationLayout);
+        personalInfoPanel.addThemeVariants(DetailsVariant.REVERSE);
+
+        Span street = new Span("4027 Amber Lake Canyon");
+        Span zipCode = new Span("72333-5884 Cozy Nook");
+        Span city = new Span("Arkansas");
+
+        VerticalLayout billingAddressLayout = new VerticalLayout();
+        billingAddressLayout.setSpacing(false);
+        billingAddressLayout.setPadding(false);
+        billingAddressLayout.add(street, zipCode, city);
+
+        AccordionPanel billingAddressPanel = accordion.add("Billing address",
+                billingAddressLayout);
+        billingAddressPanel.addThemeVariants(DetailsVariant.REVERSE);
+
+        Span cardBrand = new Span("Mastercard");
+        Span cardNumber = new Span("1234 5678 9012 3456");
+        Span expiryDate = new Span("Expires 06/21");
+
+        VerticalLayout paymentLayout = new VerticalLayout();
+        paymentLayout.setSpacing(false);
+        paymentLayout.setPadding(false);
+        paymentLayout.add(cardBrand, cardNumber, expiryDate);
+
+        // tag::snippet[]
+        AccordionPanel paymentPanel = accordion.add("Payment", paymentLayout);
+        paymentPanel.addThemeVariants(DetailsVariant.REVERSE);
+        // end::snippet[]
+
+        add(accordion);
+    }
+
+}
+
+[React: accordion-reverse-panels.tsx]
+import React from 'react';
+import { Accordion, AccordionPanel, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Accordion>
+      <AccordionPanel summary="Personal information" theme="reverse">
+        <VerticalLayout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Billing address" theme="reverse">
+        <VerticalLayout>
+          <span>4027 Amber Lake Canyon</span>
+          <span>72333-5884 Cozy Nook</span>
+          <span>Arkansas</span>
+        </VerticalLayout>
+      </AccordionPanel>
+
+      <AccordionPanel summary="Payment" theme="reverse">
+        <VerticalLayout>
+          <span>MasterCard</span>
+          <span>1234 5678 9012 3456</span>
+          <span>Expires 06/21</span>
+        </VerticalLayout>
+      </AccordionPanel>
+    </Accordion>
+    // end::snippet[]
+  );
+}
+
+[Lit: accordion-reverse-panels.ts]
+import '@vaadin/accordion';
+import '@vaadin/text-field';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('accordion-reverse-panels')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-accordion>
+        <vaadin-accordion-panel summary="Personal information" theme="reverse">
+          <vaadin-vertical-layout>
+            <span>Sophia Williams</span>
+            <span>sophia.williams@company.com</span>
+            <span>(501) 555-9128</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- end::snippet[] -->
+
+        <vaadin-accordion-panel summary="Billing address" theme="reverse">
+          <vaadin-vertical-layout>
+            <span>4027 Amber Lake Canyon</span>
+            <span>72333-5884 Cozy Nook</span>
+            <span>Arkansas</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+
+        <vaadin-accordion-panel summary="Payment" theme="reverse">
+          <vaadin-vertical-layout>
+            <span>MasterCard</span>
+            <span>1234 5678 9012 3456</span>
+            <span>Expires 06/21</span>
+          </vaadin-vertical-layout>
+        </vaadin-accordion-panel>
+        <!-- tag::snippet[] -->
+      </vaadin-accordion>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-accordion-heading-background | Aura
+--vaadin-accordion-heading-border-color | Aura
+--vaadin-accordion-heading-border-radius | Aura
+--vaadin-accordion-heading-border-width | Aura
+--vaadin-accordion-heading-font-size | Aura
+--vaadin-accordion-heading-font-weight | Aura
+--vaadin-accordion-heading-gap | Aura
+--vaadin-accordion-heading-height | Aura
+--vaadin-accordion-heading-padding | Aura
+--vaadin-accordion-heading-text-color | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-accordion
+
+Panels
+
+Panel element
+    vaadin-accordion-panel
+Opened panel
+    vaadin-accordion-panel[opened]
+Disabled panel
+    vaadin-accordion-panel[disabled]
+Panel body content wrapper
+    vaadin-accordion-panel::part(content)
+
+Panel Heading
+
+Heading element
+    vaadin-accordion-heading
+Toggle
+    vaadin-accordion-heading::part(toggle)
+Toggle icon
+    vaadin-accordion-heading::part(toggle)::before
+Panel header content wrapper
+    vaadin-accordion-heading::part(content)

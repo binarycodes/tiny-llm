@@ -1,0 +1,77 @@
+Tool Calling & Programmatic Prompts
+
+Register tool objects for LLM invocation and send prompts programmatically without a Message Input component.
+
+Tools let the LLM call methods in your application during a conversation — query a database, look up an order, send an email, or any other action you want the assistant to be able to perform. Vaadin supports two ways to expose tools: registered tool objects (covered on this page) and framework-agnostic Controllers.
+
+Tool Calling
+
+Register objects with vendor-specific @Tool annotations that the LLM can invoke:
+
+[Java]
+public class WeatherTools {
+    @Tool("Get current weather for a city")
+    public String getWeather(String city) {
+        return weatherService.getCurrentWeather(city);
+    }
+}
+
+var orchestrator = AIOrchestrator
+        .builder(provider, systemPrompt)
+        .withMessageList(messageList)
+        .withInput(messageInput)
+        .withTools(new WeatherTools())
+        .build();
+
+For Spring AI, use @org.springframework.ai.tool.annotation.Tool. For LangChain4j, use @dev.langchain4j.agent.tool.Tool.
+
+Tip: Framework-Agnostic Tools via Controllers
+
+For a reusable set of tools that does not depend on a specific LLM framework’s annotations, or when a lifecycle hook is needed after each LLM request cycle, implement AIController instead. GridAIController and ChartAIController are built-in examples. Controllers and tool objects can be combined on the same orchestrator.
+
+Programmatic Prompts
+
+Send prompts without a Message Input component using prompt(). This is useful for triggering AI interaction from button clicks or other events:
+
+[Flow: AIOrchestratorProgrammaticPrompt.java]
+package com.vaadin.demo.flow.aicomponents;
+
+import com.vaadin.flow.component.ai.orchestrator.AIOrchestrator;
+import com.vaadin.flow.component.ai.provider.LLMProvider;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.messages.MessageList;
+import com.vaadin.flow.router.Route;
+
+@Route("ai-components-programmatic-prompt")
+public class AIOrchestratorProgrammaticPrompt extends Div {
+
+    public AIOrchestratorProgrammaticPrompt() {
+        MessageList messageList = new MessageList();
+
+        LLMProvider provider = getLLMProvider();
+
+        AIOrchestrator orchestrator = AIOrchestrator
+                .builder(provider, "You are a helpful assistant.")
+                .withMessageList(messageList).build();
+
+        Button button = new Button("Summarize",
+                event -> orchestrator.prompt("Summarize the key features"));
+
+        add(button, messageList);
+
+    }
+
+    private LLMProvider getLLMProvider() {
+        return new MockLLMProvider();
+    }
+
+}
+
+Note: One Request at a Time
+
+The orchestrator processes one prompt at a time. If prompt() is called while a previous request is still streaming, the new call is logged as a warning and silently dropped. Wait for the current response to complete before sending another prompt.
+
+Important: UI Context Required
+
+prompt() requires an active UI context. If called from a background thread or outside a Vaadin request, it throws an IllegalStateException. Always call prompt() from within a UI event handler or wrap the call in ui.access().

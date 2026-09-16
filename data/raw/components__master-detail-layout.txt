@@ -1,0 +1,1116 @@
+Master-Detail Layout
+
+Master-Detail Layout makes it easy to create responsive horizontally or vertically split UIs.
+
+Master-Detail Layout is component for building UIs with a horizontally or vertically split pair consisting of a master area and a detail area that can responsively switch to an overlay.
+
+Important: Scaled down examples
+
+The examples on this page are scaled down so that their viewport-size-dependent behavior can be demonstrated. Some examples also change their behavior based on your browser viewport size.
+
+In the example below, clicking a row in the table reveals the detail area which is rendered next to the master area by default. Drag the splitter to change the width of the layout: the detail area switches to an overlay when the combined master and detail sizes exceed the available space.
+
+[Flow: MasterDetailLayoutBasic.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("master-detail-layout-basic")
+public class MasterDetailLayoutBasic extends Div {
+
+    public MasterDetailLayoutBasic() {
+        // tag::snippet[]
+        MasterDetailLayout layout = new MasterDetailLayout();
+        layout.setMasterSize("450px");
+        layout.setDetailSize("250px");
+        layout.setExpandMaster(true);
+        // end::snippet[]
+
+        PersonList personList = new PersonList(DataService.getPeople());
+        layout.setMaster(personList);
+
+        PersonDetail personDetail = new PersonDetail();
+
+        // tag::snippet[]
+        /*
+         * The detail area is revealed when it's populated with a component, and
+         * hidden when the component is removed:
+         */
+        personList.getGrid().asSingleSelect().addValueChangeListener(event -> {
+            Person selectedPerson = event.getValue();
+            if (selectedPerson != null) {
+                personDetail.setPerson(selectedPerson);
+                layout.setDetail(personDetail);
+            } else {
+                layout.setDetail(null);
+            }
+        });
+
+        personDetail
+                .addCloseListener(event -> personList.getGrid().deselectAll());
+        // end::snippet[]
+
+        add(layout);
+        setHeightFull();
+    }
+
+}
+
+[Flow: PersonList.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+
+import java.util.List;
+
+public class PersonList extends VerticalLayout {
+    private final Grid<Person> grid;
+
+    public PersonList(List<Person> people) {
+        Paragraph paragraph = new Paragraph(
+                "Select a person to view their details:");
+        grid = new Grid<>();
+        grid.addColumn(Person::getFirstName).setHeader("First Name");
+        grid.addColumn(Person::getLastName).setHeader("Last Name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+        grid.setItems(people);
+        grid.setHeightFull();
+
+        add(paragraph, grid);
+        setHeightFull();
+    }
+
+    public Grid<Person> getGrid() {
+        return grid;
+    }
+}
+
+[Flow: PersonList.java]
+
+[Flow: PersonDetail.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.shared.Registration;
+
+public class PersonDetail extends VerticalLayout {
+    private final FormLayout formLayout;
+    private final TextField firstNameField;
+    private final TextField lastNameField;
+    private final EmailField emailField;
+    private final TextField professionField;
+
+    public PersonDetail() {
+        formLayout = new FormLayout();
+
+        firstNameField = new TextField("First Name");
+        firstNameField.setReadOnly(true);
+        lastNameField = new TextField("First Name");
+        lastNameField.setReadOnly(true);
+        emailField = new EmailField("Email");
+        emailField.setReadOnly(true);
+        professionField = new TextField("Profession");
+        professionField.setReadOnly(true);
+
+        formLayout.add(firstNameField, lastNameField, emailField,
+                professionField);
+
+        Button closeButton = new Button("Close");
+        closeButton.addClickListener(
+                event -> fireEvent(new CloseEvent(this, false)));
+
+        add(formLayout, closeButton);
+        setPadding(true);
+    }
+
+    public void setPerson(Person person) {
+        if (person != null) {
+            firstNameField.setValue(person.getFirstName());
+            lastNameField.setValue(person.getLastName());
+            emailField.setValue(person.getEmail());
+            professionField.setValue(person.getProfession());
+        } else {
+            firstNameField.clear();
+            lastNameField.clear();
+            emailField.clear();
+            professionField.clear();
+        }
+    }
+
+    public static class CloseEvent extends ComponentEvent<PersonDetail> {
+        public CloseEvent(PersonDetail source, boolean fromClient) {
+            super(source, fromClient);
+        }
+    }
+
+    public Registration addCloseListener(
+            ComponentEventListener<CloseEvent> listener) {
+        return addListener(CloseEvent.class, listener);
+    }
+}
+
+[Flow: PersonDetail.java]
+
+[React: master-detail-layout-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MasterDetailLayout, SplitLayout } from '@vaadin/react-components';
+import PersonDetail from 'Frontend/demo/component/master-detail-layout/react/PersonDetail';
+import PersonList from 'Frontend/demo/component/master-detail-layout/react/PersonList';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const selectedPerson = useSignal<Person | null>(null);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <SplitLayout style={{ height: '100%' }}>
+      {/* tag::snippet[] */}
+      <MasterDetailLayout masterSize="450px" detailSize="250px" expandMaster>
+        <MasterDetailLayout.Master>
+          <PersonList
+            people={items.value}
+            selectedPerson={selectedPerson.value}
+            onSelect={(person) => {
+              selectedPerson.value = person;
+            }}
+          />
+        </MasterDetailLayout.Master>
+        <MasterDetailLayout.Detail>
+          {/* The detail area is revealed when it's populated with a component,
+              and hidden when the component is removed: */}
+          {selectedPerson.value ? (
+            <PersonDetail
+              person={selectedPerson.value}
+              onClose={() => {
+                selectedPerson.value = null;
+              }}
+            />
+          ) : null}
+        </MasterDetailLayout.Detail>
+      </MasterDetailLayout>
+      {/* end::snippet[] */}
+      <div
+        style={{
+          flex: '0 0 auto',
+          minWidth: '1.75em',
+          backgroundColor: 'var(--vaadin-background-container)',
+          display: 'flex',
+          textAlign: 'center',
+        }}
+      >
+        <span
+          style={{ textOrientation: 'sideways', writingMode: 'vertical-lr', fontWeight: 'bold' }}
+        >
+          Drag to resize
+        </span>
+      </div>
+    </SplitLayout>
+  );
+}
+
+[React: PersonList.tsx]
+import React from 'react';
+import { Grid, GridColumn, VerticalLayout } from '@vaadin/react-components';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+interface PersonListProps {
+  people: Person[];
+  selectedPerson: Person | null;
+
+  onSelect(person: Person | null): void;
+}
+
+function PersonList({ people, selectedPerson, onSelect }: PersonListProps) {
+  return (
+    <VerticalLayout style={{ height: '100%', border: '1px solid var(--vaadin-border-color)' }}>
+      <div style={{ padding: 'var(--vaadin-padding-m)', fontWeight: 'bold' }}>
+        Select a person to view their details:
+      </div>
+      <Grid
+        theme="no-border"
+        items={people}
+        style={{ height: '100%' }}
+        selectedItems={selectedPerson ? [selectedPerson] : []}
+        onActiveItemChanged={(e) => {
+          onSelect(e.detail.value ?? null);
+        }}
+      >
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+    </VerticalLayout>
+  );
+}
+
+export default PersonList;
+
+[React: PersonList.tsx]
+
+[React: PersonDetail.tsx]
+import React from 'react';
+import {
+  Button,
+  EmailField,
+  FormLayout,
+  TextField,
+  VerticalLayout,
+} from '@vaadin/react-components';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+interface PersonDetailProps {
+  person: Person | null;
+  onClose(): void;
+}
+
+function PersonDetail({ person, onClose }: PersonDetailProps) {
+  return (
+    <VerticalLayout theme="padding">
+      <FormLayout>
+        <TextField label="First Name" value={person?.firstName ?? ''} readonly />
+        <TextField label="Last Name" value={person?.lastName ?? ''} readonly />
+        <EmailField label="Email" value={person?.email ?? ''} readonly />
+        <TextField label="Profession" value={person?.profession ?? ''} readonly />
+      </FormLayout>
+      <Button onClick={onClose} style={{ marginTop: 'var(--vaadin-gap-l)' }}>
+        Close
+      </Button>
+    </VerticalLayout>
+  );
+}
+
+export default PersonDetail;
+
+[React: PersonDetail.tsx]
+
+Setting Sizes
+
+The masterSize and detailSize properties define sizes for each area. When the combined master and detail sizes exceed the available space, the detail area switches to an overlay.
+
+[Flow: Java]
+layout.setMasterSize("600px");
+layout.setDetailSize("300px");
+
+[Flow: Java]
+
+[React: tsx]
+<MasterDetailLayout
+  masterSize="600px"
+  detailSize="300px"
+/>
+
+[React: tsx]
+
+The default masterSize is 30rem. If detailSize is not set, it is automatically determined based on the detail content’s minimum width and cached until new detail content is set.
+
+Note: In earlier versions, setMasterMinSize and setDetailMinSize were used to set minimum sizes for each area. These have been replaced by setMasterSize / setDetailSize overloads that accept a boolean expand parameter, controlling whether the area expands to fill remaining space.
+
+Expanding the Master or Detail Area
+
+By default, both areas have fixed sizes. The master or detail area can be configured to expand and fill any available space beyond the specified sizes. When both are set to expand, they share the available space equally.
+
+[Flow: Java]
+// Detail area expands to fill remaining space
+layout.setMasterSize("300px");
+layout.setDetailSize("400px", true);
+
+// Both areas expand proportionally
+layout.setExpandMaster(true);
+layout.setExpandDetail(true);
+
+[Flow: Java]
+
+[React: tsx]
+{/* Detail area expands to fill remaining space */}
+<MasterDetailLayout
+  masterSize="300px"
+  detailSize="400px"
+  expandDetail
+/>
+
+{/* Both areas expand proportionally */}
+<MasterDetailLayout
+  masterSize="300px"
+  detailSize="400px"
+  expandMaster
+  expandDetail
+/>
+
+[React: tsx]
+
+These settings apply only while the master and detail areas are shown side by side. In overlay mode, the detail’s size is controlled separately by overlaySize, as described in the next section.
+
+Overlay Size
+
+By default, the detail overlay uses the detail size. The overlay size can be customized separately using overlaySize. For example, setting it to 100% makes the detail overlay cover the full layout.
+
+Note: In earlier versions, the same effect was achieved using setOverlayMode(OverlayMode) (Flow) / stackOverlay (React), which has been replaced by overlaySize.
+
+[Flow: Java]
+layout.setOverlaySize("100%");
+
+[Flow: Java]
+
+[React: tsx]
+<MasterDetailLayout overlaySize="100%" />
+
+[React: tsx]
+
+Forced Overlay Mode
+
+The layout can be configured to always render the detail area as an overlay, even if there is enough space for master and detail to be shown next to each other using the default (split) mode:
+
+[Flow: Java]
+layout.setForceOverlay(true);
+
+[Flow: Java]
+
+[React: tsx]
+<MasterDetailLayout forceOverlay />
+
+[React: tsx]
+
+Overlay Containment Modes
+
+The overlay can be configured to render in two different ways, called containment modes:
+
+- Layout: The overlay only covers the master area (default);
+- Page: The overlay covers the entire page.
+
+[Flow: Java]
+layout.setOverlayContainment(MasterDetailLayout.OverlayContainment.PAGE);
+
+[Flow: Java]
+
+[React: tsx]
+<MasterDetailLayout overlayContainment="page" />
+
+[React: tsx]
+
+Note: Limited Modality with Page-Containment
+
+The modality of the detail overlay in page containment mode is currently limited to pointer interactions. Elements behind the overlay can be focused by keyboard.
+
+Orientation
+
+By default, the Master-Detail Layout is split horizontally. This can be changed to a vertical split.
+
+[Flow: MasterDetailLayoutVertical.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("master-detail-layout-vertical")
+public class MasterDetailLayoutVertical extends Div {
+
+    public MasterDetailLayoutVertical() {
+        // tag::snippet[]
+        MasterDetailLayout layout = new MasterDetailLayout();
+        layout.setOrientation(MasterDetailLayout.Orientation.VERTICAL);
+        // end::snippet[]
+        layout.setMasterSize("150px");
+        layout.setDetailSize("250px");
+        layout.setExpandMaster(true);
+
+        PersonList personList = new PersonList(DataService.getPeople());
+        layout.setMaster(personList);
+
+        PersonDetail personDetail = new PersonDetail();
+
+        personList.getGrid().asSingleSelect().addValueChangeListener(event -> {
+            Person selectedPerson = event.getValue();
+            if (selectedPerson != null) {
+                personDetail.setPerson(selectedPerson);
+                layout.setDetail(personDetail);
+            } else {
+                layout.setDetail(null);
+            }
+        });
+
+        personDetail
+                .addCloseListener(event -> personList.getGrid().deselectAll());
+
+        add(layout);
+        setHeightFull();
+    }
+
+}
+
+[Flow: PersonList.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+
+import java.util.List;
+
+public class PersonList extends VerticalLayout {
+    private final Grid<Person> grid;
+
+    public PersonList(List<Person> people) {
+        Paragraph paragraph = new Paragraph(
+                "Select a person to view their details:");
+        grid = new Grid<>();
+        grid.addColumn(Person::getFirstName).setHeader("First Name");
+        grid.addColumn(Person::getLastName).setHeader("Last Name");
+        grid.addColumn(Person::getEmail).setHeader("Email");
+        grid.addColumn(Person::getProfession).setHeader("Profession");
+        grid.setItems(people);
+        grid.setHeightFull();
+
+        add(paragraph, grid);
+        setHeightFull();
+    }
+
+    public Grid<Person> getGrid() {
+        return grid;
+    }
+}
+
+[Flow: PersonList.java]
+
+[Flow: PersonDetail.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.shared.Registration;
+
+public class PersonDetail extends VerticalLayout {
+    private final FormLayout formLayout;
+    private final TextField firstNameField;
+    private final TextField lastNameField;
+    private final EmailField emailField;
+    private final TextField professionField;
+
+    public PersonDetail() {
+        formLayout = new FormLayout();
+
+        firstNameField = new TextField("First Name");
+        firstNameField.setReadOnly(true);
+        lastNameField = new TextField("First Name");
+        lastNameField.setReadOnly(true);
+        emailField = new EmailField("Email");
+        emailField.setReadOnly(true);
+        professionField = new TextField("Profession");
+        professionField.setReadOnly(true);
+
+        formLayout.add(firstNameField, lastNameField, emailField,
+                professionField);
+
+        Button closeButton = new Button("Close");
+        closeButton.addClickListener(
+                event -> fireEvent(new CloseEvent(this, false)));
+
+        add(formLayout, closeButton);
+        setPadding(true);
+    }
+
+    public void setPerson(Person person) {
+        if (person != null) {
+            firstNameField.setValue(person.getFirstName());
+            lastNameField.setValue(person.getLastName());
+            emailField.setValue(person.getEmail());
+            professionField.setValue(person.getProfession());
+        } else {
+            firstNameField.clear();
+            lastNameField.clear();
+            emailField.clear();
+            professionField.clear();
+        }
+    }
+
+    public static class CloseEvent extends ComponentEvent<PersonDetail> {
+        public CloseEvent(PersonDetail source, boolean fromClient) {
+            super(source, fromClient);
+        }
+    }
+
+    public Registration addCloseListener(
+            ComponentEventListener<CloseEvent> listener) {
+        return addListener(CloseEvent.class, listener);
+    }
+}
+
+[Flow: PersonDetail.java]
+
+[React: master-detail-layout-vertical.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MasterDetailLayout, SplitLayout } from '@vaadin/react-components';
+import PersonDetail from 'Frontend/demo/component/master-detail-layout/react/PersonDetail';
+import PersonList from 'Frontend/demo/component/master-detail-layout/react/PersonList';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const items = useSignal<Person[]>([]);
+  const selectedPerson = useSignal<Person | null>(null);
+  useEffect(() => {
+    getPeople().then(({ people }) => {
+      items.value = people;
+    });
+  }, []);
+
+  return (
+    <SplitLayout orientation="vertical" style={{ height: '100%' }}>
+      {/* tag::snippet[] */}
+      <MasterDetailLayout orientation="vertical" masterSize="150px" detailSize="250px" expandMaster>
+        {/* end::snippet[] */}
+        <MasterDetailLayout.Master>
+          <PersonList
+            people={items.value}
+            selectedPerson={selectedPerson.value}
+            onSelect={(person) => {
+              selectedPerson.value = person;
+            }}
+          />
+        </MasterDetailLayout.Master>
+        <MasterDetailLayout.Detail>
+          {selectedPerson.value ? (
+            <PersonDetail
+              person={selectedPerson.value}
+              onClose={() => {
+                selectedPerson.value = null;
+              }}
+            />
+          ) : null}
+        </MasterDetailLayout.Detail>
+        {/* tag::snippet[] */}
+      </MasterDetailLayout>
+      {/* end::snippet[] */}
+      <div
+        style={{
+          flex: '0 0 auto',
+          backgroundColor: 'var(--vaadin-background-container)',
+          textAlign: 'center',
+        }}
+      >
+        <span style={{ fontWeight: 'bold', minHeight: '1.75em' }}>Drag to resize</span>
+      </div>
+    </SplitLayout>
+  );
+}
+
+[React: PersonList.tsx]
+import React from 'react';
+import { Grid, GridColumn, VerticalLayout } from '@vaadin/react-components';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+interface PersonListProps {
+  people: Person[];
+  selectedPerson: Person | null;
+
+  onSelect(person: Person | null): void;
+}
+
+function PersonList({ people, selectedPerson, onSelect }: PersonListProps) {
+  return (
+    <VerticalLayout style={{ height: '100%', border: '1px solid var(--vaadin-border-color)' }}>
+      <div style={{ padding: 'var(--vaadin-padding-m)', fontWeight: 'bold' }}>
+        Select a person to view their details:
+      </div>
+      <Grid
+        theme="no-border"
+        items={people}
+        style={{ height: '100%' }}
+        selectedItems={selectedPerson ? [selectedPerson] : []}
+        onActiveItemChanged={(e) => {
+          onSelect(e.detail.value ?? null);
+        }}
+      >
+        <GridColumn path="firstName" />
+        <GridColumn path="lastName" />
+        <GridColumn path="email" />
+        <GridColumn path="profession" />
+      </Grid>
+    </VerticalLayout>
+  );
+}
+
+export default PersonList;
+
+[React: PersonList.tsx]
+
+[React: PersonDetail.tsx]
+import React from 'react';
+import {
+  Button,
+  EmailField,
+  FormLayout,
+  TextField,
+  VerticalLayout,
+} from '@vaadin/react-components';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+interface PersonDetailProps {
+  person: Person | null;
+  onClose(): void;
+}
+
+function PersonDetail({ person, onClose }: PersonDetailProps) {
+  return (
+    <VerticalLayout theme="padding">
+      <FormLayout>
+        <TextField label="First Name" value={person?.firstName ?? ''} readonly />
+        <TextField label="Last Name" value={person?.lastName ?? ''} readonly />
+        <EmailField label="Email" value={person?.email ?? ''} readonly />
+        <TextField label="Profession" value={person?.profession ?? ''} readonly />
+      </FormLayout>
+      <Button onClick={onClose} style={{ marginTop: 'var(--vaadin-gap-l)' }}>
+        Close
+      </Button>
+    </VerticalLayout>
+  );
+}
+
+export default PersonDetail;
+
+[React: PersonDetail.tsx]
+
+Animation
+
+When detail content is added, replaced, or removed, the layout animates the transition. The detail area slides and fades into place next to the master area, or slides in from the edge with a backdrop when shown as an overlay. Animations are skipped automatically when the user’s operating system requests reduced motion.
+
+Animations are enabled by default. They can be disabled, for example to make detail changes apply instantly:
+
+[Flow: Java]
+layout.setAnimationEnabled(false);
+
+[Flow: Java]
+
+[React: tsx]
+<MasterDetailLayout noAnimation />
+
+[React: tsx]
+
+Note: Avoiding Animation on Initial Render in React
+
+When detail content is rendered conditionally based on state that is loaded asynchronously, for example in a useEffect hook, the detail appears after the layout has already rendered. The layout detects this as a change and animates the detail in, even though it is really the initial content. To avoid this, render the entire layout only once the data is available, instead of rendering the layout first and adding the detail afterwards.
+
+Detail Placeholder
+
+A placeholder component can be shown in the detail area when no detail content is set. Unlike detail content, the placeholder simply hides when it doesn’t fit rather than being rendered as an overlay.
+
+[Flow: Java]
+layout.setDetailPlaceholder(new Span("Select an item to see details"));
+
+[Flow: Java]
+
+[React: tsx]
+<MasterDetailLayout>
+  <MasterDetailLayout.Master>
+    {/* master content */}
+  </MasterDetailLayout.Master>
+  <MasterDetailLayout.Detail>
+    {selectedItem && <ItemDetail item={selectedItem} />}
+  </MasterDetailLayout.Detail>
+  <MasterDetailLayout.DetailPlaceholder>
+    Select an item to see details
+  </MasterDetailLayout.DetailPlaceholder>
+</MasterDetailLayout>
+
+[React: tsx]
+
+Hiding the Detail Area
+
+The detail area is automatically shown or hidden when content is added or removed from it. There is no explicit property to control the visibility of the detail area.
+
+Master-Detail Layout exposes the following events that can be used to hide the detail area by removing the content from it:
+
+- backdrop-click: Fired when the user clicks on the backdrop of the detail overlay when it is in drawer mode.
+- detail-escape-press: Fired when the user presses Escape within the detail area.
+
+[Flow: Java]
+layout.addBackdropClickListener(event -> {
+    // Hide the detail area by removing the content
+    layout.setDetail(null);
+});
+
+layout.addDetailEscapePressListener(event -> {
+    // Hide the detail area by removing the content
+    layout.setDetail(null);
+});
+
+[Flow: Java]
+
+[React: tsx]
+const selectedPerson = useSignal<Person | null>(null);
+
+const closeDetail = () => {
+  // Clear selected person to not render the detail content
+  selectedPerson.value = null;
+};
+
+<MasterDetailLayout onBackdropClick={closeDetail} onDetailEscapePress={closeDetail}>
+  <MasterDetailLayout.Master>
+    <PersonList onSelect={(person) => { selectedPerson.value = person}} />
+  </MasterDetailLayout.Master>
+  <MasterDetailLayout.Detail>
+    {selectedPerson.value && <PersonDetail person={selectedPerson.value} />}
+  </MasterDetailLayout.Detail>
+</MasterDetailLayout>
+
+[React: tsx]
+
+Router Integration
+
+Master-Detail Layout can be used as a router layout (see Flow/Hilla), so that nested views are automatically rendered in the details area of the component. This allows showing nested views without having to manage the contents of the details area manually when the route changes, while providing the same benefits such as responsive behavior that the component normally provides.
+
+[Flow: Java]
+@ParentLayout(MainLayout.class)
+@Route(value = "products", layout = MainLayout.class)
+public class ProductListView extends MasterDetailLayout { ... }
+
+@Route(value = "products/:productId", layout = ProductListView.class)
+public class ProductDetailView extends VerticalLayout { ... }
+
+[Flow: Java]
+
+[Hilla: tsx]
+// frontend/views/products/@layout.tsx
+import { useOutlet } from 'react-router';
+
+export default function ProductListView() {
+  const childView = useOutlet();
+
+  return (
+    <MasterDetailLayout>
+      <MasterDetailLayout.Master>
+        <ProductList />
+      </MasterDetailLayout.Master>
+      <MasterDetailLayout.Detail>
+        { childView }
+      </MasterDetailLayout.Detail>
+    </MasterDetailLayout>
+  );
+}
+
+// frontend/views/products/@index.tsx
+export default function EmptyProductDetailView() {
+  return null
+}
+
+// frontend/views/products/{productId}/@index.tsx
+export default function ProductDetailView() { ... }
+
+[Hilla: tsx]
+
+Nesting Layouts
+
+Master-Detail Layouts can be nested inside each other to enable multi-level navigation.
+
+When nesting, it may help to omit the detailSize property to let layouts automatically calculate detail sizes based on their content’s minimum size. In this case, each nested detail pushes its minimum size up to its ancestors, so when space gets tight, the outermost levels collapse into overlays first, keeping the levels closest to the user fully visible as long as possible.
+
+In contrast, with explicitly set sizes, the order is reversed: collapsing starts from the innermost levels, keeping the outermost ones open instead, which might cause the user to lose some context.
+
+[Flow: MasterDetailLayoutNested.java]
+package com.vaadin.demo.component.masterdetaillayout;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.masterdetaillayout.MasterDetailLayout;
+import com.vaadin.flow.component.textfield.EmailField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("master-detail-layout-nested")
+public class MasterDetailLayoutNested extends Div {
+
+    private Map<String, List<Person>> peopleByProfession = DataService
+            .getPeople().stream()
+            .collect(Collectors.groupingBy(Person::getProfession));
+    private List<String> professions = peopleByProfession.keySet().stream()
+            .sorted().limit(4).toList();
+
+    // Signals for selected profession and person
+    private ValueSignal<String> selectedProfession = new ValueSignal<>(
+            professions.getFirst());
+    private ValueSignal<Person> selectedPerson = new ValueSignal<>(null);
+
+    // Computed signal for people in the selected profession
+    private Signal<List<Person>> people = Signal.computed(() -> {
+        String profession = selectedProfession.get();
+        return profession != null
+                ? peopleByProfession.getOrDefault(profession, List.of())
+                : List.of();
+    });
+
+    public MasterDetailLayoutNested() {
+        // tag::snippet[]
+        // Outer layout: professions → people
+        MasterDetailLayout outerLayout = new MasterDetailLayout();
+        outerLayout.setMasterSize("300px");
+        outerLayout.setExpandDetail(true);
+
+        // Inner layout: people → person details
+        MasterDetailLayout innerLayout = new MasterDetailLayout();
+        innerLayout.setMasterSize("500px");
+        innerLayout.setExpandDetail(true);
+
+        // Profession grid (outer master)
+        Grid<String> professionGrid = new Grid<>();
+        professionGrid.addColumn(p -> p).setHeader("Profession");
+        professionGrid.setItems(professions);
+        professionGrid.asSingleSelect().bindValue(selectedProfession,
+                selectedProfession::set);
+        professionGrid.setHeightFull();
+        professionGrid.addThemeVariants(GridVariant.NO_BORDER);
+        outerLayout.setMaster(professionGrid);
+
+        // Person grid (inner master)
+        Grid<Person> personGrid = new Grid<>();
+        personGrid.addColumn(Person::getFirstName).setHeader("First Name");
+        personGrid.addColumn(Person::getLastName).setHeader("Last Name");
+        personGrid.addColumn(Person::getEmail).setHeader("Email");
+        personGrid.asSingleSelect().bindValue(selectedPerson,
+                selectedPerson::set);
+        personGrid.setHeightFull();
+        personGrid.addThemeVariants(GridVariant.NO_BORDER);
+        innerLayout.setMaster(personGrid);
+
+        // Person detail form (inner detail)
+        TextField firstNameField = new TextField("First Name");
+        firstNameField.setReadOnly(true);
+        firstNameField.bindValue(
+                selectedPerson.map((p) -> p != null ? p.getFirstName() : ""),
+                null);
+
+        TextField lastNameField = new TextField("Last Name");
+        lastNameField.setReadOnly(true);
+        lastNameField.bindValue(
+                selectedPerson.map((p) -> p != null ? p.getLastName() : ""),
+                null);
+
+        EmailField emailField = new EmailField("Email");
+        emailField.setReadOnly(true);
+        emailField.bindValue(
+                selectedPerson.map((p) -> p != null ? p.getEmail() : ""), null);
+
+        Button closeButton = new Button("Close",
+                event -> selectedPerson.set(null));
+
+        FormLayout formLayout = new FormLayout();
+        formLayout.setAutoResponsive(true);
+        formLayout.getStyle().set("padding-inline", "var(--vaadin-gap-m)");
+        formLayout.add(firstNameField, lastNameField, emailField, closeButton);
+
+        Signal.effect(personGrid, () -> {
+            personGrid.setItems(people.get());
+            selectedPerson.set(null);
+        });
+
+        Signal.effect(outerLayout, () -> {
+            outerLayout.setDetail(
+                    selectedProfession.get() != null ? innerLayout : null);
+        });
+
+        Signal.effect(innerLayout, () -> {
+            innerLayout.setDetail(
+                    selectedPerson.get() != null ? formLayout : null);
+        });
+
+        // Close detail on backdrop click or Escape
+        outerLayout.addBackdropClickListener(
+                event -> selectedProfession.set(null));
+        outerLayout.addDetailEscapePressListener(
+                event -> selectedProfession.set(null));
+        innerLayout.addBackdropClickListener(event -> selectedPerson.set(null));
+        innerLayout.addDetailEscapePressListener(
+                event -> selectedPerson.set(null));
+        add(outerLayout);
+        // end::snippet[]
+        setHeightFull();
+    }
+
+}
+
+[React: master-detail-layout-nested.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Button,
+  EmailField,
+  FormLayout,
+  Grid,
+  GridColumn,
+  MasterDetailLayout,
+  SplitLayout,
+  TextField,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const people = useSignal<Person[]>([]);
+  const professions = useSignal<string[]>([]);
+  const selectedProfession = useSignal<string | null>(null);
+  const selectedPerson = useSignal<Person | null>(null);
+  const hasInitialData = useSignal(false);
+
+  const persons = useComputed(() => {
+    const profession = selectedProfession.value;
+    if (profession == null) {
+      return [];
+    }
+    return people.value.filter((p) => p.profession === profession);
+  });
+
+  useEffect(() => {
+    getPeople().then(({ people: allPeople }) => {
+      people.value = allPeople;
+      professions.value = [...new Set(allPeople.map((p) => p.profession))].toSorted().slice(0, 4);
+      selectedProfession.value = professions.value[0];
+      hasInitialData.value = true;
+    });
+  }, []);
+
+  // For the outer MDL, details can only be rendered after initial data has been loaded. The details
+  // being rendered later than the root component results in an animation for what is practically
+  // the initial rendering of the component. As a workaround, render the whole MDL only after the
+  // initial data has been loaded.
+  return hasInitialData.value ? (
+    <SplitLayout style={{ height: '100%' }}>
+      {/* tag::snippet[] */}
+      <MasterDetailLayout
+        masterSize="300px"
+        expandDetail
+        onBackdropClick={() => {
+          selectedProfession.value = null;
+        }}
+        onDetailEscapePress={() => {
+          selectedProfession.value = null;
+        }}
+      >
+        <MasterDetailLayout.Master>
+          <Grid
+            items={professions.value}
+            selectedItems={selectedProfession.value ? [selectedProfession.value] : []}
+            onActiveItemChanged={(e) => {
+              selectedProfession.value = e.detail.value ?? null;
+              selectedPerson.value = null;
+            }}
+            theme="no-border"
+            style={{ height: '100%' }}
+          >
+            <GridColumn header="Profession">{({ item }) => <>{item}</>}</GridColumn>
+          </Grid>
+        </MasterDetailLayout.Master>
+        <MasterDetailLayout.Detail>
+          {selectedProfession.value ? (
+            <MasterDetailLayout
+              masterSize="500px"
+              expandDetail
+              onBackdropClick={() => {
+                selectedPerson.value = null;
+              }}
+              onDetailEscapePress={() => {
+                selectedPerson.value = null;
+              }}
+            >
+              <MasterDetailLayout.Master>
+                <Grid
+                  items={persons.value}
+                  selectedItems={selectedPerson.value ? [selectedPerson.value] : []}
+                  onActiveItemChanged={(e) => {
+                    selectedPerson.value = e.detail.value ?? null;
+                  }}
+                  theme="no-border"
+                  style={{ height: '100%' }}
+                >
+                  <GridColumn path="firstName" />
+                  <GridColumn path="lastName" />
+                  <GridColumn path="email" />
+                </Grid>
+              </MasterDetailLayout.Master>
+              <MasterDetailLayout.Detail>
+                {selectedPerson.value ? (
+                  <FormLayout autoResponsive style={{ paddingInline: 'var(--vaadin-gap-m)' }}>
+                    <TextField label="First Name" value={selectedPerson.value.firstName} readonly />
+                    <TextField label="Last Name" value={selectedPerson.value.lastName} readonly />
+                    <EmailField label="Email" value={selectedPerson.value.email} readonly />
+                    <Button
+                      onClick={() => {
+                        selectedPerson.value = null;
+                      }}
+                    >
+                      Close
+                    </Button>
+                  </FormLayout>
+                ) : null}
+              </MasterDetailLayout.Detail>
+            </MasterDetailLayout>
+          ) : null}
+        </MasterDetailLayout.Detail>
+      </MasterDetailLayout>
+
+      {/* end::snippet[] */}
+      <div
+        style={{
+          flex: '0 0 auto',
+          minWidth: '1.75em',
+          backgroundColor: 'var(--vaadin-background-container)',
+          display: 'flex',
+          textAlign: 'center',
+        }}
+      >
+        <span
+          style={{ textOrientation: 'sideways', writingMode: 'vertical-lr', fontWeight: 'bold' }}
+        >
+          Drag to resize
+        </span>
+      </div>
+    </SplitLayout>
+  ) : null;
+}
+
+Related Components
+
+Component | Usage Recommendation
+Split Layout | A component with two content areas and a draggable resize handle between them.

@@ -1,0 +1,126 @@
+Updating Page Title during Navigation
+
+How to update a page title during navigation.
+
+You can update the page title in three ways during navigation: use the @PageTitle annotation; implement HasDynamicTitle; or generate the title with a PageTitleGenerator.
+
+The @PageTitle annotation and HasDynamicTitle are mutually exclusive. Using both in the same class results in a runtime exception at startup.
+
+Using the @PageTitle Annotation
+
+The simplest way to update the Page Title is to use the @PageTitle annotation on your Component class:
+
+Example: Using `@PageTitle`to update the page title:
+
+[Java]
+@PageTitle("home")
+class HomeView extends Div {
+
+    public HomeView() {
+        setText("This is the home view");
+    }
+}
+
+Note: The @PageTitle annotation is read only from the actual navigation target; super classes and parent views aren’t considered.
+
+Setting the Page Title Dynamically
+
+As an alternative, you can also update the page title at runtime by implementing the HasDynamicTitle interface.
+
+Example: Implementing HasDynamicTitle to update the page title.
+
+[Java]
+@Route(value = "blog")
+class BlogPost extends Component
+        implements HasDynamicTitle,
+             HasUrlParameter<Long> {
+    private String title = "";
+
+    @Override
+    public String getPageTitle() {
+        return title;
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event,
+            @OptionalParameter Long parameter) {
+        if (parameter != null) {
+            title = "Blog Post #" + parameter;
+        } else {
+            title = "Blog Home";
+        }
+    }
+}
+
+Generating Page Titles
+
+A PageTitleGenerator resolves the title of a navigation target without requiring an instance of it. While HasDynamicTitle.getPageTitle() is an instance method and therefore only usable once the view has been created, a generator is resolved purely from the navigation target class and its RouteParameters. This makes it suitable for use cases that need the title of a route that isn’t (and shouldn’t be) instantiated, such as breadcrumbs, menus, or other navigation aids that render the titles of a whole trail of routes (see Route Hierarchy).
+
+Reference a generator from a route with the @DynamicPageTitle annotation:
+
+[Java]
+@Route("products/:productId")
+@DynamicPageTitle(ProductTitleGenerator.class)
+public class ProductView extends Div {
+    // ...
+}
+
+public class ProductTitleGenerator implements PageTitleGenerator {
+    @Override
+    public String generatePageTitle(PageTitleContext context) {
+        String id = context.routeParameters().get("productId").orElse("");
+        return "Product " + id;
+    }
+}
+
+The PageTitleContext record exposes the navigation target class, the RouteParameters and QueryParameters the target would be navigated to with, and the @PageTitle value declared on the route.
+
+A @PageTitle value may be declared alongside @DynamicPageTitle. It’s then handed to the generator through PageTitleContext.value() — for example as an i18n message key — rather than used as the title directly.
+
+Generator implementations must be stateless and cheap to create: they’re instantiated through the application Instantiator — so dependency injection is available — every time a title is resolved. The navigation target itself is never instantiated.
+
+Application-Wide Title Generator
+
+Instead of declaring @DynamicPageTitle on every route, a single default generator can be defined for the whole application. It applies to every route that doesn’t declare its own @DynamicPageTitle. A typical use is a single generator that turns the declared @PageTitle value, passed in through PageTitleContext.value(), into a translated title for every route.
+
+In a Spring Application
+
+Register the generator as a Spring bean. Vaadin’s Spring Instantiator uses it automatically, as long as exactly one PageTitleGenerator bean is defined:
+
+[Java]
+@Bean
+public PageTitleGenerator pageTitleGenerator() {
+    return context -> ...;
+}
+
+Alternatively, set the vaadin.pageTitle.generator property to the fully qualified class name of a PageTitleGenerator implementation:
+
+[application.properties]
+vaadin.pageTitle.generator=com.example.MyTitleGenerator
+
+In a Non-Spring Application
+
+Set the pageTitle.generator configuration property to the fully qualified class name of a PageTitleGenerator implementation. As with other configuration properties, this can be done with a system property:
+
+[bash]
+-Dvaadin.pageTitle.generator=com.example.MyTitleGenerator
+
+or a servlet initialization parameter:
+
+[Java]
+@WebServlet(urlPatterns = "/*", asyncSupported = true,
+    initParams = @WebInitParam(name = "pageTitle.generator",
+        value = "com.example.MyTitleGenerator"))
+public class MyServlet extends VaadinServlet {
+}
+
+Regardless of framework, a custom Instantiator can also provide the default generator by overriding Instantiator.getPageTitleGenerator().
+
+Title Resolution Order
+
+When a navigation completes, the title is resolved in this order:
+
+1. HasDynamicTitle, implemented by the navigation target or one of its parent layouts;
+2. the per-route @DynamicPageTitle generator;
+3. the application-wide default PageTitleGenerator, if one is defined;
+4. the static @PageTitle value.

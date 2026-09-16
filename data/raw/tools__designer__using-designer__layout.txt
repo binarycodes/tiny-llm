@@ -1,0 +1,123 @@
+Laying Out Views
+
+Layout is defined as the particular way components are arranged in your view.
+
+To arrange the components in Vaadin Designer, you can use the layout components provided by Vaadin. You can combine and nest special purpose layouts and the more general-purpose Vertical and Horizontal layouts.
+
+Additionally, you can define the sizes of the components, as well as the empty space between them.
+
+Layout Components
+
+Vaadin supports many pre-built layout components for you to quickly start constructing a view.
+
+Layout Component | Description
+App Layout | Provides a quick and easy way to get a common application layout structure done. Allows setting the logo, menu and page content.
+Form Layout | Provides a configurable responsive layout for form elements, making sure your form content stays readable on all devices.
+Split Layout | Allows you to partition a layout into resizable areas.
+Horizontal Layout | Provides a layout to align your HTML elements horizontally.
+Vertical Layout | Provides a layout to align your HTML elements vertically.
+
+Vertical & Horizontal Layouts
+
+These are the most essential layouts, which can be nested under each other, or different layouts to construct more complex ones. For these layouts, Designer supports Flexbox editor to position their child elements.
+
+Note: Flexbox editor uses CSS flexbox layout. To learn about Flexbox, see this flexbox guide.
+
+Flex Container
+
+Vertical and Horizontal layouts are flex containers. You can also use native HTML elements (like the div element) as flexbox containers by setting their display CSS property to flex or inline-flex.
+
+When selecting a flex container in Designer, the Flex Container panel appears near the bottom-right corner.
+
+[image: designer 3 layout flex container]
+
+Flex Container
+
+Direction
+
+Represents flex-direction CSS property, defining the main-axis for child items. X-axis or Y-axis enables row (horizontal) or column (vertical) direction, respectively. To reverse the current direction, enable Reverse checkbox.
+
+Align
+
+Represents align-items CSS property, defining how child items are laid out along the cross axis which runs perpendicular to the current main-axis.
+
+Justify
+
+Represents justify-content CSS property, defining how child items are aligned along the main-axis and how free spaces between them are distributed.
+
+Wrap
+
+Represents flex-wrap CSS property, allowing child items to be wrapped onto multiple lines when they can’t be fitted in one line. To wrap items from bottom to top, enable Reverse checkbox.
+
+Align
+
+Represents align-content CSS property, this property appears only when child items can be wrapped. Since wrapped items can occupy multiple lines, this property aligns those lines when there is an extra space.
+
+Flex Item
+
+Elements inside a flex container are flex items. The Flex Item panel appears when selecting a flex item. In case the selected item is also a flex container, both panels are shown.
+
+[image: designer 3 layout flex item]
+
+Flex Item
+
+Sizing
+
+Represents flex-grow and flex-shrink CSS properties, allowing a flex item to take more or less space than other elements.
+
+Align
+
+Represents align-self CSS property, allowing a specific flex item to override the Align setting of its parent container.
+
+Sizing & Spacing
+
+To give a component a specific size and define the empty space around and inside it, you can use the size and space panel located in the properties panel.
+
+[image: designer size space]
+
+Size & Space Panel
+
+Set the following:
+
+1. width and height to set and constrain the size of the component
+2. margin to define the empty space around the component
+3. padding to define the empty space between the component and its content
+4. spacing to define the empty space between the component’s children (only for VL and HL)
+
+See the following figure for illustration:
+
+[image: designer size and space model]
+
+Size & Space Panel Model: Horizontal Layout Example
+
+Note: T-Shirt Size Definitions
+
+When the Lumo theme is in use, the margin, padding and spacing properties accept t-shirt sizes which translate to the corresponding spacing properties. Otherwise, the property values map directly to the corresponding CSS properties.
+
+Width & Height
+
+[image: designer size space width height]
+
+Width & Height Properties
+
+Set width and height, as well as constrain their minimum and maximum values.
+
+These properties map directly to the CSS properties width, min-width, max-width, height, min-height and max-height.
+
+Margin & Padding
+
+[image: designer size space margin padding]
+
+Margin & Padding Properties
+
+Set margin and padding. Setting Margin or Padding sets the same value to all edges. Individual edges can be set or overridden by setting values to the Left, Top, Right and Bottom properties.
+
+These properties map directly to the CSS properties margin, margin-left, margin-right, margin-top, margin-bottom, padding, padding-left, padding-right, padding-top and padding-bottom. If Lumo theme is in use, then, additionally, t-shirt sizes are translated to --lumo-space-* variables.
+
+Spacing
+
+[image: designer size space spacing]
+
+Spacing Property
+
+Set empty space between child components of Vertical and Horizontal layouts. When the Lumo theme is in use, a set of t-shirt sizes are available as options. The sizes correspond to the sizes available for margin and padding.

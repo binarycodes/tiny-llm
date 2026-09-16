@@ -1,0 +1,1209 @@
+Vertical Layout
+
+Vertical Layout places components top-to-bottom in a column.
+
+Vertical Layout places components top-to-bottom in a column. By default, it has a width of 100% and an undefined height. Its width is constrained by its parent component (i.e., it “fills” the available space). Whereas, its height is determined by the components it contains (i.e., it “hugs” its content).
+
+See Horizontal Layout for information on placing components side-by-side.
+
+[Flow: VerticalLayoutBasic.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-basic")
+public class VerticalLayoutBasic extends Div {
+    public VerticalLayoutBasic() {
+        // tag::snippet[]
+        VerticalLayout layout = new VerticalLayout();
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+
+        layout.add(item1, item2, item3);
+        // end::snippet[]
+
+        this.setClassName("basic-layouts-example");
+
+        this.add(layout);
+    }
+
+}
+
+[React: vertical-layout-basic.tsx]
+import React from 'react';
+import { VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      {/* tag::snippet[] */}
+      <VerticalLayout theme="spacing padding">
+        <div className="example-item">Item 1</div>
+        <div className="example-item">Item 2</div>
+        <div className="example-item">Item 3</div>
+      </VerticalLayout>
+      {/* end::snippet[] */}
+    </div>
+  );
+}
+
+[Lit: vertical-layout-basic.ts]
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <!-- tag::snippet[] -->
+        <vaadin-vertical-layout theme="spacing padding">
+          <div class="example-item">Item 1</div>
+          <div class="example-item">Item 2</div>
+          <div class="example-item">Item 3</div>
+        </vaadin-vertical-layout>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+}
+
+Components in a Vertical Layout can be aligned vertically, as you’d expect. However and perhaps surprisingly, they can also be aligned horizontally in a Vertical Layout.
+
+Vertical Alignment
+
+You can position components at the top, middle, or bottom. You can also position them by specifying how the excess space in a layout is distributed among them.
+
+[Flow: VerticalLayoutVerticalAlignment.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-vertical-alignment")
+public class VerticalLayoutVerticalAlignment extends Div {
+
+    public VerticalLayoutVerticalAlignment() {
+        // tag::layout[]
+        VerticalLayout layout = new VerticalLayout();
+        layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+
+        layout.add(item1, item2, item3);
+        // end::layout[]
+
+        this.setClassName("basic-layouts-example");
+        layout.setClassName("height-4xl");
+        this.add(layout);
+    }
+
+}
+
+[React: vertical-layout-vertical-alignment.tsx]
+import React from 'react';
+import { VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      {/* tag::snippet[] */}
+      <VerticalLayout
+        theme="spacing padding"
+        className="height-4xl"
+        style={{ justifyContent: 'center' }}
+      >
+        <div className="example-item">Item 1</div>
+        <div className="example-item">Item 2</div>
+        <div className="example-item">Item 3</div>
+      </VerticalLayout>
+      {/* end::snippet[] */}
+    </div>
+  );
+}
+
+[Lit: vertical-layout-vertical-alignment.ts]
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-vertical-alignment')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <!-- tag::snippet[] -->
+        <vaadin-vertical-layout
+          theme="spacing padding"
+          class="height-4xl"
+          style="justify-content: center"
+        >
+          <div class="example-item">Item 1</div>
+          <div class="example-item">Item 2</div>
+          <div class="example-item">Item 3</div>
+        </vaadin-vertical-layout>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+}
+
+Value | Description
+START (default) | Positions items at the top.
+CENTER | Centers items, vertically.
+END | Positions items at the bottom.
+BETWEEN | Available space is distributed equally among items. However, no space is added before the first item, or after the last.
+AROUND | Available space is distributed equally among items. However, the space before the first item and after the last is half of that between items.
+EVENLY | Available space is distributed equally among items. The space before the first item and after the last item is the same as between others.
+
+Horizontal Alignment
+
+Components in a Vertical Layout are left-aligned by default, but can be centered, right-aligned or stretched horizontally.
+
+[Flow: VerticalLayoutHorizontalAlignment.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-horizontal-alignment")
+public class VerticalLayoutHorizontalAlignment extends Div {
+
+    public VerticalLayoutHorizontalAlignment() {
+        // tag::layout[]
+        VerticalLayout layout = new VerticalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+
+        layout.add(item1, item2, item3);
+        // end::layout[]
+
+        this.setClassName("basic-layouts-example");
+
+        this.add(layout);
+    }
+
+}
+
+[React: vertical-layout-horizontal-alignment.tsx]
+import React from 'react';
+import { VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      {/* tag::snippet[] */}
+      <VerticalLayout theme="spacing padding" style={{ alignItems: 'center' }}>
+        <div className="example-item">Item 1</div>
+        <div className="example-item">Item 2</div>
+        <div className="example-item">Item 3</div>
+      </VerticalLayout>
+      {/* end::snippet[] */}
+    </div>
+  );
+}
+
+[Lit: vertical-layout-horizontal-alignment.ts]
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-horizontal-alignment')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <!-- tag::snippet[] -->
+        <vaadin-vertical-layout theme="spacing padding" style="align-items: center">
+          <div class="example-item">Item 1</div>
+          <div class="example-item">Item 2</div>
+          <div class="example-item">Item 3</div>
+        </vaadin-vertical-layout>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+}
+
+Value | Description
+START (default) | Left-aligns items for left-to-right language text (e.g., English). For right-to-left languages (e.g., Arabic, Hebrew), it right-aligns items.
+CENTER | Centers items, horizontally.
+END | Right-aligns for left-to-right language text. For right-to-left languages, it left-aligns items.
+STRETCH | Stretches horizontally items with undefined width.
+
+It’s also possible to align horizontally individual components by overriding the general alignment setting of the layout.
+
+[Flow: VerticalLayoutIndividualAlignment.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-individual-alignment")
+public class VerticalLayoutIndividualAlignment extends Div {
+
+    public VerticalLayoutIndividualAlignment() {
+        // tag::layout[]
+        VerticalLayout layout = new VerticalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.START);
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+        layout.add(item1);
+        layout.setAlignSelf(Alignment.END, item1);
+
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+        layout.add(item2);
+        layout.setAlignSelf(Alignment.CENTER, item2);
+
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+        layout.add(item3);
+        // end::layout[]
+
+        this.setClassName("basic-layouts-example");
+
+        this.add(layout);
+    }
+
+}
+
+[React: vertical-layout-individual-alignment.tsx]
+import React from 'react';
+import { VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      {/* tag::snippet[] */}
+      <VerticalLayout theme="spacing padding" style={{ alignItems: 'start' }}>
+        <div className="example-item" style={{ alignSelf: 'end' }}>
+          Item 1
+        </div>
+        <div className="example-item" style={{ alignSelf: 'center' }}>
+          Item 2
+        </div>
+        <div className="example-item">Item 3</div>
+      </VerticalLayout>
+      {/* end::snippet[] */}
+    </div>
+  );
+}
+
+[Lit: vertical-layout-individual-alignment.ts]
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-individual-alignment')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <!-- tag::snippet[] -->
+        <vaadin-vertical-layout theme="spacing padding" style="align-items: start">
+          <div class="example-item" style="align-self: end">Item 1</div>
+          <div class="example-item" style="align-self: center">Item 2</div>
+          <div class="example-item">Item 3</div>
+        </vaadin-vertical-layout>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+}
+
+Spacing
+
+Spacing is used to create gaps between components in the same layout. Spacing can help prevent misclicks and distinguish content areas.
+
+[Flow: VerticalLayoutSpacing.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-spacing")
+public class VerticalLayoutSpacing extends Div {
+
+    public VerticalLayoutSpacing() {
+        HorizontalLayout parent = new HorizontalLayout();
+        parent.getStyle().setBorder("0");
+        add(parent);
+
+        Div wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout without spacing:"));
+        parent.add(wrapper);
+
+        // tag::snippet[]
+        // VerticalLayout has spacing enabled by default, use setSpacing to
+        // disable it
+        VerticalLayout layoutWithoutSpacing = new VerticalLayout();
+        layoutWithoutSpacing.setSpacing(false);
+        // end::snippet[]
+        layoutWithoutSpacing.setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+
+        layoutWithoutSpacing.add(item1, item2, item3);
+        wrapper.add(layoutWithoutSpacing);
+
+        wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout with spacing:"));
+        parent.add(wrapper);
+
+        VerticalLayout layoutWithSpacing = new VerticalLayout();
+        layoutWithSpacing.setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        Div spacingItem1 = new Div("Item 1");
+        spacingItem1.setClassName("example-item");
+        Div spacingItem2 = new Div("Item 2");
+        spacingItem2.setClassName("example-item");
+        Div spacingItem3 = new Div("Item 3");
+        spacingItem3.setClassName("example-item");
+
+        layoutWithSpacing.add(spacingItem1, spacingItem2, spacingItem3);
+        wrapper.add(layoutWithSpacing);
+
+        setClassName("basic-layouts-example");
+    }
+
+}
+
+[React: vertical-layout-spacing.tsx]
+import { HorizontalLayout, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      <HorizontalLayout theme="spacing" style={{ border: '0' }}>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout without spacing:</p>
+          <VerticalLayout theme="padding" style={{ alignItems: 'stretch' }}>
+            <div className="example-item">Item 1</div>
+            <div className="example-item">Item 2</div>
+            <div className="example-item">Item 3</div>
+          </VerticalLayout>
+        </div>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout with spacing:</p>
+          {/* tag::snippet[] */}
+          <VerticalLayout theme="spacing padding" style={{ alignItems: 'stretch' }}>
+            {/* end::snippet[] */}
+            <div className="example-item">Item 1</div>
+            <div className="example-item">Item 2</div>
+            <div className="example-item">Item 3</div>
+            {/* tag::snippet[] */}
+          </VerticalLayout>
+          {/* end::snippet[] */}
+        </div>
+      </HorizontalLayout>
+    </div>
+  );
+}
+
+[Lit: vertical-layout-spacing.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-spacing')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <vaadin-horizontal-layout theme="spacing" style="border: 0">
+          <div style="width: 100%">
+            <p>Vertical layout without spacing:</p>
+            <vaadin-vertical-layout theme="padding" style="align-items: stretch">
+              <div class="example-item">Item 1</div>
+              <div class="example-item">Item 2</div>
+              <div class="example-item">Item 3</div>
+            </vaadin-vertical-layout>
+          </div>
+          <div style="width: 100%">
+            <p>Vertical layout with spacing:</p>
+            <!-- tag::snippet[] -->
+            <vaadin-vertical-layout theme="spacing padding" style="align-items: stretch">
+              <!-- end::snippet[] -->
+              <div class="example-item">Item 1</div>
+              <div class="example-item">Item 2</div>
+              <div class="example-item">Item 3</div>
+              <!-- tag::snippet[] -->
+            </vaadin-vertical-layout>
+            <!-- end::snippet[] -->
+          </div>
+        </vaadin-horizontal-layout>
+      </div>
+    `;
+  }
+}
+
+Spacing can be customized with a specific value or a CSS custom property:
+
+[Flow: Java]
+VerticalLayout layout = new VerticalLayout();
+
+layout.setSpacing(12, Unit.PIXELS);
+
+layout.setSpacing("var(--vaadin-gap-l)");
+
+[Flow: Java]
+
+[React: tsx]
+<VerticalLayout style={{ gap: '12px' }}></VerticalLayout>
+
+<VerticalLayout style={{ gap: 'var(--vaadin-gap-l)' }}></VerticalLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-vertical-layout style="gap: 12px"></vaadin-vertical-layout>
+
+<vaadin-vertical-layout style="gap: var(--vaadin-gap-l)"></vaadin-vertical-layout>
+
+[Lit: HTML]
+
+For available CSS custom properties that can be used as spacing values, see gap properties from the base styles and space properties from the Lumo theme.
+
+Padding
+
+Padding is the space allocated between the content in a layout and the outer border. This should not be confused with Margin, which is explained in the next section.
+
+Padding can help distinguish the content in a layout from its surrounding. Padding is applied using the padding style variant.
+
+[Flow: VerticalLayoutPadding.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-padding")
+public class VerticalLayoutPadding extends Div {
+
+    public VerticalLayoutPadding() {
+        HorizontalLayout parent = new HorizontalLayout();
+        parent.getStyle().setBorder("0");
+        add(parent);
+
+        Div wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout without padding:"));
+        parent.add(wrapper);
+
+        // tag::snippet[]
+        // VerticalLayout has padding enabled by default, use setPadding to
+        // disable it
+        VerticalLayout layoutWithoutPadding = new VerticalLayout();
+        layoutWithoutPadding.setPadding(false);
+        // end::snippet[]
+        layoutWithoutPadding.setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+
+        layoutWithoutPadding.add(item1, item2, item3);
+        wrapper.add(layoutWithoutPadding);
+
+        wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout with padding:"));
+        parent.add(wrapper);
+
+        VerticalLayout layoutWithPadding = new VerticalLayout();
+        layoutWithPadding.setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        Div paddingItem1 = new Div("Item 1");
+        paddingItem1.setClassName("example-item");
+        Div paddingItem2 = new Div("Item 2");
+        paddingItem2.setClassName("example-item");
+        Div paddingItem3 = new Div("Item 3");
+        paddingItem3.setClassName("example-item");
+
+        layoutWithPadding.add(paddingItem1, paddingItem2, paddingItem3);
+        wrapper.add(layoutWithPadding);
+
+        setClassName("basic-layouts-example");
+    }
+
+}
+
+[React: vertical-layout-padding.tsx]
+import { HorizontalLayout, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      <HorizontalLayout theme="spacing" style={{ border: '0' }}>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout without padding:</p>
+          <VerticalLayout theme="spacing" style={{ alignItems: 'stretch' }}>
+            <div className="example-item">Item 1</div>
+            <div className="example-item">Item 2</div>
+            <div className="example-item">Item 3</div>
+          </VerticalLayout>
+        </div>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout with padding:</p>
+          {/* tag::snippet[] */}
+          <VerticalLayout theme="padding spacing" style={{ alignItems: 'stretch' }}>
+            {/* end::snippet[] */}
+            <div className="example-item">Item 1</div>
+            <div className="example-item">Item 2</div>
+            <div className="example-item">Item 3</div>
+            {/* tag::snippet[] */}
+          </VerticalLayout>
+          {/* end::snippet[] */}
+        </div>
+      </HorizontalLayout>
+    </div>
+  );
+}
+
+[Lit: vertical-layout-padding.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-padding')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <vaadin-horizontal-layout theme="spacing" style="border: 0">
+          <div style="width: 100%">
+            <p>Vertical layout without padding:</p>
+            <vaadin-vertical-layout theme="spacing" style="align-items: stretch">
+              <div class="example-item">Item 1</div>
+              <div class="example-item">Item 2</div>
+              <div class="example-item">Item 3</div>
+            </vaadin-vertical-layout>
+          </div>
+          <div style="width: 100%">
+            <p>Vertical layout with padding:</p>
+            <!-- tag::snippet[] -->
+            <vaadin-vertical-layout theme="padding spacing" style="align-items: stretch">
+              <!-- end::snippet[] -->
+              <div class="example-item">Item 1</div>
+              <div class="example-item">Item 2</div>
+              <div class="example-item">Item 3</div>
+              <!-- tag::snippet[] -->
+            </vaadin-vertical-layout>
+            <!-- end::snippet[] -->
+          </div>
+        </vaadin-horizontal-layout>
+      </div>
+    `;
+  }
+}
+
+Margin
+
+Margin is the space around a layout. This is different from Padding, which is explained in the previous section.
+
+[Flow: VerticalLayoutMargin.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-margin")
+public class VerticalLayoutMargin extends Div {
+
+    public VerticalLayoutMargin() {
+        HorizontalLayout parent = new HorizontalLayout();
+        parent.getStyle().setBorder("0");
+        add(parent);
+
+        Div wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout without margin:"));
+        parent.add(wrapper);
+
+        Div container = new Div();
+        container.setClassName("container");
+        wrapper.add(container);
+
+        VerticalLayout layoutWithoutMargin = new VerticalLayout();
+        layoutWithoutMargin.setWidth("auto");
+        layoutWithoutMargin.setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+
+        layoutWithoutMargin.add(item1, item2, item3);
+
+        container.add(layoutWithoutMargin);
+
+        wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout with margin:"));
+        parent.add(wrapper);
+
+        container = new Div();
+        container.setClassName("container");
+        wrapper.add(container);
+
+        // tag::snippet[]
+        VerticalLayout layoutWithMargin = new VerticalLayout();
+        layoutWithMargin.setMargin(true);
+        // end::snippet[]
+        layoutWithMargin.setWidth("auto");
+        layoutWithMargin.setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        Div marginItem1 = new Div("Item 1");
+        marginItem1.setClassName("example-item");
+        Div marginItem2 = new Div("Item 2");
+        marginItem2.setClassName("example-item");
+        Div marginItem3 = new Div("Item 3");
+        marginItem3.setClassName("example-item");
+
+        layoutWithMargin.add(marginItem1, marginItem2, marginItem3);
+
+        container.add(layoutWithMargin);
+
+        setClassName("basic-layouts-example");
+    }
+
+}
+
+[React: vertical-layout-margin.tsx]
+import { HorizontalLayout, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      <HorizontalLayout theme="spacing" style={{ border: '0' }}>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout without margin:</p>
+          <div className="container">
+            <VerticalLayout theme="spacing padding" style={{ alignItems: 'stretch' }}>
+              <div className="example-item">Item 1</div>
+              <div className="example-item">Item 2</div>
+              <div className="example-item">Item 3</div>
+            </VerticalLayout>
+          </div>
+        </div>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout with margin:</p>
+          <div className="container">
+            {/* tag::snippet[] */}
+            <VerticalLayout theme="margin spacing padding" style={{ alignItems: 'stretch' }}>
+              {/* end::snippet[] */}
+              <div className="example-item">Item 1</div>
+              <div className="example-item">Item 2</div>
+              <div className="example-item">Item 3</div>
+              {/* tag::snippet[] */}
+            </VerticalLayout>
+            {/* end::snippet[] */}
+          </div>
+        </div>
+      </HorizontalLayout>
+    </div>
+  );
+}
+
+[Lit: vertical-layout-margin.ts]
+import '@vaadin/horizontal-layout';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-margin')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <vaadin-horizontal-layout theme="spacing" style="border: 0">
+          <div style="width: 100%">
+            <p>Vertical layout without margin:</p>
+            <div class="container">
+              <vaadin-vertical-layout theme="spacing padding" style="align-items: stretch">
+                <div class="example-item">Item 1</div>
+                <div class="example-item">Item 2</div>
+                <div class="example-item">Item 3</div>
+              </vaadin-vertical-layout>
+            </div>
+          </div>
+          <div style="width: 100%">
+            <p>Vertical layout with margin:</p>
+            <div class="container">
+              <!-- tag::snippet[] -->
+              <vaadin-vertical-layout theme="margin spacing padding" style="align-items: stretch">
+                <!-- end::snippet[] -->
+                <div class="example-item">Item 1</div>
+                <div class="example-item">Item 2</div>
+                <div class="example-item">Item 3</div>
+                <!-- tag::snippet[] -->
+              </vaadin-vertical-layout>
+              <!-- end::snippet[] -->
+            </div>
+          </div>
+        </vaadin-horizontal-layout>
+      </div>
+    `;
+  }
+}
+
+Wrapping
+
+By default, components in a layout either shrink or overflow when there isn’t enough vertical space. Enable wrapping to allow components to flow onto a new column when space runs out, preventing overflow.
+
+[Flow: VerticalLayoutWrapping.java]
+package com.vaadin.demo.component.verticallayout;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("vertical-layout-wrapping")
+public class VerticalLayoutWrapping extends Div {
+
+    public VerticalLayoutWrapping() {
+        HorizontalLayout parent = new HorizontalLayout();
+        parent.setSpacing(true);
+        parent.setMargin(true);
+        parent.getElement().getStyle().setBorder("0");
+
+        Div wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout without wrapping:"));
+
+        VerticalLayout layoutWithoutWrap = new VerticalLayout();
+        layoutWithoutWrap.setPadding(true);
+        layoutWithoutWrap.setSpacing(true);
+        layoutWithoutWrap.setAlignItems(FlexComponent.Alignment.STRETCH);
+        layoutWithoutWrap.setHeight("200px");
+
+        Div item1 = new Div("Item 1");
+        item1.setClassName("example-item");
+        Div item2 = new Div("Item 2");
+        item2.setClassName("example-item");
+        Div item3 = new Div("Item 3");
+        item3.setClassName("example-item");
+        Div item4 = new Div("Item 4");
+        item4.setClassName("example-item");
+
+        layoutWithoutWrap.add(item1, item2, item3, item4);
+        wrapper.add(layoutWithoutWrap);
+        parent.add(wrapper);
+
+        wrapper = new Div();
+        wrapper.setWidthFull();
+        wrapper.add(new Paragraph("Vertical layout with wrapping:"));
+
+        // tag::snippet[]
+        VerticalLayout layoutWithWrap = new VerticalLayout();
+        layoutWithWrap.setWrap(true);
+        // end::snippet[]
+        layoutWithWrap.setPadding(true);
+        layoutWithWrap.setSpacing(true);
+        layoutWithWrap.setAlignItems(FlexComponent.Alignment.STRETCH);
+        layoutWithWrap.setHeight("200px");
+
+        Div wrapItem1 = new Div("Item 1");
+        wrapItem1.setClassName("example-item");
+        Div wrapItem2 = new Div("Item 2");
+        wrapItem2.setClassName("example-item");
+        Div wrapItem3 = new Div("Item 3");
+        wrapItem3.setClassName("example-item");
+        Div wrapItem4 = new Div("Item 4");
+        wrapItem4.setClassName("example-item");
+
+        layoutWithWrap.add(wrapItem1, wrapItem2, wrapItem3, wrapItem4);
+        wrapper.add(layoutWithWrap);
+        parent.add(wrapper);
+        this.setClassName("basic-layouts-example");
+        this.add(parent);
+    }
+
+}
+
+[React: vertical-layout-wrapping.tsx]
+import { HorizontalLayout, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <div className="basic-layouts-example">
+      <HorizontalLayout theme="spacing margin" style={{ border: 0 }}>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout without wrapping:</p>
+          <VerticalLayout
+            theme="spacing padding"
+            style={{ alignItems: 'stretch', height: '200px' }}
+          >
+            <div className="example-item">Item 1</div>
+            <div className="example-item">Item 2</div>
+            <div className="example-item">Item 3</div>
+            <div className="example-item">Item 4</div>
+          </VerticalLayout>
+        </div>
+        <div style={{ width: '100%' }}>
+          <p>Vertical layout with wrapping:</p>
+          {/* tag::snippet[] */}
+          <VerticalLayout
+            theme="wrap spacing padding"
+            style={{ alignItems: 'stretch', height: '200px' }}
+          >
+            {/* end::snippet[] */}
+            <div className="example-item">Item 1</div>
+            <div className="example-item">Item 2</div>
+            <div className="example-item">Item 3</div>
+            <div className="example-item">Item 4</div>
+            {/* tag::snippet[] */}
+          </VerticalLayout>
+          {/* end::snippet[] */}
+        </div>
+      </HorizontalLayout>
+    </div>
+  );
+}
+
+[Lit: vertical-layout-wrapping.ts]
+import '@vaadin/vertical-layout';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('vertical-layout-wrapping')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="basic-layouts-example">
+        <vaadin-horizontal-layout theme="margin spacing" style="border: 0;">
+          <div style="width: 100%;">
+            <p>Vertical layout without wrapping:</p>
+            <vaadin-vertical-layout
+              theme="spacing padding"
+              style="align-items: stretch; height: 200px;"
+            >
+              <div class="example-item">Item 1</div>
+              <div class="example-item">Item 2</div>
+              <div class="example-item">Item 3</div>
+              <div class="example-item">Item 4</div>
+            </vaadin-vertical-layout>
+          </div>
+          <div style="width: 100%;">
+            <p>Vertical layout with wrapping:</p>
+            <!-- tag::snippet[] -->
+            <vaadin-vertical-layout
+              theme="wrap spacing padding"
+              style="align-items: stretch; height: 200px;"
+            >
+              <!-- end::snippet[] -->
+              <div class="example-item">Item 1</div>
+              <div class="example-item">Item 2</div>
+              <div class="example-item">Item 3</div>
+              <div class="example-item">Item 4</div>
+              <!-- tag::snippet[] -->
+            </vaadin-vertical-layout>
+            <!-- end::snippet[] -->
+          </div>
+        </vaadin-horizontal-layout>
+      </div>
+    `;
+  }
+}
+
+Troubleshooting
+
+Component is Smaller than its Specified Size
+
+In some situations, a component with a specific, fixed size is rendered smaller than that size (and its size may vary depending on the size of the UI).
+
+This is usually caused by the component being placed in the same Horizontal or Vertical Layout as another component with 100% (or “full”) size along the same axis.
+
+The reason for this behavior is a combination of two aspects of Horizontal Layout and Vertical Layout:
+
+- 100% width or height actually means the full width or height of the layout, rather than whatever space is available after any fixed-size items.
+- By default, children of these layouts are allowed to shrink below their specified size. While this allows full-size items to shrink below 100% to make room for other items, it also makes fixed-size items shrink a bit.
+
+There are three main ways to solve this issue:
+
+Prevent the fixed-size element from shrinking
+
+By setting the flex-shrink value of the fixed size component to 0, it is prevented from shrinking below that size.
+
+[Flow: Java]
+VerticalLayout layout = new VerticalLayout(fixedSizeComponent, fullSizeComponent);
+fixedSizeComponent.setHeight("200px");
+fullSizeComponent.setHeightFull();
+
+layout.setFlexShrink(fixedSizeComponent, 0);
+// or
+fixedSizeComponent.getStyle().setFlexShrink("0");
+
+[Flow: Java]
+
+[React: tsx]
+<VerticalLayout>
+  <div style={{ height: '200px', flexShrink: 0 }}></div>
+  <div style={{ height: '100%' }}></div>
+</VerticalLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-vertical-layout>
+  <div style="height: 200px; flex-shrink: 0;"></div>
+  <div style="height: 100%;"></div>
+</vaadin-vertical-layout>
+
+[Lit: HTML]
+
+Use Flex-Grow Instead of 100% Size
+
+Instead of setting a 100% (or “full”) size, you can make a component take all available space by setting its flex-grow value to 1.
+
+[Flow: Java]
+VerticalLayout layout = new VerticalLayout(fixedSizeComponent, fullSizeComponent);
+fixedSizeComponent.setHeight("200px");
+
+layout.setFlexGrow(fullSizeComponent, 1);
+// or
+fullSizeComponent.getStyle().setFlexGrow("1");
+
+[Flow: Java]
+
+[React: tsx]
+<VerticalLayout>
+  <div style={{ height: '200px' }}></div>
+  <div style={{ flexGrow: 1 }}></div>
+</VerticalLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-vertical-layout>
+  <div style="height: 200px;"></div>
+  <div style="flex-grow: 1;"></div>
+</vaadin-vertical-layout>
+
+[Lit: HTML]
+
+Enable Layout Improvements to Prevent Shrinking (Flow only, experimental)
+
+Instead of adjusting individual components, you can enable the layoutComponentImprovements feature flag. With this flag, the Flow APIs setWidthFull, setHeightFull, and setSizeFull are rewired to automatically apply flex: 1 to the component. This prevents fixed-size components from shrinking and makes the full-size component take up the remaining space in the layout.
+
+Component Overflows its Specified Size
+
+This is most commonly noticed on scroll containers like Scroller and TabSheet, or elements that have been scroll-enabled through CSS, but it can occur in other situations as well. The problem often causes extra undesired scrollbars to appear.
+
+This is caused by the default minimum size of a layout item to be equal to the size of its contents.
+
+There are three main ways to solve this issue:
+
+Set an Appropriate Minimum Size
+
+Set the minimum size to 0 or any other specific size.
+
+[Flow: Java]
+overFlowingComponent.setMinHeight("0");
+
+[Flow: Java]
+
+[React: tsx]
+<div style={{ minHeight: '0' }}></div>
+
+[React: tsx]
+
+[Lit: HTML]
+<div style="min-height: 0"></div>
+
+[Lit: HTML]
+
+Prevent Overflow
+
+You can prevent the component from overflowing by setting the CSS overflow property to hidden. Be aware that this will also clip outlines and box-shadows, such as those used for focus rings.
+
+[Flow: Java]
+overFlowingComponent.getStyle().setOverflow(Overflow.HIDDEN);
+
+[Flow: Java]
+
+[React: tsx]
+<div style={{ overflow: 'hidden' }}></div>
+
+[React: tsx]
+
+[Lit: HTML]
+<div style="overflow: hidden"></div>
+
+[Lit: HTML]
+
+Enable Layout Improvements to Allow Shrinking (Flow only, experimental)
+
+The same layoutComponentImprovements feature flag described above also addresses overflow. When enabled, the Flow APIs setWidthFull, setHeightFull, and setSizeFull are rewired to set the minimum size of nested Horizontal and Vertical Layouts to 0, allowing them to shrink below the size of their contents.
+
+A Nested Layout Takes All the Space
+
+When you nest a Vertical Layout or Horizontal Layout inside another layout, its default size — not only the sizes you set explicitly — affects how space is shared. A Vertical Layout defaults to width: 100%, so when nested as a child of a Horizontal Layout it claims the full width of the row and starves its siblings. (A nested Horizontal Layout defaults to hugging its content instead.)
+
+A typical symptom is a text column that should grow and truncate with an ellipsis, but instead collapses to zero width: a sibling layout’s implicit 100% width has consumed the row. Adding the usual min-width: 0 ellipsis recipe to the text column isn’t enough on its own, because the sibling’s default width is the real cause.
+
+To fix this, size both children explicitly: let the column that should only take the space it needs hug its content, and give the growing column flex: 1 1 0 together with width: 0, min-width: 0, and overflow: hidden so it can shrink below its content size and truncate.
+
+[Flow: Java]
+HorizontalLayout row = new HorizontalLayout(textColumn, metaColumn);
+
+// The growing column truncates with an ellipsis
+textColumn.getStyle().setFlexGrow("1");   // grow to fill free space
+textColumn.getStyle().setFlexShrink("1"); // allow shrinking
+textColumn.getStyle().setFlexBasis("0");  // start from zero width
+textColumn.setWidth("0");
+textColumn.setMinWidth("0");
+textColumn.getStyle().setOverflow(Overflow.HIDDEN);
+
+// The meta column hugs its content instead of filling the row
+metaColumn.setWidth(null);
+
+[Flow: Java]
+
+[React: tsx]
+<HorizontalLayout>
+  {/* Grows and truncates */}
+  <VerticalLayout style={{ flex: '1 1 0', width: 0, minWidth: 0, overflow: 'hidden' }}>
+    ...
+  </VerticalLayout>
+  {/* Hugs its content (time + badge) */}
+  <VerticalLayout style={{ width: 'auto' }}>
+    ...
+  </VerticalLayout>
+</HorizontalLayout>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-horizontal-layout>
+  <!-- Grows and truncates -->
+  <vaadin-vertical-layout
+      style="flex: 1 1 0; width: 0; min-width: 0; overflow: hidden;">
+    ...
+  </vaadin-vertical-layout>
+  <!-- Hugs its content (time + badge) -->
+  <vaadin-vertical-layout style="width: auto;">
+    ...
+  </vaadin-vertical-layout>
+</vaadin-horizontal-layout>
+
+[Lit: HTML]

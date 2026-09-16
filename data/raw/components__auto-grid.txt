@@ -1,0 +1,832 @@
+Auto Grid Hilla React
+
+Used for displaying tabular data based on a Java backend service.
+
+Auto Grid is a component for displaying tabular data based on a Java backend service.
+
+Basic Usage
+
+Auto Grid requires a Java service that implements the ListService<T> interface. In the example below, the ProductService class extends ListRepositoryService<T, ID, R>, which in turn implements the ListService<T>:
+
+[ProductService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.ListRepositoryService;
+
+@BrowserCallable
+@AnonymousAllowed
+public class ProductService
+        extends ListRepositoryService<Product, Long, ProductRepository> {
+}
+
+[Product.java]
+package com.vaadin.demo.fusion.crud;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+import java.time.LocalDate;
+
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String category;
+    private double price;
+    private LocalDate dateAdded;
+    @OneToOne
+    private Supplier supplier;
+
+    // getters and setters omitted for brevity
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public LocalDate getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(LocalDate dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+}
+
+[Supplier.java]
+package com.vaadin.demo.fusion.crud;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class Supplier {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String supplierName;
+    private String headquarterCity;
+
+    // getters and setters omitted for brevity
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String name) {
+        this.supplierName = name;
+    }
+
+    public String getHeadquarterCity() {
+        return headquarterCity;
+    }
+
+    public void setHeadquarterCity(String headquarterCity) {
+        this.headquarterCity = headquarterCity;
+    }
+
+}
+
+[ProductRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface ProductRepository extends JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product> {
+}
+
+Hilla generates TypeScript objects for each @BrowserCallable service implementing the ListService<T> interface. These TypeScript objects have callable methods that execute the corresponding Java service methods, enabling lazy data loading with sorting and filtering.
+
+For the ProductService example, you can import the generated TypeScript object in your React view, and use it as a value for the <AutoGrid service={}/> property to display the data.
+
+[React: auto-grid-basic.tsx]
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  return <AutoGrid service={ProductService} model={ProductModel} />;
+}
+
+The Auto Grid component renders a grid with columns for all properties of the Product entity with sorting and filtering, loading the data lazily from the backend by calling the ListService<T>.list(Pageable pageable, @Nullable Filter filter) method.
+
+Here’s what the rendered grid looks like:
+
+[React: auto-grid-basic.tsx]
+// tag::snippet[]
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  return <AutoGrid service={ProductService} model={ProductModel} />;
+}
+// end::snippet[]
+
+As you can see, Auto Grid expands properties of @OneToOne relationships — in this case the properties of the supplier — and it displays them as columns in the grid. However, properties annotated with @Id or @Version are excluded by default. To show them, though, you can use the visibleColumns property to specify which columns to display. You can find more information on this in the next section.
+
+Auto Grid supports working with plain, non-JPA classes. This can be useful, for example, if you want to use the Data Transfer Object (DTO) pattern. See the Working with Plain Java Classes section.
+
+Customizing Columns
+
+It’s possible to customize the columns displayed by Auto Grid. How this is done is covered in the sub-sections here.
+
+Visibility & Order
+
+To choose which of the data properties should be displayed as columns in Auto Grid, and to specify the column order, set the property names to the visibleColumns property.
+
+The following example uses only the category, name, supplier.supplierName, and price properties — in that order:
+
+[React: Auto Grid with Chosen Columns]
+import React from 'react';
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <AutoGrid
+      service={ProductService}
+      model={ProductModel}
+      visibleColumns={['category', 'name', 'supplier.supplierName', 'price']}
+    />
+    // end::snippet[]
+  );
+}
+
+When trying to access nested properties, use the Dot Notation, as shown in the example above. To access the supplierName of the supplier property, for example, you might use supplier.supplierName.
+
+Alternatively, you can also use the hiddenColumns property to specify which columns should be hidden.
+
+Caution: Don’t Expose Sensitive Data on Client-Side
+
+When using Auto Grid, it��’s important to check that you don’t expose sensitive data to the client-side. For example, if you have a password property in your entity, hiding it using the visibleColumns or hiddenColumns property won’t prevent the data from being sent to the client-side. Make sure your service implementation doesn’t expose sensitive data to the client-side. You can do this, for example, by using a @JsonIgnore annotation on the property.
+
+Column Options
+
+Individual columns can be customized using the columnOptions property. It takes an object in which each key is the name of a data property, and the value is a property’s object that is passed when rendering the column for that property.
+
+The following example uses column options to define a custom renderer for the price column that highlights prices in different colors, depending on their value:
+
+[React: Auto Grid with Customized Price Column]
+import React from 'react';
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import type Product from 'Frontend/generated/com/vaadin/demo/fusion/crud/Product';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+// tag::snippet[]
+function PriceRenderer({ item }: { item: Product }) {
+  const { price } = item;
+  const color = price > 4 ? 'red' : 'green';
+  return <span style={{ fontWeight: 'bold', color }}>{price}</span>;
+}
+
+function Example() {
+  return (
+    <AutoGrid
+      service={ProductService}
+      model={ProductModel}
+      columnOptions={{
+        price: {
+          renderer: PriceRenderer,
+        },
+      }}
+    />
+  );
+}
+// end::snippet[]
+
+You can pass the same options as when rendering a column in a regular grid. See the Grid documentation page for more information and examples.
+
+Adding Custom Columns
+
+To add a custom column that, for example, joins the values of multiple properties and displays them in a single column, use the customColumns property. This property takes an array of GridColumn instances and renders them after the auto columns. Refer to the Grid documentation page for more information on the GridColumn type.
+
+The following example uses the customColumns property to render a custom column that concatenates and displays the product’s supplier name and headquarterCity properties in the same column:
+
+[React: Auto Grid with Custom Supplier Column]
+import React from 'react';
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import { GridColumn } from '@vaadin/react-components/GridColumn';
+import type Product from 'Frontend/generated/com/vaadin/demo/fusion/crud/Product';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  // tag::snippet[]
+  function SupplierRenderer({ item }: { item: Product }) {
+    const { supplier } = item;
+    return (
+      <span>
+        {supplier?.supplierName} - {supplier?.headquarterCity}
+      </span>
+    );
+  }
+
+  return (
+    <AutoGrid
+      service={ProductService}
+      model={ProductModel}
+      customColumns={[
+        <GridColumn key="supplierInfo" renderer={SupplierRenderer} header="Supplier" autoWidth />,
+      ]}
+    />
+  );
+  // end::snippet[]
+}
+
+Note: Customizing vs. Adding Columns
+
+In general, for customizing automatically rendered columns, you can use the columnOptions property. As for adding or customizing the custom columns, use customColumns.
+
+Custom Columns Order
+
+By default, custom columns are added after the automatically rendered columns. You can also define the order of appearance for custom columns by using the visibleColumns property. Custom columns can be freely placed before, in between, or after other columns. To do this, you’ll need to provide the key property of the custom column in the visibleColumns property.
+
+The following example shows a custom column with supplierInfo as the key placed between two rendered columns:
+
+[Auto Grid Custom Column’s Order]
+<AutoGrid
+  service={ProductService}
+  model={ProductModel}
+  visibleColumns={['name', 'supplierInfo', 'category']}
+  customColumns={[
+    <GridColumn key="supplierInfo"
+                renderer={SupplierRenderer}
+                header="Supplier"
+                autoWidth
+    />
+  ]}
+/>
+
+Note: Custom Columns Visibility
+
+If the visibleColumns property is present, only the custom columns for which their keys are mentioned in the visibleColumns are rendered according to the specified order.
+
+Sorting & Filtering
+
+Auto Grid has sorting and filtering enabled by default for all columns with a supported Java type. That includes all primitive types (e.g., strings, numbers, booleans), as well as some complex types (e.g. enums, java.time.LocalDate and java.time.LocalTime). It sorts by the first column, and shows a filter field in the header of each column.
+
+You can disable sorting and filtering for individual columns by configuring the column’s sortable and filterable properties in the columnOptions object. This can be useful for columns that show a computed property for which no sorting and filtering is implemented in the ListService, or if there isn’t any meaningful way to sort or filter.
+
+This example uses Auto Grid with sorting and filtering disabled for the displayName column:
+
+[tsx]
+<AutoGrid
+  service={ProductService}
+  model={ProductModel}
+  columnOptions={{
+    displayName: {
+      filterable: false,
+      sortable: false,
+    },
+  }}
+/>
+
+Alternatively, you can disable all header filters by setting the noHeaderFilters property.
+
+[Auto Grid with all header filters disabled]
+<AutoGrid
+  service={ProductService}
+  model={ProductModel}
+  noHeaderFilters
+/>
+
+Instead of using the built-in header filters, Auto Grid supports external filtering by passing a custom filter definition to the experimentalFilter property.
+
+In the example below, the data in Auto Grid is filtered using the contains matcher for the name property, combined with the equals matcher for category when a specific category is selected:
+
+[React: Auto Grid with a Filter]
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { Select, type SelectItem } from '@vaadin/react-components/Select.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import type AndFilter from 'Frontend/generated/com/vaadin/hilla/crud/filter/AndFilter';
+import type PropertyStringFilter from 'Frontend/generated/com/vaadin/hilla/crud/filter/PropertyStringFilter';
+import Matcher from 'Frontend/generated/com/vaadin/hilla/crud/filter/PropertyStringFilter/Matcher';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+const categories: SelectItem[] = [
+  { label: 'All', value: 'All' },
+  { label: 'Fruit', value: 'Fruit' },
+  { label: 'Vegetable', value: 'Vegetable' },
+];
+
+function Example() {
+  // tag::snippet[]
+  const categoryFilterValue = useSignal(categories[0].value!);
+  const nameFilterValue = useSignal('');
+  const filter = useComputed(() => {
+    const categoryFilter: PropertyStringFilter = {
+      propertyId: 'category',
+      filterValue: categoryFilterValue.value,
+      matcher: Matcher.EQUALS,
+      '@type': 'propertyString',
+    };
+
+    const nameFilter: PropertyStringFilter = {
+      propertyId: 'name',
+      filterValue: nameFilterValue.value,
+      matcher: Matcher.CONTAINS,
+      '@type': 'propertyString',
+    };
+
+    const andFilter: AndFilter = {
+      '@type': 'and',
+      children: [nameFilter, categoryFilter],
+    };
+
+    return categoryFilterValue.value === 'All' ? nameFilter : andFilter;
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
+        <Select
+          label="Filter by category"
+          items={categories}
+          value={categoryFilterValue.value}
+          onValueChanged={(e) => {
+            categoryFilterValue.value = e.detail.value;
+          }}
+        />
+        <TextField
+          label="Filter by name"
+          value={nameFilterValue.value}
+          onValueChanged={(e) => {
+            nameFilterValue.value = e.detail.value;
+          }}
+        />
+      </div>
+      <AutoGrid
+        service={ProductService}
+        model={ProductModel}
+        experimentalFilter={filter.value}
+        noHeaderFilters
+      />
+    </div>
+  );
+  // end::snippet[]
+}
+
+You can combine several filtering criteria by using the {'@type': 'and' | 'or', children: []} composite filter type.
+
+Warning: Experimental Feature
+
+External Auto Grid filtering is an experimental feature. The experimentalFilter property API may be changed or removed in future releases.
+
+Filter Options
+
+You can customize the filter behavior by using additional columnOptions properties like filterPlaceholder, filterDebounceTime, or filterMinLength:
+
+[tsx]
+<AutoGrid
+  service={ProductService}
+  model={ProductModel}
+  columnOptions={{
+    displayName: {
+        filterPlaceholder: 'Filter by name',
+        filterDebounceTime: 500,
+        filterMinLength: 3,
+    },
+  }}
+/>
+
+Refreshing Data
+
+Auto Grid supports refreshing the data by providing a reference to a refresh function that can be called from the parent component. The refresh function can be obtained by providing a reference of the type React.MutableRefObject<AutoGridRef> to the Auto Grid. The AutoGridRef type provides a refresh function that refreshes the data by calling the backend service. The following example shows how to use the refresh function to refresh the data in Auto Grid:
+
+[Refresh Auto Grid Data]
+const autoGridRef = React.useRef<AutoGridRef>(null);
+
+function refreshGrid() {
+  autoGridRef.current?.refresh();
+}
+
+return (
+  <VerticalLayout>
+    <Button onClick={() => { refreshGrid() }}>Refresh Data</Button>
+    <AutoGrid service={EmployeeService} model={EmployeeModel} ref={autoGridRef} />
+  </VerticalLayout>
+);
+
+Grid Properties
+
+You can also customize the underlying Grid component properties in Auto Grid.
+
+The example here enables single-row selection in the Auto Grid by using a combination of the onActiveItemChanged event listener with the selectedItems property. Both are supported by the Grid component that Auto Grid uses internally.
+
+[React: Auto Grid with a Filter]
+import { AutoGrid } from '@vaadin/hilla-react-crud';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import type Product from 'Frontend/generated/com/vaadin/demo/fusion/crud/Product';
+import ProductModel from 'Frontend/generated/com/vaadin/demo/fusion/crud/ProductModel';
+import { ProductService } from 'Frontend/generated/endpoints';
+
+function Example() {
+  // tag::snippet[]
+  const selectedItems = useSignal<Product[]>([]);
+
+  return (
+    <AutoGrid
+      service={ProductService}
+      model={ProductModel}
+      selectedItems={selectedItems.value}
+      onActiveItemChanged={(e) => {
+        const item = e.detail.value;
+        selectedItems.value = item ? [item] : [];
+      }}
+    />
+  );
+  // end::snippet[]
+}
+
+You can read more about the properties, and use cases supported, on the Grid component documentation page.
+
+Working with Plain Java Classes
+
+Auto Grid supports working with plain, non-JPA Java classes. This can be useful, for example, if you want to use the Data Transfer Object (DTO) pattern to decouple your domain from your presentation logic, or you want to avoid serializing your JPA entities to the client due to performance concerns.
+
+Implementing a Custom Service
+
+To use plain Java classes, you need to provide a custom implementation of the ListService<T> interface, as the ListRepositoryService<T> base class only works with JPA entities. The List<T> list(Pageable pageable, Filter filter) method needs to be implemented. It returns a list of paginated, sorted and filtered items.
+
+The following example shows a basic implementation of a custom ListService that wraps a JPA repository. The service only exposes DTO instances to the client and maps between the DTO instances and JPA entities internally. It also reuses the Hilla JpaFilterConverter for the filter implementation. In order for sorting and filtering to work, the DTO class and the JPA entity class must have the same structure, which means all properties that are sorted and filtered-by should have the same name and are at the same path in the data structure.
+
+[ProductDtoListService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.crud.JpaFilterConverter;
+import com.vaadin.hilla.crud.ListService;
+import com.vaadin.hilla.crud.filter.Filter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.List;
+
+@BrowserCallable
+@AnonymousAllowed
+public class ProductDtoListService implements ListService<ProductDto> {
+    private final ProductRepository productRepository;
+
+    public ProductDtoListService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    @Override
+    @NonNull
+    public List<@NonNull ProductDto> list(Pageable pageable,
+            @Nullable Filter filter) {
+        // Use the Hilla JpaFilterConverter to create a JPA specification from
+        // the filter
+        Specification<Product> spec = filter != null
+                ? JpaFilterConverter.toSpec(filter, Product.class)
+                : Specification.anyOf();
+        // Query the JPA repository
+        Page<Product> products = productRepository.findAll(spec, pageable);
+        // Map entities to DTOs and return result
+        return products.stream().map(ProductDto::fromEntity).toList();
+    }
+}
+
+[ProductDto.java]
+package com.vaadin.demo.fusion.crud;
+
+public record ProductDto(Long id, String name, String category, double price) {
+    public static ProductDto fromEntity(Product product) {
+        return new ProductDto(product.getId(), product.getName(),
+                product.getCategory(), product.getPrice());
+    }
+}
+
+[Product.java]
+package com.vaadin.demo.fusion.crud;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+import java.time.LocalDate;
+
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String category;
+    private double price;
+    private LocalDate dateAdded;
+    @OneToOne
+    private Supplier supplier;
+
+    // getters and setters omitted for brevity
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public LocalDate getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(LocalDate dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+}
+
+[ProductRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface ProductRepository extends JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product> {
+}
+
+Advanced Implementations
+
+The example above works for an ideal case, where the DTO class structure maps one-to-one to the JPA entity class structure. In practice, however, this is often not the case. For example, you might want to flatten nested properties, use different property names or create computed properties that are not present in the JPA entity. Alternatively, you might want to use a different data source than JPA.
+
+The following example shows a more complex use case:
+
+- The DTO class uses different property names than the JPA entity class and flattens nested properties. It also adds a computed property that is not present in the JPA entity.
+- The sort implementation maps the DTO property names to the JPA entity class structure.
+- The filter implementation creates JPA filter specifications based on the filter values entered by the user in the header filters. As part of that it demonstrates how to handle different matcher types, and how to filter for computed properties.
+
+This example uses a FilterTransformer to adapt filtering and sorting to the fields as expected by the DTO class.
+
+[ProductAdvancedDtoListService.java]
+package com.vaadin.demo.fusion.crud;
+
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.Nullable;
+import com.vaadin.hilla.crud.JpaFilterConverter;
+import com.vaadin.hilla.crud.ListService;
+import com.vaadin.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.FilterTransformer;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
+@BrowserCallable
+@AnonymousAllowed
+public class ProductAdvancedDtoListService
+        implements ListService<ProductAdvancedDto> {
+    private final ProductRepository productRepository;
+
+    public ProductAdvancedDtoListService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    @Override
+    public List<ProductAdvancedDto> list(Pageable pageable,
+            @Nullable Filter filter) {
+        // Create filter transformer to map DTO fields to JPA fields
+        var transformer = new FilterTransformer().withMapping("productId", "id")
+                .withMapping("productName", "name")
+                .withMapping("productCategory", "category")
+                .withMapping("productPrice", "price")
+                .withMapping("supplierId", "supplier.id")
+                .withMapping("supplierInfo", "supplier.supplierName");
+        // Create JPA specification from Hilla filter
+        var specification = JpaFilterConverter.toSpec(transformer.apply(filter),
+                Product.class);
+        // Fetch data from JPA repository
+        return productRepository
+                .findAll(specification, transformer.apply(pageable))
+                .map(ProductAdvancedDto::fromEntity).toList();
+    }
+}
+
+[ProductAdvancedDto.java]
+package com.vaadin.demo.fusion.crud;
+
+public record ProductAdvancedDto(Long productId,
+                                 String productName,
+                                 String productCategory,
+                                 double productPrice,
+                                 Long supplierId,
+                                 String supplierInfo) {
+    public static ProductAdvancedDto fromEntity(Product product) {
+        // Compute a custom property that includes the supplier name and city
+        String supplierInfo = product.getSupplier() != null
+                ? String.format("%s (%s)",
+                        product.getSupplier().getSupplierName(),
+                        product.getSupplier().getHeadquarterCity())
+                : "";
+
+        return new ProductAdvancedDto(
+                product.getId(),
+                product.getName(),
+                product.getCategory(),
+                product.getPrice(),
+                product.getSupplier().getId(),
+                supplierInfo
+        );
+    }
+}
+
+[Product.java]
+package com.vaadin.demo.fusion.crud;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+import java.time.LocalDate;
+
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String category;
+    private double price;
+    private LocalDate dateAdded;
+    @OneToOne
+    private Supplier supplier;
+
+    // getters and setters omitted for brevity
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public LocalDate getDateAdded() {
+        return dateAdded;
+    }
+
+    public void setDateAdded(LocalDate dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+}
+
+[ProductRepository.java]
+package com.vaadin.demo.fusion.crud;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface ProductRepository extends JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product> {
+}
+
+For more complex use cases, you need to implement manually pagination, sorting, and filtering using the parameters provided to the list method. The method receives org.springframework.data.domain.Pageable and com.vaadin.hilla.crud.filter.Filter instances as parameters, which can be used to extract the following information:
+
+- Pageable.getOffset, which is the offset of the first item to fetch.
+- Pageable.getPageSize, which is the maximum number of items to fetch.
+- Pageable.getSort, which is the sort order of the items. Each sort order contains the property by which to sort (Sort.Order.getProperty()), and the direction (Sort.Order.getDirection())
+- Filter, which is the filter to apply to the items.
+
+The last one is a tree structure of Filter instances, where each is an AndFilter, or an OrFilter, or a PropertyStringFilter:
+
+- AndFilter contains a list of nested filters (AndFilter.getChildren()) that should all match.
+- OrFilter contains a list of nested filters (OrFilter.getChildren()) of which at least one should match.
+- PropertyStringFilter filters an individual property based on a value. It contains the name of the property to filter (PropertyStringFilter.getPropertyId()), the value to filter against (PropertyStringFilter.getFilterValue()), and the matcher to use (PropertyStringFilter.getMatcher()). The filter value is always a string and needs to be converted into a respective type or format that works with the type of the property. The matcher specifies the type of filter operation (e.g., EQUALS, CONTAINS, GREATER_THAN).
+
+When using the default header filters, the filter is always an AndFilter with a list of PropertyStringFilter instances. The PropertyStringFilter instances are created based on the filter values entered by the user in the header filters. When using an external filter, the filter can be of any structure.

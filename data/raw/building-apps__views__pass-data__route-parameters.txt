@@ -1,0 +1,158 @@
+Route Parameters
+
+Learn how to use route parameters in Vaadin.
+
+In this guide, you’ll learn how to create a view that accepts a single route parameter, holds it in a signal so the UI updates reactively, and keeps the browser URL in sync. You’ll also explore the differences between optional and wildcard route parameters.
+
+Copy-Paste into Your Project
+
+If you want to quickly try out route parameters in your Vaadin application, copy-paste the following code into a new Java class named RouteParameterView in your project’s main package:
+
+[RouteParameterView.java]
+package com.vaadin.demo.buildingapps.passdata;
+
+import java.util.Optional;
+
+import org.jspecify.annotations.Nullable;
+
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
+
+@Route("building-apps/pass-data/route-parameter")
+public class RouteParameterView extends VerticalLayout
+        implements HasUrlParameter<String> {
+
+    private final ValueSignal<String> parameter = new ValueSignal<>(null);
+
+    RouteParameterView() {
+        Paragraph parameterValue = new Paragraph();
+        add(parameterValue);
+
+        // Update the value by setting the signal
+        add(new Button("Set Parameter Value",
+                e -> parameter.set("Hello" + System.currentTimeMillis())));
+
+        // Bind the paragraph text to a computed signal
+        parameterValue.bindText(() -> Optional.ofNullable(parameter.get())
+                .map(value -> "Parameter value: " + value)
+                .orElse("No parameter value provided"));
+
+        // Update the URL parameter when the signal changes
+        Signal.effect(this, () -> UI.getCurrent()
+                .navigate(RouteParameterView.class, parameter.get()));
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event,
+            @OptionalParameter String parameterValue) {
+        parameter.set(parameterValue);
+    }
+
+    // For use by other views navigating to this view
+    public static void showView(@Nullable String parameterValue) {
+        UI.getCurrentOrThrow().navigate(RouteParameterView.class,
+                parameterValue);
+    }
+}
+
+This view stores the route parameter in a signal, binds its text to a value derived from that signal, and updates the URL whenever the signal changes. For more detailed instructions on how to use route parameters, continue reading below.
+
+What Are Route Parameters?
+
+Route parameters are dynamic segments in a URL that allow extra information to be passed to a view. They are appended to the route path and can be used to personalize responses or modify application behavior.
+
+For example, if an application has a greet route that accepts a string parameter, users can call it with URLs like:
+
+- /greet/John
+- /greet/Jane
+- /greet/World
+
+Here, "John", "Jane", and "World" are parameter values that the greet route can use to generate a response.
+
+Route Parameters vs Static Routes
+
+Static routes always take precedence over dynamic ones. For instance, consider an application with both a customer route (which accepts a string parameter), and a customer/list route:
+
+- /customer/cu1234 → Calls the customer route with "cu1234" as the parameter value.
+- /customer/details → Calls the customer route with "details" as the parameter value.
+- /customer/list → Calls the dedicated customer/list route.
+- /customer → Returns a 404 Not Found error, unless the parameter is explicitly declared optional.
+
+Accessing the Route Parameter Value
+
+To pass a route parameter to a Vaadin view, implement the HasUrlParameter<T> interface. This interface requires a type argument — Long, Integer, String, or Boolean — and defines the setParameter() method, which the router calls with the parameter value when the view is navigated to.
+
+To make that value available to the rest of the view, store it in a signal. The signal becomes the single source of truth: setParameter() writes the incoming value to it, and every component that depends on the parameter binds to the signal and updates itself automatically. For a trivial view you could update a component directly inside setParameter(), but a signal scales to any number of dependents without manual bookkeeping, and it’s the approach used throughout this guide.
+
+[Java]
+private final ValueSignal<String> parameter = new ValueSignal<>(null);
+
+@Override
+public void setParameter(BeforeEvent event, String parameterValue) {
+    parameter.set(parameterValue);
+}
+
+Components don’t read the parameter directly. Instead, they bind to the signal and re-render whenever it changes. For example, bind a Paragraph to it with bindText():
+
+[Java]
+parameterValue.bindText(() -> "Parameter value: " + parameter.get());
+
+Anything else that depends on the parameter — an enabled state, a visible flag, a nested component — can bind to the same signal in the same way. See Component Bindings for the full set of binding methods.
+
+Now, if you navigate to /customers/cu12345, the router calls setParameter() with "cu12345", which flows into the signal and updates every bound component.
+
+Optional Parameters
+
+By default, route parameters are required. If you try to navigate to /customers without a parameter, the router returns a 404 Not Found error.
+
+To make a route parameter optional, add the @OptionalParameter annotation. The router then calls setParameter() with null when the parameter is missing:
+
+[Java]
+@Override
+public void setParameter(BeforeEvent event, @OptionalParameter String parameterValue) {
+    parameter.set(parameterValue);
+}
+
+Because the value flows into the signal, the binding decides how to present a missing value. The copy-paste example shows a default message when the signal holds null:
+
+[Java]
+parameterValue.bindText(() -> Optional.ofNullable(parameter.get())
+        .map(value -> "Parameter value: " + value)
+        .orElse("No parameter value provided"));
+
+Wildcard Parameters
+
+By default, a route parameter captures only a single URL segment. For example, when customers expects a single string parameter, navigating to /customers/cu1234/edit returns a 404 Not Found error.
+
+To capture multiple URL segments as a single parameter, use the @WildcardParameter annotation:
+
+[Java]
+@Override
+public void setParameter(BeforeEvent event, @WildcardParameter String parameterValue) {
+    parameter.set(parameterValue);
+}
+
+Now, navigating to /customers/cu1234/edit writes "cu1234/edit" to the signal.
+
+Note: An empty wildcard parameter is an empty string (""), while an empty optional parameter is null. So, navigating to /customers calls setParameter() with "" instead of null.
+
+If you’re considering wildcard parameters because you need multiple route parameters, Route Templates may be a better solution.
+
+Keeping the URL in Sync
+
+So far the URL drives the signal. You often want the reverse as well: when the signal changes — because the user selected something in the view — the browser’s address bar should update to match. A signal effect handles this. Reading parameter.get() inside the effect makes it re-run whenever the value changes, navigating the view to itself with the current parameter:
+
+[Java]
+Signal.effect(this,
+        () -> UI.getCurrent().navigate(RouteParameterView.class,
+                parameter.get()));
+
+The effect is bound to the view’s lifecycle, so it’s active only while the view is attached. Navigating the view to itself reuses the existing instance and updates the URL; because the target location matches the current one whenever setParameter() was the source of the change, this doesn’t cause a navigation loop.

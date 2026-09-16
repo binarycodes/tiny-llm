@@ -1,0 +1,1195 @@
+Avatar
+
+Avatar is a graphical representation of an object or entity, for example, a person or an organization.
+
+Avatar is a graphical representation of an object or entity, for example, a person or an organization.
+
+[Flow: AvatarBasic.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("avatar-basic")
+public class AvatarBasic extends HorizontalLayout {
+
+    private Person person = DataService.getPeople(1).get(0);
+
+    public AvatarBasic() {
+        String name = person.getFirstName() + " " + person.getLastName();
+        String pictureUrl = person.getPictureUrl();
+
+        // tag::snippet[]
+        Avatar avatarBasic = new Avatar();
+
+        Avatar avatarName = new Avatar(name);
+
+        Avatar avatarImage = new Avatar(name);
+        avatarImage.setImage(pictureUrl);
+        // end::snippet[]
+
+        add(avatarBasic, avatarName, avatarImage);
+    }
+
+}
+
+[React: avatar-basic.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Avatar />
+
+      <Avatar name={`${person.value?.firstName} ${person.value?.lastName}`} />
+
+      <Avatar
+        img={person.value?.pictureUrl}
+        name={`${person.value?.firstName} ${person.value?.lastName}`}
+      />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: avatar-basic.ts]
+import '@vaadin/avatar';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private person: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    this.person = people[0];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-avatar></vaadin-avatar>
+
+        <vaadin-avatar
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+        ></vaadin-avatar>
+
+        <vaadin-avatar
+          .img="${this.person?.pictureUrl}"
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+        ></vaadin-avatar>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Note: Real-time collaboration
+
+This component is optimized for use with Collaboration Kit — a simple way to build real-time collaboration into your app — but can also be used standalone as a regular component.
+
+Content
+
+Avatar has three properties: name, abbreviation, and image.
+
+Name and Abbreviation
+
+The name is shown on hover in a tooltip. When a name is set, Avatar auto-generates and display an abbreviation of the specified name. For example, “Allison Torres” becomes “AT”, “John Smith” becomes “JS”, and so on.
+
+[Flow: AvatarName.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("avatar-name")
+public class AvatarName extends Div {
+
+    private Person person = DataService.getPeople(1).get(0);
+
+    public AvatarName() {
+        String name = person.getFirstName() + " " + person.getLastName();
+
+        // tag::snippet[]
+        Avatar avatarName = new Avatar(name);
+        // end::snippet[]
+
+        add(avatarName);
+    }
+
+}
+
+[React: avatar-name.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Avatar name={`${person.value?.firstName} ${person.value?.lastName}`} />
+    // end::snippet[]
+  );
+}
+
+[Lit: avatar-name.ts]
+import '@vaadin/avatar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-name')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private person: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    this.person = people[0];
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-avatar .name="${`${this.person?.firstName} ${this.person?.lastName}`}">
+      </vaadin-avatar>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The abbreviation can also be set manually. Abbreviations should be kept to a maximum of 2–3 characters.
+
+[Flow: AvatarAbbreviation.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("avatar-abbreviation")
+public class AvatarAbbreviation extends HorizontalLayout {
+
+    public AvatarAbbreviation() {
+        // tag::snippet[]
+        Avatar avatarName = new Avatar("Augusta Ada King");
+
+        Avatar avatarAbbr = new Avatar("Augusta Ada King");
+        avatarAbbr.setAbbreviation("AK");
+        // end::snippet[]
+
+        add(avatarName, avatarAbbr);
+    }
+
+}
+
+[React: avatar-abbreviation.tsx]
+import React from 'react';
+import { Avatar, HorizontalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Avatar name="Augusta Ada King" />
+
+      <Avatar name="Augusta Ada King" abbr="AK" />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: avatar-abbreviation.ts]
+import '@vaadin/avatar';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('avatar-abbreviation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-avatar name="Augusta Ada King"></vaadin-avatar>
+
+        <vaadin-avatar name="Augusta Ada King" abbr="AK"></vaadin-avatar>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Image
+
+Avatar can be used to display images, such as user profile pictures or company logos. Abbreviations aren’t shown when images are used.
+
+[Flow: AvatarImage.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.DownloadHandler;
+
+@Route("avatar-image")
+public class AvatarImage extends HorizontalLayout {
+
+    private Person person = DataService.getPeople(1).get(0);
+
+    public AvatarImage() {
+        String name = person.getFirstName() + " " + person.getLastName();
+        String pictureUrl = person.getPictureUrl();
+
+        // tag::snippet[]
+        Avatar user = new Avatar(name);
+        user.setImage(pictureUrl);
+
+        Avatar company = new Avatar("Company Inc.");
+        DownloadHandler imageHandler = DownloadHandler.forClassResource(
+                getClass(), "/images/company-logo.png", "company-logo.png");
+        company.setImageHandler(imageHandler);
+        // end::snippet[]
+
+        add(user, company);
+    }
+
+}
+
+[React: avatar-image.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Avatar, HorizontalLayout } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+import companyLogo from '../../../../../src/main/resources/images/company-logo.png?url';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <Avatar
+        img={person.value?.pictureUrl}
+        name={`${person.value?.firstName} ${person.value?.lastName}`}
+      />
+
+      <Avatar img={companyLogo} name="Company Inc." />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: avatar-image.ts]
+import '@vaadin/avatar';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+import companyLogo from '../../../../src/main/resources/images/company-logo.png?url';
+
+@customElement('avatar-image')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private person: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    this.person = people[0];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-avatar
+          .img="${this.person?.pictureUrl}"
+          .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+        ></vaadin-avatar>
+
+        <vaadin-avatar .img="${companyLogo}" name="Company Inc."></vaadin-avatar>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Avatar Group
+
+Avatar Group is used to group multiple Avatars together. It can be used, for example, to show that there are multiple users viewing the same page or for listing members of a project.
+
+[Flow: AvatarGroupBasic.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.AvatarGroup;
+import com.vaadin.flow.component.avatar.AvatarGroup.AvatarGroupItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import java.util.List;
+
+@Route("avatar-group-basic")
+public class AvatarGroupBasic extends Div {
+
+    private List<Person> people = DataService.getPeople(3);
+
+    public AvatarGroupBasic() {
+        // tag::snippet[]
+        AvatarGroup avatarGroup = new AvatarGroup();
+
+        for (Person person : people) {
+            String name = person.getFirstName() + " " + person.getLastName();
+            AvatarGroupItem avatar = new AvatarGroupItem(name);
+            avatarGroup.add(avatar);
+        }
+        // end::snippet[]
+
+        add(avatarGroup);
+    }
+
+}
+
+[React: avatar-group-basic.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { AvatarGroup } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const peopleData = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 3 }).then(({ people }) => {
+      peopleData.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const avatars = useComputed(() =>
+    peopleData.value.map((person) => ({
+      name: `${person.firstName} ${person.lastName}`,
+    }))
+  );
+
+  return <AvatarGroup items={avatars.value} />;
+  // end::snippet[]
+}
+
+[Lit: avatar-group-basic.ts]
+import '@vaadin/avatar-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-group-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 3 });
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-avatar-group
+        .items="${this.items.map((person) => ({
+          name: `${person.firstName} ${person.lastName}`,
+        }))}"
+      ></vaadin-avatar-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Maximum Number of Items
+
+You can specify the maximum number of items an Avatar Group should display. Items that overflow are grouped into a single Avatar that displays the overflow count. The name of each hidden item is shown on hover in a tooltip. Clicking the overflow item displays the overflowing avatars and names in a list.
+
+[Flow: AvatarGroupMaxItems.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.AvatarGroup;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import java.util.List;
+
+@Route("avatar-group-max-items")
+public class AvatarGroupMaxItems extends Div {
+
+    private List<Person> people = DataService.getPeople(6);
+
+    public AvatarGroupMaxItems() {
+        // tag::snippet[]
+        AvatarGroup avatarGroup = new AvatarGroup();
+        avatarGroup.setMaxItemsVisible(3);
+
+        for (Person person : people) {
+            String name = person.getFirstName() + " " + person.getLastName();
+            AvatarGroup.AvatarGroupItem avatar = new AvatarGroup.AvatarGroupItem(
+                    name);
+            avatarGroup.add(avatar);
+        }
+        // end::snippet[]
+
+        add(avatarGroup);
+    }
+
+}
+
+[React: avatar-group-max-items.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { AvatarGroup } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const peopleData = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 6 }).then(({ people }) => {
+      peopleData.value = people;
+    });
+  }, []);
+
+  const avatars = useComputed(() =>
+    peopleData.value.map((person) => ({
+      name: `${person.firstName} ${person.lastName}`,
+    }))
+  );
+
+  return (
+    // tag::snippet[]
+    <AvatarGroup maxItemsVisible={3} items={avatars.value} />
+    // end::snippet[]
+  );
+}
+
+[Lit: avatar-group-max-items.ts]
+import '@vaadin/avatar-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-group-max-items')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 6 });
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-avatar-group
+        .maxItemsVisible="${3}"
+        .items="${this.items.map((person) => ({
+          name: `${person.firstName} ${person.lastName}`,
+        }))}"
+      ></vaadin-avatar-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Background Color
+
+By default, there are 7 different background colors you can use for Avatar. The background color is set using a color index.
+
+[Flow: AvatarGroupBgColor.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.AvatarGroup;
+import com.vaadin.flow.component.avatar.AvatarGroup.AvatarGroupItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+import java.util.List;
+
+@Route("avatar-group-bg-color")
+public class AvatarGroupBgColor extends Div {
+
+    private List<Person> people = DataService.getPeople(6);
+
+    public AvatarGroupBgColor() {
+        int colorIndex = 0;
+
+        // tag::snippet[]
+        AvatarGroup avatarGroup = new AvatarGroup();
+
+        for (Person person : people) {
+            String name = person.getFirstName() + " " + person.getLastName();
+            AvatarGroupItem avatar = new AvatarGroupItem(name);
+            avatar.setColorIndex(colorIndex++);
+            avatarGroup.add(avatar);
+        }
+        // end::snippet[]
+
+        add(avatarGroup);
+    }
+
+}
+
+[React: avatar-group-bg-color.tsx]
+import React, { useEffect } from 'react';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { AvatarGroup } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const peopleData = useSignal<Person[]>([]);
+
+  useEffect(() => {
+    getPeople({ count: 6 }).then(({ people }) => {
+      peopleData.value = people;
+    });
+  }, []);
+
+  // tag::snippet[]
+  const avatars = useComputed(() =>
+    peopleData.value.map((person, index) => ({
+      name: `${person.firstName} ${person.lastName}`,
+      colorIndex: index,
+    }))
+  );
+
+  return <AvatarGroup items={avatars.value} />;
+  // end::snippet[]
+}
+
+[Lit: avatar-group-bg-color.ts]
+import '@vaadin/avatar-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-group-bg-color')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 6 });
+    this.items = people;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-avatar-group
+        .items="${this.items.map((person, index) => ({
+          name: `${person.firstName} ${person.lastName}`,
+          colorIndex: index,
+        }))}"
+      ></vaadin-avatar-group>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Using different background colors can be useful when you need to be able to distinguish between users, for example during collaborative work.
+
+Internationalisation (i18n)
+
+All texts in Avatar and Avatar Group are configurable:
+
+Avatar Texts
+
+Property | Text | Description
+anonymous | "Anonymous" | Avatar’s default name. Shown on hover in a tooltip and announced by screen readers when the Avatar is focused.
+
+Avatar Group Texts
+
+Property | Text | Description
+anonymous | "Anonymous" | Default name for all Avatars in the Avatar Group.
+activeUsers.one | "Currently one active user" | Announced by screen readers when there is exactly one Avatar in an Avatar Group and the Avatar is focused. The name of the Avatar is read aloud first.
+activeUsers.many | "Currently {count} active users" | Announced by screen readers when there are multiple Avatars in an Avatar Group and an Avatar is focused. The name of the focused Avatar is read aloud first. *{count} is the Avatar Group item count.
+joined | "{user} joined" | Announced by screen readers when an Avatar is added to the group. *{user} is the Avatar’s name.
+left | "{user} left" | Announced by screen readers when an Avatar is removed from the group. *{user} is the Avatar’s name.
+
+[Flow: AvatarGroupInternationalisation.java]
+package com.vaadin.demo.component.avatar;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.AvatarGroup;
+import com.vaadin.flow.component.avatar.AvatarGroup.AvatarGroupI18n;
+import com.vaadin.flow.component.avatar.AvatarGroup.AvatarGroupItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.List;
+
+@Route("avatar-group-internationalisation")
+public class AvatarGroupInternationalisation extends Div {
+
+    private List<Person> people = DataService.getPeople(2);
+
+    public AvatarGroupInternationalisation() {
+        // tag::snippet[]
+        AvatarGroupI18n i18n = new AvatarGroupI18n();
+        i18n.setAnonymous("Anonyymi");
+        i18n.setManyActiveUsers("Yksi käyttäjä aktiivisena");
+        i18n.setOneActiveUser("{count} käyttäjää aktiivisena");
+
+        AvatarGroup avatarGroup = new AvatarGroup();
+        avatarGroup.setI18n(i18n);
+
+        // Add anonymous user
+        avatarGroup.add(new AvatarGroupItem());
+
+        for (Person person : people) {
+            String name = person.getFirstName() + " " + person.getLastName();
+            AvatarGroupItem avatar = new AvatarGroupItem(name);
+            avatarGroup.add(avatar);
+        }
+        // end::snippet[]
+
+        add(avatarGroup);
+    }
+
+}
+
+[React: avatar-group-internationalisation.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { AvatarGroup, type AvatarGroupI18n } from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+
+// tag::snippet[]
+const i18n: AvatarGroupI18n = {
+  anonymous: 'Anonyymi',
+  activeUsers: {
+    one: 'Yksi käyttäjä aktiivisena',
+    many: '{count} käyttäjää aktiivisena',
+  },
+  joined: 'liittyi',
+  left: 'lähti',
+};
+// end::snippet[]
+
+function Example() {
+  const items = useSignal<Array<{ name: string }>>([]);
+
+  useEffect(() => {
+    getPeople({ count: 2 }).then(({ people }) => {
+      people.unshift({
+        address: {
+          city: '',
+          country: '',
+          phone: '',
+          state: '',
+          street: '',
+          zip: '',
+        },
+        birthday: '',
+        email: '',
+        firstName: '',
+        id: -1,
+        lastName: '',
+        membership: '',
+        pictureUrl: '',
+        profession: '',
+        subscriber: false,
+        manager: false,
+        managerId: -1,
+        status: '',
+      });
+      items.value = people.map((person) => ({
+        name: `${person.firstName} ${person.lastName}`,
+      }));
+    });
+  }, []);
+
+  // tag::snippet[]
+  return <AvatarGroup i18n={i18n} items={items.value} />;
+  // end::snippet[]
+}
+
+[Lit: avatar-group-internationalisation.ts]
+import '@vaadin/avatar-group';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { AvatarGroupI18n } from '@vaadin/avatar-group';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('avatar-group-internationalistion')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Person[] = [];
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 2 });
+
+    // Add an anonymous user
+    people.unshift({
+      address: {
+        city: '',
+        country: '',
+        phone: '',
+        state: '',
+        street: '',
+        zip: '',
+      },
+      birthday: '',
+      email: '',
+      firstName: '',
+      id: -1,
+      lastName: '',
+      membership: '',
+      pictureUrl: '',
+      profession: '',
+      subscriber: false,
+      manager: false,
+      managerId: -1,
+      status: '',
+    });
+
+    this.items = people;
+  }
+
+  // tag::snippet[]
+  private i18n: AvatarGroupI18n = {
+    anonymous: 'Anonyymi',
+    activeUsers: {
+      one: 'Yksi käyttäjä aktiivisena',
+      many: '{count} käyttäjää aktiivisena',
+    },
+    joined: 'liittyi',
+    left: 'lähti',
+  };
+
+  protected override render() {
+    return html`
+      <vaadin-avatar-group
+        .i18n="${this.i18n}"
+        .items="${this.items.map((person) => ({
+          name: `${person.firstName} ${person.lastName}`,
+        }))}"
+      ></vaadin-avatar-group>
+    `;
+  }
+  // end::snippet[]
+}
+
+Use Cases
+
+Avatar can be paired with Popover to create a user account menu.
+
+[Flow: PopoverUserMenu.java]
+package com.vaadin.demo.component.popover;
+
+import com.vaadin.demo.domain.DataService;
+import com.vaadin.demo.domain.Person;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("popover-user-menu")
+public class PopoverUserMenu extends HorizontalLayout {
+
+    private Person person = DataService.getPeople(1).get(0);
+
+    public PopoverUserMenu() {
+        setSpacing(false);
+        getStyle().set("background", "var(--vaadin-background-container)");
+
+        // tag::snippet[]
+        String name = person.getFirstName() + " " + person.getLastName();
+        String pictureUrl = person.getPictureUrl();
+
+        Avatar avatar = new Avatar(name);
+        avatar.setImage(pictureUrl);
+        avatar.getStyle().set("display", "block");
+        avatar.getStyle().set("cursor", "var(--vaadin-clickable-cursor)");
+        avatar.getElement().setAttribute("tabindex", "-1");
+
+        Button button = new Button(avatar);
+        button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                ButtonVariant.TERTIARY);
+        button.getStyle().set("margin", "var(--vaadin-gap-s)");
+        button.getStyle().set("margin-inline-start", "auto");
+        button.getStyle().set("padding", "0");
+        button.getStyle().set("border-radius", "50%");
+
+        Popover popover = new Popover();
+        popover.setModal(true);
+        popover.setRole("menu");
+        popover.setAriaLabel("User menu");
+        popover.setTarget(button);
+        popover.setPosition(PopoverPosition.BOTTOM_END);
+        popover.addThemeVariants(PopoverVariant.NO_PADDING);
+        // end::snippet[]
+
+        Avatar userAvatar = new Avatar(person.getFullName(),
+                person.getPictureUrl());
+        Span userName = new Span(person.getFullName());
+        Span userHandle = new Span("@" + person.getFirstName().toLowerCase()
+                + person.getLastName().toLowerCase());
+        Div personItem = new Div(userAvatar, userName, userHandle);
+        personItem.addClassName("person-item");
+        personItem.getStyle().setPadding("var(--vaadin-padding-s");
+
+        VerticalLayout linksLayout = new VerticalLayout();
+        linksLayout.setSpacing(false);
+        linksLayout.setPadding(false);
+        linksLayout.setAlignItems(Alignment.STRETCH);
+        linksLayout.addClassName("userMenuLinks");
+        linksLayout.setWidthFull();
+
+        Anchor profile = new Anchor("#", "User profile");
+        profile.getElement().setAttribute("role", "menuitem");
+
+        Anchor preferences = new Anchor("#", "Preferences");
+        preferences.getElement().setAttribute("role", "menuitem");
+
+        Anchor signOut = new Anchor("#", "Sign out");
+        signOut.getElement().setAttribute("role", "menuitem");
+
+        linksLayout.add(profile, preferences, signOut);
+
+        popover.add(personItem, linksLayout);
+
+        add(button, popover);
+    }
+
+}
+
+[Flow: popover-user-menu.css]
+.userMenuLinks {
+  padding-bottom: var(--vaadin-padding-xs);
+  border-top: 1px solid var(--vaadin-border-color-secondary);
+
+  & a {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--vaadin-background-container);
+    }
+  }
+}
+
+[Flow: popover-user-menu.css]
+
+[React: popover-user-menu.tsx]
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  Avatar,
+  Button,
+  HorizontalLayout,
+  Popover,
+  VerticalLayout,
+} from '@vaadin/react-components';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+function Example() {
+  const person = useSignal<Person | undefined>(undefined);
+
+  useEffect(() => {
+    getPeople({ count: 1 }).then(({ people }) => {
+      person.value = people[0];
+    });
+  }, []);
+
+  const { firstName, lastName, pictureUrl } = person.value ?? {};
+  const nickName = `@${firstName}${lastName}`.toLowerCase();
+
+  return (
+    <>
+      <HorizontalLayout style={{ background: 'var(--vaadin-background-container)' }}>
+        <Button
+          id="avatar"
+          theme="icon tertiary"
+          style={{
+            margin: 'var(--vaadin-gap-s)',
+            marginInlineStart: 'auto',
+            borderRadius: '50%',
+            padding: 0,
+          }}
+        >
+          <Avatar
+            tabIndex={-1}
+            style={{ display: 'block', cursor: 'var(--vaadin-clickable-cursor)' }}
+            img={pictureUrl}
+            name={`${firstName} ${lastName}`}
+          />
+        </Button>
+      </HorizontalLayout>
+      {/* tag::snippet[] */}
+      <Popover
+        for="avatar"
+        position="bottom-end"
+        role="menu"
+        modal
+        aria-label="User menu"
+        theme="no-padding"
+      >
+        <div className="person-item" style={{ padding: 'var(--vaadin-padding-s)' }}>
+          <Avatar img={pictureUrl} name={`${firstName} ${lastName}`} />
+          <span>
+            {firstName} {lastName}
+          </span>
+          <span>{nickName}</span>
+        </div>
+        <VerticalLayout className="userMenuLinks" style={{ alignItems: 'stretch', width: '100%' }}>
+          <a href="#" role="menuitem">
+            User profile
+          </a>
+          <a href="#" role="menuitem">
+            Preferences
+          </a>
+          <a href="#" role="menuitem">
+            Sign out
+          </a>
+        </VerticalLayout>
+      </Popover>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[React: popover-user-menu.css]
+.userMenuLinks {
+  padding-bottom: var(--vaadin-padding-xs);
+  border-top: 1px solid var(--vaadin-border-color-secondary);
+
+  & a {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--vaadin-background-container);
+    }
+  }
+}
+
+[React: popover-user-menu.css]
+
+[Lit: popover-user-menu.ts]
+import '@vaadin/avatar';
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/popover';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { getPeople } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Person from 'Frontend/generated/com/vaadin/demo/domain/Person';
+
+@customElement('popover-user-menu')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private person: Person | undefined;
+
+  protected override async firstUpdated() {
+    const { people } = await getPeople({ count: 1 });
+    // eslint-disable-next-line
+    this.person = people[0];
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout style="background: var(--vaadin-background-container);">
+        <vaadin-button
+          id="avatar"
+          theme="icon tertiary"
+          style="margin: var(--vaadin-gap-s); margin-inline-start: auto; padding: 0; border-radius: 50%;"
+        >
+          <vaadin-avatar
+            tabindex="-1"
+            style="display: block; cursor: var(--vaadin-clickable-cursor);"
+            .img="${this.person?.pictureUrl}"
+            .name="${`${this.person?.firstName} ${this.person?.lastName}`}"
+          ></vaadin-avatar>
+        </vaadin-button>
+      </vaadin-horizontal-layout>
+      <!-- tag::snippet[] -->
+      <vaadin-popover
+        for="avatar"
+        position="bottom-end"
+        modal
+        role="menu"
+        aria-label="User menu"
+        theme="no-padding"
+      >
+        ${this.renderUserMenu(this.person)}
+      </vaadin-popover>
+      <!-- end::snippet[] -->
+    `;
+  }
+
+  renderUserMenu(person?: Person) {
+    const { firstName, lastName, pictureUrl } = person ?? {};
+    const nickName = `@${firstName}${lastName}`.toLowerCase();
+
+    return html`
+      <div class="person-item" style="padding: var(--vaadin-padding-s);">
+        <vaadin-avatar .img="${pictureUrl}" .name="${`${firstName} ${lastName}`}"></vaadin-avatar>
+        <span>${firstName} ${lastName}</span>
+        <span>${nickName}</span>
+      </div>
+      <vaadin-vertical-layout class="userMenuLinks" style="align-items:stretch; width:100%;">
+        <a href="#" role="menuitem">User profile</a>
+        <a href="#" role="menuitem">Preferences</a>
+        <a href="#" role="menuitem">Sign out</a>
+      </vaadin-vertical-layout>
+    `;
+  }
+}
+
+[Lit: popover-user-menu.css]
+.userMenuLinks {
+  padding-bottom: var(--vaadin-padding-xs);
+  border-top: 1px solid var(--vaadin-border-color-secondary);
+
+  & a {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--vaadin-background-container);
+    }
+  }
+}
+
+[Lit: popover-user-menu.css]

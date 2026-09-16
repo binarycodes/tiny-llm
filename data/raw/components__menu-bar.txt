@@ -1,0 +1,1762 @@
+Menu Bar
+
+Menu Bar is a horizontal button bar with hierarchical drop-down menus.
+
+Menu Bar is a horizontal button bar with hierarchical drop-down menus. Menu items can trigger an action, open a menu, or work as a toggle.
+
+[Flow: MenuBarBasic.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-basic")
+public class MenuBarBasic extends Div {
+
+    public MenuBarBasic() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        Text selected = new Text("");
+        ComponentEventListener<ClickEvent<MenuItem>> listener = e -> selected
+                .setText(e.getSource().getText());
+        Div message = new Div(new Text("Clicked item: "), selected);
+
+        menuBar.addItem("View", listener);
+        menuBar.addItem("Edit", listener);
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        MenuItem onSocialMedia = shareSubMenu.addItem("On social media");
+        SubMenu socialMediaSubMenu = onSocialMedia.getSubMenu();
+        socialMediaSubMenu.addItem("Facebook", listener);
+        socialMediaSubMenu.addItem("Twitter", listener);
+        socialMediaSubMenu.addItem("Instagram", listener);
+        shareSubMenu.addItem("By email", listener);
+        shareSubMenu.addItem("Get Link", listener);
+
+        MenuItem move = menuBar.addItem("Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder", listener);
+        moveSubMenu.addItem("To trash", listener);
+
+        menuBar.addItem("Duplicate", listener);
+        // end::snippet[]
+
+        add(menuBar, message);
+    }
+
+}
+
+[React: menu-bar-basic.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const selectedItem = useSignal<MenuBarItem | undefined>(undefined);
+
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  return (
+    <>
+      <MenuBar
+        items={items}
+        onItemSelected={(event) => {
+          selectedItem.value = event.detail.value;
+        }}
+      />
+      <div>Clicked item: {selectedItem.value?.text}</div>
+    </>
+  );
+  // end::snippet[]
+}
+
+[Lit: menu-bar-basic.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MenuBarItem, MenuBarItemSelectedEvent } from '@vaadin/menu-bar';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  @state()
+  private selectedItem: MenuBarItem | undefined;
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar
+        .items="${this.items}"
+        @item-selected="${this.itemSelected}"
+      ></vaadin-menu-bar>
+
+      <div>Clicked item: ${this.selectedItem?.text}</div>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  itemSelected(e: MenuBarItemSelectedEvent) {
+    this.selectedItem = e.detail.value;
+  }
+}
+
+Overflow
+
+Items that don’t fit into the current width of the menu bar collapse into an overflow menu at the end.
+
+By default, collapsed items are removed from the end of the menu bar, but the component can be configured to remove items from the start instead.
+
+[Flow: MenuBarOverflow.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-overflow")
+public class MenuBarOverflow extends Div {
+    public MenuBarOverflow() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        addItems(menuBar);
+        Div div = new Div();
+        div.setText("Move the splitter to see overflow feature");
+
+        SplitLayout splitLayout = new SplitLayout(menuBar, div);
+        // end::snippet[]
+
+        add(splitLayout);
+    }
+
+    private void addItems(MenuBar menuBar) {
+        menuBar.addItem("View");
+        menuBar.addItem("Edit");
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        MenuItem onSocialMedia = shareSubMenu.addItem("On social media");
+        SubMenu socialMediaSubMenu = onSocialMedia.getSubMenu();
+        socialMediaSubMenu.addItem("Facebook");
+        socialMediaSubMenu.addItem("Twitter");
+        socialMediaSubMenu.addItem("Instagram");
+        shareSubMenu.addItem("By email");
+        shareSubMenu.addItem("Get Link");
+
+        MenuItem move = menuBar.addItem("Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder");
+        moveSubMenu.addItem("To trash");
+
+        menuBar.addItem("Duplicate");
+    }
+
+}
+
+[React: menu-bar-overflow.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+import { SplitLayout } from '@vaadin/react-components/SplitLayout.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  return (
+    <SplitLayout>
+      <MenuBar items={items} />
+      <div>Move the splitter to see overflow feature</div>
+    </SplitLayout>
+  );
+  // end::snippet[]
+}
+
+[Lit: menu-bar-overflow.ts]
+import '@vaadin/menu-bar';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-overflow')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-split-layout>
+        <vaadin-menu-bar .items="${this.items}"></vaadin-menu-bar>
+        <div>Move the splitter to see overflow feature</div>
+      </vaadin-split-layout>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+Menu Item Features
+
+Several features are available for menu items. They’re described in the following sub-sections.
+
+Icons
+
+Menu items can have icons in addition to text — or instead of text.
+
+[Flow: MenuBarIcons.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.contextmenu.HasMenuItems;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-icons")
+public class MenuBarIcons extends Div {
+    public MenuBarIcons() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_ICON);
+        MenuItem share = createIconItem(menuBar, VaadinIcon.SHARE, "Share",
+                null);
+        SubMenu shareSubMenu = share.getSubMenu();
+        createIconItem(shareSubMenu, VaadinIcon.SHARE, "By Email", null, true);
+        createIconItem(shareSubMenu, VaadinIcon.LINK, "Get link", null, true);
+        createIconItem(menuBar, VaadinIcon.COPY, null, "duplicate");
+        // end::snippet[]
+        add(menuBar);
+    }
+
+    private MenuItem createIconItem(HasMenuItems menu, VaadinIcon iconName,
+            String label, String ariaLabel) {
+        return createIconItem(menu, iconName, label, ariaLabel, false);
+    }
+
+    private MenuItem createIconItem(HasMenuItems menu, VaadinIcon iconName,
+            String label, String ariaLabel, boolean isChild) {
+        Icon icon = new Icon(iconName);
+
+        if (isChild) {
+            icon.getStyle().setWidth("1.25rem");
+            icon.getStyle().setHeight("1.25rem");
+            icon.getStyle().setMarginRight("var(--vaadin-gap-s)");
+        }
+
+        MenuItem item = menu.addItem(icon, e -> {
+        });
+
+        if (ariaLabel != null) {
+            item.setAriaLabel(ariaLabel);
+        }
+
+        if (label != null) {
+            item.add(new Text(label));
+        }
+
+        return item;
+    }
+
+}
+
+[React: menu-bar-icons.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function createItem(iconName: string, text: string, isChild = false) {
+  const iconStyle: React.CSSProperties = {
+    width: isChild ? '1.25rem' : '',
+    height: isChild ? '1.25rem' : '',
+    marginRight: isChild ? 'var(--vaadin-gap-s)' : '',
+  };
+
+  let ariaLabel = '';
+  if (iconName === 'copy') {
+    ariaLabel = 'duplicate';
+  }
+
+  return (
+    <>
+      <Icon icon={`vaadin:${iconName}`} style={iconStyle} aria-label={ariaLabel} />
+      {text}
+    </>
+  );
+}
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    {
+      component: createItem('share', 'Share'),
+      children: [
+        { component: createItem('share', 'By email', true) },
+        { component: createItem('link', 'Get link', true) },
+      ],
+    },
+    {
+      component: createItem('copy', ''),
+    },
+  ];
+
+  return <MenuBar theme="icon" items={items} />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-icons.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-icons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      component: this.createItem('share', 'Share'),
+      children: [
+        { component: this.createItem('share', 'By email', true) },
+        { component: this.createItem('link', 'Get link', true) },
+      ],
+    },
+    {
+      component: this.createItem('copy', ''),
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar theme="icon" .items="${this.items}"></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  createItem(iconName: string, text: string, isChild = false) {
+    const item = document.createElement('vaadin-menu-bar-item');
+    const icon = document.createElement('vaadin-icon');
+
+    if (isChild) {
+      icon.style.width = '1.25rem';
+      icon.style.height = '1.25rem';
+      icon.style.marginRight = 'var(--vaadin-gap-s)';
+    }
+
+    if (iconName === 'copy') {
+      item.setAttribute('aria-label', 'duplicate');
+    }
+
+    icon.setAttribute('icon', `vaadin:${iconName}`);
+    item.appendChild(icon);
+    if (text) {
+      item.appendChild(document.createTextNode(text));
+    }
+    return item;
+  }
+}
+
+Most actions are difficult to represent reliably with icons, so use them sparingly. The benefit of icons in addition to text should be weighed against the visual distractions they may create. Menu items in drop-down menus should always have text labels. Top-level items that open a drop-down menu are easier to recognize with the dropdown-indicators theme variant.
+
+Icon-only menu buttons should be used primarily for common recurring actions with highly standardized, universally understood icons. Menu buttons should include a textual alternative for screen readers using the aria-label attribute or tooltips. Menu Bars with icon-only top-level items can use the Tertiary Inline style variant or the icon theme variant (both Lumo only) to reduce the horizontal padding around the icons. The icon variant also hides drop-down indicators, even when the dropdown-indicators variant is applied, so avoid combining the two if the indicators are needed.
+
+[Flow: MenuBarIconOnly.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-icon-only")
+public class MenuBarIconOnly extends Div {
+    public MenuBarIconOnly() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY_INLINE);
+
+        createIconItem(menuBar, VaadinIcon.EYE, "View");
+        createIconItem(menuBar, VaadinIcon.PENCIL, "Edit");
+
+        MenuItem share = createIconItem(menuBar, VaadinIcon.SHARE, "Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        MenuItem onSocialMedia = shareSubMenu.addItem("On social media");
+        SubMenu socialMediaSubMenu = onSocialMedia.getSubMenu();
+        socialMediaSubMenu.addItem("Facebook");
+        socialMediaSubMenu.addItem("Twitter");
+        socialMediaSubMenu.addItem("Instagram");
+        shareSubMenu.addItem("By email");
+        shareSubMenu.addItem("Get Link");
+
+        MenuItem move = createIconItem(menuBar, VaadinIcon.FOLDER, "Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder");
+        moveSubMenu.addItem("To trash");
+
+        createIconItem(menuBar, VaadinIcon.COPY, "Duplicate");
+        // end::snippet[]
+        add(menuBar);
+    }
+
+    private MenuItem createIconItem(MenuBar menu, VaadinIcon iconName,
+            String ariaLabel) {
+        Icon icon = new Icon(iconName);
+        MenuItem item = menu.addItem(icon);
+        item.setAriaLabel(ariaLabel);
+
+        return item;
+    }
+
+}
+
+[React: menu-bar-icon-only.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function createItem(iconName: string, ariaLabel: string) {
+  return <Icon icon={`vaadin:${iconName}`} aria-label={ariaLabel} />;
+}
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { component: createItem('eye', 'View') },
+    { component: createItem('pencil', 'Edit') },
+    {
+      component: createItem('share', 'Share'),
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      component: createItem('folder', 'Move'),
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { component: createItem('copy', 'Duplicate') },
+  ];
+
+  return <MenuBar theme="icon" items={items} />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-icon-only.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-icon-only')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { component: this.createItem('eye', 'View') },
+    { component: this.createItem('pencil', 'Edit') },
+    {
+      component: this.createItem('share', 'Share'),
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      component: this.createItem('folder', 'Move'),
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { component: this.createItem('copy', 'Duplicate') },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar theme="tertiary-inline" .items="${this.items}"></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  createItem(iconName: string, ariaLabel: string) {
+    const item = document.createElement('vaadin-menu-bar-item');
+    const icon = document.createElement('vaadin-icon');
+    item.setAttribute('aria-label', ariaLabel);
+    icon.setAttribute('icon', `vaadin:${iconName}`);
+    item.appendChild(icon);
+    return item;
+  }
+}
+
+Warning: Other Components in Menu Items
+
+While it’s technically possible to put any UI element in a menu item, this can cause problems for accessibility as it may not be possible to focus them, and they may not be interpreted correctly by assistive technologies.
+
+Disabled Items
+
+Menu items can be disabled to show that they are unavailable currently.
+
+[Flow: MenuBarDisabled.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-disabled")
+public class MenuBarDisabled extends Div {
+    public MenuBarDisabled() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+
+        menuBar.addItem("View");
+        MenuItem edit = menuBar.addItem("Edit");
+        edit.setEnabled(false);
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        shareSubMenu.addItem("By email").setEnabled(false);
+        shareSubMenu.addItem("Get Link");
+        // end::snippet[]
+
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-disabled.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit', disabled: true },
+    {
+      text: 'Share',
+      children: [{ text: 'By email', disabled: true }, { text: 'Get link' }],
+    },
+  ];
+
+  return <MenuBar items={items} />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-disabled.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit', disabled: true },
+    {
+      text: 'Share',
+      children: [{ text: 'By email', disabled: true }, { text: 'Get link' }],
+    },
+  ];
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar .items="${this.items}"></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+By default, disabled buttons (i.e., root-level items) aren’t focusable or hoverable, which hides them from assistive technologies and prevents Tooltips on disabled buttons from showing. The accessibleDisabledButtons feature flag can be enabled to make them focusable and hoverable without allowing them to be triggered:
+
+[Flow]
+# Add this line to src/main/resources/vaadin-featureflags.properties
+com.vaadin.experimental.accessibleDisabledButtons=true
+
+[Lit & React]
+// Set before any button is added to the DOM
+window.Vaadin.featureFlags.accessibleDisabledButtons = true;
+
+Similarly, the accessibleDisabledMenuItems feature flag can be enabled to make disabled sub-menu items focusable and hoverable without allowing them to be triggered:
+
+[Flow]
+# Add this line to src/main/resources/vaadin-featureflags.properties
+com.vaadin.experimental.accessibleDisabledMenuItems=true
+
+[Lit & React]
+// Set before any menu is added to the DOM
+window.Vaadin.featureFlags.accessibleDisabledMenuItems = true;
+
+Checkable Menu Items
+
+Menu items in drop-down menus can be configured as checkable to toggle options on and off.
+
+[Flow: MenuBarCheckable.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-checkable")
+public class MenuBarCheckable extends Div {
+    public MenuBarCheckable() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        MenuItem options = menuBar.addItem("Options");
+        SubMenu subItems = options.getSubMenu();
+
+        MenuItem saveItem = subItems.addItem("Save automatically");
+        saveItem.setCheckable(true);
+        saveItem.setChecked(true);
+        MenuItem notifyItem = subItems.addItem("Notify watchers");
+        notifyItem.setCheckable(true);
+        notifyItem.setChecked(false);
+
+        ComponentEventListener<ClickEvent<MenuItem>> listener = event -> {
+            // System.out.println(event.getSource().isChecked());
+        };
+
+        saveItem.addClickListener(listener);
+        notifyItem.addClickListener(listener);
+        // end::snippet[]
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-checkable.tsx]
+import React from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import {
+  MenuBar,
+  type MenuBarItem,
+  type MenuBarItemSelectedEvent,
+  type SubMenuItem,
+} from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items = useSignal<MenuBarItem[]>([
+    {
+      text: 'Options',
+      children: [{ text: 'Save automatically', checked: true }, { text: 'Notify watchers' }],
+    },
+  ]);
+
+  const itemSelected = (e: MenuBarItemSelectedEvent) => {
+    const item = e.detail.value;
+    (item as SubMenuItem).checked = !(item as SubMenuItem).checked;
+    items.value = [...items.value];
+  };
+
+  return <MenuBar items={items.value} onItemSelected={itemSelected} />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-checkable.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MenuBarItemSelectedEvent, SubMenuItem } from '@vaadin/menu-bar';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-checkable')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      text: 'Options',
+      children: [{ text: 'Save automatically', checked: true }, { text: 'Notify watchers' }],
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <vaadin-menu-bar
+        .items="${this.items}"
+        @item-selected="${this.itemSelected}"
+      ></vaadin-menu-bar>
+    `;
+  }
+
+  itemSelected(e: MenuBarItemSelectedEvent) {
+    const item = e.detail.value;
+    (item as SubMenuItem).checked = !(item as SubMenuItem).checked;
+  }
+}
+
+Note: Not a Radio Button Replacement
+
+A Menu Bar with checkable items shouldn’t be used as a replacement for radio buttons in a form.
+
+Dividers
+
+You can use dividers to separate and group related content. However, use dividers sparingly to avoid creating unnecessary visual clutter.
+
+[Flow: MenuBarDividers.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-dividers")
+public class MenuBarDividers extends Div {
+    public MenuBarDividers() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        MenuItem item = menuBar.addItem("Share");
+        SubMenu subMenu = item.getSubMenu();
+        subMenu.addItem("Facebook");
+        subMenu.addItem("Twitter");
+        subMenu.addItem("Instagram");
+        subMenu.addSeparator();
+        subMenu.addItem("By email");
+        subMenu.addItem("Get link");
+        subMenu.addSeparator();
+        subMenu.addItem("Set permissions");
+        // end::snippet[]
+
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-dividers.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    {
+      text: 'Share',
+      children: [
+        { text: 'Facebook' },
+        { text: 'Twitter' },
+        { text: 'Instagram' },
+        { component: 'hr' },
+        { text: 'By email' },
+        { text: 'Get link' },
+        { component: 'hr' },
+        { text: 'Set permissions' },
+      ],
+    },
+  ];
+
+  return <MenuBar items={items} />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-dividers.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-dividers')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      text: 'Share',
+      children: [
+        { text: 'Facebook' },
+        { text: 'Twitter' },
+        { text: 'Instagram' },
+        { component: 'hr' },
+        { text: 'By email' },
+        { text: 'Get link' },
+        { component: 'hr' },
+        { text: 'Set permissions' },
+      ],
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar .items="${this.items}"></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+Warning: Other Content Not Accessible
+
+While it’s technically possible to put any UI element in a drop-down menu — including interactive components — they’re not accessible by keyboard or assistive technologies.
+
+Open on Hover
+
+A component can be configured to open drop-down menus on hover, instead of on click.
+
+[Flow: MenuBarOpenOnHover.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-open-on-hover")
+public class MenuBarOpenOnHover extends Div {
+    public MenuBarOpenOnHover() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        menuBar.setOpenOnHover(true);
+        addItems(menuBar);
+        // end::snippet[]
+        add(menuBar);
+    }
+
+    private void addItems(MenuBar menuBar) {
+        menuBar.addItem("View");
+        menuBar.addItem("Edit");
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        MenuItem onSocialMedia = shareSubMenu.addItem("On social media");
+        SubMenu socialMediaSubMenu = onSocialMedia.getSubMenu();
+        socialMediaSubMenu.addItem("Facebook");
+        socialMediaSubMenu.addItem("Twitter");
+        socialMediaSubMenu.addItem("Instagram");
+        shareSubMenu.addItem("By email");
+        shareSubMenu.addItem("Get Link");
+
+        MenuItem move = menuBar.addItem("Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder");
+        moveSubMenu.addItem("To trash");
+
+        menuBar.addItem("Duplicate");
+    }
+
+}
+
+[React: menu-bar-open-on-hover.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  return <MenuBar items={items} openOnHover />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-open-on-hover.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-open-on-hover')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar .items="${this.items}" open-on-hover></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+Tooltips
+
+Both top-level and sub-menu items can be configured with tooltips to provide additional context, such as labels for icon-only menu buttons.
+
+[Flow: MenuBarTooltip.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.shared.Tooltip.TooltipPosition;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-tooltip")
+public class MenuBarTooltip extends Div {
+    public MenuBarTooltip() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_ICON);
+
+        createIconItem(menuBar, VaadinIcon.EYE, "View");
+        createIconItem(menuBar, VaadinIcon.PENCIL, "Edit");
+
+        MenuItem move = createIconItem(menuBar, VaadinIcon.FOLDER, "Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder…")
+                .setTooltipText("Choose a destination folder");
+        MenuItem toArchive = moveSubMenu.addItem("To archive");
+        toArchive.setTooltipText("Move to archive");
+        toArchive.setTooltipPosition(TooltipPosition.END);
+
+        createIconItem(menuBar, VaadinIcon.COPY, "Duplicate");
+        MenuItem delete = createIconItem(menuBar, VaadinIcon.TRASH, "Delete");
+        delete.setEnabled(false);
+        // end::snippet[]
+        add(menuBar);
+    }
+
+    private MenuItem createIconItem(MenuBar menu, VaadinIcon iconName,
+            String tooltipText) {
+        Icon icon = new Icon(iconName);
+        MenuItem item = menu.addItem(icon);
+        item.setTooltipText(tooltipText);
+        return item;
+    }
+
+}
+
+[React: menu-bar-tooltip.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon, MenuBar, type MenuBarItem, Tooltip } from '@vaadin/react-components';
+
+function createItem(iconName: string) {
+  return <Icon icon={`vaadin:${iconName}`} />;
+}
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { component: createItem('eye'), tooltip: 'View' },
+    { component: createItem('pencil'), tooltip: 'Edit' },
+    {
+      component: createItem('folder'),
+      tooltip: 'Move',
+      children: [
+        { text: 'To folder…', tooltip: 'Choose a destination folder' },
+        { text: 'To archive', tooltip: 'Move to archive', tooltipPosition: 'end' },
+      ],
+    },
+    { component: createItem('copy'), tooltip: 'Duplicate' },
+    { component: createItem('trash'), tooltip: 'Delete', disabled: true },
+  ];
+
+  return (
+    <MenuBar items={items} theme="icon">
+      <Tooltip slot="tooltip" />
+    </MenuBar>
+  );
+  // end::snippet[]
+}
+
+[Lit: menu-bar-tooltip.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/menu-bar';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-tooltip')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items = [
+    {
+      component: this.createItem('eye'),
+      tooltip: 'View',
+    },
+    {
+      component: this.createItem('pencil'),
+      tooltip: 'Edit',
+    },
+    {
+      component: this.createItem('folder'),
+      tooltip: 'Move',
+      children: [
+        { text: 'To folder…', tooltip: 'Choose a destination folder' },
+        { text: 'To archive', tooltip: 'Move to archive', tooltipPosition: 'end' },
+      ],
+    },
+    {
+      component: this.createItem('copy'),
+      tooltip: 'Duplicate',
+    },
+    {
+      component: this.createItem('trash'),
+      tooltip: 'Delete',
+      disabled: true,
+    },
+  ];
+  // end::snippet[]
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar .items="${this.items}" theme="icon">
+        <vaadin-tooltip slot="tooltip"></vaadin-tooltip>
+      </vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  createItem(iconName: string) {
+    const item = document.createElement('vaadin-menu-bar-item');
+    const icon = document.createElement('vaadin-icon');
+    icon.setAttribute('icon', `vaadin:${iconName}`);
+    item.appendChild(icon);
+    return item;
+  }
+}
+
+See the Tooltips documentation page for details on tooltip configuration.
+
+Tooltips are also useful on disabled menu items to explain why an action is unavailable, but they are not shown by default. See Disabled Items for how to enable them.
+
+Keyboard Usage
+
+Top-Level Items
+
+Interaction | Keyboard Shortcut
+Navigate between top-level items. | Left and Right arrow keys
+Open top-level menu. | Down / Space / Enter
+Trigger top-level item with a menu. | Space / Enter
+
+Menu-Items
+
+Interaction | Keyboard Shortcut
+Navigate between items in a drop-down menu. | Up and Down arrow keys
+Open sub-menu. | Right / Space / Enter
+Trigger menu item without a sub-menu. | Space / Enter
+Return to previous menu. | Left
+Close the drop-down menu. | Esc
+
+Drop-Down & Combo Buttons
+
+A Menu Bar with a single top-level item is essentially a drop-down button. This solution provides a better user experience and better accessibility than a regular Button paired with a Context Menu.
+
+[Flow: MenuBarDropDown.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-dropdown")
+public class MenuBarDropDown extends Div {
+    public MenuBarDropDown() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        MenuItem item = menuBar.addItem("John Smith");
+        SubMenu subMenu = item.getSubMenu();
+        subMenu.addItem("Profile");
+        subMenu.addItem("Account");
+        subMenu.addItem("Preferences");
+        subMenu.addSeparator();
+        subMenu.addItem("Sign out");
+        // end::snippet[]
+
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-drop-down.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    {
+      text: 'John Smith',
+      children: [
+        { text: 'Profile' },
+        { text: 'Account' },
+        { text: 'Preferences' },
+        { component: 'hr' },
+        { text: 'Sign out' },
+      ],
+    },
+  ];
+
+  return <MenuBar items={items} />;
+  // end::snippet[]
+}
+
+[Lit: menu-bar-drop-down.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-drop-down')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    {
+      text: 'John Smith',
+      children: [
+        { text: 'Profile' },
+        { text: 'Account' },
+        { text: 'Preferences' },
+        { component: 'hr' },
+        { text: 'Sign out' },
+      ],
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar .items="${this.items}"></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+}
+
+So-called combo buttons can be created in a similar way. For example, they can be created to provide a set of variations on an action.
+
+[Flow: MenuBarComboButtons.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-combo-buttons")
+public class MenuBarComboButtons extends Div {
+    public MenuBarComboButtons() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.PRIMARY);
+        // Only for Lumo
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_ICON,
+                MenuBarVariant.LUMO_DROPDOWN_INDICATORS);
+        menuBar.getStyle().set("--vaadin-icon-size", "0")
+                .set("--vaadin-button-gap", "var(--vaadin-gap-xs)");
+        menuBar.addItem("Save");
+        Icon icon = new Icon(VaadinIcon.CHEVRON_DOWN);
+        icon.getStyle().set("--vaadin-icon-size", "1rem");
+        MenuItem item = menuBar.addItem(icon);
+        SubMenu subItems = item.getSubMenu();
+        subItems.addItem("Save as draft");
+        subItems.addItem("Save as copy");
+        subItems.addItem("Save and publish");
+        // end::snippet[]
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-combo-buttons.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  // tag::snippet[]
+  const items: MenuBarItem[] = [
+    { text: 'Save' },
+    {
+      component: (
+        <Icon
+          icon="vaadin:chevron-down"
+          aria-label="Other save options"
+          style={{ '--vaadin-icon-size': '1rem' }}
+        />
+      ),
+      children: [{ text: 'Save as draft' }, { text: 'Save as copy' }, { text: 'Save and publish' }],
+    },
+  ];
+
+  return (
+    <MenuBar
+      theme="icon primary"
+      items={items}
+      style={{ '--vaadin-icon-size': '0', '--vaadin-button-gap': 'var(--vaadin-gap-xs)' }}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: menu-bar-combo-buttons.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-combo-buttons')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'Save' },
+    {
+      component: this.createItem(),
+      children: [{ text: 'Save as draft' }, { text: 'Save as copy' }, { text: 'Save and publish' }],
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <!-- tag::snippethtml[] -->
+      <vaadin-menu-bar
+        theme="icon primary"
+        .items="${this.items}"
+        style="--vaadin-icon-size: 0; --vaadin-button-gap: var(--vaadin-gap-xs);"
+      ></vaadin-menu-bar>
+      <!-- end::snippethtml[] -->
+    `;
+  }
+
+  private createItem() {
+    const item = document.createElement('vaadin-menu-bar-item');
+    const icon = document.createElement('vaadin-icon');
+    icon.style.setProperty('--vaadin-icon-size', '1rem');
+    item.setAttribute('aria-label', 'Other save options');
+    icon.setAttribute('icon', `vaadin:chevron-down`);
+    item.appendChild(icon);
+    return item;
+  }
+}
+
+Internationalization (i18n)
+
+Menu Bar provides an API for localization. Currently, only the accessible label for the overflow menu button can be customized.
+
+[Flow: MenuBarInternationalization.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-internationalization")
+public class MenuBarInternationalization extends Div {
+
+    public MenuBarInternationalization() {
+        MenuBar menuBar = new MenuBar();
+        MenuBar.MenuBarI18n customI18n = new MenuBar.MenuBarI18n()
+                // Provide accessible label for the overflow menu button
+                // to screen readers
+                .setMoreOptions("More actions");
+
+        menuBar.setI18n(customI18n);
+
+        menuBar.addItem("View");
+        menuBar.addItem("Edit");
+
+        MenuItem share = menuBar.addItem("Share");
+        SubMenu shareSubMenu = share.getSubMenu();
+        MenuItem onSocialMedia = shareSubMenu.addItem("On social media");
+        SubMenu socialMediaSubMenu = onSocialMedia.getSubMenu();
+        socialMediaSubMenu.addItem("Facebook");
+        socialMediaSubMenu.addItem("Twitter");
+        socialMediaSubMenu.addItem("Instagram");
+        shareSubMenu.addItem("By email");
+        shareSubMenu.addItem("Get Link");
+
+        MenuItem move = menuBar.addItem("Move");
+        SubMenu moveSubMenu = move.getSubMenu();
+        moveSubMenu.addItem("To folder");
+        moveSubMenu.addItem("To trash");
+
+        menuBar.addItem("Duplicate");
+
+        add(menuBar);
+    }
+
+}
+
+[React: menu-bar-internationalization.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarI18n, type MenuBarItem } from '@vaadin/react-components/MenuBar.js';
+
+function Example() {
+  const items: MenuBarItem[] = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  const customI18n: MenuBarI18n = {
+    // Provide accessible label for the overflow menu button
+    // to screen readers
+    moreOptions: 'More actions',
+  };
+
+  return <MenuBar i18n={customI18n} items={items} />;
+}
+
+[Lit: menu-bar-internationalization.ts]
+import '@vaadin/menu-bar';
+import '@vaadin/split-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MenuBarI18n } from '@vaadin/menu-bar';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-internationalization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items = [
+    { text: 'View' },
+    { text: 'Edit' },
+    {
+      text: 'Share',
+      children: [
+        {
+          text: 'On social media',
+          children: [{ text: 'Facebook' }, { text: 'Twitter' }, { text: 'Instagram' }],
+        },
+        { text: 'By email' },
+        { text: 'Get link' },
+      ],
+    },
+    {
+      text: 'Move',
+      children: [{ text: 'To folder' }, { text: 'To trash' }],
+    },
+    { text: 'Duplicate' },
+  ];
+
+  protected override render() {
+    const customI18n: MenuBarI18n = {
+      // Provide accessible label for the overflow menu button
+      // to screen readers
+      moreOptions: 'More actions',
+    };
+
+    return html`<vaadin-menu-bar .i18n="${customI18n}" .items="${this.items}"></vaadin-menu-bar>`;
+  }
+}
+
+Custom Item Data
+
+Menu Bar allows you to associate custom data with menu items. This can be useful for storing additional information about the item, such as an item type or a value. The data can then be used to trigger actions when an item is selected.
+
+[Flow: MenuBarCustomItemData.java]
+package com.vaadin.demo.component.menubar;
+
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.router.Route;
+
+@Route("menu-bar-custom-item-data")
+public class MenuBarCustomItemData extends Div {
+
+    public MenuBarCustomItemData() {
+        // tag::snippet[]
+        MenuBar menuBar = new MenuBar();
+        MenuItem copy = menuBar.addItem("Copy");
+        SubMenu copySubMenu = copy.getSubMenu();
+
+        copySubMenu.addItem("Copy as plain text", event -> {
+            // Provide a custom value by adding a click listener that holds a
+            // reference to that value
+            String value = "Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.";
+            copyToClipboard(value);
+        });
+
+        copySubMenu.addItem("Copy as HTML", event -> {
+            String value = "<h1>Menu Bar</h1><p>Menu Bar is a horizontal button bar with hierarchical drop-down menus.</p>";
+            copyToClipboard(value);
+        });
+
+        copySubMenu.addItem("Copy as Markdown", event -> {
+            String value = "# Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.";
+            copyToClipboard(value);
+        });
+        // end::snippet[]
+
+        add(menuBar);
+    }
+
+    private void copyToClipboard(String value) {
+        getUI().ifPresent(ui -> ui.getPage()
+                .executeJs("window.navigator.clipboard.writeText($0);", value));
+    }
+
+}
+
+[React: menu-bar-custom-item-data.tsx]
+import React from 'react';
+import { MenuBar, type MenuBarItem } from '@vaadin/react-components';
+
+function Example() {
+  // tag::snippet[]
+  const items: Array<MenuBarItem<{ value?: string }>> = [
+    {
+      text: 'Copy',
+      children: [
+        {
+          text: 'Copy as plain text',
+          value:
+            'Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.',
+        },
+        {
+          text: 'Copy as HTML',
+          value:
+            '<h1>Menu Bar</h1><p>Menu Bar is a horizontal button bar with hierarchical drop-down menus.</p>',
+        },
+        {
+          text: 'Copy as Markdown',
+          value:
+            '# Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.',
+        },
+      ],
+    },
+  ];
+
+  return (
+    <MenuBar
+      items={items}
+      onItemSelected={(event) => {
+        const { value } = event.detail.value;
+        if (value) {
+          navigator.clipboard.writeText(value);
+        }
+      }}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: menu-bar-custom-item-data.ts]
+import '@vaadin/menu-bar';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { MenuBarItem, MenuBarItemSelectedEvent } from '@vaadin/menu-bar';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('menu-bar-custom-item-data')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @state()
+  private items: Array<MenuBarItem<{ value?: string }>> = [
+    {
+      text: 'Copy',
+      children: [
+        {
+          text: 'Copy as plain text',
+          value:
+            'Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.',
+        },
+        {
+          text: 'Copy as HTML',
+          value:
+            '<h1>Menu Bar</h1><p>Menu Bar is a horizontal button bar with hierarchical drop-down menus.</p>',
+        },
+        {
+          text: 'Copy as Markdown',
+          value:
+            '# Menu Bar\n\nMenu Bar is a horizontal button bar with hierarchical drop-down menus.',
+        },
+      ],
+    },
+  ];
+
+  protected override render() {
+    return html`
+      <vaadin-menu-bar
+        .items="${this.items}"
+        @item-selected="${this.itemSelected}"
+      ></vaadin-menu-bar>
+    `;
+  }
+
+  itemSelected(e: MenuBarItemSelectedEvent<MenuBarItem<{ value?: string }>>) {
+    const { value } = e.detail.value;
+    if (value) {
+      navigator.clipboard.writeText(value);
+    }
+  }
+  // end::snippet[]
+}
+
+Best Practices
+
+Menu Bar shouldn’t be used for navigation. Use Tabs to switch between content, or anchor elements for regular navigation. It isn’t an input field. Use instead Select, Combo Box, or Radio Button Group.
+
+Menu Bar is an interactive component. Using other interactive components like Combo Box as menu items is not advised as this may produce conflicts in keyboard navigation and interaction. Although items are children of Menu Bar, it’s not supposed to act as a layout component.
+
+Related Components
+
+Component | Usage Recommendation
+Button | Regular Button component for individual actions.
+Select | Drop-down input field.
+Tabs | Tabs should be used to split content into sections that the user can switch between.
+Context Menu | A generic drop-down menu that can be triggered from any component.
+Popover | A generic overlay whose position is anchored to an element in the UI.

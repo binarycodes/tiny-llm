@@ -1,0 +1,12 @@
+Security
+
+Documentation on better security with Vaadin products and related software.
+
+Vaadin Flow is a server-side framework, where all the application state, business model, and UI logic stay on the server. A Flow application never exposes its internals to the browser, where vulnerabilities could be abused by an attacker. This makes the development model inherently secure. However, best practices should be followed and common vulnerabilities should be avoided to ensure security.
+
+Enabling Security
+    Enable and configure security in a Vaadin Flow application using built-in security helpers with Spring Boot.
+Vaadin Security Configurer
+    How to use VaadinSecurityConfigurer to configure security in a Vaadin Flow application using built-in security helpers with Spring Boot.
+Advanced Security Topics
+    Documentation of advanced security topics.

@@ -1,0 +1,50 @@
+Integrating Web Components
+
+How to create new HTML tags with custom names.
+
+Web Components are a collection of web standards that allow you to create new HTML tags with custom names. They’re reusable and provide full encapsulation of styles and markup. See Introduction to Web Components for more information on how it works. This page, however, explains how to integrate it into your projects.
+
+To use a Web Component in Vaadin, you first have to load the HTML, JavaScript, and CSS files needed by the component. This is explained below. Then you need to employ a Java API to configure the component, from which to listen for events. See Creating a Java API for a Web Component for more information on that.
+
+The Web Component’s client-side files — typically JavaScript module files — are available using npm, which Vaadin supports by default. It automatically installs and uses npm packages. It also serves the static files to the browser.
+
+Tip: Using pnpm or bun instead of npm
+
+Vaadin also supports using pnpm (known as performant npm) or bun. See Configuring npm/pnpm/bun for details.
+
+Tip: Packaging and publishing components
+
+For step-by-step guides on packaging a component as a reusable add-on or publishing it to the Vaadin Directory, see Package a Component and Publish a Component.
+
+Annotations
+
+Every web component integration requires three annotations on the Java class:
+
+@Tag defines the HTML element name. It must match the name the web component registers with customElements.define().
+
+@NpmPackage declares the npm package to install. Vaadin runs npm install automatically during development builds.
+
+@JsModule specifies the JavaScript module to import. This triggers the web component’s registration in the browser.
+
+The following is an example of annotations for the mwc-slider Web Component:
+
+[Java]
+@Tag("mwc-slider")
+@NpmPackage(value = "@material/mwc-slider",
+            version = "0.27.0")
+@JsModule("@material/mwc-slider/slider.js")
+
+The @Tag annotation here defines the name of the HTML element. The @JsModule and @NpmPackage annotations define the import of the JavaScript module.
+
+Adding Frontend Files
+
+Your component may require in-project frontend files, such as additional JavaScript modules. In which case, add them to the src/main/resources/META-INF/frontend directory so that they’re packaged in the component JAR if you choose to make an add-on of your component.
+
+As a example, you might use the @JsModule annotation to add a local JavaScript module like so:
+
+[Java]
+@JsModule("./my-local-module.js")
+
+Note: Use explicit relative paths in CSS imports
+
+When importing CSS files within other CSS files, always use explicit relative paths (e.g., @import "./second.css"; instead of @import "second.css";). Some tools like Tailwind CSS require this notation to resolve imports correctly. See Theming Issues for more details.

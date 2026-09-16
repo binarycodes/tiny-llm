@@ -1,0 +1,38 @@
+Tree Grid Styling
+
+Styling API reference for the Tree Grid component.
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-grid
+
+Parent Rows
+
+Collapsed parent row
+    vaadin-grid::part(collapsed-row)
+Collapsed parent row cell
+    vaadin-grid::part(collapsed-row-cell)
+Expanded parent row
+    vaadin-grid::part(expanded-row)
+Expanded parent row cell
+    vaadin-grid::part(expanded-row-cell)
+
+Hierarchy Cells
+
+Cell content element
+    vaadin-grid-tree-toggle
+Expanded
+    vaadin-grid-tree-toggle[expanded]
+Toggle button
+    vaadin-grid-tree-toggle::part(toggle)
+
+More Properties and Selectors
+
+See Grid for more style properties and CSS selectors.

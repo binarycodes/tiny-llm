@@ -1,0 +1,64 @@
+Form Layout Styling
+
+Styling API reference for the Form Layout component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Spacing
+
+Form Layout allows you to configure the spacing between columns, rows, and between the label and input field when labels are positioned on the side.
+
+Use the following CSS properties on individual vaadin-form-layout elements, or globally on the html element. The Flow API also provides setters for these properties.
+
+Spacing | CSS Property | Flow API
+Between columns | --vaadin-form-layout-column-spacing | setColumnSpacing
+Between rows | --vaadin-form-layout-row-spacing | setRowSpacing
+Between side label and field | --vaadin-form-layout-label-spacing | setLabelSpacing
+
+Sizing
+
+Form Layout allows you to configure the width of the labels when they are positioned on the side.
+
+Feature | CSS Property | Flow API
+Side label width | --vaadin-form-layout-label-width | setLabelWidth
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Form Item
+
+Property | Supported by
+--vaadin-form-item-label-color | Aura
+--vaadin-form-item-label-font-size | Aura
+--vaadin-form-item-label-font-weight | Aura
+--vaadin-form-item-label-line-height | Aura
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Form Layout
+    vaadin-form-layout
+Form Row
+    vaadin-form-row
+Form Item
+    vaadin-form-item
+Form Item Label
+    vaadin-form-item::part(label)
+Form Item Label Text
+    vaadin-form-item > label
+Form Item Required Indicator
+    vaadin-form-item::part(required-indicator)
+Form Item with Required Field
+    vaadin-form-item[required]

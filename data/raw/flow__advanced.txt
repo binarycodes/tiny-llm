@@ -1,0 +1,52 @@
+Advanced Topics
+
+A collection of miscellaneous important topics and features that you may need in Vaadin applications.
+
+Application Lifecycle
+    The more technical details of application deployment, user sessions, and the UI instance lifecycle.
+Modifying Bootstrap Page at Runtime
+    Customizing an application shell (a.k.a., bootstrap page) to improve page loading speed.
+Classic Components
+    Build on the latest Vaadin version with familiar component APIs.
+The Loading Indicator
+    Using a loading indicator to notify the user of progress in loading the page.
+Modifying how dependencies are loaded with DependencyFilter
+    Using the DependencyFilter interface to control which dependencies are loaded.
+Service Init Listener
+    Using VaadinServiceInitListener to configure RequestHandler, IndexHtmlRequestListener and DependencyFiler objects, and to dynamically register routes during start-up.
+Downloads
+    Download a file or arbitrary content from server to browser.
+Uploads
+    Using UploadHandler to receive an incoming data stream.
+Session & UI Listeners
+    Listening for session and UI instantiation with SessionInitListener and UIInitListener.
+Custom Error Handling
+    Customizing error views related to navigation between routes.
+Customizing System Messages
+    Configuring messages for application invalid state.
+Preserving the State on Refresh
+    Using the @PreserveOnRefresh annotation to keep the state of a view when it's refreshed.
+Servlet-Container Authentication
+    Configuring session-based and servlet container authentication.
+Handling Long-Running Tasks
+    How to handle long-running tasks in Vaadin applications.
+Vaadin Executor
+    Configuring and using Vaadin Executor to run background tasks.
+Browser Access
+    Accessing the browser page using the Page object.
+Loading Resources
+    How resources are stored in a project, and how to access them in an application.
+Server Push
+    Configuration reference for server push in Vaadin Flow applications.
+Server-Side Modality
+    How to prevent interactions on the server side.
+Custom Instantiator
+    Creating a custom Instantiator implementation.
+Server to Client Communication
+    Technical details of how server to client communications work.
+Nullability Annotations
+    Using JSpecify annotations and NullAway for compile-time null safety in Vaadin projects.
+Session Lock & RPC Invocation Listeners
+    Observing session-lock contention and per-invocation timing with SessionLockListener and RpcInvocationListener.
+Preparing for V8 Upgrade Automation
+    How to use the Minifinder for Eclipse to determine the potential success of a V8 Upgrade Automation service.

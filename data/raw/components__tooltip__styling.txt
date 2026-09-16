@@ -1,0 +1,44 @@
+Tooltip Styling
+
+Styling API reference for the Tooltip component.
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-tooltip-max-width | Aura
+--vaadin-tooltip-padding | Aura
+--vaadin-tooltip-border-width | Aura
+--vaadin-tooltip-border-color | Aura
+--vaadin-tooltip-border-radius | Aura
+--vaadin-tooltip-background | Aura
+--vaadin-tooltip-text-color | Aura
+--vaadin-tooltip-font-size | Aura
+--vaadin-tooltip-font-weight | Aura
+--vaadin-tooltip-line-height | Aura
+--vaadin-tooltip-shadow | Aura
+--vaadin-tooltip-offset-top | Aura, Lumo
+--vaadin-tooltip-offset-bottom | Aura, Lumo
+--vaadin-tooltip-offset-start | Aura, Lumo
+--vaadin-tooltip-offset-end | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-tooltip
+
+Parts
+
+Tooltip surface
+    vaadin-tooltip::part(overlay)
+Content wrapper
+    vaadin-tooltip::part(content)

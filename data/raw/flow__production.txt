@@ -1,0 +1,32 @@
+Deploying to Production
+
+How to to compile and package an application to deploy to a production server.
+
+Deploying to a production server involves compiling and packaging the application to be suitable and optimized for the server.
+
+Although you may have launched your server directly from your IDE during development, you need to deploy the application as a WAR file (Java Servlet) or JAR file that includes your application server (Spring Boot and other embedded servers) for production.
+
+When you launch a Vaadin application from your IDE or using spring-boot:run, it runs in development mode. When you package the application into a JAR or WAR file, it runs in production mode. Development tools, such as the Vite dev server and live-reload, are available when you add the vaadin-dev dependency to your project. When deploying your application to your users, make sure that development tools aren’t included in the production build.
+
+The main difference between development and production mode is that, in production mode, the client resources can be optimized and minified to reduce the load on the network and browser even further. Furthermore, debug information (e.g., about the available routes) that is present in development mode is removed in production mode to ensure that no sensitive information leaks to the client.
+
+Topics
+
+Production Build
+    Create an optimized build of applications for production deployment.
+Servlet Container
+    How to deploy an application to traditional servlet containers.
+Spring Boot
+    How to deploy a Spring Boot based application.
+Native Image Compilation
+    Compiling a Vaadin Flow application into a native image using GraalVM.
+Cloud Providers
+    How to deploy your application to third-party cloud hosting providers.
+Docker Deployment
+    Deploy your Vaadin application using Docker.
+Reverse Proxies
+    Deploying your Vaadin application behind a reverse proxy.
+Distributed Deployment Architecture
+    Application deployment on multiple servers.
+Troubleshooting
+    Advice when having problems taking Vaadin applications to production.

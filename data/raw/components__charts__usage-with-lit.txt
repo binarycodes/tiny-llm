@@ -1,0 +1,238 @@
+Using Charts with Lit
+
+Examples of using Charts with Lit.
+
+The sections that follow provide examples of certain Chart types with Lit.
+
+Column Chart
+
+[Lit: charts-column.ts]
+import '@vaadin/charts';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('charts-column')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-chart title="Column Chart" type="column" .categories="${['Jan', 'Feb', 'Mar']}">
+        <vaadin-chart-series title="Tokyo" .values="${[49.9, 71.5, 106.4]}"></vaadin-chart-series>
+        <vaadin-chart-series title="New York" .values="${[83.6, 78.8, 98.5]}"></vaadin-chart-series>
+        <vaadin-chart-series title="London" .values="${[48.9, 38.8, 39.3]}"></vaadin-chart-series>
+      </vaadin-chart>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Area Chart
+
+[Lit: charts-area.ts]
+import '@vaadin/charts';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('charts-area')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-chart
+        type="area"
+        title="Area Chart"
+        stacking="normal"
+        .categories="${'Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec'.split(',')}"
+      >
+        <vaadin-chart-series
+          title="United States dollar"
+          .values="${[135, 125, 89, 124, 105, 81, 111, 94, 95, 129, 98, 84]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          title="Euro"
+          .values="${[62, 72, 89, 68, 94, 92, 110, 100, 109, 89, 86, 105]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          title="Japanese yen"
+          .values="${[30, 25, 32, 26, 15, 31, 24, 32, 21, 8, 12, 32]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          title="Pound sterling"
+          .values="${[32, 21, 8, 12, 32, 21, 12, 30, 25, 19, 26, 15]}"
+        ></vaadin-chart-series>
+      </vaadin-chart>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Pie Chart
+
+[Lit: charts-pie.ts]
+import '@vaadin/charts';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('charts-pie')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-chart type="pie" title="Pie Chart" tooltip>
+        <vaadin-chart-series
+          title="Brands"
+          .values="${[
+            { name: 'Chrome', y: 38 },
+            { name: 'Firefox', y: 24 },
+            { name: 'Edge', y: 15, sliced: true, selected: true },
+            { name: 'Internet Explorer', y: 8 },
+          ]}"
+        ></vaadin-chart-series>
+      </vaadin-chart>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Polar Chart
+
+[Lit: charts-polar.ts]
+import '@vaadin/charts';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('charts-polar')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-chart polar title="Polar Chart">
+        <vaadin-chart-series
+          type="column"
+          title="Column"
+          .values="${[8, 7, 6, 5, 4, 3, 2, 1]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          type="line"
+          title="Line"
+          .values="${[1, 2, 3, 4, 5, 6, 7, 8]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          type="area"
+          title="Area"
+          .values="${[1, 8, 2, 7, 3, 6, 4, 5]}"
+        ></vaadin-chart-series>
+      </vaadin-chart>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Gantt Chart
+
+[Lit: charts-gantt.ts]
+import '@vaadin/charts';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('charts-gantt')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-chart
+        type="gantt"
+        title="Gantt Chart"
+        additional-options='{
+                  "xAxis": {
+                      "min": 1416182400000,
+                      "max": 1417305600000
+                  },
+                  "yAxis":{
+                     "categories":[
+                        "Start prototype",
+                        "Test prototype",
+                        "Develop",
+                        "Run acceptance tests"
+                     ]
+                  }
+               }'
+      >
+        <vaadin-chart-series
+          values='[{
+            "y":0,
+            "start": 1416268800000,
+            "end": 1416873600000,
+            "assignee":"John",
+            "completed": 0.25
+        }, {
+            "y":1,
+            "start": 1417046400000,
+            "end": 1417219200000,
+            "assignee":"William"
+        }, {
+            "y":2,
+            "start": 1416441600000,
+            "end": 1416873600000,
+            "assignee":"Jane",
+            "completed": 0.4
+        }, {
+            "y":2,
+            "start": 1417046400000,
+            "end": 1417219200000,
+             "assignee":"Jane"
+        }, {
+            "y":3,
+            "start": 1416700800000,
+            "end": 1416960000000,
+            "assignee":"John",
+            "completed": 0.25
+        }]'
+          additional-options='{
+      "dataLabels": [{
+            "enabled":true,
+            "format":"<div>{point.assignee}</vaadin-avatar>",
+            "useHTML":true,
+            "align":"right"
+         }]}'
+        ></vaadin-chart-series>
+      </vaadin-chart>
+      <!-- end::snippet[] -->
+    `;
+  }
+}

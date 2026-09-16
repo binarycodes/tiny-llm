@@ -1,0 +1,201 @@
+Getting Started
+
+Step-by-step guide on how to use SSO Kit in a Vaadin Flow application.
+
+- Flow
+- Hilla
+
+Note: Instructions for Vaadin Flow
+
+This page guides you in getting started with SSO Kit and Vaadin Flow. See the guide for getting stated with SSO Kit and Hilla.
+
+SSO Kit builds upon Spring Boot and Spring Security. It comes with a starter module that configures the security settings needed to authenticate with an identity provider.
+
+Add SSO Kit Dependency
+
+To get started, you need to add SSO Kit as a dependency to an application. For example, to add to a Maven project, do something like this:
+
+[pom.xml]
+<dependency>
+    <groupId>com.vaadin</groupId>
+    <artifactId>sso-kit-starter</artifactId>
+</dependency>
+
+Next, you need to set some configuration properties to connect SSO Kit to an OpenID Connect provider. These properties can be added to the application.properties file where you define the provider URL and the client registration details, such as credentials and scope.
+
+Provider definition is configured within the spring.security.oauth2.provider namespace where you define a key to identify the provider, such as keycloak. Then you can use the same key to register the client for that provider within the spring.security.oauth2.registration namespace, where you specify client credentials and the requested scope.
+
+The scope is a list of keywords to request the provider for a specific set of information, such as user profile, email or roles. The following is an example of the properties to set so as to enable a Keycloak instance to perform authentication:
+
+[application.properties]
+spring.security.oauth2.client.provider.keycloak.issuer-uri=https://my-keycloak.io/realms/my-realm
+spring.security.oauth2.client.registration.keycloak.client-id= my-client
+spring.security.oauth2.client.registration.keycloak.client-secret=very-secret-value
+spring.security.oauth2.client.registration.keycloak.scope=profile,openid,email,roles
+
+[application.yaml]
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: https://my-keycloak.io/realms/my-realm
+        registration:
+          keycloak:
+            client-id: my-client
+            client-secret: very-secret-value
+            scope:
+            - profile
+            - openid
+            - email
+            - roles
+
+Once you have at least one client configured, you’re ready to secure any views.
+
+Securing Views
+
+The default configuration redirects requests to any view, to the provider’s login page. You can set which views require authentication, annotating them as described in Securing Spring Boot Applications: Annotating the View Classes.
+
+The following is an example of how you might do this:
+
+[ProfileView.java]
+package com.vaadin.demo.sso;
+
+import jakarta.annotation.security.PermitAll;
+
+import com.vaadin.demo.flow.routing.Route;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.spring.security.AuthenticationContext;
+
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
+@PermitAll
+@Route(value = "private")
+public class ProfileView extends VerticalLayout {
+    public ProfileView(AuthenticationContext authContext) {
+        authContext.getAuthenticatedUser(OidcUser.class).ifPresent(user -> {
+            Avatar userAvatar = new Avatar(user.getFullName());
+            add(userAvatar);
+        });
+        add(new Button("Logout", e -> authContext.logout()));
+    }
+    // ...
+}
+
+Single Sign-On
+
+SSO Kit provides the SingleSignOnConfiguration auto-configuration class to set up Vaadin and Spring to allow single sign-on with external identity providers.
+
+Note: Customized Security Configuration
+
+If you need a customized security configuration, you can disable this auto-configuration class by adding its fully-qualified name to the spring.autoconfigure.exclude property and define your own configuration class.
+
+The following configuration enables login for the identity providers defined in the application configuration. It instructs the application to accept requests for the login route. It can be configured by setting the vaadin.sso.login-route property, which defaults to /login. If there is no view defined for this route, Spring auto-generates a page with links to login forms for each of the configured providers.
+
+To redirect users automatically to the provider login form, you can set this property to /oauth2/authorization/{provider-key}, where {provider-key} is the key used to configure the provider in application.properties file.
+
+[application.properties]
+vaadin.sso.login-route=/oauth2/authorization/keycloak
+
+[application.yaml]
+vaadin:
+  sso:
+    login-route: /oauth2/authorization/keycloak
+
+Tip: Custom Login Page
+
+Some providers support a custom theme for their login pages. Find out more in Theming.
+
+Authentication Context
+
+Upon successful authentication, the provider redirects the user back to the protected view. To access the authenticated user’s information (e.g., name, email and roles), Flow provides the AuthenticationContext bean that can be used as a view constructor argument. Then you can get the authenticated user with getAuthenticatedUser(Class<U> userType). It returns an Optional object containing the user instance if the session has an authenticated user or is empty otherwise.
+
+[ProfileView.java]
+package com.vaadin.demo.sso;
+
+import jakarta.annotation.security.PermitAll;
+
+import com.vaadin.demo.flow.routing.Route;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.spring.security.AuthenticationContext;
+
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
+@PermitAll
+@Route(value = "private")
+public class ProfileView extends VerticalLayout {
+    public ProfileView(AuthenticationContext authContext) {
+        authContext.getAuthenticatedUser(OidcUser.class).ifPresent(user -> {
+            Avatar userAvatar = new Avatar(user.getFullName());
+            add(userAvatar);
+        });
+        add(new Button("Logout", e -> authContext.logout()));
+    }
+    // ...
+}
+
+By default, the SSO Kit authenticated user is an instance of OidcUser. If your application defines a custom user service to provide your own user type, you can use that type as the userType parameter.
+
+Single Sign-Off
+
+SSO Kit provides two methods for logging out the user, defined by the OpenID Connect specification:
+
+- RP-Initiated Logout
+- Back-Channel Logout
+
+RP-Initiated Logout
+
+RP-Initiated Logout (i.e., Relaying Party, the application) enables the user to logout from the application itself, ensuring the connected provider session is terminated. The AuthenticationContext bean provides the logout() method to initiate the logout process, programmatically. For example, inside a button click-listener:
+
+[ProfileView.java]
+package com.vaadin.demo.sso;
+
+import jakarta.annotation.security.PermitAll;
+
+import com.vaadin.demo.flow.routing.Route;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.spring.security.AuthenticationContext;
+
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
+@PermitAll
+@Route(value = "private")
+public class ProfileView extends VerticalLayout {
+    public ProfileView(AuthenticationContext authContext) {
+        authContext.getAuthenticatedUser(OidcUser.class).ifPresent(user -> {
+            Avatar userAvatar = new Avatar(user.getFullName());
+            add(userAvatar);
+        });
+        add(new Button("Logout", e -> authContext.logout()));
+    }
+    // ...
+}
+
+After a successful logout, the user is redirected to the configured logout redirect route. That can be set with the vaadin.sso.logout-redirect-route property:
+
+[application.properties]
+vaadin.sso.logout-redirect-route=/logout-successful
+
+[application.yaml]
+vaadin:
+  sso:
+    logout-redirect-route: /logout-successful
+
+The default value of this property is the application root.
+
+Back-Channel Logout
+
+Back-Channel Logout is a feature that enables the provider to close user sessions from outside the application. For example, it can be done from the provider’s user dashboard or from another application.
+
+Since SSO Kit 3.1, this feature is enabled by default through Spring Security’s Back-Channel Logout filters. Configure the client on the provider’s dashboard to send logout requests to: /logout/connect/back-channel/{registration-key}, where {registration-key} is the provider key.
+
+Warning: Built-In Implementation Deprecated
+
+The kit’s built-in Back-Channel Logout implementation, activated with vaadin.sso.back-channel-logout=true, is deprecated since SSO Kit 3.1. It’s retained only for backwards compatibility with applications that depend on the legacy behavior. Don’t enable it on new projects: Spring Security’s filters are already active by default and cover the same feature.

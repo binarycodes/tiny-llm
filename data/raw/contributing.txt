@@ -1,0 +1,48 @@
+Contributing
+
+How you can help make Vaadin better in many ways.
+
+As an open source project, you can help make Vaadin even better in many ways.
+
+Ways to Contribute
+
+Report Issues
+
+When encountering an issue with the software, you can help to speed up problem diagnosis by providing as much information as possible. Ideally, that includes sample code that reproduces the problem.
+
+Report an Issue
+
+Propose New Features
+
+Propose and discuss new feature ideas. As a member of the Vaadin community, your suggestions on how you think Vaadin should evolve is valuable.
+
+Propose a feature
+
+See the Roadmap
+
+Take a look at the public roadmap to see what features are coming up in the next Vaadin releases.
+
+View Roadmap
+
+Q&A on StackOverflow
+
+Get help and help other community members by asking and answering questions on StackOverflow.
+
+Vaadin on StackOverflow
+
+Discuss
+
+The Vaadin Forum is a great place to connect with others in the community, including some of the Vaadin team members. You can also ask questions there.
+
+Vaadin Forum
+
+Further Reading
+
+Editor Settings
+    How to organize your development environment for Vaadin documentation contributions.
+Pull Requests
+    How to contribute code to Vaadin projects with GitHub pull requests.
+Creating Tests
+    How to create tests for code contributions to ensure changes and additions work properly.
+Documentation
+    Instructions and guidelines for contributing to the official Vaadin documentation -- this website.

@@ -1,0 +1,1371 @@
+Word List
+
+List of words and phrases to avoid, and word usage advice for the Vaadin documentation.
+
+A
+
+above
+
+Don’t use above to indicate the position of an item on a page. Various devices, screen readers and browsers may position elements in different places. Instead, use words such as previous or earlier.
+
+add-on
+
+agnostic
+
+This term is sometimes used to indicate the absence of a dependence on some other software component, such as an operating system or platform. It’s better to use a clearer term, such as platform-independent.
+
+aka
+
+This is an abbreviation of also known as. Although it may be briefer, it has tone not appropriate for software documentation. Instead, use parentheses or the word or. For example:
+
+The company specializes in software as a service (SaaS).
+
+The company specializes in software as a service, a.k.a. SaaS.
+
+Each instantiated object of the class has a separate copy, or instance.
+
+Each instantiated object of the class has a separate copy, a.k.a. instance.
+
+ampersand (&)
+
+Don’t use the ampersand character in place of and in general text. It may be used in page titles, as well as section and sub-section headings.
+
+app
+
+Although it’s widely accepted and understood, use application rather than app.
+
+approximately
+
+Write this word in full. Don’t use approx.
+
+as if, like?
+
+When stating that something looks like something else, you should be referring to a thing and not an action — regardless of what extra words you might add to make it understandable, even though it may be a common way of speaking. For example, read these two sentences:
+
+It looks as if it’s going to rain.
+
+It looks like it’s going to rain.
+
+The second example likens the subject, which is a noun, to a verb phrase. That’s not preferred. An alternative, if you want to use the word "like", then liken the subject to a noun or noun phrase like so:
+
+It looks like rain.
+
+as, like
+
+As "expects" to be followed by a verb clause. Instead, like "expects" to be followed by a noun or noun phrase — a phrase that has the grammatical function of a noun. For example:
+
+Edit the file as you would normally.
+[Not like you would.]
+
+Make the amendments as described below.
+[Not like described.]
+
+As I have already mentioned, the software is open source.
+[Not like I have already mentioned.]
+
+as such
+
+As such does not mean for that reason.
+
+Instead, it means in its role as the previously mentioned thing.
+For example:
+
+This software is the most capable of its peer group and, as such, is an excellent buy.
+[That is, as the most capable of its peer group….]
+
+I was the chief designer on this project and, as such, I take full responsibility for design defects.
+[That is, as the chief designer….]
+
+As such is often incorrectly used in place of phrases like so or consequently. Here are some examples of incorrect usage:
+
+Developers appreciate the convenience of the toolkit and, as such, it’s a popular choice.
+[Incorrect]
+
+The team were in a hurry to complete the project and, as such, made several poor decisions.
+[Incorrect]
+
+ASCII
+
+ASCII is an abbreviation for the American Standard Code for Information Interchange. It should always be written as an abbreviation and now written out, with the rarest of exceptions as it is here. It also should not include periods after each letter (i.e., not A.S.C.I.I.). Written as ASCII is acceptable.
+
+aspect ratio
+
+asynchronous
+
+The adjective is asynchronous. The adverb is asynchronously. Don’t use async or asynch.
+
+authenticate
+
+auto-
+
+No general rule exists on whether to hyphenate a word that begins with the prefix auto-.
+It’s best to check in the dictionary.
+
+If the word isn’t given either in this guide or in the Merriam-Webster online dictionary, don’t invent it yourself; use another term, for example with the adverb automatically.
+
+B
+
+back button
+
+backup, back up
+
+The noun and adjective are backup. The verb is to back up. For example:
+
+Confirm that the backup completed successfully.
+[Noun]
+
+It’s vital to have reliable backup procedures in place.
+[Adjective]
+
+You should back up all your files regularly.
+[Verb]
+
+The data is subsequently backed up to the cloud.
+[Verb]
+
+backend
+
+backward compatibility
+
+The noun is backward compatibility. The adjective is backward-compatible.
+
+backspace
+
+bandwidth
+
+base64
+
+below
+
+Don’t use below to indicate the position of an item on the screen, as different devices and browsers may position elements differently. Instead, use later or in the following.
+
+beta
+
+The word beta should be written in lowercase, unless it appears differently as part of a defined product name.
+
+big-endian
+
+blacklist
+
+Don’t use the term blacklist. Instead, use deny list or block list. The opposite is allow list, not whitelist.
+
+blind
+
+Avoid using blind in an idiomatic or metaphorical sense.
+
+To refer to people, use, for example, a blind person or a visually impaired person (whichever is more accurate in the context).
+
+See also color blind.
+
+Bluetooth
+
+Bluetooth is a proper noun, so it should be capitalized.
+
+Boolean
+
+Capitalize Boolean in general use.
+
+bot
+
+both
+
+"Both" is an emphatic word that applies specifically to two stated things.
+It can’t be used for more than two.
+For example:
+
+This functionality is available in both Eclipse and NetBeans.
+
+This functionality is available in both Eclipse, NetBeans, and IntelliJ IDEA.
+
+To apply similar emphasis to more than two things, it would be necessary to say something like:
+
+This functionality is available in all of Eclipse, NetBeans, and IntelliJ IDEA.
+
+However, it might be more elegant to say, for example:
+
+Eclipse, NetBeans, and IntelliJ IDEA all have this functionality.
+
+breakpoint
+
+built-in
+
+The adjective is built-in when it’s used attributively (that is, before the noun that it describes).
+When it’s used predicatively (that is, after a verb such as be, seem, look), the adjective phrase is built in. For example:
+
+The device has a built-in DVD drive.
+[The adjective is used attributively.]
+
+The DVD drive is built in.
+[The adjective is used predicatively.]
+
+The device has a DVD drive built in.
+[The adjective is used predicatively.]
+
+C
+
+cache, cached, caching
+
+callback, call back
+
+The noun and adjective are callback. The verb is call back.
+
+cancel
+
+canceled, canceling, cancellation.
+
+catalog
+
+Use catalog, not catalogue.
+
+cell phone
+
+Don’t use cell phone.
+Instead, use mobile or mobile phone.
+
+check
+
+Don’t use check to refer to selecting a checkbox in the user interface.
+Instead, use select.
+
+check mark
+
+In the UI, a check mark is a visual indication that an item is selected.
+
+checkbox
+
+The spelling is checkbox.
+
+Use select and clear to refer to user interaction with checkboxes.
+
+click
+
+Click is both a verb and a noun.
+
+Use click on when referring to "virtual" objects, for example, when instructing the reader to click on a part of the user interface (e.g., a button):
+
+Enter the required details and click on OK.
+
+Enter the required details and click on the OK button.
+
+Enter the required details and click the OK button.
+
+Use click (i.e., without on) when referring to physical objects, for example, when instructing the reader to click a specific mouse button:
+
+Click the right mouse button to access the context menu.
+
+Click on the right mouse button to access the context menu.
+
+More-specific variants are left-click, right-click, and double-click (all hyphenated).
+
+Right-clicking on the drop-down presents the user with more options.
+
+client side
+
+When used as a noun phrase, client side has no hyphen:
+
+The validation is handled on the client side.
+
+The validation is handled on the clientside.
+
+When used as an adjective phrase, it should be written with a hyphen to avoid ambiguity:
+
+Client-side processing handles the validation.
+
+client / server
+
+Use non-breaking spaces before and after the slash ("/") character. In AsciiDoc, this would be written as client&nbsp;/&nbsp;server.
+
+cloud
+
+codebase
+
+codebase
+
+code base
+
+colon (:)
+
+The function of a colon in a sentence is to signal the beginning of an explanation or a list.
+Often, we can think of it as saying
+and this is it…
+or
+and the following is what I’m talking about….
+Some examples of this are:
+
+There can be only one reason he is late: he has missed the flight.
+Annabel has three valuable characteristics: she is clever, she is conscientious, and she is honest.
+On seeing the results of my work, I felt only one emotion: pride.
+
+A colon is also commonly used to introduce a list, particularly at the end of a sentence.
+For example:
+
+The parameter can be of several types: integer, boolean, or string.
+Three cities are in the running to stage the next Olympics: Beijing, Chicago, and Melbourne.
+
+A colon shouldn’t be used to join two full clauses outside the uses mentioned here.
+If you are looking for the right punctuation to join two clauses that have some logical relationship, consider using a semi-colon.
+Don’t use a comma for this purpose.
+
+Vaadin uses US English in its documentation. US usage allows a colon to be followed by a sentence beginning with a capital letter, if that sentence is the first of two or more sentences that are governed by the same colon.
+
+There may be several reasons to learn Esperanto: It is completely regular, so you don’t need to learn a lot of exceptions. It isn’t associated with any specific country, so has no political baggage. Finally, it’s just fun to learn.
+
+However, if the colon governs only one sentence, begin the sentence with a lowercase letter:
+
+I can give you one good reason to learn Esperanto: it is fun to learn.
+
+color-blind
+
+Use the term color-blind only in its literal sense, to refer to a person who is unable to distinguish certain colors.
+
+combo box
+
+combo box
+
+combobox
+
+command line
+
+When it’s used as a noun phrase, write command line. When it’s used as an adjective phrase, write command-line. For example:
+
+You can invoke the tool from the command line.
+
+Several command-line options are available.
+
+However, see "command line interface"
+
+command line interface
+
+This is a common, easily recognized phrase, so it’s unnecessary to hyphenate command line here.
+
+In the first reference in the document, write this as command line interface ("CLI"). In subsequent occurrences, it’s acceptable to write it as CLI.
+
+command prompt
+
+In the context of the command line interface, the command prompt indicates the location where the user may enter a command. Typical command prompts are "$ " (in Unix-like systems) and "C:\> " (in Windows-based systems).
+
+consist of
+
+This indicates that one thing is made up of one or more other things, and nothing else. If you want to say that one thing is made up of one or more things plus some other things, use include. For example:
+
+The course consists of six modules.
+[In other words, there are six (and only six) modules in the course.]
+
+The course includes two modules on object-oriented design.
+[In this case, the two modules on object-oriented design are a part of the course.]
+
+config
+
+Avoid this as an abbreviation for configuration. Spell it out in full.
+
+CPU
+
+CSS
+
+It’s acceptable to use CSS, rather than write out cascading style sheets in full.
+Don’t use the extension .css to refer to a file type.
+
+cross-site request forgery
+
+On the first mention, write this as cross-site request forgery (CSRF). On subsequent mentions, CSRF is sufficient.
+
+CSV
+
+Don’t use the extension .csv to refer to a file type.
+Instead, use the capitalized abbreviation CSV.
+For example:
+
+You can download this as a CSV file.
+
+You can download this as a .csv file.
+
+D
+
+data
+
+Although data is, strictly speaking, a plural Latin form, the generally accepted convention is to treat it as singular. For example:
+
+We need to ensure that the data is encrypted.
+[Not the data are encrypted]
+
+daylight saving time
+
+decrement
+
+The verb decrement means to decrease an integer by a specified value. It’s the opposite of increment.
+
+deprecate
+
+In the context of software development, if something is deprecated, it means that it’s recommended not to use this thing.
+It doesn’t mean that it isn’t possible to use it.
+
+The term deprecated is often used in situations where that particular thing is scheduled to become unavailable at some point in the future.
+
+desire
+
+Don’t use desire as a synonym for want.
+Instead, use want.
+
+determinate progress bar
+
+A determinate progress bar is a progress indicator that informs the user how much of a process has been completed, and how much remains to be done.
+
+dialog
+
+A dialog or dialog box is an element of the user interface.
+A dialogue is a conversation between two people.
+
+different
+
+Use different from, rather than different than or different to.
+
+direction keys
+
+Don’t use the term direction keys.
+Instead, use arrow keys.
+
+distributed denial-of-service
+
+On the first mention, write distributed denial-of-service (DDOS). On subsequent mentions, it’s sufficient to write DDOS.
+
+DNS
+
+DNS is an abbreviation of Domain Name System (not Server), which is a protocol.
+A server that operates this system is a DNS server.
+A client of such a server is a DNS client.
+
+document
+
+Write this in full.
+Don’t write doc.
+
+dos and don’ts
+
+due to
+
+Avoid using due to.
+Instead, use because of or as a result of.
+
+E
+
+e.g.
+
+See Latin Abbreviations.
+
+either
+
+Like the word both, the word either is used in the context of two things.
+For example:
+
+The parameter can be either an integer or a boolean.
+
+It isn’t correct to use either where there is a choice between more than two things. For example:
+
+The parameter can be an integer, a boolean, or a string.
+
+The parameter can be either an integer, a boolean or a string.
+
+For added emphasis, we could also say:
+
+The parameter can be any of an integer, a boolean, or a string.
+
+For clarity, either should be placed as close as possible to the point where choice occurs. For example:
+
+You can choose either to ignore the message or to fix the problem before continuing.
+
+You can either choose to ignore the message or to fix the problem before continuing.
+
+element
+
+Use element, rather than tag, when referring to HTML elements.
+
+email
+
+end user
+
+The noun is end user. The adjective phrase is end-user. For example:
+
+The choice of license depends on the number of end users.
+This minimizes the level of end-user support that you need to provide.
+
+enter
+
+In the context of IT systems, to enter refers to inputting a specific piece of data to the system. For example:
+
+Enter your user ID and press OK.
+
+Escape Key
+
+etc.
+
+This abbreviation is always terminated by a period.
+
+Don’t use etc. in situations where it isn’t clear exactly what it means.
+For example:
+
+Always be sure to include the currency symbol, such as "$", "£", "€", etc.
+[Here, it’s clear that etc. refers to all the other possible currency symbols.]
+
+Check that the problem wasn’t caused by a misspelt variable name, etc.
+[In this case, it’s unclear what other issues might have caused the problem.]
+
+F
+
+F1, F2, F3, etc.
+
+FAQ
+
+FAQ is an abbreviation for frequently asked question. The term is sufficiently well known for it not to need explanation.
+The plural is FAQs.
+
+fast-forward
+
+Fast-forward can be a noun, an adjective or a verb.
+
+fewer
+
+Fewer (not less) should be used with countable nouns. For example:
+
+There were fewer problems with this version of the software.
+
+There were less problems with this version of the software.
+
+Fewer and fewer people use landlines these days.
+
+Less and less people use landlines these days.
+
+filename
+
+If it stands alone, so to speak, "filename" is acceptable as a compound word — but definitely not a hyphenated word (i.e., "file-name"). Generally, don’t write it as two separate words. However, the term could be split and rearranged into a noun phrase: "name of the file". It can also be split if "name" supports another adjective in a phrase: "path and file name."
+
+firewall
+
+floating-point
+
+Floating-point is an adjective.
+
+following
+
+Following may be used with some more specific term. For example:
+
+the following example
+the following text
+the following procedure
+
+However, it may not always be necessary to be so specific. We may use the expression the following as a noun phrase on its own. For example:
+
+The following is an example of how to use this functionality.
+It may be instantiated using the default parameters, as in the following:
+
+font size
+
+for example
+
+Use for example in preference to e.g.
+
+If you use for example in the middle of a sentence, use a semi-colon if there is a possibility of doubt which part of the sentence it relates to.
+For example:
+
+US and UK spelling have some differences, for example, the preference for z or s in verbs that end in -ize.
+[On first reading, the reader may hesitate over which part of the sentence for example refers to.]
+
+US and UK spelling have some differences; for example, the preference for z or s in verbs that end in -ize.
+[The semi-colon makes it easier for the reader to interpret the sentence correctly on first reading.]
+
+former
+
+The word former identifies the first of two options previously mentioned. (Former is often used in conjunction with latter, which indicates the last of two options previously mentioned.)
+It isn’t correct to use former in a situation where more than two options have been mentioned.
+For example:
+
+Anil spends his spare time playing squash and doing crosswords. The former helps him to stay fit; the latter keeps his brain sharp.
+
+Former is also used as an adjective to indicate that a person or place had a certain role in the past. For example:
+
+Anne is a former systems analyst who now acts as a security consultant to the company.
+[That is, Anne used to be a systems analyst.]
+
+The company has its offices in a former bakery.
+[That is, the company’s offices used to be a bakery.]
+
+forward compatibility
+
+The noun is forward compatibility.
+The adjective is forward-compatible.
+
+freeze
+
+Don’t use freeze to refer to a situation when a program stops responding.
+Instead, write stops responding.
+
+frontend
+
+The noun phrase is frontend.
+The adjective is frontend.
+For example:
+
+Processing takes place at the frontend.
+Frontend processing is kept to a minimum.
+
+G
+
+GDPR
+
+On the first mention, use the General Data Protection Regulation (GDPR). On subsequent mentions, use the GDPR — without periods.
+
+gray
+
+H
+
+half
+
+In compound phrases with half, use a hyphen. For example:
+
+half-life
+half-length
+half-price
+
+handheld
+
+hang
+
+Don’t use hang to refer to a situation when a program stops responding. Instead, write stops responding.
+
+hard-code
+
+The verb is hard code. The adjective is hard-coded.
+
+he, she, they
+
+It’s important to avoid using gender-specific pronouns (unless there is a significant reason for doing so).
+Don’t overuse he / she or he or she, as this quickly becomes tedious.
+
+The generally accepted approach is to use the pronoun they.
+For example:
+
+Each person must do what they think best.
+[Not what he or she thinks best.]
+
+However, if you can easily avoid the issue by using the plural, do so.
+For example:
+
+People must do what they think best.
+
+hexadecimal
+
+Write out hexadecimal in full.
+Don’t abbreviate it to hex.
+
+hierarchy
+
+his, her, their
+
+hit
+
+Don’t use hit to refer to pressing a key.
+Instead, use press.
+
+home page
+
+host name
+
+I
+
+i.e.
+
+See Latin Abbreviations.
+
+if clauses in the future
+
+Clauses that refer to conditions in the future use the present tense. The "result" clause uses the appropriate future form or imperative form. For example:
+
+If there are any further releases, you will receive an advisory email.
+[Not If there will be….]
+
+Send us a message via our contact page if you have any problems.
+[Not If you will have….]
+
+if or whether
+
+Use if in clauses that express a simple conditional meaning.
+Use whether in clauses that express uncertainty between two possibilities. Sometimes, either is acceptable.
+For example:
+
+Let me know if you need help.
+[This is a simple condition; that is, if the situation arises that you need help, let me know.]
+
+Let me know whether the fix works.
+[That is, let me know which of the situations is true: does the fix work, or doesn’t it work?]
+
+indent
+
+Indent is a verb that means to apply a greater left (and sometimes right) margin to text than that of the preceding material. The purpose of indentation is to show some distinction between one piece of text and the next.
+
+Don’t use outdent, as it’s often unclear what exactly this means in a given situation. Look for a different way to express this idea.
+
+indeterminate progress bar
+
+An indeterminate progress bar is a progress indicator in a situation where it isn’t possible to determine and show how much of the process remains to run.
+
+information
+
+"Information" is an uncountable noun. In other words, we can’t talk about one information, two informations, etc.
+For the same reason, we can’t say an information, as this implies a quantity of one.
+
+If we want to talk about quantity in relation to information, there are several options:
+
+- use an intermediary word, such as piece or bit
+- use a quantifier, such as a lot of, lots of, some, a little, etc.
+
+input
+
+Don’t use input as a verb. Instead, write enter — maybe type in.
+
+internet
+
+Internet of Things
+
+On the first mention, write as Internet of Things (IoT).
+On subsequent mentions, write as IoT.
+
+italics
+
+The noun is italics.
+The adjective is italic.
+The verb is italicize.
+
+its vs. it’s
+
+Possessive adjectives have no apostrophes. Likewise, the possessive form of the word it is its, with no apostrophe. This is logical and consistent with the other possessive adjectives (e.g., he → his, she → her).
+
+It’s with an apostrophe is a contracted form it is or it has, depending on the context, similar to he’s.
+
+J
+
+JavaScript
+
+K
+
+key
+
+Don’t use this as a synonym for crucial.
+
+key-value pair
+
+Use a hyphen, rather than an en-dash.
+
+keypress
+
+keystroke
+
+keyword
+
+knowledge base
+
+L
+
+-l- or -ll-?
+
+In US English (which is used in Vaadin documentation), if a verb ends in the letter l, the final l isn’t usually doubled when a suffix (-ing, -ed, -er) is added.
+The exception is when the final syllable is stressed.
+For example:
+
+cancel, canceling, canceled
+travel, traveling, traveled
+excel, excelling, excelled
+
+labeled
+
+latter
+
+See "former"
+
+layout, lay out
+
+The noun is layout.
+The verb is lay out.
+
+lead
+
+The past simple and past participle of lead is led. For example:
+
+This situation led to various problems.
+He has led the company since 2006.
+
+like or as?
+
+See as or like?
+
+list box
+
+lives
+
+When writing about software, don’t write something like, "it lives there". It’s not alive. Write instead "it’s located there", or something similar.
+
+login
+
+The noun is login.
+The verb is to log in (to).
+
+lower
+
+Don’t use lower to refer to earlier versions of software.
+Instead, use earlier.
+
+M
+
+macOS
+
+Use macOS, even at the beginning of a sentence.
+
+mailbox
+
+markup
+
+The noun is markup.
+The verb is to mark up.
+
+master / slave
+
+Avoid this term.
+Instead, consider using primary / subordinate.
+
+metadata
+
+method
+
+As our documentation deals extensively with Java objects and methods, avoid using method to mean way or process.
+
+MIME
+
+It’s usually unnecessary to write out this term in full.
+However, if it’s required for some reason, it’s multipurpose internet mail extensions.
+
+mobile
+
+Use mobile, mobile phone, or mobile device.
+Don’t use cell phone.
+
+movable
+
+Don’t use moveable.
+
+much
+
+Much is frequently used in questions and negative statements, but not usually in positive statements.
+In positive statements, use an alternative expression, such as a lot of, a great deal of, or a large amount of.
+For example:
+
+Is there much difference between version 1 and version 2?
+No, there is not much difference between version 1 and version 2.
+Yes, there is much difference between version 1 and version 2.
+Yes, there is a lot of difference between version 1 and version 2.
+
+multifactor authentication
+
+N
+
+N/A
+
+Use this abbreviation of not applicable in tables or other contexts where space is limited.
+
+name server
+
+namespace
+
+needed
+
+Don’t use needed attributively (that is, before the noun phrase that it describes). Instead, use required. For example:
+
+Edit the code and make the required changes.
+
+Edit the code and make the needed changes.
+[Don’t use needed attributively.]
+
+Edit the code and make the changes that are needed.
+[It’s OK to use needed predicatively.]
+
+network
+
+Write network out in full.
+Don’t shorten it to net.
+
+NoSQL
+
+npm
+
+null
+
+In general contexts, use the term null to refer to a null value.
+
+O
+
+OAuth 2.0
+
+of
+
+Don’t add of to prepositions where it isn’t necessary. For example:
+
+inside the parentheses
+
+inside of the parentheses
+
+off the premises
+
+off of the premises
+
+OK
+
+Write OK, not okay.
+
+on-premises
+
+Write on-premises in full, not on-prem.
+
+once
+
+Don’t use once to mean after, as it can be confusing.
+Use after or when.
+For example:
+
+When you have created the object, you need to initialize it.
+
+After you have created the object, you need to initialize it.
+
+Once you have created the object, you need to initialize it.
+
+open source
+
+As this is a common phrase, it’s unnecessary to use a hyphen, even when it’s used as an adjective phrase.
+
+OS
+
+It’s unnecessary to write out this abbreviation of operating system in full.
+
+over
+
+Don’t use over in the sense of more than. Instead, use more than.
+
+overlay
+
+P
+
+parent-child
+
+PDF
+
+Don’t use the extension .pdf to refer to a file type.
+
+per
+
+Use per instead of the slash character (i.e., /) to refer to a rate. For example:
+
+bits per second
+
+bits/second
+
+words per minute
+
+words/minute
+
+persist
+
+The verb persist doesn’t take an object (that is, it’s intransitive).
+For example:
+
+We want the user ID to persist between sessions.
+
+We want to persist the user ID between sessions.
+
+please
+
+Don’t use please in the context of instructions.
+It’s unnecessary.
+
+plugin
+
+post
+
+Don’t use post as a synonym for after. Instead, use after. It’s sufficient.
+
+postal code
+
+Use postal code rather than postcode or the American equivalent, zip code.
+
+practice
+
+In US English, practice can be a noun or a verb, depending on how it’s used in a sentence.
+
+precondition
+
+press
+
+Use the verb press to refer to pressing a key or key combination on a computer keyboard. Don’t use hit or any other such verb in this context as connotes hostile actions.
+
+Q
+
+R
+
+real time
+
+The noun phrase is real time. The adjective phrase is real-time. For example:
+
+The data is retrieved in real time.
+Real-time processing takes place at the frontend.
+
+regular expression
+
+Don’t use regex.
+
+repository
+
+Don’t use repo.
+
+respectively
+
+The adverb respectively is used in a well-defined grammatical context.
+It has the function of distributing meaning over a defined set of entities.
+For example:
+
+The research department, marketing department, and customer services department are located in San Francisco, New York, and New Orleans respectively.
+
+Don’t use respectively in any other construction.
+
+REST
+
+It’s unnecessary to write out this abbreviation of representational state transfer in full.
+
+runtime
+
+S
+
+(s), (es)
+
+Don’t append (s) or (es) to a singular word to indicate that the item in question may or may not be plural. Instead, either use the plural word only, or explicitly give both forms.
+For example:
+
+Select the files that you wish to upload.
+
+Select the file or files that you wish to upload.
+
+Select the file*(s)* that you wish to upload.
+
+-ise or -ize
+
+In US English, the suffix -ize is generally preferred over -ise. There are some exceptions, like improvise.
+
+server side
+
+service level agreement
+
+On the first mention, write it as service level agreement (SLA).
+On subsequent mentions, write it as SLA.
+
+setup
+
+The noun and adjective are setup.
+The verb is to set up.
+
+SHA-1
+
+ship
+
+Don’t use ship to refer to software releases. Instead, use release.
+
+sign-in
+
+The noun and adjective are sign-in. The verb is to sign in (to) (not to sign into).
+
+smartphone
+
+Don’t use the term smartphone.
+Instead, use mobile or mobile phone.
+
+software as a service
+
+At the first mention, write software as a service (SaaS). On subsequent mentions, SaaS is enough.
+
+space key
+
+specification
+
+Write specification out in full.
+Don’t abbreviate it to spec.
+
+ssh, SSH
+
+ssh` is the terminal utility.
+SSH is the associated communications protocol.
+
+startup
+
+The noun and adjective are startup.
+The verb is to start up.
+
+status bar
+
+stylesheet
+
+stylesheet
+
+style sheet
+
+subclass
+
+Subclass is a noun and a verb.
+
+subcomponent
+
+subnet
+
+sync
+
+The verb forms are sync, syncing, synced.
+
+T
+
+that
+
+If the word that is optional, include it for clarity.
+The goal, as always, is to help the reader to interpret each phrase and sentence correctly at the first reading.
+For example:
+
+… to guarantee your software works correctly,
+
+… to guarantee that your software works correctly.
+
+that or which?
+
+In defining relative clauses, we can use either that or which.
+For example:
+
+The company that developed the software provides excellent support.
+or
+The company which developed the software provides excellent support.
+
+However, in non-defining relative clauses, we can’t use that.
+For example:
+
+I emailed technical support at BrilSoft, which developed the software.
+[Not … at BrilSoft, that developed the software.]
+
+their or they’re?
+
+Because the pronunciation of their and they’re is identical, it’s easy to write the wrong form.
+This error is less likely to happen in our technical documentation, as we have made the decision not to use contracted forms.
+In general, the form they’re shouldn’t be used in our technical documentation.
+
+time frame
+
+Use time frame rather than timeframe.
+
+time out
+
+The verb is time out.
+The noun and adjective are time-out.
+
+time stamp
+
+The noun is time stamp.
+The adjective and verb are time-stamp.
+
+time zone
+
+If a time zone has an unambiguous name, write it out in full, capitalized on the first use.
+Use Coordinated Universal Time (UTC) rather than Greenwich Mean Time (GMT).
+For example:
+
+The first backup was set to run at 09∶00 Coordinated Universal Time (UTC).
+The second backup was set to run at 23∶00 UTC.
+
+If the time zone doesn’t have a name, or to guard against misunderstanding, use the form UTC-n or UTC+n.
+For example:
+
+The videoconference is scheduled for 14∶30 UTC-7.
+The system went down at 21∶43 UTC+9.
+
+toolkit
+
+touchscreen
+
+trailing
+
+Use trailing to refer to characters that occur at the end of a string.
+The opposite of trailing is leading.
+
+trojan
+
+Use trojan or trojan horse.
+
+U
+
+unique
+
+Something is either unique or it isn’t. There can be no degrees of uniqueness.
+Hence, avoid using such expressions as very unique or rather unique.
+
+unzip
+
+Don’t use unzip.
+Instead, use extract.
+
+uppercase
+
+URL
+
+Uniform Resource Locator is abbreviated as URL. It shouldn’t be written out like it is here. It also shouldn’t include periods (i.e., U.R.L.). The plural is written URLs.
+
+US
+
+Don’t use U.S.
+
+username
+
+UTF
+
+UTF-8, UTF-16, UTF-32.
+
+utilize
+
+Avoid the word utilize. Use instead the word, use.
+
+V
+
+vice versa
+
+Avoid using vice versa, as it’s often unclear exactly what is meant.
+Use more-specific language.
+
+vs
+
+Write versus in full, or abbreviate it to vs without a final period.
+Avoid using versus in the sense of compared with or as opposed to.
+
+W
+
+W3C
+
+web
+
+Use web when referring to the World Wide Web.
+
+web-based
+
+webpage
+
+website
+
+which or that?
+
+See "that" or "which"?
+
+while
+
+Use while in expressions of time.
+Don’t use while as a synonym for although or whereas.
+For example:
+
+Although it’s possible to write code using an ordinary text editor, using an IDE has significant advantages.
+
+While it’s possible to write code using an ordinary text editor, using an IDE has significant advantages.
+
+The previous version was written in C++, whereas the current version is Java-based.
+
+The previous version was written in C++, while the current version is Java-based.
+
+white paper
+
+who or that?
+
+Use who, rather than that, in relative clauses that refer to people. For example:
+
+Users who require training.
+
+Users that require training.
+
+whom
+
+In general, try to avoid using whom. It can sound pretentious.
+
+However, it’s sometimes difficult to avoid elegantly.
+For example:
+
+Who were you talking to?
+
+To whom were you talking?
+
+Sometimes it’s preferable to use whom to avoid an awkward sentence. For example:
+
+This is the customer for whom we selected the appropriate product, rewrote the core module, and delivered training to the sales and marketing staff.
+
+This is the customer who we selected the appropriate product, rewrote the core module, and delivered training to the sales and marketing staff for.
+
+whose or who’s?
+
+Although these two words sound exactly the same, they have completely different meanings.
+
+Whose means of whom or of which.
+For example:
+
+This is the user whose account was blocked.
+[That is, the user of whom the account was blocked.]
+
+This is the server whose hard disk failed.
+
+Who's is a contraction of who is or who has.
+
+Wi-Fi
+
+wildcard
+
+will
+
+Try to avoid using the future form will unless you really are talking about the future.
+A common case is when talking about the behavior of software.
+For example:
+
+Press OK. A new dialog opens.
+
+Press OK. A new dialog will open.
+
+If there is no authenticated user, the method returns null.
+
+If there is no authenticated user, the method will return null.
+
+See also: Present Tense.
+
+wireframe
+
+workspace
+
+workstation
+
+X
+
+x-axis
+
+x-coordinate
+
+Y
+
+y-axis
+
+y-coordinate
+
+YAML
+
+Don’t use the extension .yaml to refer to a file type.
+
+Z
+
+z-axis
+
+z-coordinate
+
+zero
+
+The plural of zero is zeros.
+
+zip
+
+Don’t use the extension .zip to refer to a file type.

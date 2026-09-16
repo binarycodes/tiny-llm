@@ -1,0 +1,338 @@
+Charts
+
+Charts is a feature-rich interactive charting library with a vast number of different chart types from basic plotting to complex financial charting.
+
+Charts is a feature-rich interactive charting library with a vast number of different chart types from basic plotting to complex financial charting. Interaction with the vector graphics is animated and they render crisply on any device.
+
+Note: Commercial Feature
+
+A commercial Vaadin subscription is required to use Charts in your project.
+
+- Start Free Trial
+- See Pricing
+
+[React: charts-overview.tsx]
+import type { Options, PointOptionsObject, SeriesOptionsType } from 'highcharts';
+import { Chart } from '@vaadin/react-components-pro/Chart.js';
+import { ChartSeries } from '@vaadin/react-components-pro/ChartSeries.js';
+
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const hostStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+  backgroundColor: 'var(--docs-surface-color-2)',
+  padding: '0.5rem',
+  boxSizing: 'border-box',
+};
+
+const chartStyle: React.CSSProperties = {
+  padding: '0.5rem',
+  boxSizing: 'border-box',
+};
+
+const columnOptions: Options = { yAxis: { title: { text: '' } } };
+
+const areaOptions: Options = {
+  yAxis: { title: { text: '' } },
+  xAxis: { visible: false },
+  plotOptions: {
+    series: {
+      marker: {
+        enabled: false,
+      },
+    },
+  },
+};
+
+const pieOptions: Options = {
+  tooltip: {
+    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+  },
+  plotOptions: {
+    pie: {
+      allowPointSelect: true,
+      cursor: 'pointer',
+      innerSize: '60%',
+    },
+  },
+};
+
+const pieValues: PointOptionsObject[] = [
+  { name: 'Chrome', y: 38 },
+  { name: 'Firefox', y: 24 },
+  { name: 'Edge', y: 15, sliced: true, selected: true },
+  { name: 'Internet Explorer', y: 8 },
+];
+
+const polarOptions: Options = {
+  xAxis: {
+    tickInterval: 45,
+    min: 0,
+    max: 360,
+    labels: {},
+    visible: false,
+  },
+  yAxis: { min: 0 },
+  plotOptions: {
+    series: {
+      pointStart: 0,
+      pointInterval: 45,
+    },
+    column: {
+      pointPadding: 0,
+      groupPadding: 0,
+    },
+  },
+};
+
+const seriesOptions: SeriesOptionsType = {
+  pointPlacement: 'between',
+  type: 'column',
+};
+
+function Example() {
+  return (
+    <div style={hostStyle}>
+      {/* tag::snippet[] */}
+      <Chart
+        style={chartStyle}
+        type="column"
+        categories={['Jan', 'Feb', 'Mar']}
+        additionalOptions={columnOptions}
+      >
+        <ChartSeries title="Tokyo" values={[49.9, 71.5, 106.4]} />
+        <ChartSeries title="New York" values={[83.6, 78.8, 98.5]} />
+        <ChartSeries title="London" values={[48.9, 38.8, 39.3]} />
+      </Chart>
+
+      <Chart
+        type="area"
+        stacking="normal"
+        style={chartStyle}
+        categories={months}
+        additionalOptions={areaOptions}
+      >
+        <ChartSeries
+          title="United States dollar"
+          values={[135, 125, 89, 124, 105, 81, 111, 94, 95, 129, 98, 84]}
+        />
+        <ChartSeries title="Euro" values={[62, 72, 89, 68, 94, 92, 110, 100, 109, 89, 86, 105]} />
+        <ChartSeries
+          title="Japanese yen"
+          values={[30, 25, 32, 26, 15, 31, 24, 32, 21, 8, 12, 32]}
+        />
+        <ChartSeries
+          title="Poud sterling"
+          values={[32, 21, 8, 12, 32, 21, 12, 30, 25, 19, 26, 15]}
+        />
+      </Chart>
+
+      <Chart style={chartStyle} type="pie" tooltip additionalOptions={pieOptions}>
+        <ChartSeries title="Brands" values={pieValues} />
+      </Chart>
+
+      <Chart style={chartStyle} polar additionalOptions={polarOptions}>
+        <ChartSeries
+          type="column"
+          title="Column"
+          values={[8, 7, 6, 5, 4, 3, 2, 1]}
+          additionalOptions={seriesOptions}
+        />
+        <ChartSeries type="line" title="Line" values={[1, 2, 3, 4, 5, 6, 7, 8]} />
+        <ChartSeries type="area" title="Area" values={[1, 8, 2, 7, 3, 6, 4, 5]} />
+      </Chart>
+      {/* end::snippet[] */}
+    </div>
+  );
+}
+
+[Lit: charts-overview.ts]
+import '@vaadin/charts';
+import type { Options, PointOptionsObject } from 'highcharts';
+import { css, html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('charts-overview')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  static override styles = css`
+    :host {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      background-color: var(--docs-surface-color-2);
+      padding: 0.5rem;
+      box-sizing: border-box;
+    }
+
+    vaadin-chart {
+      padding: 0.5rem;
+      box-sizing: border-box;
+    }
+  `;
+
+  @state()
+  private areaOptions: Options = {
+    yAxis: { title: { text: '' } },
+    xAxis: { visible: false },
+    plotOptions: {
+      series: {
+        marker: {
+          enabled: false,
+        },
+      },
+    },
+  };
+
+  @state()
+  private columnOptions: Options = { yAxis: { title: { text: '' } } };
+
+  @state()
+  private months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  @state()
+  private pieOptions: Options = {
+    tooltip: {
+      pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+    },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: 'pointer',
+        innerSize: '60%',
+      },
+    },
+  };
+
+  @state()
+  private pieValues: PointOptionsObject[] = [
+    { name: 'Chrome', y: 38 },
+    { name: 'Firefox', y: 24 },
+    { name: 'Edge', y: 15, sliced: true, selected: true },
+    { name: 'Internet Explorer', y: 8 },
+  ];
+
+  @state()
+  private polarOptions: Options = {
+    xAxis: {
+      tickInterval: 45,
+      min: 0,
+      max: 360,
+      labels: {},
+      visible: false,
+    },
+    yAxis: { min: 0 },
+    plotOptions: {
+      series: {
+        pointStart: 0,
+        pointInterval: 45,
+      },
+      column: {
+        pointPadding: 0,
+        groupPadding: 0,
+      },
+    },
+  };
+
+  // tag::snippet[]
+  protected override render() {
+    return html`
+      <vaadin-chart
+        type="column"
+        .categories="${['Jan', 'Feb', 'Mar']}"
+        .additionalOptions="${this.columnOptions}"
+      >
+        <vaadin-chart-series title="Tokyo" .values="${[49.9, 71.5, 106.4]}"></vaadin-chart-series>
+        <vaadin-chart-series title="New York" .values="${[83.6, 78.8, 98.5]}"></vaadin-chart-series>
+        <vaadin-chart-series title="London" .values="${[48.9, 38.8, 39.3]}"></vaadin-chart-series>
+      </vaadin-chart>
+
+      <vaadin-chart
+        type="area"
+        stacking="normal"
+        .categories="${this.months}"
+        .additionalOptions="${this.areaOptions}"
+        tooltip
+      >
+        <vaadin-chart-series
+          title="United States dollar"
+          .values="${[135, 125, 89, 124, 105, 81, 111, 94, 95, 129, 98, 84]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          title="Euro"
+          .values="${[62, 72, 89, 68, 94, 92, 110, 100, 109, 89, 86, 105]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          title="Japanese yen"
+          .values="${[30, 25, 32, 26, 15, 31, 24, 32, 21, 8, 12, 32]}"
+        ></vaadin-chart-series>
+        <vaadin-chart-series
+          title="Poud sterling"
+          .values="${[32, 21, 8, 12, 32, 21, 12, 30, 25, 19, 26, 15]}"
+        ></vaadin-chart-series>
+      </vaadin-chart>
+
+      <vaadin-chart type="pie" tooltip .additionalOptions="${this.pieOptions}">
+        <vaadin-chart-series title="Brands" .values="${this.pieValues}"></vaadin-chart-series>
+      </vaadin-chart>
+
+      <vaadin-chart polar .additionalOptions="${this.polarOptions}">
+        <vaadin-chart-series
+          type="column"
+          title="Column"
+          .values="${[8, 7, 6, 5, 4, 3, 2, 1]}"
+          additional-options='{ "pointPlacement": "between" }'
+        ></vaadin-chart-series>
+        <vaadin-chart-series type="line" title="Line" .values="${[1, 2, 3, 4, 5, 6, 7, 8]}">
+        </vaadin-chart-series>
+        <vaadin-chart-series type="area" title="Area" .values="${[1, 8, 2, 7, 3, 6, 4, 5]}">
+        </vaadin-chart-series>
+      </vaadin-chart>
+    `;
+    // end::snippet[]
+  }
+}
+
+Topics
+
+Basic Use
+    The basic use of charts in a view.
+Chart Types
+    A list of chart types available with information on using and configuring them.
+Chart Configuration
+    How to configure the various types of charts.
+Chart Styling
+    How to style a chart with CSS or the Java API in your project.
+Chart Data
+    Explains the storage and use of chart data.
+AI-Powered Chart
+    Let users build and update charts from your application database using natural language.
+Timeline
+    How to add the ability to select different time ranges for charts.
+Gantt Chart
+    Vaadin Charts support for creating Gantt charts.
+Exporting
+    How to export charts using different methods.
+Usage with React
+    Examples of using Charts with React
+Usage with Lit
+    Examples of using Charts with Lit.

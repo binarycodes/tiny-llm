@@ -1,0 +1,54 @@
+Loading Styles, Fonts & Images from npm Packages
+
+Describes how to use resources like fonts, icons, and stylesheets from npm packages.
+
+Before you can import stylesheets and other styling-related resources like fonts and icons from npm packages, you need to add the package dependency with the @NpmPackage annotation. Define both the package name and version number:
+
+[Adding an npm package dependency]
+@NpmPackage(value = "@fortawesome/fontawesome-free", version = "7.1.0")
+public class AppShell implements AppShellConfigurator {
+}
+
+Once you have added an npm package dependency, you can import resources from that package.
+
+Importing Stylesheets from npm Packages
+
+Use the @CssImport annotation to import stylesheets from an npm package. For example, to load all.min.css from @fortawesome/fontawesome-free:
+
+[Importing a stylesheet from an npm package]
+@NpmPackage(value = "@fortawesome/fontawesome-free", version = "7.1.0")
+@CssImport("@fortawesome/fontawesome-free/css/all.min.css")
+public class AppShell implements AppShellConfigurator {
+}
+
+@Tag("my-component")
+public class MyComponent implements Component {
+    public MyComponent() {
+        Span userIcon = new Span();
+        userIcon.addClassNames("fa-sharp", "fa-solid", "fa-user");
+        userIcon.getStyle().set("font-family", "'Font Awesome 7 Free'");
+        add(userIcon);
+    }
+}
+
+Using Static Resources from npm Packages
+
+The assets field in the @NpmPackage annotation allows you to copy assets from npm packages into the static resource folder, allowing you to reference them from Java source code and from the browser staring the request as assets/{npm_asset_path}.
+
+The assets field syntax looks like this in general: "asset/glob/pattern:local/target/path". The first part defines which files from the npm package should be copied, and it can be a “glob” pattern. The second part, after the colon, defines where matching resources are copied under the resources folder. You can define multiple asset mappings for a single package annotation.
+
+[Using icons from an npm package]
+@NpmPackage(value = "@fortawesome/fontawesome-free", version = "7.1.0",
+    assets = {
+        "svgs/regular/**:fontawesome/icons"
+    })
+
+@Tag("my-component")
+public class MyComponent implements Component {
+    public MyComponent() {
+        add(new Image("assets/fontawesome/icons/snowflake.svg",
+            "snowflake"));
+    }
+}
+
+In the previous example, the fortawesome file svgs/regular/snowflake.svg is copied to the folder VAADIN/static/assets/fontawesome/icons/snowflake.svg and it can be accessed with the path assets/fontawesome/icons/snowflake.svg in application code and CSS stylesheets.

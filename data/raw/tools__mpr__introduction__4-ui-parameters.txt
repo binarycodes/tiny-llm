@@ -1,0 +1,17 @@
+Converting UI parameters
+
+For this step, not all actions need to be done. It depends on what’s configured in your original UI. See each specific tutorial for details.
+
+- Application uses a custom widget set →
+- Application uses a custom theme →
+- Application uses push →
+- Application needs to manage the VaadinSessions →
+- Application uses an advanced custom UI logic →
+
+Other Parameters
+
+For @Title, you should use @PageTitle from the com.vaadin.flow.router package. For @Viewport, you should use @ViewPort from the com.vaadin.flow.component.page package.
+
+After converting those parameters, you can progress to the next step.
+
+The next step is Adding Legacy Components to Flow Layouts.

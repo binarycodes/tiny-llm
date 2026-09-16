@@ -1,0 +1,12 @@
+Import a Project
+
+Import your Vaadin project into your favorite IDE.
+
+A Vaadin project is a normal Maven project. You can import it into your favorite Java IDE in the same way as you would import any other Maven project.
+
+If you are unsure how to do this, you’ll find quick guides for common Java IDEs here:
+
+- IntelliJ IDEA (both Ultimate and Community)
+- Visual Studio Code
+- Eclipse IDE
+- NetBeans

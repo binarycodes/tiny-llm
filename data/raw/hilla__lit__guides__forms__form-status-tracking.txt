@@ -1,0 +1,73 @@
+Reacting to Form State Changes
+
+Recognizing different states of fields and forms, and reacting accordingly.
+
+You can display some parts of a form. differently — depending on the form state. You can, for example, disable the Submit button when a form has validation errors, or show an 'operation in progress' spinner while an async form submission is in progress.
+
+[HTML]
+<vaadin-button ?disabled=${this.binder.invalid}>
+  Submit
+</vaadin-button>
+
+The following properties are available both for the form as a whole, and for each field, independently. They’re a part of the BinderNode interface.
+
+You can access these properties either for a single field (e.g., binder.for(model.firstName).dirty), or for the entire form (e.g., binder.dirty).
+
+- dirty: true if the value of the form or field has been modified by the user.
+- visited: true if the form or field has been focused by the user.
+- invalid: true if the form or field has validation errors.
+- required: true if the form or field is required.
+- errors: a list of all validation errors for a form or field and its sub-fields.
+- ownErrors: a list of all the validation errors for a field without sub-fields or for the form, not specific to any field.
+
+The following properties are available for the form as a whole, but not for individual fields. They’re a part of the Binder interface. For example, you can access these properties via binder.validating.
+
+- validating: true if the form is performing some validation.
+- submitting: true if the form is submitting the data to a callback.
+
+Example: Disable Form while Submission in Progress
+
+If form submission could take a long time, it’s good to give users indication that something is happening. You may also want to prevent more form submissions until the first one is completed (e.g., in a payment form).
+
+With the TypeScript Binder API, this can be done using the submitting property. In the following example, binder.submitting is bound to the disabled property of the Submit button to disable repeating form submissions. It’s also used as a condition to render an additional 'submitting' message.
+
+[HTML]
+<vaadin-form-layout>
+  <vaadin-text-field label="First name" ${field(model.firstName)}></vaadin-text-field>
+  <vaadin-text-field label="Last name" ${field(model.lastName)}></vaadin-text-field>
+</vaadin-form-layout>
+
+<vaadin-horizontal-layout>
+  <vaadin-button
+    theme="primary"
+    @click="${this.save}"
+    ?disabled="${this.binder.invalid || this.binder.submitting}"
+  >
+    Save
+  </vaadin-button>
+
+  ${this.binder.submitting
+    ? html`
+        <span class="label">submitting</span>
+        <div class="spinner"></div>
+      `
+    : nothing}
+</vaadin-horizontal-layout>
+
+[image: Disable the form while submission is in progress]
+
+Example: List Validation Errors
+
+Sometimes you may want to list all validation errors in one place. This is convenient especially in large forms, where it can be difficult to find the one field that failed the validation.
+
+With the TypeScript Binder API, this can be done using the errors property. In the following example, the form template iterates over the form.errors list and renders the full list under the form.
+
+[HTML]
+(<dl>
+  ${this.binder.errors.map(error => html`
+    <dt>${error.property}</dt>
+    <dd>${error.message}</dd>
+  `)}
+</dl>)
+
+[image: Disable the form while submission is in progress]

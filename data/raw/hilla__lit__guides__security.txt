@@ -1,0 +1,28 @@
+Security
+
+The best practices for securing applications, configuring security, authentication and role-based access control for views.
+
+Hilla is a combined client and server programming model. As an application developer, you make a decision about how much of the application state is stored on the server and how much is stored in the user’s browser. The following sections describe the best practices for securing such applications.
+
+Topics
+
+Introduction
+    An introduction to the Hilla security architecture and how it works in practice.
+Controlling Endpoint Access
+    How to specify the role-based access control rules as annotations for the endpoint class or its individual methods.
+Authentication with Spring Security
+    Configuring authentication with Spring Security.
+Accessing Authentication Data
+    How to access authentication data on the server side, and how to transfer the data to the client.
+Role-Based Access Control
+    How to restrict access for selected Hilla views based on roles defined for the logged-in user.
+Stateless Authentication
+    Using stateless authentication to persist authentication on the client side between requests.
+Offline Authentication
+    Storing the authentication data in the browser for offline applications.
+Session Expiration
+    How to detect session expiration, for example to show a login view to the user.
+Common Vulnerabilities
+    Dealing with vulnerabilities, such as SQL injection, cross-site request forgery, and Java serialization.
+Best Practices
+    Best practices in authentication and authorization, data validation, and SSL and HTTPS.

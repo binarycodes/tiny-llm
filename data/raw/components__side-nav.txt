@@ -1,0 +1,759 @@
+Side Navigation
+
+Side Navigation provides a vertical list of navigation links with support for collapsible, nested sections.
+
+Side Navigation provides a vertical list of navigation links with support for collapsible, nested sections.
+
+Note: Navigation Disabled in Examples
+
+For technical reasons, actual navigation is disabled in the examples on this page.
+
+[Flow: SideNavBasic.java]
+package com.vaadin.demo.component.sidenav;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+import com.vaadin.demo.component.sidenav.views.CalendarView;
+import com.vaadin.demo.component.sidenav.views.DashboardView;
+import com.vaadin.demo.component.sidenav.views.InboxView;
+import com.vaadin.demo.component.sidenav.views.SettingsView;
+
+@Route("side-nav-basic")
+public class SideNavBasic extends Div {
+
+    public SideNavBasic() {
+
+        // tag::snippet[]
+        SideNav nav = new SideNav();
+
+        SideNavItem dashboardLink = new SideNavItem("Dashboard",
+                DashboardView.class, VaadinIcon.DASHBOARD.create());
+        SideNavItem inboxLink = new SideNavItem("Inbox", InboxView.class,
+                VaadinIcon.ENVELOPE.create());
+        SideNavItem calendarLink = new SideNavItem("Calendar",
+                CalendarView.class, VaadinIcon.CALENDAR.create());
+        SideNavItem settingsLink = new SideNavItem("Settings",
+                SettingsView.class, VaadinIcon.COG.create());
+        SideNavItem vaadinLink = new SideNavItem("Vaadin website",
+                "https://vaadin.com", VaadinIcon.VAADIN_H.create());
+
+        nav.addItem(dashboardLink, inboxLink, calendarLink, settingsLink,
+                vaadinLink);
+        // end::snippet[]
+
+        Div navWrapper = new Div(nav);
+        nav.setWidthFull();
+        add(navWrapper);
+
+        this.addClassName("side-nav-sample");
+    }
+
+}
+
+[React: side-nav-basic.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { SideNav, type SideNavElement } from '@vaadin/react-components/SideNav.js';
+import { SideNavItem } from '@vaadin/react-components/SideNavItem.js';
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    <div className="side-nav-sample">
+      <div>
+        {/* tag::snippet[] */}
+        <SideNav style={{ width: '100%' }} id="sideNav" ref={sideNavRef}>
+          <SideNavItem path="/dashboard">
+            <Icon icon="vaadin:dashboard" slot="prefix" />
+            Dashboard
+          </SideNavItem>
+          <SideNavItem path="/inbox">
+            <Icon icon="vaadin:envelope" slot="prefix" />
+            Inbox
+          </SideNavItem>
+          <SideNavItem path="/calendar">
+            <Icon icon="vaadin:calendar" slot="prefix" />
+            Calendar
+          </SideNavItem>
+          <SideNavItem path="/settings">
+            <Icon icon="vaadin:cog" slot="prefix" />
+            Settings
+          </SideNavItem>
+          <SideNavItem path="https://vaadin.com">
+            <Icon icon="vaadin:vaadin-h" slot="prefix" />
+            Vaadin website
+          </SideNavItem>
+        </SideNav>
+        {/* end::snippet[] */}
+      </div>
+    </div>
+  );
+}
+
+[Lit: side-nav-basic.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/side-nav';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('side-nav-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="side-nav-sample">
+        <div>
+          <!-- tag::snippet[] -->
+          <vaadin-side-nav style="width:100%" id="sideNav">
+            <vaadin-side-nav-item path="/dashboard">
+              <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
+              Dashboard
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/inbox">
+              <vaadin-icon icon="vaadin:envelope" slot="prefix"></vaadin-icon>
+              Inbox
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/calendar">
+              <vaadin-icon icon="vaadin:calendar" slot="prefix"></vaadin-icon>
+              Calendar
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/settings">
+              <vaadin-icon icon="vaadin:cog" slot="prefix"></vaadin-icon>
+              Settings
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="https://vaadin.com">
+              <vaadin-icon icon="vaadin:vaadin-h" slot="prefix"></vaadin-icon>
+              Vaadin website
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+          <!-- end::snippet[] -->
+        </div>
+      </div>
+    `;
+  }
+}
+
+The Side Navigation component can be used, for example, in a drawer of an App Layout.
+
+Automatic Highlighting of Current Item
+
+The navigation item matching the current URL is highlighted automatically to indicate it’s active.
+
+Nested Matching
+
+By default, items only match the exact path of the current URL. To enable matching of nested paths or routes, set the matchNested property to true. With nested matching, an item with the path /parent not only matches /parent, but also /parent/child, /parent/child/grandchild, etc.
+
+[Flow: Java]
+SideNavItem item = new SideNavItem("Users", "/users");
+item.setMatchNested(true);
+
+[Flow: Java]
+
+[React: tsx]
+<SideNavItem path="/users" matchNested>
+  Users
+</SideNavItem>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-side-nav-item path="/users" match-nested>
+  Users
+</vaadin-side-nav-item>
+
+[Lit: HTML]
+
+Query Parameters
+
+If an item’s path contains query parameters, only URLs containing those parameters are considered a match. Additional parameters in the URL not specified in the item path are ignored — the URL is considered a match.
+
+Automatic Expansion of Parent Items
+
+When the current URL matches a nested item, all its parent items are automatically expanded to reveal the active item. This behavior can be disabled for the whole side navigation if desired.
+
+[Flow: Java]
+sideNav.setAutoExpand(false);
+
+[Flow: Java]
+
+[React: tsx]
+<SideNav noAutoExpand>
+  ...
+</SideNav>
+
+[React: tsx]
+
+[Lit: HTML]
+<vaadin-side-nav no-auto-expand>
+  ...
+</vaadin-side-nav>
+
+[Lit: HTML]
+
+Prefix & Suffix Elements
+
+Navigation items have slots for prefix and suffix elements. The prefix slot is intended primarily for icons, while the suffix slot can be used, for example, for notification badges.
+
+Interactive prefix and suffix elements aren’t recommended since the entire item row acts as a link.
+
+[Flow: SideNavSuffix.java]
+package com.vaadin.demo.component.sidenav;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.component.sidenav.views.CalendarView;
+import com.vaadin.demo.component.sidenav.views.InboxView;
+
+@Route("side-nav-suffix")
+public class SideNavSuffix extends Div {
+
+    public SideNavSuffix() {
+        // tag::snippet[]
+        SideNav nav = new SideNav();
+
+        SideNavItem inboxLink = new SideNavItem("Inbox", InboxView.class,
+                VaadinIcon.ENVELOPE.create());
+        Badge inboxCounter = new Badge("unread messages", 12);
+        inboxCounter.addThemeVariants(BadgeVariant.FILLED,
+                BadgeVariant.NUMBER_ONLY);
+        inboxLink.setSuffixComponent(inboxCounter);
+
+        SideNavItem calendarLink = new SideNavItem("Calendar",
+                CalendarView.class, VaadinIcon.CALENDAR.create());
+        Badge calendarNotification = new Badge("Upcoming appointment");
+        calendarNotification.setIcon(VaadinIcon.BELL.create());
+        calendarNotification.addThemeVariants(BadgeVariant.ERROR,
+                BadgeVariant.ICON_ONLY);
+        calendarLink.setSuffixComponent(calendarNotification);
+
+        nav.addItem(inboxLink, calendarLink);
+        // end::snippet[]
+
+        Div navWrapper = new Div(nav);
+        nav.setWidthFull();
+        add(navWrapper);
+
+        this.addClassName("side-nav-sample");
+    }
+
+}
+
+[React: side-nav-suffix.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import { Badge } from '@vaadin/react-components/Badge.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { SideNav, type SideNavElement } from '@vaadin/react-components/SideNav.js';
+import { SideNavItem } from '@vaadin/react-components/SideNavItem.js';
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    <div className="side-nav-sample">
+      <div>
+        {/* tag::snippet[] */}
+        <SideNav style={{ width: '100%' }} ref={sideNavRef}>
+          <SideNavItem path="/inbox">
+            <Icon icon="vaadin:envelope" slot="prefix" />
+            Inbox
+            <Badge number={12} theme="filled number-only" slot="suffix">
+              unread messages
+            </Badge>
+          </SideNavItem>
+          <SideNavItem path="/calendar">
+            <Icon icon="vaadin:calendar" slot="prefix" />
+            Calendar
+            <Badge theme="error icon-only" slot="suffix">
+              <Icon icon="vaadin:bell" slot="icon" />
+              Upcoming appointment
+            </Badge>
+          </SideNavItem>
+        </SideNav>
+        {/* end::snippet[] */}
+      </div>
+    </div>
+  );
+}
+
+[Lit: side-nav-suffix.ts]
+import '@vaadin/badge';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/side-nav';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('side-nav-suffix')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="side-nav-sample">
+        <div>
+          <!-- tag::snippet[] -->
+          <vaadin-side-nav style="width:100%">
+            <vaadin-side-nav-item path="/inbox">
+              <vaadin-icon icon="vaadin:envelope" slot="prefix"></vaadin-icon>
+              Inbox
+              <vaadin-badge number="12" theme="filled number-only" slot="suffix">
+                unread messages
+              </vaadin-badge>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/calendar">
+              <vaadin-icon icon="vaadin:calendar" slot="prefix"></vaadin-icon>
+              Calendar
+              <vaadin-badge theme="error icon-only" slot="suffix">
+                <vaadin-icon icon="vaadin:bell" slot="icon"></vaadin-icon>
+                Upcoming appointment
+              </vaadin-badge>
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+          <!-- end::snippet[] -->
+        </div>
+      </div>
+    `;
+  }
+}
+
+Hierarchy
+
+Navigation items can contain sub-items, which are collapsed by default. There’s no technical limitation on the number of nesting levels. However, a maximum of three levels is recommended for better usability.
+
+Parent items can be links. Clicking them expands their sub-items in addition to navigating. Non-link parent items can be achieved by omitting the target path.
+
+[Flow: SideNavHierarchy.java]
+package com.vaadin.demo.component.sidenav;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+import com.vaadin.demo.component.sidenav.views.*;
+
+@Route("side-nav-hierarchy")
+public class SideNavHierarchy extends Div {
+
+    public SideNavHierarchy() {
+        // tag::snippet[]
+        SideNav nav = new SideNav();
+
+        SideNavItem messagesLink = new SideNavItem("Messages",
+                MessagesView.class, VaadinIcon.ENVELOPE.create());
+        messagesLink.addItem(new SideNavItem("Inbox", InboxView.class,
+                VaadinIcon.INBOX.create()));
+        messagesLink.addItem(new SideNavItem("Sent", SentView.class,
+                VaadinIcon.PAPERPLANE.create()));
+        messagesLink.addItem(new SideNavItem("Trash", TrashView.class,
+                VaadinIcon.TRASH.create()));
+
+        SideNavItem adminSection = new SideNavItem("Admin");
+        adminSection.setPrefixComponent(VaadinIcon.COG.create());
+        adminSection.addItem(new SideNavItem("Users", UsersView.class,
+                VaadinIcon.GROUP.create()));
+        adminSection.addItem(new SideNavItem("Permissions",
+                PermissionsView.class, VaadinIcon.KEY.create()));
+
+        nav.addItem(messagesLink, adminSection);
+        // end::snippet[]
+
+        Div navWrapper = new Div(nav);
+        nav.setWidthFull();
+        add(navWrapper);
+
+        this.addClassName("side-nav-sample");
+    }
+
+}
+
+[React: side-nav-hierarchy.tsx]
+import '@vaadin/icons';
+import React, { useEffect, useRef } from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { SideNav, type SideNavElement } from '@vaadin/react-components/SideNav.js';
+import { SideNavItem } from '@vaadin/react-components/SideNavItem.js';
+
+function Example() {
+  const sideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  return (
+    <div className="side-nav-sample">
+      <div>
+        {/* tag::snippet[] */}
+        <SideNav style={{ width: '100%' }} id="sideNav" ref={sideNavRef}>
+          <SideNavItem path="/messages">
+            <Icon icon="vaadin:envelope" slot="prefix" />
+            Messages
+            <SideNavItem path="/inbox" slot="children">
+              <Icon icon="vaadin:inbox" slot="prefix" />
+              Inbox
+            </SideNavItem>
+            <SideNavItem path="/sent" slot="children">
+              <Icon icon="vaadin:paperplane" slot="prefix" />
+              Sent
+            </SideNavItem>
+            <SideNavItem path="/trash" slot="children">
+              <Icon icon="vaadin:trash" slot="prefix" />
+              Trash
+            </SideNavItem>
+          </SideNavItem>
+          <SideNavItem>
+            <Icon icon="vaadin:cog" slot="prefix" />
+            Admin
+            <SideNavItem path="/users" slot="children">
+              <Icon icon="vaadin:group" slot="prefix" />
+              Users
+            </SideNavItem>
+            <SideNavItem path="/permissions" slot="children">
+              <Icon icon="vaadin:key" slot="prefix" />
+              Permissions
+            </SideNavItem>
+          </SideNavItem>
+        </SideNav>
+        {/* end::snippet[] */}
+      </div>
+    </div>
+  );
+}
+
+[Lit: side-nav-hierarchy.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/side-nav';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('side-nav-hierarchy')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="side-nav-sample">
+        <div>
+          <!-- tag::snippet[] -->
+          <vaadin-side-nav style="width:100%">
+            <vaadin-side-nav-item path="/messages">
+              <vaadin-icon icon="vaadin:envelope" slot="prefix"></vaadin-icon>
+              Messages
+              <vaadin-side-nav-item path="/inbox" slot="children">
+                <vaadin-icon icon="vaadin:inbox" slot="prefix"></vaadin-icon>
+                Inbox
+              </vaadin-side-nav-item>
+              <vaadin-side-nav-item path="/sent" slot="children">
+                <vaadin-icon icon="vaadin:paperplane" slot="prefix"></vaadin-icon>
+                Sent
+              </vaadin-side-nav-item>
+              <vaadin-side-nav-item path="/trash" slot="children">
+                <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
+                Trash
+              </vaadin-side-nav-item>
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item>
+              <vaadin-icon icon="vaadin:cog" slot="prefix"></vaadin-icon>
+              Admin
+              <vaadin-side-nav-item path="/users" slot="children">
+                <vaadin-icon icon="vaadin:group" slot="prefix"></vaadin-icon>
+                Users
+              </vaadin-side-nav-item>
+              <vaadin-side-nav-item path="/permissions" slot="children">
+                <vaadin-icon icon="vaadin:key" slot="prefix"></vaadin-icon>
+                Permissions
+              </vaadin-side-nav-item>
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+          <!-- end::snippet[] -->
+        </div>
+      </div>
+    `;
+  }
+}
+
+Labeled Collapsible List
+
+A label can be applied to the top of the navigation list. This can be useful for cases with multiple adjacent Side Navigation lists. A labeled Side Navigation list can be made collapsible.
+
+[Flow: SideNavLabelled.java]
+package com.vaadin.demo.component.sidenav;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.Route;
+
+import com.vaadin.demo.component.sidenav.views.InboxView;
+import com.vaadin.demo.component.sidenav.views.PermissionsView;
+import com.vaadin.demo.component.sidenav.views.SentView;
+import com.vaadin.demo.component.sidenav.views.TrashView;
+import com.vaadin.demo.component.sidenav.views.UsersView;
+
+@Route("side-nav-labelled")
+public class SideNavLabelled extends Div {
+
+    public SideNavLabelled() {
+
+        // tag::snippet[]
+        SideNav messagesNav = new SideNav();
+        messagesNav.setLabel("Messages");
+        messagesNav.addItem(new SideNavItem("Inbox", InboxView.class,
+                VaadinIcon.INBOX.create()));
+        messagesNav.addItem(new SideNavItem("Sent", SentView.class,
+                VaadinIcon.PAPERPLANE.create()));
+        messagesNav.addItem(new SideNavItem("Trash", TrashView.class,
+                VaadinIcon.TRASH.create()));
+
+        SideNav adminNav = new SideNav();
+        adminNav.setLabel("Admin");
+        adminNav.setCollapsible(true);
+        adminNav.addItem(new SideNavItem("Users", UsersView.class,
+                VaadinIcon.GROUP.create()));
+        adminNav.addItem(new SideNavItem("Permissions", PermissionsView.class,
+                VaadinIcon.KEY.create()));
+
+        // end::snippet[]
+
+        VerticalLayout navWrapper = new VerticalLayout(messagesNav, adminNav);
+        navWrapper.setSpacing(true);
+        navWrapper.setSizeUndefined();
+        messagesNav.setWidthFull();
+        adminNav.setWidthFull();
+        add(navWrapper);
+
+        this.addClassName("side-nav-sample");
+    }
+
+}
+
+[React: side-nav-labelled.tsx]
+import React, { useEffect, useRef } from 'react';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { SideNav, type SideNavElement } from '@vaadin/react-components/SideNav.js';
+import { SideNavItem } from '@vaadin/react-components/SideNavItem.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+const Example = () => {
+  const sideNavRef = useRef<SideNavElement>(null);
+  const secondSideNavRef = useRef<SideNavElement>(null);
+
+  useEffect(() => {
+    if (sideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(sideNavRef.current);
+    }
+  }, [sideNavRef.current]);
+
+  useEffect(() => {
+    if (secondSideNavRef.current) {
+      // Example-specific workaround
+      patchSideNavNavigation(secondSideNavRef.current);
+    }
+  }, [secondSideNavRef.current]);
+
+  return (
+    <div className="side-nav-sample">
+      {/* tag::snippet[] */}
+      <VerticalLayout theme="spacing">
+        <SideNav style={{ width: '100%' }} ref={sideNavRef}>
+          <span slot="label">Messages</span>
+          <SideNavItem path="/inbox">
+            <Icon icon="vaadin:inbox" slot="prefix" />
+            Inbox
+          </SideNavItem>
+          <SideNavItem path="/sent">
+            <Icon icon="vaadin:paperplane" slot="prefix" />
+            Sent
+          </SideNavItem>
+          <SideNavItem path="/trash">
+            <Icon icon="vaadin:trash" slot="prefix" />
+            Trash
+          </SideNavItem>
+        </SideNav>
+        <SideNav style={{ width: '100%' }} collapsible ref={secondSideNavRef}>
+          <span slot="label">Admin</span>
+          <SideNavItem path="/users">
+            <Icon icon="vaadin:group" slot="prefix" />
+            Users
+          </SideNavItem>
+          <SideNavItem path="/permissions">
+            <Icon icon="vaadin:key" slot="prefix" />
+            Permissions
+          </SideNavItem>
+        </SideNav>
+      </VerticalLayout>
+      {/* end::snippet[] */}
+    </div>
+  );
+};
+
+[Lit: side-nav-labelled.ts]
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/side-nav';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('side-nav-labelled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <div class="side-nav-sample">
+        <!-- tag::snippet[] -->
+        <vaadin-vertical-layout theme="spacing">
+          <vaadin-side-nav style="width:100%">
+            <span slot="label">Messages</span>
+            <vaadin-side-nav-item path="/inbox">
+              <vaadin-icon icon="vaadin:inbox" slot="prefix"></vaadin-icon>
+              Inbox
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/sent">
+              <vaadin-icon icon="vaadin:paperplane" slot="prefix"></vaadin-icon>
+              Sent
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/trash">
+              <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
+              Trash
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+
+          <vaadin-side-nav collapsible style="width:100%">
+            <span slot="label">Admin</span>
+            <vaadin-side-nav-item path="/users">
+              <vaadin-icon icon="vaadin:group" slot="prefix"></vaadin-icon>
+              Users
+            </vaadin-side-nav-item>
+            <vaadin-side-nav-item path="/permissions">
+              <vaadin-icon icon="vaadin:key" slot="prefix"></vaadin-icon>
+              Permissions
+            </vaadin-side-nav-item>
+          </vaadin-side-nav>
+        </vaadin-vertical-layout>
+        <!-- end::snippet[] -->
+      </div>
+    `;
+  }
+}
+
+Another Browser Tab or Window
+
+A navigation link can be opened in another browser tab or window — depending on the browser’s configuration — by specifying the name of the tab or window as the link’s target. A new, unnamed tab or window can be set as the target by providing the name _blank, for which the Flow API provides the shorthand method setOpenInNewBrowserTab().
+
+[Java]
+SideNavItem item = new SideNavItem("Example", "https://example.com");
+item.setOpenInNewBrowserTab(true);
+
+[HTML]
+<vaadin-side-nav-item path="https://example.com" target="_blank">
+  Example
+</vaadin-side-nav-item>
+
+[tsx]
+<SideNavItem path="https://example.com" target="_blank">Example</SideNavItem>
+
+Scrolling
+
+The Side Navigation component doesn’t contain a scroll area. Instead, it can be made scrollable by wrapping it inside a Scroller.
+
+Keyboard Usage
+
+Shortcut | Function
+Tab | Navigation between list items.
+Tab | Navigation between link and expand and collapse button.
+Enter / Space | Toggles expand and collapse.
+Enter | Trigger link.
+
+Client-Side Router Integration
+
+By default, clicking a navigation link in a client-side application triggers a full page reload. When using a client-side router (e.g., React Router), this might be undesirable as it disrupts the single-page application experience.
+
+To prevent this behavior, you can assign a callback function to the Side Navigation component’s onNavigate property. That would cancel the default action on a link click and delegate the responsibility of navigation to the provided function. The function receives an object with properties of the clicked navigation item, including path, which can be used to navigate to the desired route.
+
+Additionally, the Side Navigation component needs to be notified of route changes to have it automatically highlight the currently active item. This can be achieved by updating the Side Navigation component’s location property whenever the route changes.
+
+The following example demonstrates how to integrate the <SideNav> component with React Router:
+
+[React: side-nav-router.tsx]
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import { SideNav } from '@vaadin/react-components/SideNav.js';
+import { SideNavItem } from '@vaadin/react-components/SideNavItem.js';
+
+function Example() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  return (
+    <SideNav
+      location={location}
+      onNavigate={({ path }) => {
+        if (path) {
+          navigate(path);
+        }
+      }}
+    >
+      <SideNavItem path="/inbox">Inbox</SideNavItem>
+      <SideNavItem path="/calendar">Calendar</SideNavItem>
+    </SideNav>
+  );
+}

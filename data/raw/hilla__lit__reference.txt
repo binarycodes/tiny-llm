@@ -1,0 +1,16 @@
+Reference
+
+Configuration
+    Customizing the configuration of a Hilla application for both a development environment and for execution.
+Connection Indicator
+    The connection indicator informs the user of the server connection status, and indicates loading progress if network requests take some time. Its duration and style are configurable.
+Gradle
+    Building and running Hilla applications with Gradle.
+Type Conversion
+    Understanding conversion of data types from Java to TypeScript and vice versa.
+Type Nullability
+    Understanding optional nullable types.
+TypeScript Client
+    Understanding the Hilla TypeScript client library, the default TypeScript client, and generated client modules.
+TypeScript Generator
+    The TypeScript generator produces TypeScript files that map to Java services annotated with [annotationname]`@BrowserCallable` or [annotationname]`@Endpoint`.

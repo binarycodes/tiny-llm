@@ -1,0 +1,18 @@
+Components
+
+Learn how to create, style, package, and publish custom Vaadin components, and how to wrap existing web and React components.
+
+Build a Component
+    Learn how to create reusable custom components with a clean API.
+Style a Component
+    Learn how to add consistent, maintainable styling to your custom components.
+Package a Component
+    Learn how to package a custom component as a JAR that can be shared across projects.
+Publish a Component
+    Learn how to publish your component add-on to Maven Central and the Vaadin Directory.
+Wrap a JavaScript Library
+    Learn how to create a Java API for a plain JavaScript library using @JsModule and the Element API.
+Wrap a Web Component
+    Learn how to create a Java API for a web component, whether third-party or your own.
+Wrap a React Component
+    Learn how to create a Java API for an existing React component using ReactAdapterComponent.

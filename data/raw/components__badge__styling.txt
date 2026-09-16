@@ -1,0 +1,322 @@
+Badge Styling
+
+Styling API reference for the Badge component.
+
+Style Variants
+
+The following variants are supported:
+
+Variant | Description | Supported by
+filled | Uses a solid background | Aura, Lumo
+success | Positive/success state | Aura, Lumo
+warning | Caution/warning state | Aura, Lumo
+error | Error/failure state | Aura, Lumo
+contrast | High-contrast neutral | Lumo
+icon-only | Show only icon | Aura, Lumo
+number-only | Show only number | Aura, Lumo
+dot | Visually hide all content | Aura, Lumo
+small | Renders a more compact badge | Aura, Lumo
+
+Color
+
+Badges have four different color variants: default, success, warning, and error. The color variants can be paired with the filled theme variant for additional emphasis.
+
+[Flow: BadgeColor.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("badge-color")
+public class BadgeColor extends VerticalLayout {
+
+    public BadgeColor() {
+        // tag::snippet1[]
+        // Default variant
+        Badge pending = new Badge("Pending");
+        // end::snippet1[]
+
+        Badge confirmed = new Badge("Confirmed");
+        confirmed.addThemeVariants(BadgeVariant.SUCCESS);
+
+        Badge warning = new Badge("Warning");
+        warning.addThemeVariants(BadgeVariant.WARNING);
+
+        Badge denied = new Badge("Denied");
+        denied.addThemeVariants(BadgeVariant.ERROR);
+
+        // Filled variant
+        Badge pendingFilled = new Badge("Pending");
+        pendingFilled.addThemeVariants(BadgeVariant.FILLED);
+
+        Badge confirmedFilled = new Badge("Confirmed");
+        confirmedFilled.addThemeVariants(BadgeVariant.SUCCESS,
+                BadgeVariant.FILLED);
+
+        Badge warningFilled = new Badge("Warning");
+        warningFilled.addThemeVariants(BadgeVariant.WARNING,
+                BadgeVariant.FILLED);
+
+        Badge deniedFilled = new Badge("Denied");
+        deniedFilled.addThemeVariants(BadgeVariant.ERROR, BadgeVariant.FILLED);
+
+        add(new HorizontalLayout(pending, confirmed, warning, denied),
+                new HorizontalLayout(pendingFilled, confirmedFilled,
+                        warningFilled, deniedFilled));
+        setPadding(false);
+        setSizeUndefined();
+    }
+
+}
+
+[React: badge-color.tsx]
+import React from 'react';
+import { Badge, HorizontalLayout, VerticalLayout } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <VerticalLayout theme="spacing">
+      <HorizontalLayout theme="spacing">
+        <Badge>Pending</Badge>
+        <Badge theme="success">Confirmed</Badge>
+        <Badge theme="warning">Warning</Badge>
+        <Badge theme="error">Denied</Badge>
+      </HorizontalLayout>
+      <HorizontalLayout theme="spacing">
+        <Badge theme="filled">Pending</Badge>
+        <Badge theme="success filled">Confirmed</Badge>
+        <Badge theme="warning filled">Warning</Badge>
+        <Badge theme="error filled">Denied</Badge>
+      </HorizontalLayout>
+    </VerticalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: badge-color.ts]
+import '@vaadin/badge';
+import '@vaadin/horizontal-layout';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-color')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-vertical-layout theme="spacing">
+        <vaadin-horizontal-layout theme="spacing">
+          <vaadin-badge>Pending</vaadin-badge>
+          <vaadin-badge theme="success">Confirmed</vaadin-badge>
+          <vaadin-badge theme="warning">Warning</vaadin-badge>
+          <vaadin-badge theme="error">Denied</vaadin-badge>
+        </vaadin-horizontal-layout>
+        <vaadin-horizontal-layout theme="spacing">
+          <vaadin-badge theme="filled">Pending</vaadin-badge>
+          <vaadin-badge theme="success filled">Confirmed</vaadin-badge>
+          <vaadin-badge theme="warning filled">Warning</vaadin-badge>
+          <vaadin-badge theme="error filled">Denied</vaadin-badge>
+        </vaadin-horizontal-layout>
+      </vaadin-vertical-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Variant | Theme name | Usage recommendations
+Normal |  | Default style. Recommended for informational messages.
+Success | success | Highlight positive outcomes, such as when a task or operation is completed.
+Warning | warning | Communicates caution or potential issues that require user attention.
+Error | error | Use the error theme variant to communicate alerts and failures.
+Filled | filled | Used for important information and/or to draw more attention to your badge. Can be combined with all other theme variants.
+
+Note: Accessibility
+
+Assistive technologies, such as screen readers, interpret badges solely based on their content. Without proper context, they may end up confusing the user. If you are using colors and icons to convey information, provide the same info via aria-label to ensure that screen readers can interpret the information.
+
+Dot
+
+The dot theme variant renders the badge as a colored dot, as is often used on buttons, links and tabs as a notification indicator. It visually hides the badge’s contents, but keeps it available for screen readers.
+
+[Flow: BadgeDot.java]
+package com.vaadin.demo.component.badge;
+
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.dom.Style.Position;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoIcon;
+
+@Route("badge-dot")
+public class BadgeDot extends HorizontalLayout {
+
+    public BadgeDot() {
+        setAlignItems(Alignment.CENTER);
+
+        // tag::snippet[]
+        Badge pending = new Badge("Pending");
+        pending.addThemeVariants(BadgeVariant.DOT);
+
+        Badge confirmed = new Badge("Confirmed");
+        confirmed.addThemeVariants(BadgeVariant.DOT, BadgeVariant.SUCCESS);
+
+        Badge warning = new Badge("Warning");
+        warning.addThemeVariants(BadgeVariant.DOT, BadgeVariant.WARNING);
+
+        Badge denied = new Badge("Denied");
+        denied.addThemeVariants(BadgeVariant.DOT, BadgeVariant.ERROR);
+
+        Button downloadsButton = new Button(LumoIcon.DOWNLOAD.create());
+        // Only for Lumo
+        downloadsButton.addThemeVariants(ButtonVariant.LUMO_ICON);
+
+        Badge completed = new Badge("completed", 3);
+        completed.addThemeVariants(BadgeVariant.DOT, BadgeVariant.SUCCESS);
+        completed.getStyle().setPosition(Position.ABSOLUTE);
+        completed.getStyle().setTop("0.3em");
+        completed.getStyle().setRight("0.3em");
+        downloadsButton.setSuffixComponent(completed);
+
+        // end::snippet[]
+
+        add(pending, confirmed, warning, denied, downloadsButton);
+    }
+
+}
+
+[React: badge-dot.tsx]
+import React from 'react';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { Badge, HorizontalLayout, Button, Icon } from '@vaadin/react-components';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing" style={{ alignItems: 'center' }}>
+      {/* tag::snippet[] */}
+      <Badge theme="dot">Pending</Badge>
+      <Badge theme="dot success">Confirmed</Badge>
+      <Badge theme="dot warning">Warning</Badge>
+      <Badge theme="dot error">Denied</Badge>
+
+      <Button theme="icon" aria-label="Downloads">
+        <Icon icon="lumo:download" />
+        <Badge
+          slot="suffix"
+          theme="dot success"
+          number={3}
+          style={{ position: 'absolute', top: '0.3em', right: '0.3em' }}
+        >
+          completed
+        </Badge>
+      </Button>
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: badge-dot.ts]
+import '@vaadin/badge';
+import '@vaadin/button';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset.js';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('badge-dot')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+        <!-- tag::snippet[] -->
+        <vaadin-badge theme="dot">Pending</vaadin-badge>
+        <vaadin-badge theme="dot success">Confirmed</vaadin-badge>
+        <vaadin-badge theme="dot warning">Warning</vaadin-badge>
+        <vaadin-badge theme="dot error">Denied</vaadin-badge>
+
+        <vaadin-button theme="icon" aria-label="Downloads">
+          <vaadin-icon icon="lumo:download"></vaadin-icon>
+          <vaadin-badge
+            slot="suffix"
+            theme="dot success"
+            number="3"
+            style="position: absolute; top: 0.3em; right: 0.3em;"
+          >
+            completed
+          </vaadin-badge>
+        </vaadin-button>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Style Properties
+
+The following style properties can be used in CSS stylesheets to customize the appearance of this component.
+
+To apply values to these properties globally in your application UI, place them in a CSS block using the html {…​} selector. See Component Style Properties for more information on style properties.
+
+Property | Supported by
+--vaadin-badge-background | Aura, Lumo
+--vaadin-badge-border-color | Aura, Lumo
+--vaadin-badge-border-radius | Aura, Lumo
+--vaadin-badge-border-width | Aura, Lumo
+--vaadin-badge-font-family | Aura, Lumo
+--vaadin-badge-font-size | Aura, Lumo
+--vaadin-badge-font-weight | Aura, Lumo
+--vaadin-badge-gap | Aura, Lumo
+--vaadin-badge-line-height | Aura, Lumo
+--vaadin-badge-padding | Aura, Lumo
+--vaadin-badge-text-color | Aura, Lumo
+
+CSS Selectors
+
+The following CSS selectors can be used in stylesheets to target the various parts and states of the component. See the Styling documentation for more details on how to style components.
+
+Important: Not for Shadow DOM
+
+These selectors should be used in styles.css or another stylesheet loaded with the @StyleSheet annotation or the @import CSS rule. They do not work in the shadow DOM of Vaadin components, such as in stylesheets in the components sub-folder or loaded with the @CssImport annotation’s themeFor property.
+
+Root element
+    vaadin-badge
+
+States
+
+Has icon
+    vaadin-badge[has-icon]
+Has content
+    vaadin-badge[has-content]
+Has number
+    vaadin-badge[has-number]
+
+Parts
+
+Icon
+    vaadin-badge::part(icon)
+Content
+    vaadin-badge::part(content)
+Number
+    vaadin-badge::part(number)

@@ -1,0 +1,572 @@
+Details
+
+Details is an expandable panel for showing and hiding content from the user, to make the UI less cluttered.
+
+Details is an expandable panel for showing and hiding content from the user, to make the UI less cluttered.
+
+[Flow: DetailsBasic.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("details-basic")
+public class DetailsBasic extends Div {
+
+    public DetailsBasic() {
+        // tag::snippet[]
+        Span name = new Span("Sophia Williams");
+        Span email = new Span("sophia.williams@company.com");
+        Span phone = new Span("(501) 555-9128");
+
+        VerticalLayout content = new VerticalLayout(name, email, phone);
+        content.setSpacing(false);
+        content.setPadding(false);
+
+        Details details = new Details("Contact information", content);
+        details.setOpened(true);
+
+        add(details);
+        // end::snippet[]
+    }
+
+}
+
+[React: details-basic.tsx]
+import React from 'react';
+import { Details } from '@vaadin/react-components/Details.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Details summary="Contact information" opened>
+      <VerticalLayout>
+        <span>Sophia Williams</span>
+        <span>sophia.williams@company.com</span>
+        <span>(501) 555-9128</span>
+      </VerticalLayout>
+    </Details>
+    // end::snippet[]
+  );
+}
+
+[Lit: details-basic.ts]
+import '@vaadin/details';
+import '@vaadin/vertical-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('details-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details summary="Contact information" opened>
+        <vaadin-vertical-layout>
+          <span>Sophia Williams</span>
+          <span>sophia.williams@company.com</span>
+          <span>(501) 555-9128</span>
+        </vaadin-vertical-layout>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+Anatomy
+
+Details consist of a summary area and a content area.
+
+Summary
+
+The Summary is the part that’s always visible, and typically describes the content, for example with a title. Clicking on the summary toggles the content area’s visibility.
+
+The summary supports rich content and can contain any component. This can be used, for example, to display the status of the corresponding content.
+
+[Flow: DetailsSummary.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+import com.vaadin.demo.domain.Country;
+import com.vaadin.demo.domain.DataService;
+
+@Route("details-summary")
+public class DetailsSummary extends Div {
+
+    public DetailsSummary() {
+        // tag::snippet[]
+        HorizontalLayout summary = new HorizontalLayout();
+        summary.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Badge errorBadge = new Badge("errors", 2,
+                VaadinIcon.EXCLAMATION_CIRCLE.create());
+        errorBadge.addThemeVariants(BadgeVariant.ERROR);
+
+        summary.add(new Text("Contact information"), errorBadge);
+
+        FormLayout content = new FormLayout();
+        content.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("20em", 2));
+
+        TextField address = new TextField("Address");
+        address.setValue("4027 Amber Lake Canyon");
+        content.add(address, 2);
+
+        TextField zipCode = new TextField("ZIP code");
+        zipCode.setRequired(true);
+        content.add(zipCode);
+
+        TextField city = new TextField("City");
+        city.setRequired(true);
+        content.add(city);
+
+        ComboBox<Country> countries = new ComboBox<>("Country");
+        countries.setItems(DataService.getCountries());
+        countries.setItemLabelGenerator(Country::getName);
+        content.add(countries);
+
+        Details details = new Details(summary, content);
+        details.setOpened(true);
+
+        add(details);
+        // end::snippet[]
+    }
+
+}
+
+[React: details-summary.tsx]
+import '@vaadin/icons';
+import React, { useEffect } from 'react';
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { Badge } from '@vaadin/react-components/Badge.js';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { Details } from '@vaadin/react-components/Details.js';
+import { DetailsSummary } from '@vaadin/react-components/DetailsSummary.js';
+import { FormLayout, type FormLayoutResponsiveStep } from '@vaadin/react-components/FormLayout.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+import { Icon } from '@vaadin/react-components/Icon.js';
+import { TextField } from '@vaadin/react-components/TextField.js';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+const responsiveSteps: FormLayoutResponsiveStep[] = [
+  { minWidth: 0, columns: 1 },
+  { minWidth: '20em', columns: 2 },
+];
+
+function Example() {
+  const items = useSignal<Country[]>([]);
+
+  useEffect(() => {
+    getCountries().then((data) => {
+      items.value = data;
+    });
+  }, []);
+
+  return (
+    // tag::snippet[]
+    <Details opened>
+      <DetailsSummary slot="summary">
+        <HorizontalLayout theme="spacing" style={{ alignItems: 'center' }}>
+          <span>Contact information</span>
+
+          <Badge theme="error" number={2}>
+            <Icon slot="icon" icon="vaadin:exclamation-circle" />
+            <span>errors</span>
+          </Badge>
+        </HorizontalLayout>
+      </DetailsSummary>
+
+      <FormLayout responsiveSteps={responsiveSteps}>
+        <TextField label="Address" value="4027 Amber Lake Canyon" data-colspan="2" />
+
+        <TextField label="ZIP code" required />
+
+        <TextField label="City" required />
+
+        <ComboBox label="Country" itemLabelPath="name" itemValuePath="id" items={items.value} />
+      </FormLayout>
+    </Details>
+    // end::snippet[]
+  );
+}
+
+[Lit: details-summary.ts]
+import '@vaadin/badge';
+import '@vaadin/combo-box';
+import '@vaadin/details';
+import '@vaadin/form-layout';
+import '@vaadin/horizontal-layout';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/text-field';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { FormLayoutResponsiveStep } from '@vaadin/form-layout';
+import { getCountries } from 'Frontend/demo/domain/DataService';
+import { applyTheme } from 'Frontend/demo/theme';
+import type Country from 'Frontend/generated/com/vaadin/demo/domain/Country';
+
+@customElement('details-summary')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private items: Country[] = [];
+
+  @state()
+  private responsiveSteps: FormLayoutResponsiveStep[] = [
+    { minWidth: 0, columns: 1 },
+    { minWidth: '20em', columns: 2 },
+  ];
+
+  protected override async firstUpdated() {
+    this.items = await getCountries();
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details opened>
+        <vaadin-details-summary slot="summary">
+          <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+            <span>Contact information</span>
+
+            <vaadin-badge theme="error" number="2">
+              <vaadin-icon slot="icon" icon="vaadin:exclamation-circle"></vaadin-icon>
+              <span>errors</span>
+            </vaadin-badge>
+          </vaadin-horizontal-layout>
+        </vaadin-details-summary>
+
+        <vaadin-form-layout .responsiveSteps="${this.responsiveSteps}">
+          <vaadin-text-field
+            label="Address"
+            value="4027 Amber Lake Canyon"
+            colspan="2"
+          ></vaadin-text-field>
+
+          <vaadin-text-field label="ZIP code" required></vaadin-text-field>
+
+          <vaadin-text-field label="City" required></vaadin-text-field>
+
+          <vaadin-combo-box
+            label="Country"
+            item-label-path="name"
+            item-value-path="id"
+            .items="${this.items}"
+          ></vaadin-combo-box>
+        </vaadin-form-layout>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+[Lit: Country.ts]
+interface Country {
+    name: string;
+    abbreviation: string;
+    id: number;
+}
+export default Country;
+
+[Lit: Country.ts]
+
+Content
+
+This is the collapsible part of Details. It can contain any component. When the content area is collapsed, the content is invisible and inaccessible by keyboard or screen reader.
+
+[Flow: DetailsContent.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("details-content")
+public class DetailsContent extends Div {
+
+    public DetailsContent() {
+        // tag::snippet[]
+        Details analyticsDetails = createDetails("Analytics",
+                createStyledAnchor("#", "Dashboard"),
+                createStyledAnchor("#", "Reports"),
+                createStyledAnchor("#", "Data sources"));
+
+        Details customersDetails = createDetails("Customers",
+                createStyledAnchor("#", "Accounts"),
+                createStyledAnchor("#", "Contacts"));
+
+        Details financesDetails = createDetails("Finances",
+                createStyledAnchor("#", "Invoices"),
+                createStyledAnchor("#", "Transactions"),
+                createStyledAnchor("#", "Statements"));
+
+        add(analyticsDetails, customersDetails, financesDetails);
+        // end::snippet[]
+    }
+
+    private Details createDetails(String summary, Anchor... anchors) {
+        Details details = new Details(summary, createContent(anchors));
+        details.setOpened(true);
+
+        return details;
+    }
+
+    private VerticalLayout createContent(Anchor... anchors) {
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.add(anchors);
+
+        return content;
+    }
+
+    private Anchor createStyledAnchor(String href, String text) {
+        Anchor anchor = new Anchor(href, text);
+        anchor.getStyle().set("text-decoration", "none");
+
+        return anchor;
+    }
+
+}
+
+[React: details-content.tsx]
+import React from 'react';
+import { Details } from '@vaadin/react-components/Details.js';
+import { VerticalLayout } from '@vaadin/react-components/VerticalLayout.js';
+
+const anchorStyle = {
+  textDecoration: 'none',
+};
+
+function Example() {
+  return (
+    <>
+      {/* tag::snippet[] */}
+      <Details summary="Analytics" opened>
+        <VerticalLayout>
+          <a href="#" style={anchorStyle}>
+            Dashboard
+          </a>
+          <a href="#" style={anchorStyle}>
+            Reports
+          </a>
+          <a href="#" style={anchorStyle}>
+            Data sources
+          </a>
+        </VerticalLayout>
+      </Details>
+
+      <Details summary="Customers" opened>
+        <VerticalLayout>
+          <a href="#" style={anchorStyle}>
+            Accounts
+          </a>
+          <a href="#" style={anchorStyle}>
+            Contacts
+          </a>
+        </VerticalLayout>
+      </Details>
+
+      <Details summary="Finances" opened>
+        <VerticalLayout>
+          <a href="#" style={anchorStyle}>
+            Invoices
+          </a>
+          <a href="#" style={anchorStyle}>
+            Transactions
+          </a>
+          <a href="#" style={anchorStyle}>
+            Statements
+          </a>
+        </VerticalLayout>
+      </Details>
+      {/* end::snippet[] */}
+    </>
+  );
+}
+
+[Lit: details-content.ts]
+import '@vaadin/details';
+import '@vaadin/vertical-layout';
+import { css, html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('details-content')
+export class Example extends LitElement {
+  static override styles = css`
+    a {
+      text-decoration: none;
+    }
+  `;
+
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details summary="Analytics" opened>
+        <vaadin-vertical-layout>
+          <a href="#">Dashboard</a>
+          <a href="#">Reports</a>
+          <a href="#">Data sources</a>
+        </vaadin-vertical-layout>
+      </vaadin-details>
+
+      <vaadin-details summary="Customers" opened>
+        <vaadin-vertical-layout>
+          <a href="#">Accounts</a>
+          <a href="#">Contacts</a>
+        </vaadin-vertical-layout>
+      </vaadin-details>
+
+      <vaadin-details summary="Finances" opened>
+        <vaadin-vertical-layout>
+          <a href="#">Invoices</a>
+          <a href="#">Transactions</a>
+          <a href="#">Statements</a>
+        </vaadin-vertical-layout>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+Disabling
+
+Details can be disabled to prevent them from being expanded or collapsed. Components inside a disabled expanded Details are automatically disabled as well.
+
+[Flow: DetailsDisabled.java]
+package com.vaadin.demo.component.details;
+
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.router.Route;
+
+@Route("details-disabled")
+public class DetailsDisabled extends Div {
+
+    public DetailsDisabled() {
+        // tag::snippet[]
+        UnorderedList content = new UnorderedList(new ListItem("Blake Martin"),
+                new ListItem("Caroline Clark"), new ListItem("Avery Torres"),
+                new ListItem("Khloe Scott"), new ListItem("Camila Fisher"),
+                new ListItem("Gavin Lewis"), new ListItem("Isabella Powell"),
+                new ListItem("Zoe Wilson"));
+
+        Details details = new Details("Members (8)", content);
+        details.setEnabled(false);
+
+        add(details);
+        // end::snippet[]
+    }
+
+}
+
+[React: details-disabled.tsx]
+import React from 'react';
+import { Details } from '@vaadin/react-components/Details.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <Details summary="Members (8)" disabled>
+      <ul>
+        <li>Blake Martin</li>
+        <li>Caroline Clark</li>
+        <li>Avery Torres</li>
+        <li>Khloe Scott</li>
+        <li>Camila Fisher</li>
+        <li>Gavin Lewis</li>
+        <li>Isabella Powell</li>
+        <li>Zoe Wilson</li>
+      </ul>
+    </Details>
+    // end::snippet[]
+  );
+}
+
+[Lit: details-disabled.ts]
+import '@vaadin/details';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('details-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    // tag::snippet[]
+    return html`
+      <vaadin-details summary="Members (8)" disabled>
+        <ul>
+          <li>Blake Martin</li>
+          <li>Caroline Clark</li>
+          <li>Avery Torres</li>
+          <li>Khloe Scott</li>
+          <li>Camila Fisher</li>
+          <li>Gavin Lewis</li>
+          <li>Isabella Powell</li>
+          <li>Zoe Wilson</li>
+        </ul>
+      </vaadin-details>
+    `;
+    // end::snippet[]
+  }
+}
+
+Best Practices
+
+Use Details to group related content and to reduce the chance of overwhelming the user with information. However, avoid putting important information in a Details component unless it’s expanded by default. Otherwise, the user might not notice it.
+
+Details can be used instead of Accordion if there’s a need to see content from multiple collapsible content areas, simultaneously.
+
+The expandable and collapsible nature of Details can sometimes be difficult for users to discover. Use the filled variant and apply a tooltips to make this more discoverable.
+
+Related Components
+
+Component | Usage Recommendation
+Accordion | Vertically stacked set of expandable panels, in which only one panel can be expanded at a time.
+Tabs | Component for organizing and grouping content into navigable sections.

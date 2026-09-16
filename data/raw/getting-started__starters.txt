@@ -1,0 +1,16 @@
+Different Ways of Starting a Vaadin Project
+
+Learn about different ways to start a Vaadin project.
+
+You can create a new Vaadin project in several ways:
+
+Vaadin Start
+    The recommended way to start a Vaadin project.
+Templates
+    Clone a template project to create a Vaadin application with a different technology stack.
+Spring Initializr
+    How to create a Vaadin project with Spring Initializr.
+Maven Archetype
+    How to use a Maven Archetype to generate a Vaadin web application.
+Gradle
+    How to create a Vaadin project with Gradle.

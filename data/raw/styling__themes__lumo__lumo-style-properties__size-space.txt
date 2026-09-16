@@ -1,0 +1,72 @@
+Lumo Sizing & Spacing
+
+Listing of Lumo style properties related to setting the size and spacing of text and components.
+
+[lumo-tokens.ts]
+import colorScheme from '@vaadin/vaadin-lumo-styles/src/global/color-scheme.css?inline';
+import propsStyles from '@vaadin/vaadin-lumo-styles/src/props/index.css?inline';
+import utilityStyles from '@vaadin/vaadin-lumo-styles/utility.css?inline';
+import { addStylesheet } from 'Frontend/demo/theme';
+
+// Extract dark theme properties. Exclude non-custom properties, so that we don't override docs
+// styles (color, background) with Lumo styles.
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
+const darkThemeProps = colorScheme
+  .toString()
+  .split('\n')
+  .filter((line) => line.trim().startsWith('--'));
+const darkThemeStyles = `
+[theme~='dark'] {
+${darkThemeProps.join('\n')}
+}
+`;
+
+// Include styles in the page
+addStylesheet(propsStyles);
+addStylesheet(utilityStyles);
+addStylesheet(darkThemeStyles);
+
+// Notify DSP CustomPropertyPreview React component after custom properties have been loaded
+window.dispatchEvent(new CustomEvent('custom-properties-changed'));
+
+// Dummy element so that this module can be included as a rendered example in a docs page
+export default class LumoTokens extends HTMLElement {}
+
+[lumo-tokens.ts]
+
+This page lists Lumo style properties for size and space, which you can use to apply consistent sizing and spacing across your application.
+
+You can load the built-in Lumo compact preset to reduce the font size and the sizing and spacing of all components, allowing you to place more components on the screen.
+
+Size
+
+Use these properties to adjust the sizing of regular elements such as buttons, text fields, and list items.
+
+Medium is the standard size, and it’s primarily used to size buttons, text fields and list items. If you adjust the sizing, make sure to keep it large enough for touch targets.
+
+Description | CSS Custom Property
+Extra Large Minimum data grid header row height | --lumo-size-xl:
+Large Large button | --lumo-size-l:
+Medium Button and input field height, data grid row height | --lumo-size-m:
+Small Small button and input field height | --lumo-size-s:
+Extra Small | --lumo-size-xs:
+
+Icon Size
+
+Use the icon size custom properties to set consistent sizes for all icons across your application. The icon sizes are relative to the font size by default, meaning they scale automatically depending on the context you place them in.
+
+Description | CSS Custom Property
+Large icon | --lumo-icon-size-l:
+Medium icon Default size | --lumo-icon-size-m:
+Small icon | --lumo-icon-size-s:
+
+Space
+
+Use these properties to adjust the inter-component spacings – the space outside a regular component (e.g., button, text field) or inside a container component (e.g., layouts, grid cells).
+
+Description | CSS Custom Property
+Extra Large | --lumo-space-xl:
+Large | --lumo-space-l:
+Medium | --lumo-space-m:
+Small | --lumo-space-s:
+Extra Small | --lumo-space-xs:

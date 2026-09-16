@@ -1,0 +1,886 @@
+Binding Data to Tree Grid Flow
+
+Binding and displaying hierarchical data in Tree Grid
+
+Tree Grid supports several ways to bind hierarchical data, depending on where the data lives and how much control you need:
+
+- The setItems method for quick setup from a collection of root items and their children.
+- TreeData and TreeDataProvider APIs for creating and binding in-memory hierarchies.
+- Custom hierarchical data providers for advanced cases, like connecting to a database.
+
+Setting Items
+
+The simplest way to populate Tree Grid is to use the setItems(rootItems, childItemProvider) method. It takes a collection of root items and a callback that returns the children of each item:
+
+[Example.java]
+Folder invoices = new Folder("Invoices", List.of());
+Folder documents = new Folder("Documents", List.of(invoices));
+Folder work = new Folder("Work", List.of(documents));
+Folder family = new Folder("Family", List.of());
+
+// First argument: root-level folders shown at the top level of the tree.
+// Second argument: a callback that returns the children of each folder.
+treeGrid.setItems(List.of(work, family), Folder::children);
+
+// Result:
+//
+// ├── Work
+// │   └── Documents
+// │       └── Invoices
+// └── Family
+
+[Folder.java]
+public record Folder(String name, List<Folder> children) {}
+
+Behind the scenes, the setItems method creates a TreeData structure by eagerly traversing the root items and their descendants: it calls the child item provider on each root item, then on each returned child, and continues until no more children are returned.
+
+The TreeData structure and its TreeDataProvider are then available via the TreeGrid#getTreeData and TreeGrid#getDataProvider methods:
+
+[Java]
+TreeData<Folder> treeData = treeGrid.getTreeData();
+TreeDataProvider<Folder> treeDataProvider = (TreeDataProvider<Folder>) treeGrid.getDataProvider();
+
+The next section explains the TreeData and TreeDataProvider concepts in more detail, and how to use them to modify, sort, and filter hierarchical data.
+
+Tree Data Provider
+
+The TreeData class is a simple, built-in structure for storing and managing hierarchical data in memory. It supports basic operations for manipulating the tree, such as adding items, moving them to a different parent, and removing them.
+
+The TreeDataProvider class is a companion to TreeData. It wraps a TreeData instance and enables it to be used as a data source for a Tree Grid while also providing support for sorting, filtering, and lazy loading.
+
+Both are available out of the box in Flow and can be used with Tree Grid like this:
+
+[Example.java]
+// Create a TreeData instance with Folder records
+TreeData<Folder> treeData = new TreeData<>();
+
+// Create a TreeDataProvider backed by the TreeData instance
+TreeDataProvider<Folder> treeDataProvider = new TreeDataProvider<>(
+        treeData,
+        HierarchicalDataProvider.HierarchyFormat.FLATTENED);
+
+// Set the TreeDataProvider as the data provider for the Tree Grid
+treeGrid.setDataProvider(treeDataProvider);
+
+[Folder.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+public record Folder(String name) {
+}
+
+Note: Using the HierarchyFormat.FLATTENED option with TreeDataProvider is recommended to ensure Tree Grid preserves its scroll position after the TreeData’s hierarchy is modified. More details about hierarchy formats are provided later in this article in the Hierarchy Formats section.
+
+Adding Items
+
+The TreeData structure provides methods for adding both root-level and child items. In the example below, the TreeData#addRootItems(T…​ items) and TreeData#addItem(T parent, T child) methods are used to construct a simple folder hierarchy:
+
+[Java]
+Folder work = new Folder("Work");
+Folder documents = new Folder("Documents");
+Folder invoices = new Folder("Invoices");
+Folder family = new Folder("Family");
+
+treeData.addRootItems(work, family);
+treeData.addItem(work, documents);
+treeData.addItem(documents, invoices);
+
+// Result:
+//
+// ├── Work
+// │   └── Documents
+// │       └── Invoices
+// └── Family
+
+The resulting tree structure can be navigated using the TreeData#getChildren(T parent) and TreeData#getParent(T item) methods:
+
+[Java]
+treeData.getChildren(new Folder("Documents")); // => List(Folder("Invoices"))
+
+treeData.getParent(new Folder("Invoices")); // => Folder("Documents")
+
+treeData.getChildren(new Folder("Family")); // => empty List
+
+treeData.getParent(new Folder("Family")); // => null (root item)
+
+Moving Items within Tree
+
+Once items are added to the TreeData, they can be moved to a different parent within the tree. The next example shows how the TreeData#setParent(item, newParent) method can be used together with Tree Grid’s drag-and-drop events to let users move folders around:
+
+[Java]
+// Allow dragging folders
+treeGrid.setRowsDraggable(true);
+treeGrid.setDropMode(GridDropMode.ON_TOP);
+
+treeGrid.addDragStartListener(event -> {
+    // Store the dragged folder for use in the drop listener
+    draggedFolder = event.getDraggedItems().getFirst();
+});
+
+treeGrid.addDropListener(event -> {
+    event.getDropTargetItem().ifPresent((targetFolder) -> {
+        // Move the dragged folder under the target folder
+        treeData.setParent(draggedFolder, targetFolder);
+
+        // Refresh the Tree Grid to reflect the changes in the UI
+        treeDataProvider.refreshAll();
+    });
+
+    draggedFolder = null;
+});
+
+Modifying the TreeData structure doesn’t automatically update the Tree Grid UI. To reflect such changes, you should always explicitly call the TreeDataProvider#refreshAll() method, as shown above.
+
+Alternatively, if the hierarchy remains unchanged and only item properties are updated, you can use a more targeted method like TreeDataProvider#refreshItem(item) instead.
+
+Removing Items
+
+To remove items from the tree, you can use the TreeData#removeItem(item) method. It removes the given item along with all its children. The following example demonstrates how to delete the selected folder when Delete is pressed:
+
+[Java]
+// Allow selecting folders
+treeGrid.setSelectionMode(SelectionMode.SINGLE);
+
+// Add a keyboard shortcut listener for the Delete key
+Shortcuts.addShortcutListener(treeGrid, () -> {
+    Folder selectedFolder = treeGrid.asSingleSelect().getValue();
+    if (selectedFolder != null) {
+        // Remove the selected folder from the TreeData
+        treeData.removeItem(selectedFolder);
+
+        // Refresh the Tree Grid to reflect the changes in the UI
+        treeDataProvider.refreshAll();
+    }
+}, Key.DELETE);
+
+As before, make sure to call TreeDataProvider#refreshAll() to update the Tree Grid UI after making any structural changes to the TreeData.
+
+Sorting Items
+
+Tree Data Provider provides built-in support for in-memory sorting. You can enable sorting on Tree Grid columns, and the data provider will automatically sort the items based on the sort order selected by the user:
+
+[Java]
+treeGrid.addHierarchyColumn(Folder::name).setHeader("Folder").setSortable(true);
+
+Note: More examples of how to configure sortable columns, including multi-column sorting and custom comparators, can be found in the Grid documentation.
+
+In addition to column-level sorting, you can define a sort comparator directly on the TreeDataProvider instance using the setSortComparator(SerializableComparator<T>) method. This comparator is applied when no column sorting is used, and it acts as a secondary comparator when combined with column sorting.
+
+In the example below, a Select component is used to let users choose how folders are sorted in the Tree Grid. The setSortComparator method is called to apply the corresponding comparator based on the selected value:
+
+[Java]
+Select<String> sortBySelect = new Select<>("Sort by", "", "Name (A-Z)", "Name (Z-A)");
+sortBySelect.setValue("");
+sortBySelect.addValueChangeListener(event -> {
+    Comparator<Folder> comparator = switch (event.getValue()) {
+        case "Name (A-Z)" -> Comparator.comparing(Folder::name);
+        case "Name (Z-A)" -> Comparator.comparing(Folder::name).reversed();
+        default -> null;
+    };
+
+    if (comparator != null) {
+        // The comparator can't be passed directly because it doesn't implement
+        // SerializableComparator, which is required by setSortComparator. Using
+        // comparator::compare works as a workaround, as long as no serialization
+        // is triggered at runtime.
+        treeDataProvider.setSortComparator(comparator::compare);
+    } else {
+        treeDataProvider.setSortComparator(null);
+    }
+});
+
+The setSortComparator method re-renders the Tree Grid automatically, so calling refreshAll isn’t necessary.
+
+Note: Sorting in tree structures is always performed independently at each level to avoid breaking the links between parents and their children.
+
+Filtering Items
+
+Tree Data Provider also supports in-memory filtering. You can apply filtering by providing a filter predicate via the TreeDataProvider#setFilter(SerializablePredicate<T>) method.
+
+The following example demonstrates how this method can be used to filter folders based on a search term entered in a Text Field component. As the user types, the Tree Grid updates in real time to show only folders whose names contain the search term:
+
+[Java]
+TextField searchInput = new TextField("Search folders", "Enter folder name");
+searchInput.setValueChangeMode(ValueChangeMode.EAGER);
+searchInput.addValueChangeListener(event -> {
+    String searchTerm = event.getValue();
+
+    treeDataProvider.setFilter((folder) ->
+            folder.name().toLowerCase().contains(searchTerm.toLowerCase()));
+});
+
+The setFilter method re-renders the Tree Grid automatically, so calling refreshAll isn’t necessary.
+
+When a filter is set, Tree Data Provider evaluates it against every item in the tree, including items in collapsed branches. If any item matches, all of its ancestors are included in the result, so the whole path from the root to the matching item is preserved, even if those ancestors don’t match themselves. However, setting a filter doesn’t expand collapsed items automatically, so only the currently expanded part of the path is displayed in Tree Grid.
+
+Custom Data Providers
+
+Conceptually, any hierarchical data provider, including TreeDataProvider, is a class that implements the HierarchicalDataProvider interface. It encapsulates the logic needed to fetch hierarchical data from a specific data source, with support for pagination, sorting, and filtering.
+
+For convenience, Flow provides an abstract base class AbstractHierarchicalDataProvider, which you can extend to create a custom hierarchical data provider. This class requires implementing the following methods:
+
+[Java]
+public class CustomDataProvider extends AbstractHierarchicalDataProvider<T, F> {
+    @Override
+    public boolean isInMemory() { 1
+        // Your implementation here
+    }
+
+    @Override
+    public boolean hasChildren(T item) { 2
+        // Your implementation here
+    }
+
+    @Override
+    public int getChildCount(HierarchicalQuery<T, F> query) { 3
+        // Your implementation here
+    }
+
+    @Override
+    public Stream<T> fetchChildren(HierarchicalQuery<T, F> query) { 4
+        // Your implementation here
+    }
+}
+
+1. The isInMemory method indicates whether the data provider uses an in-memory data source. If it returns true, Tree Grid may use some additional optimizations.
+2. The hasChildren method returns whether the given item has child items and can therefore be expanded in the Tree Grid.
+3. The getChildCount method returns the number of child items based on the query parameters.
+4. The fetchChildren method returns a stream of child items based on the query parameters.
+
+When Tree Grid needs to load data, it calls the getChildCount and fetchChildren methods, passing a HierarchicalQuery object with parameters such as the requested range, the parent item whose children to load and other query details like sorting and filtering. The data provider’s implementation is then responsible for querying the data source based on these parameters and returning the results in one of the formats supported by Tree Grid.
+
+The available formats and their trade-offs are described in the next section.
+
+Hierarchy Formats
+
+Tree Grid supports data providers that return hierarchical data in one of two formats: HierarchyFormat.NESTED or HierarchyFormat.FLATTENED.
+
+[image: hierarchy formats]
+
+Both formats have their advantages and disadvantages. When implementing a custom hierarchical data provider, choose the format that best fits your use case and application requirements.
+
+HierarchyFormat.NESTED (default)
+
+The nested hierarchy format refers to a data provider implementation that, in each request, returns only the direct children of the requested parent item.
+
+To fill the viewport, Tree Grid sends separate requests to the data provider for each expanded item within the visible range. Each request includes a HierarchicalQuery object describing what to fetch, with the following fields:
+
+Method | Description
+HierarchicalQuery#getParent() | The parent item whose direct children should be returned.
+HierarchicalQuery#getOffset() and getLimit() | The offset and limit defining the range of direct children to return.
+
+If the returned children include expanded items that also fall within the visible range, Tree Grid sends additional requests to load their children, and so on. This creates a nested loading pattern where the hierarchy structure is discovered and cached progressively as the component is scrolled and more expanded items come into view.
+
+Below is an example of a simple in-memory data provider using the nested hierarchy format and TreeData as the data source:
+
+[FolderDataProvider.java]
+package com.vaadin.demo.component.treegrid.databinding.nested;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.component.treegrid.databinding.Folder;
+import com.vaadin.demo.component.treegrid.databinding.FolderTreeData;
+import com.vaadin.flow.data.provider.hierarchy.AbstractHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+
+public class FolderDataProvider
+        extends AbstractHierarchicalDataProvider<Folder, Void> {
+    private FolderTreeData folderTreeData = new FolderTreeData();
+
+    /**
+     * Indicates that this data provider uses an in-memory data source.
+     */
+    @Override
+    public boolean isInMemory() {
+        return true;
+    }
+
+    /**
+     * Indicates that this data provider uses the nested hierarchy format. This
+     * is also the default value, so this method override can be omitted.
+     */
+    @Override
+    public HierarchyFormat getHierarchyFormat() {
+        return HierarchyFormat.NESTED;
+    }
+
+    /**
+     * Returns whether the given folder has child folders.
+     */
+    @Override
+    public boolean hasChildren(Folder folder) {
+        return folderTreeData.getChildren(folder).size() > 0;
+    }
+
+    /**
+     * Returns the direct children of the requested parent folder. The query
+     * object also includes parameters for sorting and filtering, which can be
+     * applied here if needed.
+     */
+    @Override
+    public Stream<Folder> fetchChildren(HierarchicalQuery<Folder, Void> query) {
+        List<Folder> children = folderTreeData.getChildren(query.getParent());
+
+        return children.stream().skip(query.getOffset())
+                .limit(query.getLimit());
+    }
+
+    /**
+     * Returns the number of direct children of the requested parent folder. The
+     * query object also includes parameters for filtering, which can be applied
+     * here if needed.
+     */
+    @Override
+    public int getChildCount(HierarchicalQuery<Folder, Void> query) {
+        List<Folder> children = folderTreeData.getChildren(query.getParent());
+
+        return children.size();
+    }
+}
+
+[FolderTreeData.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+
+public class FolderTreeData extends TreeData<Folder> {
+    public FolderTreeData() {
+        // Creates a TreeData object with the following folder hierarchy:
+        //
+        // ├── Work
+        // │   └── Documents
+        // │       └── Invoices
+        // └── Family
+
+        Folder work = new Folder("Work");
+        Folder documents = new Folder("Documents");
+        Folder invoices = new Folder("Invoices");
+        Folder family = new Folder("Family");
+
+        addRootItems(work, family);
+        addItem(work, documents);
+        addItem(documents, invoices);
+    }
+}
+
+[Folder.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+public record Folder(String name) {
+}
+
+Advantages:
+
+- Simple to grasp and implement. Each request deals with one hierarchy level at a time while Tree Grid handles the rest, such as managing hierarchy traversal, caching, etc.
+- Each individual request is inherently lightweight, as it only needs to return direct children of a parent item.
+
+Disadvantages:
+
+- The full size and structure of the tree remain unknown since determining them would require loading the entire hierarchy into memory, which isn’t efficient for this format. As a result, Tree Grid can’t restore the scroll position automatically after HierarchicalDataProvider#refreshAll() because it resets the cached hierarchy state.
+- Fast scrolling can skip over hierarchy levels, which makes this format less ideal for using with drag-and-drop.
+- While individual requests are lightweight, a large number of expanded items can result in many small requests in a short time, which may affect performance if the data source isn’t optimized for this access pattern.
+
+HierarchyFormat.FLATTENED
+
+The flattened hierarchy format refers to a data provider implementation that returns the entire sub-tree of the requested parent item in a single, flat list, including all expanded descendants arranged in depth-first order: parent first, then its children, followed by their children, and so on.
+
+To fill the viewport, Tree Grid makes a single data provider request covering the entire visible range. Requests to individual levels are only made for specific operations that require it, such as recursive tree expansion.
+
+Each request includes a HierarchicalQuery object describing what to fetch, with the following fields:
+
+Method | Description
+HierarchicalQuery#getParent() | The parent item whose sub-tree to return as a flat list. The null value means the entire tree starting from the root items.
+HierarchicalQuery#getExpandedItemIds() | The IDs of items to treat as expanded in the requested sub-tree. Their children should be included in the flat list, in addition to the direct children of getParent(). This set may also be empty, in which case only the direct children of getParent() are expected to be returned.
+HierarchicalQuery#getOffset() and getLimit() | The offset and limit defining the slice of the resulting flat list to return.
+
+This format also requires the data provider to implement HierarchicalDataProvider#getDepth(T item) to return the depth for each item in the hierarchy. Tree Grid needs this information to indent items visually.
+
+Below is an example of a simple in-memory data provider using the flattened hierarchy format and TreeData as the data source:
+
+[FolderDataProvider.java]
+package com.vaadin.demo.component.treegrid.databinding.flattened;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.component.treegrid.databinding.Folder;
+import com.vaadin.demo.component.treegrid.databinding.FolderTreeData;
+import com.vaadin.flow.data.provider.hierarchy.AbstractHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+
+public class FolderDataProvider
+        extends AbstractHierarchicalDataProvider<Folder, Void> {
+    private FolderTreeData folderTreeData = new FolderTreeData();
+
+    /**
+     * Indicates that this data provider uses an in-memory data source.
+     */
+    @Override
+    public boolean isInMemory() {
+        return true;
+    }
+
+    /**
+     * Indicates that this data provider uses the flattened hierarchy format.
+     */
+    @Override
+    public HierarchyFormat getHierarchyFormat() {
+        return HierarchyFormat.FLATTENED;
+    }
+
+    /**
+     * Returns whether the given folder has child folders.
+     */
+    @Override
+    public boolean hasChildren(Folder folder) {
+        return folderTreeData.getChildren(folder).size() > 0;
+    }
+
+    /**
+     * Returns the flattened sub-tree of the requested parent folder based on
+     * the expanded folders.
+     */
+    @Override
+    public Stream<Folder> fetchChildren(HierarchicalQuery<Folder, Void> query) {
+        List<Folder> result = flatten(query.getParent(),
+                query.getExpandedItemIds());
+
+        return result.stream().skip(query.getOffset()).limit(query.getLimit());
+    }
+
+    /**
+     * Returns the size of the flattened sub-tree of the requested parent folder
+     * based on the expanded folders.
+     */
+    @Override
+    public int getChildCount(HierarchicalQuery<Folder, Void> query) {
+        List<Folder> result = flatten(query.getParent(),
+                query.getExpandedItemIds());
+
+        return result.size();
+    }
+
+    /**
+     * Returns the depth of the given folder in the hierarchy for Tree Grid to
+     * apply the correct indentation.
+     */
+    @Override
+    public int getDepth(Folder folder) {
+        int depth = 0;
+        while ((folder = folderTreeData.getParent(folder)) != null) {
+            depth++;
+        }
+        return depth;
+    }
+
+    /**
+     * Builds the parent folder's sub-tree based on the provided expanded
+     * folders. The result is a flat list of folders in depth-first order.
+     */
+    private List<Folder> flatten(Folder parent, Set<Object> expandedFolderIds) {
+        List<Folder> result = new ArrayList<>();
+        List<Folder> children = folderTreeData.getChildren(parent);
+
+        for (Folder child : children) {
+            result.add(child);
+
+            var isExpanded = expandedFolderIds.contains(getId(child));
+            if (isExpanded) {
+                result.addAll(flatten(child, expandedFolderIds));
+            }
+        }
+
+        return result;
+    }
+}
+
+[FolderTreeData.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+
+public class FolderTreeData extends TreeData<Folder> {
+    public FolderTreeData() {
+        // Creates a TreeData object with the following folder hierarchy:
+        //
+        // ├── Work
+        // │   └── Documents
+        // │       └── Invoices
+        // └── Family
+
+        Folder work = new Folder("Work");
+        Folder documents = new Folder("Documents");
+        Folder invoices = new Folder("Invoices");
+        Folder family = new Folder("Family");
+
+        addRootItems(work, family);
+        addItem(work, documents);
+        addItem(documents, invoices);
+    }
+}
+
+[Folder.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+public record Folder(String name) {
+}
+
+Advantages:
+
+- Tree Grid can get the full size of the tree and set the scroll container height upfront, which results in more predictable scrolling experience. This is essential when using features like drag-and-drop.
+- By re-fetching the full tree size, HierarchicalDataProvider#refreshAll() can preserve the scroll position, avoiding unexpected jumps.
+- Enables you to use more advanced techniques for querying data, e.g. Common Table Expressions (CTEs) in SQL databases to build the sub-tree in a single query.
+
+Disadvantages:
+
+- More complex to implement, with potentially heavier queries since the hierarchy has to be reconstructed for every request.
+
+Sorting
+
+Whenever the user changes the sort order on a column, Tree Grid passes the updated sort orders through the HierarchicalQuery on the next data load. The data provider can then read them from the query and apply them when fetching items:
+
+Method | Description
+Query#getSortOrders() | The list of QuerySortOrder objects describing the active column sort orders, in the order they should be applied. Each entry contains the column key and direction. The list is empty when no sorting is active. Useful for backends that sort by query parameters, e.g. an SQL ORDER BY clause.
+Query#getSortingComparator() | An optional in-memory Comparator derived from the active column sort orders. Useful for in-memory data sources, where it can be applied directly to a stream of items.
+
+The example below demonstrates how to read the query sort orders in a flattened data provider and apply them when building the flat list. FolderDataProvider converts the sort orders into a comparator and applies it separately at each hierarchy level. FolderView configures a Tree Grid with a sortable column:
+
+[FolderDataProvider.java]
+package com.vaadin.demo.component.treegrid.databinding.sort;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.component.treegrid.databinding.Folder;
+import com.vaadin.demo.component.treegrid.databinding.FolderTreeData;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.provider.hierarchy.AbstractHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+
+public class FolderDataProvider
+        extends AbstractHierarchicalDataProvider<Folder, Void> {
+    private FolderTreeData folderTreeData = new FolderTreeData();
+
+    @Override
+    public HierarchyFormat getHierarchyFormat() {
+        return HierarchyFormat.FLATTENED;
+    }
+
+    /* ... standard overrides of isInMemory(), hasChildren(), getDepth() ... */
+
+    @Override
+    public boolean isInMemory() {
+        return true;
+    }
+
+    @Override
+    public boolean hasChildren(Folder folder) {
+        return folderTreeData.getChildren(folder).size() > 0;
+    }
+
+    @Override
+    public int getDepth(Folder folder) {
+        int depth = 0;
+        while ((folder = folderTreeData.getParent(folder)) != null) {
+            depth++;
+        }
+        return depth;
+    }
+
+    @Override
+    public Stream<Folder> fetchChildren(HierarchicalQuery<Folder, Void> query) {
+        List<Folder> result = flatten(
+                query.getParent(),
+                query.getExpandedItemIds(),
+                query.getSortOrders());
+
+        return result.stream().skip(query.getOffset()).limit(query.getLimit());
+    }
+
+    @Override
+    public int getChildCount(HierarchicalQuery<Folder, Void> query) {
+        List<Folder> result = flatten(
+                query.getParent(),
+                query.getExpandedItemIds(),
+                // Sorting doesn't affect the count, so pass null as sortOrders
+                // to skip it
+                null);
+
+        return result.size();
+    }
+
+    private List<Folder> flatten(Folder parent, Set<Object> expandedFolderIds,
+            List<QuerySortOrder> sortOrders) {
+        List<Folder> result = new ArrayList<>();
+        List<Folder> children = folderTreeData.getChildren(parent);
+
+        // Apply the comparator separately at each hierarchy level so that
+        // parents continue to precede their children in the resulting flat
+        // list. With nested data providers this is implicit, because each
+        // fetchChildren call returns the children of a single parent. With
+        // flattened data providers, sorting must be applied independently to
+        // each level when constructing the flat list.
+        if (sortOrders != null) {
+            Comparator<Folder> comparator = sortOrders.stream()
+                    .map(FolderDataProvider::toComparator)
+                    .reduce(Comparator::thenComparing).orElse(null);
+
+            children = children.stream().sorted(comparator).toList();
+        }
+
+        for (Folder child : children) {
+            result.add(child);
+
+            var isExpanded = expandedFolderIds.contains(getId(child));
+            if (isExpanded) {
+                result.addAll(flatten(child, expandedFolderIds, sortOrders));
+            }
+        }
+
+        return result;
+    }
+
+    private static Comparator<Folder> toComparator(QuerySortOrder sortOrder) {
+        Comparator<Folder> comparator = switch (sortOrder.getSorted()) {
+        case "name" -> Comparator.comparing(Folder::name);
+        default -> (a, b) -> 0;
+        };
+        return sortOrder.getDirection() == SortDirection.DESCENDING
+                ? comparator.reversed()
+                : comparator;
+    }
+}
+
+[FolderView.java]
+package com.vaadin.demo.component.treegrid.databinding.sort;
+
+import com.vaadin.demo.component.treegrid.databinding.Folder;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+
+public class FolderView extends VerticalLayout {
+    public FolderView() {
+        TreeGrid<Folder> treeGrid = new TreeGrid<>();
+        treeGrid.addHierarchyColumn(Folder::name).setHeader("Folder")
+                .setKey("name").setSortable(true);
+
+        treeGrid.setDataProvider(new FolderDataProvider());
+
+        add(treeGrid);
+    }
+}
+
+[FolderTreeData.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+
+public class FolderTreeData extends TreeData<Folder> {
+    public FolderTreeData() {
+        // Creates a TreeData object with the following folder hierarchy:
+        //
+        // ├── Work
+        // │   └── Documents
+        // │       └── Invoices
+        // └── Family
+
+        Folder work = new Folder("Work");
+        Folder documents = new Folder("Documents");
+        Folder invoices = new Folder("Invoices");
+        Folder family = new Folder("Family");
+
+        addRootItems(work, family);
+        addItem(work, documents);
+        addItem(documents, invoices);
+    }
+}
+
+[Folder.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+public record Folder(String name) {
+}
+
+Note: The same approach applies to data providers that implement the nested hierarchy format, with one simplification: the recursive logic that walks expanded descendants isn’t needed there because HierarchicalQuery#getExpandedItemIds() is always empty.
+
+Filtering
+
+Tree Grid ships without a built-in filter field, so hierarchical data providers receive no filter value by default, and HierarchicalQuery#getFilter() always returns an empty Optional.
+
+To provide a filter value programmatically, wrap the data provider with withConfigurableFilter() and call setFilter on the resulting HierarchicalConfigurableFilterDataProvider. The filter value is then passed to the data provider on every fetch and can be accessed via HierarchicalQuery#getFilter().
+
+The example below demonstrates how to read the query filter in a flattened data provider and apply it when building the flat list. FolderDataProvider declares its filter type as String and uses the search term to keep only matching folders and their ancestors at each hierarchy level. FolderView wraps the data provider with withConfigurableFilter() and adds a search Text Field that updates the filter value on every change:
+
+[FolderDataProvider.java]
+package com.vaadin.demo.component.treegrid.databinding.filter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import com.vaadin.demo.component.treegrid.databinding.Folder;
+import com.vaadin.demo.component.treegrid.databinding.FolderTreeData;
+import com.vaadin.flow.data.provider.hierarchy.AbstractHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
+
+public class FolderDataProvider
+        extends AbstractHierarchicalDataProvider<Folder, String> {
+    private FolderTreeData folderTreeData = new FolderTreeData();
+
+    @Override
+    public HierarchyFormat getHierarchyFormat() {
+        return HierarchyFormat.FLATTENED;
+    }
+
+    /* ... standard overrides of isInMemory(), hasChildren(), getDepth() ... */
+
+    @Override
+    public boolean isInMemory() {
+        return true;
+    }
+
+    @Override
+    public boolean hasChildren(Folder folder) {
+        return folderTreeData.getChildren(folder).size() > 0;
+    }
+
+    @Override
+    public int getDepth(Folder folder) {
+        int depth = 0;
+        while ((folder = folderTreeData.getParent(folder)) != null) {
+            depth++;
+        }
+        return depth;
+    }
+
+    @Override
+    public Stream<Folder> fetchChildren(
+            HierarchicalQuery<Folder, String> query) {
+        List<Folder> result = flatten(
+                query.getParent(),
+                query.getExpandedItemIds(),
+                query.getFilter());
+
+        return result.stream().skip(query.getOffset()).limit(query.getLimit());
+    }
+
+    @Override
+    public int getChildCount(HierarchicalQuery<Folder, String> query) {
+        List<Folder> result = flatten(
+                query.getParent(),
+                query.getExpandedItemIds(),
+                query.getFilter());
+
+        return result.size();
+    }
+
+    private List<Folder> flatten(Folder parent, Set<Object> expandedFolderIds,
+            Optional<String> filter) {
+        List<Folder> result = new ArrayList<>();
+        List<Folder> children = folderTreeData.getChildren(parent);
+
+        for (Folder child : children) {
+            List<Folder> descendants = Collections.emptyList();
+
+            // Recurse when expanded, or when filtering, since a collapsed
+            // folder must still be included if any descendant matches.
+            var isExpanded = expandedFolderIds.contains(getId(child));
+            if (isExpanded || filter.isPresent()) {
+                descendants = flatten(child, expandedFolderIds, filter);
+            }
+
+            // Keep folder if it matches itself or has a matching descendant.
+            var matchesFilter = matches(child, filter)
+                    || !descendants.isEmpty();
+            if (matchesFilter) {
+                result.add(child);
+            }
+
+            // Only include descendants when user actually expanded the folder.
+            if (matchesFilter && isExpanded) {
+                result.addAll(descendants);
+            }
+        }
+
+        return result;
+    }
+
+    private boolean matches(Folder folder, Optional<String> filter) {
+        return filter
+                .map(f -> folder.name().toLowerCase().contains(f.toLowerCase()))
+                .orElse(true);
+    }
+}
+
+[FolderView.java]
+package com.vaadin.demo.component.treegrid.databinding.filter;
+
+import com.vaadin.demo.component.treegrid.databinding.Folder;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalConfigurableFilterDataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
+
+public class FolderView extends VerticalLayout {
+    public FolderView() {
+        TreeGrid<Folder> treeGrid = new TreeGrid<>();
+        treeGrid.addHierarchyColumn(Folder::name).setHeader("Folder");
+
+        // Wrap the data provider so the filter can be set externally.
+        HierarchicalConfigurableFilterDataProvider<Folder, Void, String> folderDataProvider =
+                new FolderDataProvider().withConfigurableFilter();
+
+        treeGrid.setDataProvider(folderDataProvider);
+
+        TextField searchInput = new TextField("Search folders",
+                "Enter folder name");
+        searchInput.setValueChangeMode(ValueChangeMode.EAGER);
+        searchInput.addValueChangeListener(
+                event -> folderDataProvider.setFilter(event.getValue()));
+
+        add(searchInput, treeGrid);
+    }
+}
+
+[FolderTreeData.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+import com.vaadin.flow.data.provider.hierarchy.TreeData;
+
+public class FolderTreeData extends TreeData<Folder> {
+    public FolderTreeData() {
+        // Creates a TreeData object with the following folder hierarchy:
+        //
+        // ├── Work
+        // │   └── Documents
+        // │       └── Invoices
+        // └── Family
+
+        Folder work = new Folder("Work");
+        Folder documents = new Folder("Documents");
+        Folder invoices = new Folder("Invoices");
+        Folder family = new Folder("Family");
+
+        addRootItems(work, family);
+        addItem(work, documents);
+        addItem(documents, invoices);
+    }
+}
+
+[Folder.java]
+package com.vaadin.demo.component.treegrid.databinding;
+
+public record Folder(String name) {
+}
+
+Note: The same approach applies to data providers that implement the nested hierarchy format, with one simplification: the recursive logic that walks expanded descendants isn’t needed there because HierarchicalQuery#getExpandedItemIds() is always empty.

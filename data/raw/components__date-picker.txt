@@ -1,0 +1,1367 @@
+Date Picker
+
+Date Picker is an input field that allows the user to enter a date by typing or by selecting from a calendar overlay.
+
+Date Picker is an input field that allows the user to enter a date by typing or by selecting from a calendar overlay.
+
+Try clicking the calendar icon. A calendar overlay appears, showing the current month. Click on a date to select it.
+
+[Flow: DatePickerBasic.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-basic")
+public class DatePickerBasic extends Div {
+
+    public DatePickerBasic() {
+        // tag::snippet[]
+        DatePicker datePicker = new DatePicker("Start date");
+        add(datePicker);
+        // end::snippet[]
+    }
+
+}
+
+[React: date-picker-basic.tsx]
+import React from 'react';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DatePicker label="Start date" />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-basic.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-basic')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker label="Start date"></vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+The date can be entered directly using the keyboard in the format of the current locale or through the date picker overlay. The overlay opens when the field is clicked or any input is entered when the field is focused.
+
+Validation
+
+Date Picker provides a validation mechanism based on constraints. Constraints allow you to define criteria that the date must meet to be considered valid. Validation occurs typically when the user initiates a date change, for example by selecting a date from the overlay or through text input followed by Enter. If the date is invalid, the field is highlighted in red, and an error message appears underneath the input.
+
+Below is a list of supported constraints with more detailed information:
+
+Bad input refers to any input that cannot be parsed into a value of the field type. When an unparsable value is entered, the field resets the value to empty and becomes invalid. This constraint is non-configurable and enabled by default.
+
+Required fields are marked with an indicator next to the label, and become invalid if their value is first entered and then cleared.
+
+An instruction text at the top of the form explaining the required indicator is recommended. The indicator itself can be customized with the --vaadin-input-field-required-indicator style property.
+
+The valid input range of Date Picker can be restricted by defining min and max values. Dates before the min and after the max are disabled in the overlay. Helper text can be used to inform the user about the accepted range.
+
+The following example demonstrates how to specify these constraints and provide error messages:
+
+[Flow: DatePickerValidation.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datepicker.DatePicker.DatePickerI18n;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+@Route("date-picker-validation")
+public class DatePickerValidation extends Div {
+
+    public DatePickerValidation() {
+        DatePicker datePicker = new DatePicker("Appointment date");
+        // tag::snippet[]
+        LocalDate now = LocalDate.now(ZoneId.systemDefault());
+
+        datePicker.setRequiredIndicatorVisible(true);
+        datePicker.setMin(now);
+        datePicker.setMax(now.plusDays(60));
+        datePicker.setHelperText("Must be within 60 days from today");
+
+        datePicker.setI18n(new DatePickerI18n()
+                .setBadInputErrorMessage("Invalid date format")
+                .setRequiredErrorMessage("Field is required")
+                .setMinErrorMessage("Too early, choose another date")
+                .setMaxErrorMessage("Too late, choose another date"));
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-validation.tsx]
+import { addDays, formatISO } from 'date-fns';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { DatePicker, type DatePickerElement } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  const minDate = useComputed(() => new Date());
+  const maxDate = useComputed(() => addDays(new Date(), 60));
+  const errorMessage = useSignal('');
+
+  return (
+    // tag::snippet[]
+    <DatePicker
+      label="Appointment date"
+      helperText="Must be within 60 days from today"
+      required
+      min={formatISO(minDate.value, { representation: 'date' })}
+      max={formatISO(maxDate.value, { representation: 'date' })}
+      errorMessage={errorMessage.value}
+      onValidated={(event) => {
+        const field = event.target as DatePickerElement;
+        if (!field.value && (field.inputElement as HTMLInputElement).value) {
+          errorMessage.value = 'Invalid date format';
+        } else if (!field.value) {
+          errorMessage.value = 'Field is required';
+        } else if (field.value < field.min!) {
+          errorMessage.value = 'Too early, choose another date';
+        } else if (field.value > field.max!) {
+          errorMessage.value = 'Too late, choose another date';
+        } else {
+          errorMessage.value = '';
+        }
+      }}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-validation.ts]
+import '@vaadin/date-picker';
+import { addDays, formatISO } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { DatePicker, DatePickerValidatedEvent } from '@vaadin/date-picker';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private errorMessage = '';
+
+  @state()
+  private minDate = new Date();
+
+  @state()
+  private maxDate = addDays(new Date(), 60);
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker
+        label="Appointment date"
+        helper-text="Must be within 60 days from today"
+        required
+        .min="${formatISO(this.minDate, { representation: 'date' })}"
+        .max="${formatISO(this.maxDate, { representation: 'date' })}"
+        .errorMessage="${this.errorMessage}"
+        @validated="${(event: DatePickerValidatedEvent) => {
+          const field = event.target as DatePicker;
+          if (!field.value && (field.inputElement as HTMLInputElement).value) {
+            this.errorMessage = 'Invalid date format';
+          } else if (!field.value) {
+            this.errorMessage = 'Field is required';
+          } else if (field.value < field.min!) {
+            this.errorMessage = 'Too early, choose another date';
+          } else if (field.value > field.max!) {
+            this.errorMessage = 'Too late, choose another date';
+          } else {
+            this.errorMessage = '';
+          }
+        }}"
+      ></vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+It’s important to ensure an appropriate error message is configured for each constraint violation to provide users with clear feedback.
+
+Custom Validation
+
+For more complex cases where constraint validation isn’t enough, Flow and Hilla offer the Binder API that allows you to define custom validation rules. This is useful, for example, when you want to limit the options to Monday through Friday. In the following example, try selecting a date that’s on a Sunday or on a Saturday to see a custom validation message.
+
+[Flow: DatePickerCustomValidation.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.demo.domain.Appointment;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datepicker.DatePicker.DatePickerI18n;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-custom-validation")
+public class DatePickerCustomValidation extends Div {
+
+    public DatePickerCustomValidation() {
+        // tag::snippet[]
+        DatePicker datePicker = new DatePicker("Meeting date");
+        datePicker.setHelperText("Mondays – Fridays only");
+        datePicker.setI18n(new DatePickerI18n()
+                .setBadInputErrorMessage("Invalid date format"));
+
+        Binder<Appointment> binder = new Binder<>(Appointment.class);
+        binder.forField(datePicker).withValidator(localDate -> {
+            int dayOfWeek = localDate.getDayOfWeek().getValue();
+            boolean validWeekDay = dayOfWeek >= 1 && dayOfWeek <= 5;
+            return validWeekDay;
+        }, "Select a weekday").bind(Appointment::getStartDate,
+                Appointment::setStartDate);
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-custom-validation.tsx]
+import React, { useEffect } from 'react';
+import { useForm, useFormPart } from '@vaadin/hilla-react-form';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+import AppointmentModel from 'Frontend/generated/com/vaadin/demo/domain/AppointmentModel';
+
+function Example() {
+  // tag::snippet[]
+  const { model, field } = useForm(AppointmentModel);
+  const dateField = useFormPart(model.startDate);
+
+  useEffect(() => {
+    dateField.addValidator({
+      message: 'Select a weekday',
+      validate: (startDate: string) => {
+        const date = new Date(startDate);
+        const isWeekday = date.getDay() >= 1 && date.getDay() <= 5;
+        return isWeekday;
+      },
+    });
+  }, []);
+
+  return (
+    <DatePicker
+      label="Meeting date"
+      helperText="Mondays – Fridays only"
+      {...field(model.startDate)}
+    />
+  );
+  // end::snippet[]
+}
+
+[Lit: date-picker-custom-validation.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { Binder, field } from '@vaadin/hilla-lit-form';
+import { applyTheme } from 'Frontend/demo/theme';
+import AppointmentModel from 'Frontend/generated/com/vaadin/demo/domain/AppointmentModel';
+
+@customElement('date-picker-custom-validation')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  private binder = new Binder(this, AppointmentModel);
+
+  protected override firstUpdated() {
+    this.binder.for(this.binder.model.startDate).addValidator({
+      message: 'Select a weekday',
+      validate: (startDate: string) => {
+        const date = new Date(startDate);
+        const isWeekday = date.getDay() >= 1 && date.getDay() <= 5;
+        return isWeekday;
+      },
+    });
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-date-picker
+        label="Meeting date"
+        helper-text="Mondays – Fridays only"
+        ${field(this.binder.model.startDate)}
+      ></vaadin-date-picker>
+    `;
+  }
+  // end::snippet[]
+}
+
+Binder can also be used to organize data binding and validation for multiple fields, creating forms. You can learn more about Binder from the corresponding Flow and Hilla articles.
+
+Week Numbers
+
+Week numbers (ISO-8601) can be enabled in the calendar overlay. This works only when the first day of the week is set to Monday.
+
+[Flow: DatePickerWeekNumbers.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-week-numbers")
+public class DatePickerWeekNumbers extends Div {
+
+    public DatePickerWeekNumbers() {
+        DatePicker datePicker = new DatePicker("Vacation start date");
+        // tag::snippet[]
+        datePicker.setWeekNumbersVisible(true);
+        datePicker
+                .setI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-week-numbers.tsx]
+import React, { useEffect, useRef } from 'react';
+import { DatePicker, type DatePickerElement } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  // tag::snippet[]
+  const datePickerRef = useRef<DatePickerElement>(null);
+
+  useEffect(() => {
+    if (datePickerRef.current) {
+      datePickerRef.current.i18n = {
+        ...datePickerRef.current.i18n,
+        firstDayOfWeek: 1,
+      };
+    }
+  }, [datePickerRef.current]);
+
+  return <DatePicker label="Vacation start date" showWeekNumbers ref={datePickerRef} />;
+  // end::snippet[]
+}
+
+[Lit: date-picker-week-numbers.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import type { DatePicker } from '@vaadin/date-picker';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-week-numbers')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @query('vaadin-date-picker')
+  private datePicker!: DatePicker;
+
+  // tag::snippet[]
+  protected override firstUpdated() {
+    this.datePicker.i18n = {
+      ...this.datePicker.i18n,
+      firstDayOfWeek: 1,
+    };
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-date-picker label="Vacation start date" show-week-numbers></vaadin-date-picker>
+    `;
+  }
+  // end::snippet[]
+}
+
+Initial Position
+
+Date Picker’s initial position parameter defines which date is focused in the calendar overlay when the overlay is opened. The default, initial position is the selected or current date.
+
+Use this feature to minimize the need for unnecessary navigation or scrolling when the user’s input is expected to be within a certain time. In the following example, click the Date Picker to open the calendar overlay and notice that the highlighted, focused date is in the future (i.e., the last day of the year), instead of the current date.
+
+[Flow: DatePickerInitialPosition.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
+
+@Route("date-picker-initial-position")
+public class DatePickerInitialPosition extends Div {
+
+    public DatePickerInitialPosition() {
+        DatePicker datePicker = new DatePicker("Q4 deadline");
+        // tag::snippet[]
+        LocalDate lastDayOfYear = LocalDate.now(ZoneId.systemDefault())
+                .with(TemporalAdjusters.lastDayOfYear());
+
+        datePicker.setInitialPosition(lastDayOfYear);
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-initial-position.tsx]
+import React from 'react';
+import { formatISO, lastDayOfYear } from 'date-fns';
+import { useComputed } from '@vaadin/hilla-react-signals';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  const lastDayOfTheYear = useComputed(() => lastDayOfYear(Date.now()));
+
+  return (
+    // tag::snippet[]
+    <DatePicker
+      label="Q4 deadline"
+      initialPosition={formatISO(lastDayOfTheYear.value, { representation: 'date' })}
+    />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-initial-position.ts]
+import '@vaadin/date-picker';
+import { formatISO, lastDayOfYear } from 'date-fns';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-initial-position')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private lastDayOfTheYear = lastDayOfYear(Date.now());
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker
+        label="Q4 deadline"
+        .initialPosition="${formatISO(this.lastDayOfTheYear, { representation: 'date' })}"
+      ></vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Auto Open
+
+The overlay automatically opens when the field is focused with a click or a tap, and when typing a value in the input. This can be prevented to have the overlay only open when the toggle button or the up/down arrow keys are pressed. This behavior isn’t affected, though, on touch devices.
+
+[Flow: DatePickerAutoOpen.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-auto-open")
+public class DatePickerAutoOpen extends Div {
+
+    public DatePickerAutoOpen() {
+        DatePicker datePicker = new DatePicker("Start date");
+        // tag::snippet[]
+        datePicker.setAutoOpen(false);
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-auto-open.tsx]
+import React from 'react';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DatePicker label="Start date" autoOpenDisabled />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-auto-open.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-auto-open')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker label="Start date" auto-open-disabled></vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Internationalization (i18n)
+
+Date Picker allows localizing text and labels, such as month names and button labels.
+
+[Flow: DatePickerInternationalization.java]
+package com.vaadin.demo.component.datepicker;
+
+import java.util.List;
+
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-internationalization")
+public class DatePickerInternationalization extends Div {
+
+    public DatePickerInternationalization() {
+        DatePicker datePicker = new DatePicker("Sitzungsdatum");
+
+        // tag::snippet[]
+        DatePicker.DatePickerI18n germanI18n = new DatePicker.DatePickerI18n();
+        germanI18n.setMonthNames(List.of("Januar", "Februar", "März", "April",
+                "Mai", "Juni", "Juli", "August", "September", "Oktober",
+                "November", "Dezember"));
+        germanI18n.setWeekdays(List.of("Sonntag", "Montag", "Dienstag",
+                "Mittwoch", "Donnerstag", "Freitag", "Samstag"));
+        germanI18n.setWeekdaysShort(
+                List.of("So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"));
+        germanI18n.setToday("Heute");
+        germanI18n.setCancel("Abbrechen");
+
+        datePicker.setI18n(germanI18n);
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-internationalization.tsx]
+import React, { useEffect, useRef } from 'react';
+import { DatePicker, type DatePickerElement } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  // tag::snippet[]
+  const datePickerRef = useRef<DatePickerElement>(null);
+
+  useEffect(() => {
+    if (datePickerRef.current) {
+      datePickerRef.current.i18n = {
+        ...datePickerRef.current.i18n,
+        monthNames: [
+          'Januar',
+          'Februar',
+          'März',
+          'April',
+          'Mai',
+          'Juni',
+          'Juli',
+          'August',
+          'September',
+          'Oktober',
+          'November',
+          'Dezember',
+        ],
+        weekdays: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+        weekdaysShort: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+        today: 'Heute',
+        cancel: 'Abbrechen',
+      };
+    }
+  }, [datePickerRef.current]);
+
+  return <DatePicker label="Sitzungsdatum" ref={datePickerRef} />;
+  // end::snippet[]
+}
+
+[Lit: date-picker-internationalization.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import type { DatePicker } from '@vaadin/date-picker';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-internationalization')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  // tag::snippet[]
+  @query('vaadin-date-picker')
+  private datePicker!: DatePicker;
+
+  protected override firstUpdated() {
+    this.datePicker.i18n = {
+      ...this.datePicker.i18n,
+      monthNames: [
+        'Januar',
+        'Februar',
+        'März',
+        'April',
+        'Mai',
+        'Juni',
+        'Juli',
+        'August',
+        'September',
+        'Oktober',
+        'November',
+        'Dezember',
+      ],
+      weekdays: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+      weekdaysShort: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+      today: 'Heute',
+      cancel: 'Abbrechen',
+    };
+  }
+
+  protected override render() {
+    return html`<vaadin-date-picker label="Sitzungsdatum"></vaadin-date-picker>`;
+  }
+  // end::snippet[]
+}
+
+See also how to configure a custom date format.
+
+Basic Features
+
+The following features, common to most input field components, are supported:
+
+The label is used to identify the input field. It supports plain-text content. In the Lumo theme its length is limited to the width of the field (and truncated with ellipsis), while in the Aura theme labels wrap to multiple lines. Helpers and Tooltips can be used to provide additional information that doesn’t fit into the label.
+
+Visible labels are strongly recommended for all input fields. In cases where the built-in label cannot be used, an external element can be associated as the field’s label through the aria-labelledby attribute (setAriaLabelledBy in Flow). Fields without any visible label should include an invisible label for assistive technologies with the aria-label attribute (setAriaLabel in Flow).
+
+Helpers are used to provide additional information that the user may need to enter in the field, such as format requirements or explanations of the field’s purpose below the field.
+
+A style variant is available for rendering the helper above the field.
+
+In addition to plain text, helpers can contain components and HTML elements. However, complex and interactive content is likely to have accessibility issues.
+
+The placeholder is text that’s displayed when the field is empty. Its primary purpose is to provide a short input hint (e.g., the expected format) in situations where a Helper cannot be used.
+
+Placeholders should not be used as a replacement for a visible label. They can be mistaken for a manually entered value. See Label for alternatives to the built-in field label.
+
+Tooltips are small text pop-ups displayed on hover, and on keyboard-focus. They can be used to provide additional information about a field. This can be useful in situations where an always visible Helper is not appropriate. Helpers are generally recommended in favor of tooltips, though, as they provide much better discoverability and mobile support. See the Tooltip documentation for more information.
+
+The clear button — which is displayed when the field is not empty — clears the field’s current value. Although the button itself is not keyboard focusable, the clear action can be taken with the Esc key, when the field has focus. The clear button can be especially useful in search and filter fields, where users often need to clear the value. They’re less useful, however, in regular forms.
+
+A prefix element — rendered at the start of the field — can be used to display units, icons, and similar visual cues to the field’s purpose or format.
+
+Prefix elements typically don’t work well with assistive technologies like screen readers. Therefore, the information communicated by them should also be conveyed through other means, such as in a Label, a Helper or through ARIA attributes on the field itself.
+
+Visible labels are strongly recommended for all input fields. In situations where the built-in label cannot be used, an external element can be associated as the field’s label through its element id. Fields without any visible label should be provided an invisible label for assistive technologies like screen readers.
+
+[HTML]
+<!-- Associates external element as label: -->
+<label id="external-label">This is the label</label>
+<vaadin-date-picker accessible-name-ref="external-label">...
+
+<!-- Invisible label for screen readers: -->
+<vaadin-date-picker accessible-name="This is the label">...
+
+[Java]
+// Associates external element as label:
+NativeLabel label = new NativeLabel("This is the label");
+label.setId("external-label");
+field.setAriaLabelledBy("external-label");
+
+// Invisible label for screen readers:
+field.setAriaLabel("This is the label");
+
+[Flow: DatePickerBasicFeatures.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-basic-features")
+public class DatePickerBasicFeatures extends HorizontalLayout {
+
+    public DatePickerBasicFeatures() {
+        setPadding(false);
+
+        // tag::snippet[]
+        DatePicker field = new DatePicker();
+        field.setLabel("Label");
+        field.setHelperText("Helper text");
+        field.setPlaceholder("Placeholder");
+        field.setTooltipText("Tooltip text");
+        field.setClearButtonVisible(true);
+        field.setPrefixComponent(VaadinIcon.VAADIN_H.create());
+        // end::snippet[]
+
+        add(field);
+    }
+
+}
+
+[React: date-picker-basic-features.tsx]
+import '@vaadin/icons';
+import React from 'react';
+import { DatePicker } from '@vaadin/react-components/DatePicker';
+import { Icon } from '@vaadin/react-components/Icon';
+import { Tooltip } from '@vaadin/react-components/Tooltip';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DatePicker label="Label" helperText="Helper text" placeholder="Placeholder" clearButtonVisible>
+      <Tooltip slot="tooltip" text="Tooltip text" />
+      <Icon slot="prefix" icon="vaadin:vaadin-h" />
+    </DatePicker>
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-basic-features.ts]
+import '@vaadin/date-picker';
+import '@vaadin/icon';
+import '@vaadin/icons';
+import '@vaadin/tooltip';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-basic-features')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker
+        label="Label"
+        helper-text="Helper text"
+        placeholder="Placeholder"
+        clear-button-visible
+      >
+        <vaadin-tooltip slot="tooltip" text="Tooltip text"></vaadin-tooltip>
+        <vaadin-icon slot="prefix" icon="vaadin:vaadin-h"></vaadin-icon>
+      </vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Read-Only & Disabled
+
+Fields used to display values should be set to read-only mode to prevent editing. Read-only fields are focusable and visible to screen readers. They can display tooltips. Their values can be selected and copied.
+
+Fields that are currently unavailable should be disabled. The reduced contrast of disabled fields makes them inappropriate for displaying information. They can’t be focused or display tooltips. They’re invisible to screen readers, and their values cannot be selected and copied.
+
+Disabled fields can be useful in situations where they can become enabled based on some user action. Consider hiding fields entirely if there’s nothing the user can do to make them editable.
+
+[Flow: DatePickerReadonlyAndDisabled.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.router.Route;
+
+import java.time.LocalDate;
+
+@Route("date-picker-readonly-and-disabled")
+public class DatePickerReadonlyAndDisabled extends HorizontalLayout {
+
+    public DatePickerReadonlyAndDisabled() {
+        setPadding(false);
+
+        // tag::snippet[]
+        DatePicker readonlyField = new DatePicker();
+        readonlyField.setReadOnly(true);
+        readonlyField.setLabel("Read-only");
+        readonlyField.setValue(LocalDate.of(2020, 6, 12));
+
+        DatePicker disabledField = new DatePicker();
+        disabledField.setEnabled(false);
+        disabledField.setLabel("Disabled");
+        // end::snippet[]
+        add(readonlyField, disabledField);
+    }
+
+}
+
+[React: date-picker-readonly-and-disabled.tsx]
+import React from 'react';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  return (
+    <HorizontalLayout theme="spacing">
+      {/* tag::snippet[] */}
+      <DatePicker readonly label="Read-only" value="2020-06-12" />
+
+      <DatePicker disabled label="Disabled" />
+      {/* end::snippet[] */}
+    </HorizontalLayout>
+  );
+}
+
+[Lit: date-picker-readonly-and-disabled.ts]
+import '@vaadin/date-picker';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-readonly-and-disabled')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <!-- tag::snippet[] -->
+        <vaadin-date-picker readonly label="Read-only" value="2020-06-12"></vaadin-date-picker>
+
+        <vaadin-date-picker disabled label="Disabled"></vaadin-date-picker>
+        <!-- end::snippet[] -->
+      </vaadin-horizontal-layout>
+    `;
+  }
+}
+
+Usage Patterns
+
+Date Range
+
+You can create a date range picker using the Date Picker twice. Imagine the following example is for an airline ticket booking page. It’s asking the user for the date they want to depart and when they want to return. Try it: select a departure date, and then proceed to select a return date. Notice how dates prior to the departure date you chose are now disabled.
+
+[Flow: DatePickerDateRange.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+@Route("date-picker-date-range")
+public class DatePickerDateRange extends Div {
+
+    public DatePickerDateRange() {
+        // tag::snippet[]
+        DatePicker departureDate = new DatePicker("Departure date");
+        DatePicker returnDate = new DatePicker("Return date");
+        departureDate
+                .addValueChangeListener(e -> returnDate.setMin(e.getValue()));
+        returnDate.addValueChangeListener(
+                e -> departureDate.setMax(e.getValue()));
+        // end::snippet[]
+
+        add(new HorizontalLayout(departureDate, returnDate));
+    }
+
+}
+
+[React: date-picker-date-range.tsx]
+import { useSignal } from '@vaadin/hilla-react-signals';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const departureDate = useSignal('');
+  const returnDate = useSignal('');
+
+  return (
+    // tag::snippet[]
+    <HorizontalLayout theme="spacing">
+      <DatePicker
+        label="Departure date"
+        max={returnDate.value}
+        onValueChanged={(event) => {
+          departureDate.value = event.detail.value;
+        }}
+      />
+
+      <DatePicker
+        label="Return date"
+        min={departureDate.value}
+        onValueChanged={(event) => {
+          returnDate.value = event.detail.value;
+        }}
+      />
+    </HorizontalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-date-range.ts]
+import '@vaadin/date-picker';
+import '@vaadin/horizontal-layout';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { DatePickerValueChangedEvent } from '@vaadin/date-picker';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-date-range')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  @state()
+  private departureDate = '';
+
+  @state()
+  private returnDate = '';
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-horizontal-layout theme="spacing">
+        <vaadin-date-picker
+          label="Departure date"
+          .max="${this.returnDate}"
+          @value-changed="${(event: DatePickerValueChangedEvent) => {
+            this.departureDate = event.detail.value;
+          }}"
+        ></vaadin-date-picker>
+        <vaadin-date-picker
+          label="Return date"
+          .min="${this.departureDate}"
+          @value-changed="${(event: DatePickerValueChangedEvent) => {
+            this.returnDate = event.detail.value;
+          }}"
+        ></vaadin-date-picker>
+      </vaadin-horizontal-layout>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+To disable the days before the start date in the end date picker, you need to handle the selection in the start date picker and change the range in the end date picker.
+
+Best Practices
+
+Picking vs. Typing
+
+The calendar overlay is useful when the user needs to choose a day that’s close to the current date or when information such as day of the week, week number, valid dates, and so on can aid in choosing the best option.
+
+For far off dates (i.e., years ago or years from now) and for known dates (i.e., holidays and birthdays), typing the date in the input field can be faster and easier. Because of this, it’s important to verify that the user can enter dates according to their locale.
+
+Instead of a Date Picker, you can use individual input fields (i.e., day, month, and year) to improve usability on small touch devices. In the following example, focus the year field and start to type a year. As you enter each digit, notice the list of choices narrows.
+
+[Flow: DatePickerIndividualInputFields.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.Route;
+
+import java.time.ZoneId;
+import java.time.format.TextStyle;
+import java.util.List;
+import java.util.Locale;
+
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.stream.IntStream;
+
+@Route("date-picker-individual-input-fields")
+public class DatePickerIndividualInputFields extends Div {
+
+    private final ComboBox<Integer> yearPicker;
+    private final ComboBox<Month> monthPicker;
+    private final ComboBox<Integer> dayPicker;
+
+    // tag::snippet[]
+    public DatePickerIndividualInputFields() {
+        LocalDate now = LocalDate.now(ZoneId.systemDefault());
+
+        List<Integer> selectableYears = IntStream
+                .range(now.getYear() - 99, now.getYear() + 1).boxed().toList();
+
+        yearPicker = new ComboBox<>("Year", selectableYears);
+        yearPicker.setWidth(7, Unit.EM);
+        yearPicker.addValueChangeListener(e -> {
+            updateMonthPicker();
+            updateDayPicker();
+        });
+
+        monthPicker = new ComboBox<>("Month", Month.values());
+        monthPicker.setItemLabelGenerator(
+                m -> m.getDisplayName(TextStyle.FULL, Locale.getDefault()));
+        monthPicker.setWidth(10, Unit.EM);
+        monthPicker.addValueChangeListener(e -> {
+            updateDayPicker();
+        });
+        monthPicker.setEnabled(false);
+
+        dayPicker = new ComboBox<>("Day");
+        dayPicker.setWidth(6, Unit.EM);
+        dayPicker.setEnabled(false);
+
+        add(new HorizontalLayout(yearPicker, monthPicker, dayPicker));
+    }
+
+    private void updateMonthPicker() {
+        if (yearPicker.getValue() == null) {
+            monthPicker.setValue(null);
+            monthPicker.setEnabled(false);
+            return;
+        }
+
+        monthPicker.setValue(null);
+        monthPicker.setEnabled(true);
+    }
+
+    private void updateDayPicker() {
+        if (yearPicker.getValue() == null || monthPicker.getValue() == null) {
+            dayPicker.setValue(null);
+            dayPicker.setEnabled(false);
+            return;
+        }
+
+        dayPicker.setValue(null);
+        dayPicker.setEnabled(true);
+
+        LocalDate startOfMonth = LocalDate.of(yearPicker.getValue(),
+                monthPicker.getValue(), 1);
+        int lengthOfMonth = startOfMonth.lengthOfMonth();
+
+        dayPicker.setItems(
+                IntStream.range(1, lengthOfMonth + 1).boxed().toList());
+    }
+    // end::snippet[]
+
+}
+
+[React: date-picker-individual-input-fields.tsx]
+import React from 'react';
+import { getDaysInMonth } from 'date-fns/getDaysInMonth';
+import { useComputed, useSignal } from '@vaadin/hilla-react-signals';
+import { ComboBox } from '@vaadin/react-components/ComboBox.js';
+import { HorizontalLayout } from '@vaadin/react-components/HorizontalLayout.js';
+
+function Example() {
+  const months = useComputed<string[]>(() => [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]);
+
+  const years = useComputed<number[]>(() =>
+    Array.from({ length: 100 }, (_, k) => new Date().getFullYear() - 99 + k)
+  );
+
+  const selectedYear = useSignal<number | undefined>(undefined);
+  const selectedMonth = useSignal<string | undefined>(undefined);
+  const selectedDay = useSignal<number | undefined>(undefined);
+  const selectableDays = useComputed<number[]>(() => {
+    if (!selectedYear.value || !selectedMonth.value) {
+      return [];
+    }
+
+    const startOfMonth = new Date(
+      selectedYear.value ?? 0,
+      months.value.indexOf(selectedMonth.value ?? 'January'),
+      1
+    );
+    const lengthOfMonth = getDaysInMonth(startOfMonth);
+
+    return Array.from({ length: lengthOfMonth }, (_, k) => k + 1);
+  });
+
+  return (
+    // tag::snippet[]
+    <HorizontalLayout theme="spacing">
+      <ComboBox
+        label="Year"
+        style={{ width: '7em' }}
+        items={years.value}
+        value={String(selectedYear.value)}
+        onValueChanged={(e) => {
+          selectedYear.value = parseInt(e.detail.value);
+          selectedMonth.value = undefined;
+          selectedDay.value = undefined;
+        }}
+      />
+
+      <ComboBox
+        label="Month"
+        style={{ width: '10em' }}
+        items={months.value}
+        value={selectedMonth.value}
+        disabled={!selectedYear.value}
+        onValueChanged={(e) => {
+          selectedMonth.value = e.detail.value;
+          selectedDay.value = undefined;
+        }}
+      />
+
+      <ComboBox
+        label="Day"
+        style={{ width: '6em' }}
+        items={selectableDays.value}
+        value={String(selectedDay.value)}
+        disabled={!selectedYear.value || !selectedMonth.value}
+        onValueChanged={(e) => {
+          const day = Number.parseInt(e.detail.value);
+          selectedDay.value = !Number.isNaN(day) ? day : undefined;
+        }}
+      />
+    </HorizontalLayout>
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-individual-input-fields.ts]
+import '@vaadin/combo-box';
+import '@vaadin/horizontal-layout';
+import { getDaysInMonth } from 'date-fns/getDaysInMonth';
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+import type { ComboBoxSelectedItemChangedEvent } from '@vaadin/combo-box';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-individual-input-fields')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  private months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  private years = Array.from({ length: 100 }, (_, k) => new Date().getFullYear() - 99 + k);
+
+  // tag::snippet[]
+  @state()
+  selectedYear: number | undefined;
+
+  @state()
+  selectedMonth: string | undefined;
+
+  @state()
+  selectedDay: number | undefined;
+
+  @state()
+  selectableDays: number[] = [];
+
+  private handleYearChange(e: ComboBoxSelectedItemChangedEvent<number>) {
+    this.selectedYear = e.detail.value!;
+    this.selectedMonth = undefined;
+    this.selectedDay = undefined;
+    this.selectableDays = [];
+  }
+
+  private handleMonthChange(e: ComboBoxSelectedItemChangedEvent<string>) {
+    this.selectedMonth = e.detail.value!;
+    this.selectedDay = undefined;
+
+    if (!this.selectedYear || !this.selectedMonth) {
+      this.selectableDays = [];
+      return;
+    }
+
+    const startOfMonth = new Date(this.selectedYear, this.months.indexOf(this.selectedMonth), 1);
+    const lengthOfMonth = getDaysInMonth(startOfMonth);
+
+    this.selectableDays = Array.from({ length: lengthOfMonth }, (_, k) => k + 1);
+  }
+
+  private handleDayChange(e: ComboBoxSelectedItemChangedEvent<number>) {
+    this.selectedDay = e.detail.value!;
+  }
+
+  protected override render() {
+    return html`
+      <vaadin-horizontal-layout theme="spacing">
+        <vaadin-combo-box
+          label="Year"
+          style="width: 7em;"
+          .items="${this.years}"
+          .selectedItem="${this.selectedYear}"
+          @selected-item-changed="${this.handleYearChange}"
+        ></vaadin-combo-box>
+        <vaadin-combo-box
+          label="Month"
+          style="width: 10em;"
+          .items="${this.months}"
+          .selectedItem="${this.selectedMonth}"
+          .disabled="${!this.selectedYear}"
+          @selected-item-changed="${this.handleMonthChange}"
+        ></vaadin-combo-box>
+        <vaadin-combo-box
+          label="Day"
+          style="width: 6em;"
+          .items="${this.selectableDays}"
+          .selectedItem="${this.selectedDay}"
+          .disabled="${!this.selectedYear || !this.selectedMonth}"
+          @selected-item-changed="${this.handleDayChange}"
+        ></vaadin-combo-box>
+      </vaadin-horizontal-layout>
+    `;
+  }
+  // end::snippet[]
+}
+
+Note: Not Production-Ready
+
+The previous example is only a prototype implementation to demonstrate the concept. It isn’t ready for production use.
+
+Show the Date Format
+
+Use a placeholder or helper to show how the input should be formatted. For example, "12/6/2020" represents different dates for Americans and Europeans. For most Americans, it’s a date in December. For many Europeans, it’s a date in June.
+
+[Flow: DatePickerDateFormatIndicator.java]
+package com.vaadin.demo.component.datepicker;
+
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.util.Locale;
+
+@Route("date-picker-date-format-indicator")
+public class DatePickerDateFormatIndicator extends Div {
+
+    public DatePickerDateFormatIndicator() {
+        DatePicker datePicker = new DatePicker("Start date");
+        datePicker.setLocale(new Locale("fi", "FI"));
+        // tag::snippet[]
+        datePicker.setPlaceholder("DD.MM.YYYY");
+        datePicker.setHelperText("Format: DD.MM.YYYY");
+        // end::snippet[]
+
+        add(datePicker);
+    }
+
+}
+
+[React: date-picker-date-format-indicator.tsx]
+import React from 'react';
+import { DatePicker } from '@vaadin/react-components/DatePicker.js';
+
+function Example() {
+  return (
+    // tag::snippet[]
+    <DatePicker label="Start date" placeholder="DD/MM/YYYY" helperText="Format: DD/MM/YYYY" />
+    // end::snippet[]
+  );
+}
+
+[Lit: date-picker-date-format-indicator.ts]
+import '@vaadin/date-picker';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import { applyTheme } from 'Frontend/demo/theme';
+
+@customElement('date-picker-date-format-indicator')
+export class Example extends LitElement {
+  protected override createRenderRoot() {
+    const root = super.createRenderRoot();
+    applyTheme(root);
+    return root;
+  }
+
+  protected override render() {
+    return html`
+      <!-- tag::snippet[] -->
+      <vaadin-date-picker
+        label="Start date"
+        placeholder="DD/MM/YYYY"
+        helper-text="Format: DD/MM/YYYY"
+      ></vaadin-date-picker>
+      <!-- end::snippet[] -->
+    `;
+  }
+}
+
+Helpers are preferable to placeholders, as they’re always visible. Fields with placeholders are also less noticeable than empty fields, so they are susceptible to being skipped. Use placeholders when space is limited, for example when Date Picker is used as a filter in a data grid header.
+
+Related Components
+
+Component | Usage Recommendation
+Time Picker | Input field for entering or selecting a specific time.
+Date Time Picker | Input field for selecting both a date and a time.

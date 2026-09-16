@@ -1,0 +1,1571 @@
+Gantt Chart
+
+Vaadin Charts support for creating Gantt charts.
+
+A Gantt chart is a type of bar chart that can represent a project schedule. It’s used for planning and scheduling projects, for displaying the start and finish dates of a project’s various elements. It can help in visualizing a project’s timeline, task dependencies, and progress.
+
+Typical Use Case
+
+A typical use case for a Gantt chart is in managing a project. For example, a project manager can use a Gantt chart to do the following:
+
+- Plan a project timeline by listing all tasks along with their start and end dates;
+- Identify task dependencies to understand which tasks need to be completed before others can start;
+- Track the progress of tasks to ensure the project is on schedule; and
+- Allocate resources by assigning tasks to team members and ensuring workload is balanced.
+
+Gantt charts are particularly useful for complex projects with multiple tasks and dependencies, such as software development, construction projects, and event planning.
+
+Adding Gantt Chart to Code
+
+You can add Gantt chart to your application by performing the following steps:
+
+- Specify the chart type with ChartType.GANTT;
+- Create GanttSeries with GanttSeriesItems to represent the tasks; and
+- Then add the series to the chart.
+
+You can alternatively configure the chart using options in the PlotOptionsGantt configuration object.
+
+[Flow: GanttBasicDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+
+@Route("chart-gantt-basic")
+public class GanttBasicDemo extends Div {
+
+    public GanttBasicDemo() {
+        // tag::snippet[]
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+
+        configuration.setTitle("Gantt Chart");
+
+        XAxis xAxis = configuration.getxAxis();
+        xAxis.setMin(Instant.parse("2014-10-17T00:00:00Z"));
+        xAxis.setMax(Instant.parse("2014-10-30T00:00:00Z"));
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        GanttSeries series = new GanttSeries();
+        series.add(new GanttSeriesItem("Start prototype",
+                Instant.parse("2014-10-18T00:00:00Z"),
+                Instant.parse("2014-10-25T00:00:00Z")));
+
+        series.add(new GanttSeriesItem("Test prototype",
+                Instant.parse("2014-10-27T00:00:00Z"),
+                Instant.parse("2014-10-29T00:00:00Z")));
+
+        series.add(new GanttSeriesItem("Develop",
+                Instant.parse("2014-10-20T00:00:00Z"),
+                Instant.parse("2014-10-25T00:00:00Z")));
+
+        series.add(new GanttSeriesItem("Run acceptance tests",
+                Instant.parse("2014-10-23T00:00:00Z"),
+                Instant.parse("2014-10-26T00:00:00Z")));
+
+        configuration.addSeries(series);
+        // end::snippet[]
+
+        add(chart);
+    }
+
+}
+
+Gantt Data Series
+
+The GanttSeries class is used to represent tasks in a Gantt chart. Each task is represented by a GanttSeriesItem, which includes properties such as the task name, start time, end time, completion status or dependencies of other tasks.
+
+[Java]
+Chart chart = new Chart(ChartType.GANTT);
+
+final Configuration configuration = chart.getConfiguration();
+
+PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+configuration.setPlotOptions(plotOptionsGantt);
+
+GanttSeries series = new GanttSeries();
+
+series.add(new GanttSeriesItem("Start prototype",
+Instant.parse("2014-10-18T00:00:00Z"),
+Instant.parse("2014-10-25T00:00:00Z")));
+
+series.add(new GanttSeriesItem("Test prototype",
+Instant.parse("2014-10-27T00:00:00Z"),
+Instant.parse("2014-10-29T00:00:00Z")));
+
+series.add(new GanttSeriesItem("Develop",
+Instant.parse("2014-10-20T00:00:00Z"),
+Instant.parse("2014-10-25T00:00:00Z")));
+
+series.add(new GanttSeriesItem("Run acceptance tests",
+Instant.parse("2014-10-23T00:00:00Z"),
+Instant.parse("2014-10-26T00:00:00Z")));
+
+configuration.addSeries(series);
+
+Chart Configuration
+
+The chart configuration involves several aspects, including horizontal and vertical axis configuration. It also includes grouping and custom labeling tasks, and setting row heights and other properties.
+
+Horizontal Axis Configuration
+
+The default settings for Gantt renders a dual date-time horizontal axis on the top of the chart. The tickInterval for the bottom horizontal axis is determined by the distribution of the series data points and available screen size. Respectively, the top axis is then assigned a higher date time interval (e.g., days-week, weeks-months, months-years). This logic is helpful when displaying Gantt charts on different devices. The Gantt chart automatically adapts and finds the right distribution of axis ticks based upon the screen size available.
+
+If the minimum and maximum width of the chart is set, there’s more control over the number of ticks displayed in the Gantt chart. This allows for further customization of the labels and tickInterval properties on the axis.
+
+The horizontal axis can be further configured to display less or more of the "date-time rows". See the following example to understand better how the horizontal axis can be configured:
+
+[Flow: GanttHorizontalAxisConfiguration.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.charts.model.style.Style;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+@Route("chart-gantt-horizontal-axis-configuration")
+public class GanttHorizontalAxisConfiguration extends Div {
+
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    public GanttHorizontalAxisConfiguration() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+        configuration.getChart().setHeight("330");
+
+        configuration.setTitle("Customized XAxis");
+        configuration.setSubTitle("Showing years, months and week numbers");
+        configureYearsMonthsWeeksOnXAxis(configuration);
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setCategories("Prototyping", "Development", "Testing");
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        final GanttSeries projectDevelopmentSeries = createProjectDevelopmentSeries();
+        configuration.addSeries(projectDevelopmentSeries);
+
+        add(chart);
+    }
+
+    // tag::snippet[]
+    private void configureYearsMonthsWeeksOnXAxis(Configuration configuration) {
+        configureWeeksAxis(configuration);
+        configureMonthsAxis(configuration);
+        configureYearsAxis(configuration);
+    }
+
+    private void configureWeeksAxis(Configuration configuration) {
+        XAxis axis = new XAxis();
+        configuration.addxAxis(axis);
+
+        axis.setMinPadding(0.02);
+        axis.setMaxPadding(0.02);
+        axis.setUnits(new TimeUnitMultiples(TimeUnit.WEEK, 1));
+
+        final Labels labels = new Labels();
+        labels.setPadding(1);
+        labels.setAlign(HorizontalAlign.LEFT);
+        var style = new Style();
+        style.setFontSize("8px");
+        labels.setStyle(style);
+        axis.setLabels(labels);
+
+        axis.setGrid(new AxisGrid());
+        axis.getGrid().setCellHeight(20);
+    }
+    // end::snippet[]
+
+    private void configureMonthsAxis(Configuration configuration) {
+        XAxis axis = new XAxis();
+        configuration.addxAxis(axis);
+        axis.setTickInterval(1000 * 60 * 60 * 24 * 30L);
+        axis.setUnits(new TimeUnitMultiples(TimeUnit.MONTH, 1));
+
+        final Labels labels = new Labels();
+        labels.setAlign(HorizontalAlign.LEFT);
+        var style = new Style();
+        style.setFontSize("8px");
+        labels.setStyle(style);
+        axis.setLabels(labels);
+
+        axis.setGrid(new AxisGrid());
+        axis.getGrid().setCellHeight(20);
+    }
+
+    private void configureYearsAxis(Configuration configuration) {
+        XAxis axis = new XAxis();
+        configuration.addxAxis(axis);
+        axis.setTickInterval(1000 * 60 * 60 * 24 * 365L);
+        axis.setUnits(new TimeUnitMultiples(TimeUnit.YEAR, 1));
+
+        final Labels labels = new Labels();
+        labels.setAlign(HorizontalAlign.LEFT);
+        var style = new Style();
+        style.setFontSize("8px");
+        labels.setStyle(style);
+        axis.setLabels(labels);
+
+        axis.setGrid(new AxisGrid());
+        axis.getGrid().setCellHeight(20);
+    }
+
+    private GanttSeries createProjectDevelopmentSeries() {
+        GanttSeries series = new GanttSeries();
+        series.add(
+                new GanttSeriesItem(0, startOfYearPlus(1), startOfYearPlus(3)));
+        series.add(
+                new GanttSeriesItem(1, startOfYearPlus(4), startOfYearPlus(5)));
+        series.add(new GanttSeriesItem(1, startOfYearPlus(8),
+                startOfYearPlus(10)));
+        series.add(
+                new GanttSeriesItem(2, startOfYearPlus(5), startOfYearPlus(7)));
+        series.add(new GanttSeriesItem(2, startOfYearPlus(9),
+                startOfYearPlus(11)));
+        return series;
+    }
+
+    private Instant startOfYearPlus(int months) {
+        return TODAY.plus(months * 30L, ChronoUnit.DAYS);
+    }
+
+}
+
+Vertical Axis Configuration
+
+If not specified, the Gantt chart determines the vertical axis rows, based on the unique names of the tasks in the data series, as specified by the setName(String) method in the GanttSeriesItem class. This means that each unique task name corresponds to a separate row in the chart.
+
+For an example of such configuration, see the Gantt chart example in the Adding Gantt Chart to Code.
+
+Group Tasks Vertically
+
+For grouping tasks in a Gantt chart on horizontal tracks, use a vertical category axis. This type of Gantt chart is often used to display resource allocation, or availability schedules.
+
+The chart rows (i.e., tracks) can be configured by specifying categories in the YAxis configuration. Each GanttSeriesItem then references the appropriate category using the setY(Number) method, where y is the ordinal number of the category.
+
+[Flow: GanttVerticalCategoriesGrouping.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+
+@Route("chart-gantt-vertical-categories-grouping")
+public class GanttVerticalCategoriesGrouping extends Div {
+
+    public GanttVerticalCategoriesGrouping() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+        configuration.setTitle("Car Rental Schedule");
+        configuration.getxAxis().setCurrentDateIndicator(true);
+        configuration.setPlotOptions(new PlotOptionsGantt());
+
+        // tag::snippet[]
+        var rentalData = getRentalData();
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setType(AxisType.CATEGORY);
+        rentalData.forEach(car -> yAxis.addCategory(car.model));
+
+        for (int i = 0; i < rentalData.size(); i++) {
+            CarRental car = rentalData.get(i);
+            GanttSeries series = new GanttSeries();
+            series.setName(car.model);
+            for (CarRentalDeal deal : car.deals) {
+                GanttSeriesItem item = new GanttSeriesItem(i, deal.from,
+                        deal.to);
+                item.setId("deal-" + i);
+                series.add(item);
+            }
+            configuration.addSeries(series);
+        }
+        // end::snippet[]
+
+        add(chart);
+    }
+
+    private List<CarRental> getRentalData() {
+        var today = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        return List.of(
+                new CarRental("Nissan Leaf")
+                        .addDeal(new CarRentalDeal("Lisa Star",
+                                plusDays(today, -1), plusDays(today, 2)))
+                        .addDeal(new CarRentalDeal("Shane Long",
+                                plusDays(today, -3), plusDays(today, -2)))
+                        .addDeal(new CarRentalDeal("Jack Coleman",
+                                plusDays(today, 5), plusDays(today, 6))),
+                new CarRental("Jaguar E-type")
+                        .addDeal(new CarRentalDeal("Martin Hammond",
+                                plusDays(today, -2), plusDays(today, 1)))
+                        .addDeal(new CarRentalDeal("Linda Jackson",
+                                plusDays(today, -2), plusDays(today, 1)))
+                        .addDeal(new CarRentalDeal("Robert Sailor",
+                                plusDays(today, 2), plusDays(today, 6))),
+                new CarRental("Volvo V60")
+                        .addDeal(new CarRentalDeal("Mona Ricci", today,
+                                plusDays(today, 3)))
+                        .addDeal(new CarRentalDeal("Jane Dockerman",
+                                plusDays(today, 3), plusDays(today, 4)))
+                        .addDeal(new CarRentalDeal("Bob Shurro",
+                                plusDays(today, 6), plusDays(today, 8))),
+                new CarRental("Volkswagen Golf")
+                        .addDeal(new CarRentalDeal("Hailie Marshall",
+                                plusDays(today, -1), plusDays(today, 1)))
+                        .addDeal(new CarRentalDeal("Morgan Nicholson",
+                                plusDays(today, -3), plusDays(today, -2)))
+                        .addDeal(new CarRentalDeal("William Harriet",
+                                plusDays(today, 2), plusDays(today, 3))),
+                new CarRental("Peugeot 208")
+                        .addDeal(new CarRentalDeal("Harry Peterson",
+                                plusDays(today, -1), plusDays(today, 2)))
+                        .addDeal(new CarRentalDeal("Emma Wilson",
+                                plusDays(today, 3), plusDays(today, 4)))
+                        .addDeal(new CarRentalDeal("Ron Donald",
+                                plusDays(today, 5), plusDays(today, 6))));
+    }
+
+    private Instant plusDays(Instant date, int days) {
+        return date.plus(days, ChronoUnit.DAYS);
+    }
+
+    static class CarRental {
+        private final String model;
+        private final List<CarRentalDeal> deals = new ArrayList<>();
+
+        public CarRental(String model) {
+            this.model = model;
+        }
+
+        public CarRental addDeal(CarRentalDeal deal) {
+            deals.add(deal);
+            return this;
+        }
+    }
+
+    static class CarRentalDeal {
+        private final String rentedTo;
+        private final Instant from;
+        private final Instant to;
+
+        public CarRentalDeal(String rentedTo, Instant from, Instant to) {
+            this.rentedTo = rentedTo;
+            this.from = from;
+            this.to = to;
+        }
+    }
+
+}
+
+Grouping Tasks in a Hierarchy
+
+You can split larger tasks into sub-tasks, or group resources together if they belong to the same parent task. To establish the parent-child relationship between two tasks, use the GanttSeriesItem#setParent(String) method.
+
+When making such a relationship, use the setParent(String) method on the child task to pass it the parent task’s ID. You can get that by first calling getId(). Here’s an example of how you might do this:
+
+[Java]
+var parentId = parentItem.getId();
+childItem.setParent(parentId);
+
+The duration of the parent task spans all sub-tasks. For a detailed example of such a configuration, see the section A Complete Task Dependencies Example
+
+Configure Row Height
+
+You can affect the height of the rows in a Gantt chart in multiple ways. Below is a list of them:
+
+Set Overall Height of Chart
+
+By setting the height of the chart, you can indirectly control the height of the rows. A taller chart results in taller rows, while a narrower chart results in more narrow rows.
+
+[Java]
+Chart chart = new Chart(ChartType.GANTT);
+chart.getConfiguration().getChart().setHeight("700px");
+
+Using YAxis.setStaticScale
+
+The YAxis.setStaticScale() method allows you to set a fixed height for each row in the Gantt chart. This method takes a double value, representing the height of each row in pixels. For example, setting the static scale to 24 results in each Y axis category using 24 pixels, and the height of the chart adjusts accordingly. Adding or removing categories resizes the chart.
+
+[Java]
+Chart chart = new Chart(ChartType.GANTT);
+final Configuration configuration = chart.getConfiguration();
+YAxis yAxis = configuration.getyAxis();
+yAxis.setStaticScale(24);
+
+Configuring Data Point in PlotOptionsGantt
+
+You can also affect the height of the rows by using the PlotOptionsGantt#setPointWidth() method. This configuration sets the width of the task bar. In Gantt charts, making the bar wider indirectly affects the overall row height. Below is an example of that:
+
+[Java]
+Chart chart = new Chart(ChartType.GANTT);
+final Configuration configuration = chart.getConfiguration();
+PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+plotOptionsGantt.setPointWidth(30);
+configuration.setPlotOptions(plotOptionsGantt);
+
+Task Custom Labels
+
+The PlotOptionsGantt#setDataLabels() method allows you to display one or more labels for each task in the Gantt chart. These labels can provide additional information about the tasks, such as assignee, start date, end date, and custom data.
+
+For each label, you can configure alignment relative to the task, format, color, border and many other style options (see DataLabels class for a complete list of options). The DataLabels class allows you to format labels to display either a simple value or HTML code. This flexibility permits you to customize the appearance and the content of the labels in a chart.
+
+[Flow: GanttCustomLabelsDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+
+@Route("chart-gantt-custom-labels")
+public class GanttCustomLabelsDemo extends Div {
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    public GanttCustomLabelsDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+
+        configuration.setTitle("Gantt Chart with custom labels");
+        configuration.setTooltip(new Tooltip(true));
+
+        XAxis xAxis = configuration.getxAxis();
+        xAxis.setMinPadding(0.05);
+        xAxis.setMaxPadding(0.05);
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setCategories("Prototyping", "Development", "Testing");
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        // tag::snippet[]
+        final GanttSeries projectDevelopmentSeries = createProjectDevelopmentSeries();
+        PlotOptionsGantt seriesPlotOptions = new PlotOptionsGantt();
+        var dataLabels = new ArrayList<DataLabels>();
+
+        var assigneeLabel = new DataLabels(true);
+        assigneeLabel.setAlign(HorizontalAlign.LEFT);
+        assigneeLabel.setFormat("{point.custom.assignee}");
+        dataLabels.add(assigneeLabel);
+
+        var endDateLabel = new DataLabels(true);
+        endDateLabel.setAlign(HorizontalAlign.RIGHT);
+        endDateLabel.setFormat("{point.end:%e. %b}");
+        dataLabels.add(endDateLabel);
+
+        var avatarLabel = new DataLabels(true);
+        avatarLabel.setAlign(HorizontalAlign.LEFT);
+        avatarLabel.setUseHTML(true);
+        avatarLabel.setFormat(
+                "<div style=\"width: 20px; height: 20px; overflow: hidden; margin-left: -30px\">"
+                        + "                <img src=\"https://ui-avatars.com/api/?background=random&color=fff&size=20&length=1&rounded=true&name={point.custom.assignee}\"> "
+                        + "                </div>");
+        dataLabels.add(avatarLabel);
+
+        seriesPlotOptions.setDataLabels(dataLabels);
+        projectDevelopmentSeries.setPlotOptions(seriesPlotOptions);
+        // end::snippet[]
+        configuration.addSeries(projectDevelopmentSeries);
+
+        add(chart);
+    }
+
+    private GanttSeries createProjectDevelopmentSeries() {
+        GanttSeries series = new GanttSeries();
+        series.setName("Project 1");
+
+        GanttSeriesItem item;
+
+        item = new GanttSeriesItem(0, todayPlus(1), todayPlus(3));
+        item.setCustom(new TaskCustomData("John"));
+        series.add(item);
+
+        item = new GanttSeriesItem(1, todayPlus(2), todayPlus(5));
+        item.setCustom(new TaskCustomData("William"));
+        series.add(item);
+
+        item = new GanttSeriesItem(2, todayPlus(5), todayPlus(7));
+        item.setCustom(new TaskCustomData("Jane"));
+        series.add(item);
+
+        item = new GanttSeriesItem(1, todayPlus(8), todayPlus(16));
+        item.setCustom(new TaskCustomData("John"));
+        series.add(item);
+
+        item = new GanttSeriesItem(2, todayPlus(10), todayPlus(23));
+        item.setCustom(new TaskCustomData("Jane"));
+        series.add(item);
+
+        return series;
+    }
+
+    private Instant todayPlus(int days) {
+        return TODAY.plus(days, ChronoUnit.DAYS);
+    }
+
+    @SuppressWarnings("unused")
+    static class TaskCustomData extends AbstractConfigurationObject {
+        private String assignee;
+
+        public TaskCustomData(String assignee) {
+            this.assignee = assignee;
+        }
+
+        public String getAssignee() {
+            return assignee;
+        }
+
+        public void setAssignee(String assignee) {
+            this.assignee = assignee;
+        }
+    }
+
+}
+
+Tooltips
+
+In addition to task labels, you can also activate tooltips. They’re shown by a chart task when hovering over it. You can customize the appearance of the tooltip, as well as its content, using the Tooltip class, passed to the chart configuration:
+
+[Java]
+Configuration configuration = chart.getConfiguration();
+Tooltip tooltip = new Tooltip(true);
+tooltip.setOutside(true);
+tooltip.setShadow(true);
+tooltip.setUseHTML(true);
+tooltip.setPointFormat("<span><b>{point.name}</b></span>");
+configuration.setTooltip(tooltip);
+
+Custom Data in Tasks
+
+The GanttSeries and GanttSeriesItem classes allow you to assign custom data to each item using the GanttSeriesItem#setCustom() method. This can be used to render labels and tooltips, or access the data in callbacks — such as when a task is clicked.
+
+The custom data assigned to a GanttSeriesItem must be a subclass of AbstractConfigurationObject to ensure that it can be serialized to JSON. This is necessary for the data to be properly transmitted and rendered in the Gantt chart.
+
+You can access the custom data when formatting labels under a {point.custom.*} object. For example, when you store an object having an assignee property via the GanttSeriesItem#setCustom() method, you can access this data in the label formatter like so:
+
+[Java]
+var assigneeLabel = new DataLabels(true);
+assigneeLabel.setFormat("{point.custom.assignee}");
+
+To access the custom data in the click event listeners, use the following code:
+
+[Java]
+// Configure click callback
+chart.addPointClickListener(event -> {
+    var ganttSeries = ((GanttSeries) event.getSeries());
+    var customData = (TaskCustomData) ganttSeries
+                        .get(event.getItemIndex())
+                        .getCustom();
+    System.out.println("Task assigned to " + customData.assignee);
+});
+
+[Flow: GanttCustomDataDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+
+@Route("chart-gantt-custom-data")
+public class GanttCustomDataDemo extends Div {
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    public GanttCustomDataDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+
+        configuration.setTitle("Gantt Chart With Custom Data");
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setCategories("Prototyping", "Development", "Testing");
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+        // tag::snippet[]
+        // Create series with custom data
+        GanttSeries series = new GanttSeries();
+        GanttSeriesItem item;
+
+        item = new GanttSeriesItem(0, todayPlus(1), todayPlus(3));
+        item.setCustom(new TaskCustomData("Aria Bailey"));
+        series.add(item);
+
+        item = new GanttSeriesItem(1, todayPlus(2), todayPlus(5));
+        item.setCustom(new TaskCustomData("Eleanor Price"));
+
+        series.add(item);
+        // end::snippet[]
+
+        // Configure Labels
+        PlotOptionsGantt seriesPlotOptions = new PlotOptionsGantt();
+        var dataLabels = new ArrayList<DataLabels>();
+
+        var assigneeLabel = new DataLabels(true);
+        assigneeLabel.setAlign(HorizontalAlign.LEFT);
+        assigneeLabel.setFormat("{point.custom.assignee}");
+        dataLabels.add(assigneeLabel);
+
+        seriesPlotOptions.setDataLabels(dataLabels);
+        series.setPlotOptions(seriesPlotOptions);
+        configuration.addSeries(series);
+
+        // Configure click callback
+        chart.addPointClickListener(event -> {
+            var ganttSeries = ((GanttSeries) event.getSeries());
+            var customData = (TaskCustomData) ganttSeries
+                    .get(event.getItemIndex()).getCustom();
+            System.out.println(
+                    "Clicked on task assigned to " + customData.assignee);
+        });
+
+        add(chart);
+    }
+
+    private Instant todayPlus(int days) {
+        return TODAY.plus(days, ChronoUnit.DAYS);
+    }
+
+    static class TaskCustomData extends AbstractConfigurationObject {
+        private String assignee;
+
+        public TaskCustomData(String assignee) {
+            this.assignee = assignee;
+        }
+
+        public String getAssignee() {
+            return assignee;
+        }
+
+        public void setAssignee(String assignee) {
+            this.assignee = assignee;
+        }
+    }
+
+}
+
+Task Progress Indication
+
+The completed property of a GanttSeriesItem is used to indicate the progress of a task in a Gantt chart. This property can be set to a value between 0 and 1, representing the percentage of the task that has been completed. For example, to indicate that the task is 45% completed, configure the GanttSeriesItem by calling setCompleted(0.45).
+
+[Java]
+GanttSeriesItem task = new GanttSeriesItem();
+task.setCompleted(0.5); // 50% completed
+
+Optionally, you can use GanttSeriesItem#setCompleted(Completed) method for a more fine-grained customization of the progress, such as specifying the color of the progress indicator.
+
+[Java]
+GanttSeriesItem task = new GanttSeriesItem();
+Completed completed = new Completed();
+completed.setAmount(0.5); // 50% completed
+completed.setFill(SolidColor.GREEN); // Custom color for the progress indicator
+task.setCompleted(completed);
+
+The following example shows the complete example of Gantt chart with progress indication:
+
+[Flow: GanttProgressIndicatorDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.charts.model.style.SolidColor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+
+@Route("chart-gantt-progress-indication")
+public class GanttProgressIndicatorDemo extends Div {
+
+    public GanttProgressIndicatorDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+
+        configuration.setTitle("Gantt Chart with Progress Indicators");
+
+        XAxis xAxis = configuration.getxAxis();
+        xAxis.setMin(Instant.parse("2014-10-17T00:00:00Z"));
+        xAxis.setMax(Instant.parse("2014-10-30T00:00:00Z"));
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        // tag::snippet[]
+        GanttSeries series = new GanttSeries();
+        series.setName("Project 1");
+        final GanttSeriesItem startPrototype = new GanttSeriesItem(
+                "Start prototype", Instant.parse("2014-10-18T00:00:00Z"),
+                Instant.parse("2014-10-25T00:00:00Z"));
+        startPrototype.setCompleted(0.25);
+        series.add(startPrototype);
+
+        series.add(new GanttSeriesItem("Test prototype",
+                Instant.parse("2014-10-27T00:00:00Z"),
+                Instant.parse("2014-10-29T00:00:00Z")));
+
+        final GanttSeriesItem develop = new GanttSeriesItem("Develop",
+                Instant.parse("2014-10-20T00:00:00Z"),
+                Instant.parse("2014-10-25T00:00:00Z"));
+        develop.setCompleted(new Completed(0.12, SolidColor.ORANGE));
+        series.add(develop);
+
+        series.add(new GanttSeriesItem("Run acceptance tests",
+                Instant.parse("2014-10-23T00:00:00Z"),
+                Instant.parse("2014-10-26T00:00:00Z")));
+
+        configuration.addSeries(series);
+        // end::snippet[]
+
+        add(chart);
+    }
+
+}
+
+Task Dependencies
+
+The dependency property of a GanttSeriesItem allows you to define dependencies between tasks in a Gantt chart. By specifying dependencies, you can indicate that a task cannot start until another task is completed.
+
+Below is a list of typical scenarios:
+
+- Sequential Tasks: One task must be completed before another can start, such as completing a prototype before testing it.
+- Milestones: Define key points in the project that depend on the completion of multiple preceding tasks.
+- Parallel Tasks: Managing tasks that can run in parallel, but have dependencies on other tasks.
+
+Configure Dependencies Between Points
+
+To specify dependencies between tasks in a Gantt chart, you must set a unique ID for each GanttSeriesItem. This ID is used to reference the task when defining dependencies.
+
+[Java]
+GanttSeriesItem task1 = new GanttSeriesItem(...);
+task1.setId("task1");
+
+GanttSeriesItem task2 = new GanttSeriesItem(...);
+task2.setId("task2");
+
+// Task 2 depends on completion of Task 1
+task2.addDependency(task1.getId());
+
+In this example, task2 is dependent on the completion of task1. This ensures that task2 cannot start until task1 is finished. This dependency is visually represented in the Gantt chart, providing a clear indication of the task sequence:
+
+[Flow: GanttSmallTaskDependenciesDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+@Route("chart-gantt-small-task-dependencies")
+public class GanttSmallTaskDependenciesDemo extends Div {
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    public GanttSmallTaskDependenciesDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+        configuration.setTitle("Gantt Task Dependencies");
+        configuration.setPlotOptions(new PlotOptionsGantt());
+        XAxis xAxis = configuration.getxAxis();
+        xAxis.setMinPadding(0.1);
+        xAxis.setMaxPadding(0.1);
+
+        // tag::snippet[]
+        GanttSeries series = new GanttSeries();
+
+        GanttSeriesItem task1 = new GanttSeriesItem("task1", todayPlus(1),
+                todayPlus(2));
+        task1.setId("task1");
+
+        GanttSeriesItem task2 = new GanttSeriesItem("task2", todayPlus(4),
+                todayPlus(8));
+        task2.setId("task2");
+
+        task2.addDependency(task1.getId());
+
+        series.addAll(task1, task2);
+        configuration.addSeries(series);
+        // end::snippet[]
+
+        add(chart);
+    }
+
+    private Instant todayPlus(int days) {
+        return TODAY.plus(days, ChronoUnit.DAYS);
+    }
+
+}
+
+Connector Styles
+
+A connector is a line that visually represents the dependency between two tasks in a Gantt chart. It consists of a line, a start marker, and an end marker. You can configure the style of the line, it’s color and width. Start and end markers define how the line is started and ended. By default, the markers are configured in a way that the connectors look like an arrow. This can be changed by the Marker configuration.
+
+Gantt task dependencies can be visually configured at different levels in a Gantt chart. This allows for flexible and detailed customization of how dependencies are displayed.
+
+Chart Level Configuration
+
+At the chart level, you can configure connectors using the ChartConnectors class. This configuration applies to all dependencies within the chart.
+
+[Java]
+ChartConnectors connectors = new ChartConnectors();
+// Set the dash style for all connectors in the chart
+connectors.setDashStyle(DashStyle.SHORTDASH);
+configuration.setConnectors(connectors);
+
+Series Level Configuration
+
+At the series level, you can configure connectors using the SeriesConnectors class. This allows you to apply specific styles to all dependencies within a particular series.
+
+[Java]
+PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+SeriesConnectors seriesConnectors = new SeriesConnectors();
+// Set the dash style for all connectors in the series
+seriesConnectors.setDashStyle(DashStyle.DOT);
+plotOptionsGantt.setConnectors(seriesConnectors);
+series.setPlotOptions(plotOptionsGantt);
+
+Dependency Level Configuration
+
+At the dependency level, you can configure connectors using the GanttSeriesItemDependency class. This provides the most granular level of customization, allowing you to specify styles for individual dependencies.
+
+[Java]
+GanttSeriesItemDependency dependency = new GanttSeriesItemDependency("task1");
+// Set the dash style for this specific dependency.
+dependency.setDashStyle(DashStyle.SOLID);
+item.addDependency(dependency);
+
+A Complete Task Dependencies Example
+
+The following shows a full example of specific dependencies between tasks, as well as adding multiple series to a single Gantt chart:
+
+[Flow: GanttProcessManagementDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.charts.model.style.SolidColor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+@Route("chart-gantt-process-management")
+public class GanttProcessManagementDemo extends Div {
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    public GanttProcessManagementDemo() {
+        // tag::snippet[]
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+        configuration.setTitle("Gantt Project Management");
+        ChartConnectors connectors = new ChartConnectors();
+        connectors.setDashStyle(DashStyle.SHORTDASH);
+        configuration.setConnectors(connectors);
+
+        Tooltip tooltip = new Tooltip();
+        tooltip.setPointFormat(
+                "<span><b>{point.name}</b></span><br/><span>Start: {point.start:%e. %b}</span><br/><span>End: {point.end:%e. %b}</span><br/><span>Owner: {point.custom.owner}</span>");
+        configuration.setTooltip(tooltip);
+
+        XAxis xAxis = configuration.getxAxis();
+        PlotLine dateIndicator = new PlotLine();
+        dateIndicator.setDashStyle(DashStyle.DASH);
+        xAxis.setCurrentDateIndicator(dateIndicator);
+        xAxis.setMin(todayPlus(-3));
+        xAxis.setMax(todayPlus(18));
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        configuration.addSeries(createOfficesSeries());
+        configuration.addSeries(createNewProductLaunchSeries());
+
+        chart.addPointClickListener(event -> {
+            var name = ((GanttSeries) event.getSeries())
+                    .get(event.getItemIndex()).getName();
+            System.out.println("Clicked on " + name);
+        });
+
+        add(chart);
+    }
+
+    private GanttSeries createNewProductLaunchSeries() {
+        GanttSeries series = new GanttSeries();
+        series.setName("Product");
+
+        GanttSeriesItem item;
+
+        item = new GanttSeriesItem();
+        item.setName("New product launch");
+        item.setId("new_product");
+        item.setCustom(new TaskCustomData("Peter"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Development", todayPlus(-1), todayPlus(11));
+        item.setId("development");
+        item.setCompleted(new Completed(0.6, SolidColor.ORANGE));
+        item.setCustom(new TaskCustomData("Susan"));
+        item.setParent("new_product");
+        series.add(item);
+
+        item = new GanttSeriesItem();
+        item.setName("Beta");
+        item.setStart(todayPlus(12));
+        item.setId("beta");
+        item.addDependency(new GanttSeriesItemDependency("development"));
+        item.setMilestone(true);
+        item.setCustom(new TaskCustomData("Peter"));
+        item.setParent("new_product");
+        series.add(item);
+
+        item = new GanttSeriesItem("Final development", todayPlus(13),
+                todayPlus(17));
+        item.setId("finalize");
+        item.addDependency(new GanttSeriesItemDependency("beta"));
+        item.setParent("new_product");
+        series.add(item);
+
+        item = new GanttSeriesItem();
+        item.setName("Launch");
+        item.setStart(todayPlus(17).plus(12, ChronoUnit.HOURS));
+        item.addDependency(new GanttSeriesItemDependency("finalize"));
+        item.setMilestone(true);
+        item.setCustom(new TaskCustomData("Peter"));
+        item.setParent("new_product");
+        series.add(item);
+
+        return series;
+    }
+
+    private GanttSeries createOfficesSeries() {
+        GanttSeries series = new GanttSeries();
+        series.setName("Offices");
+
+        GanttSeriesItem item;
+
+        item = new GanttSeriesItem();
+        item.setName("New offices");
+        item.setId("new_offices");
+        item.setCustom(new TaskCustomData("Peter"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Prepare office building", todayPlus(-2),
+                todayPlus(6));
+        item.setId("prepare_building");
+        item.setCustom(new TaskCustomData("Linda"));
+        item.setCompleted(0.2);
+        item.setParent("new_offices");
+        series.add(item);
+
+        item = new GanttSeriesItem("Inspect building", todayPlus(4),
+                todayPlus(8));
+        item.setId("inspect_building");
+        item.setParent("new_offices");
+        item.setCustom(new TaskCustomData("Ivy"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Passed inspection", todayPlus(9),
+                todayPlus(9));
+        item.setId("passed_inspection");
+        item.addDependency("prepare_building");
+        item.addDependency("inspect_building");
+        item.setParent("new_offices");
+        item.setMilestone(true);
+        item.setCustom(new TaskCustomData("Peter"));
+        series.add(item);
+
+        item = new GanttSeriesItem();
+        item.setName("Relocate");
+        item.setId("relocate");
+        item.addDependency(new GanttSeriesItemDependency("passed_inspection"));
+        item.setParent("new_offices");
+        item.setCustom(new TaskCustomData("Josh"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Relocate staff", todayPlus(10),
+                todayPlus(11));
+        item.setId("relocate_staff");
+        item.setParent("relocate");
+        item.setCustom(new TaskCustomData("Mark"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Relocate test facility", todayPlus(11),
+                todayPlus(13));
+        item.setId("relocate_test_facility");
+        item.addDependency(new GanttSeriesItemDependency("relocate_staff"));
+        item.setParent("relocate");
+        item.setCustom(new TaskCustomData("Anne"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Relocate cantina", todayPlus(11),
+                todayPlus(14));
+        item.setId("relocate_cantina");
+        final GanttSeriesItemDependency relocateStaff = new GanttSeriesItemDependency(
+                "relocate_staff");
+        relocateStaff.setDashStyle(DashStyle.SOLID);
+        item.addDependency(relocateStaff);
+        item.setParent("relocate");
+        series.add(item);
+
+        return series;
+    }
+
+    private Instant todayPlus(int days) {
+        return TODAY.plus(days, ChronoUnit.DAYS);
+    }
+
+    @SuppressWarnings("unused")
+    static class TaskCustomData extends AbstractConfigurationObject {
+        private String owner;
+
+        public TaskCustomData(String owner) {
+            this.owner = owner;
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+    }
+
+}
+
+Indication of Current Date
+
+The currentDateIndicator property of the XAxis class allows you to display the current date on a Gantt chart. This is useful for highlighting the current date within the timeline of a chart, providing a visual reference point for the current progress of tasks.
+
+You can enable the current date indicator using xAxis.setCurrentDateIndicator(true), or further customize the indicator appearance by using xAxis.setCurrentDateIndicator(PlotLine) method.
+
+[Flow: GanttCurrentDateIndicationDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+@Route("chart-gantt-current-date-indication")
+public class GanttCurrentDateIndicationDemo extends Div {
+
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    public GanttCurrentDateIndicationDemo() {
+        // tag::snippet[]
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+
+        final XAxis xAxis = configuration.getxAxis();
+        xAxis.setCurrentDateIndicator(true);
+        // end::snippet[]
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        GanttSeries series = new GanttSeries();
+
+        series.add(new GanttSeriesItem("Start prototype", todayPlus(-5),
+                todayPlus(-3)));
+
+        series.add(new GanttSeriesItem("Test prototype", todayPlus(-2),
+                todayPlus(1)));
+
+        series.add(new GanttSeriesItem("Develop", todayPlus(2), todayPlus(4)));
+
+        series.add(new GanttSeriesItem("Run acceptance tests", todayPlus(5),
+                todayPlus(8)));
+
+        configuration.addSeries(series);
+
+        add(chart);
+    }
+
+    private Instant todayPlus(int days) {
+        return TODAY.plus(days, ChronoUnit.DAYS);
+    }
+
+}
+
+Navigation
+
+Even in a Gantt chart, you can display the timeline with a navigator and time-range selector to allow users to navigate easily through the project timeline. Activate this feature by enabling Scrollbar, RangeSelector, and Navigator like so:
+
+[Java]
+Chart chart = new Chart(ChartType.GANTT);
+final Configuration configuration = chart.getConfiguration();
+configuration.getScrollbar().setEnabled(true);
+configuration.getRangeSelector().setEnabled(true);
+configuration.getNavigator().setEnabled(true);
+
+You can configure the Navigator and RangeSelector classes in the same way as in the Timeline feature. Use PlotOptionsGantt and YAxis configuration to further customize the Navigator appearance, as in the example below:
+
+[Flow: GanttWithNavigationDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.charts.model.style.SolidColor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+
+@Route("chart-gantt-with-navigation")
+public class GanttWithNavigationDemo extends Div {
+
+    public GanttWithNavigationDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+
+        configuration.setTitle("Gantt Chart with Navigation");
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setUniqueNames(true);
+
+        // tag::snippet[]
+        final Navigator navigator = configuration.getNavigator();
+        navigator.setEnabled(true);
+        final YAxis navigatorYAxis = navigator.getYAxis();
+        navigatorYAxis.setMin(0);
+        navigatorYAxis.setMax(3);
+        navigatorYAxis.setReversed(true);
+        navigatorYAxis.setCategories();
+
+        configuration.getScrollbar().setEnabled(true);
+
+        configuration.getRangeSelector().setEnabled(true);
+        configuration.getRangeSelector().setSelected(0);
+        // end::snippet[]
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        final GanttSeries series = createProjectManagementSeries();
+        configuration.addSeries(series);
+
+        add(chart);
+    }
+
+    private GanttSeries createProjectManagementSeries() {
+        GanttSeries series = new GanttSeries();
+        series.setName("Project 1");
+        final GanttSeriesItem startPrototype = new GanttSeriesItem(
+                "Start prototype", Instant.parse("2013-10-18T00:00:00Z"),
+                Instant.parse("2014-10-25T00:00:00Z"));
+        startPrototype.setCompleted(0.25);
+        series.add(startPrototype);
+
+        series.add(new GanttSeriesItem("Test prototype",
+                Instant.parse("2014-02-27T00:00:00Z"),
+                Instant.parse("2014-10-29T00:00:00Z")));
+
+        final GanttSeriesItem develop = new GanttSeriesItem("Develop",
+                Instant.parse("2014-10-20T00:00:00Z"),
+                Instant.parse("2014-10-25T00:00:00Z"));
+        develop.setCompleted(new Completed(0.12, SolidColor.ORANGE));
+        series.add(develop);
+
+        series.add(new GanttSeriesItem("Run acceptance tests",
+                Instant.parse("2014-10-23T00:00:00Z"),
+                Instant.parse("2014-10-26T00:00:00Z")));
+        return series;
+    }
+
+}
+
+Left Axis as a Grid
+
+In a Gantt chart, it’s common to display a table on the left side of the chart to show task information (e.g., task name, assignee, and duration). The tasks are aligned and mapped to the table after setting the GanttSeriesItem.setY(Number) value for each data point (task).
+
+Grid Column Configuration
+
+The AxisGrid class allows you to configure the grid of a Gantt chart, so that you may display additional columns of information alongside the task names. This can be useful for providing more context and details about each task.
+
+[Java]
+AxisGrid grid = new AxisGrid();
+grid.setEnabled(true);
+grid.setColumns(List.of(
+    createProjectColumn(),
+    createEstDaysColumn(),
+    createStartDateColumn(),
+    createEndDateColumn()
+));
+chart.configuration().getyAxis().setGrid(grid);
+
+In this example, the AxisGrid is enabled and configured with multiple columns, each created by a helper method. These columns display various details such as project name, estimated days, start date, and end date.
+
+The following is an example of a helper method for the Project name column. The other helper methods look very similar. For details, see the complete chart example further below.
+
+[Java]
+private XAxis createProjectColumn() {
+    XAxis column = new XAxis();
+    column.setTitle("Project");
+    Labels label = new Labels();
+    label.setFormat("{point.name}");
+    column.setLabels(label);
+    return column;
+}
+
+In the example above, you can see that the grid cell value is computed from the {point.name} value of the task. You can also use more complicated formatting functions, even performing a computation in them and returning a HTML code, instead of a simple value:
+
+[Java]
+private XAxis createEstDaysColumn() {
+    XAxis column = new XAxis();
+    column.setTitle("Est. Days");
+    final Labels label = new Labels();
+    label.setUseHTML(true);
+    label.setFormatter(
+            "function () { var point = this.point,days = (1000 * 60 * 60 * 24)," +
+            "    number = (point.x2 - point.x) / days; " +
+            "    return '<div style=\"width: 50px; text-align: center\">' + Math.round(number * 100) / 100 + '</div>';" +
+            "}");
+    column.setLabels(label);
+    return column;
+}
+
+A Complete Grid Example
+
+[Flow: GanttYAxisAsGridDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
+@Route("chart-gantt-y-axis-as-grid")
+public class GanttYAxisAsGridDemo extends Div {
+
+    private static final Instant TODAY = Instant.now()
+            .truncatedTo(ChronoUnit.DAYS);
+
+    // tag::snippet[]
+    public GanttYAxisAsGridDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+
+        final Configuration configuration = chart.getConfiguration();
+        configuration.setTitle("Gantt Chart Grid Demo");
+
+        XAxis xAxis = configuration.getxAxis();
+        xAxis.setTickPixelInterval(70);
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setType(AxisType.CATEGORY);
+
+        AxisGrid grid = new AxisGrid();
+        grid.setEnabled(true);
+        grid.setColumns(List.of(
+                createProjectColumn(),
+                createEstDaysColumn(),
+                createStartDateColumn(),
+                createEndDateColumn()));
+        yAxis.setGrid(grid);
+
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        configuration.setPlotOptions(plotOptionsGantt);
+
+        final GanttSeries projectDevelopmentSeries = createProjectDevelopmentSeries();
+        PlotOptionsGantt seriesPlotOptions = new PlotOptionsGantt();
+        projectDevelopmentSeries.setPlotOptions(seriesPlotOptions);
+        configuration.addSeries(projectDevelopmentSeries);
+
+        add(chart);
+    }
+
+    private XAxis createProjectColumn() {
+        XAxis column = new XAxis();
+        column.setTitle("Project1");
+        final Labels label = new Labels();
+        label.setFormat("{point.name}");
+        column.setLabels(label);
+        return column;
+    }
+    // end::snippet[]
+
+    private XAxis createEstDaysColumn() {
+        XAxis column = new XAxis();
+        column.setTitle("Est. Days");
+        final Labels label = new Labels();
+        label.setUseHTML(true);
+        label.setFormatter(
+                "function () { var point = this.point,days = (1000 * 60 * 60 * 24),"
+                        + "    number = (point.x2 - point.x) / days; "
+                        + "    return '<div style=\"width: 50px; text-align: center\">' + Math.round(number * 100) / 100 + '</div>'; }");
+        column.setLabels(label);
+        return column;
+    }
+
+    private XAxis createStartDateColumn() {
+        XAxis column = new XAxis();
+        column.setTitle("Start Date");
+        final Labels label = new Labels();
+        label.setFormat("{point.start:%e. %b}");
+        column.setLabels(label);
+        return column;
+    }
+
+    private XAxis createEndDateColumn() {
+        XAxis column = new XAxis();
+        column.setTitle("End Date");
+        column.setOffset(30);
+        final Labels label = new Labels();
+        label.setFormat("{point.end:%e. %b}");
+        column.setLabels(label);
+        return column;
+    }
+
+    private GanttSeries createProjectDevelopmentSeries() {
+        GanttSeries series = new GanttSeries();
+        series.setName("Project 1");
+
+        GanttSeriesItem item;
+
+        item = new GanttSeriesItem("Start prototype", todayPlus(1),
+                todayPlus(3));
+        item.setY(0);
+        item.setCustom(new TaskCustomData("Richards"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Develop", todayPlus(2), todayPlus(5));
+        item.setY(1);
+        item.setCustom(new TaskCustomData("Oystein"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Test prototype", todayPlus(5),
+                todayPlus(7));
+        item.setY(2);
+        item.setCustom(new TaskCustomData("Torstein"));
+        series.add(item);
+
+        item = new GanttSeriesItem("Run acceptance tests", todayPlus(8),
+                todayPlus(12));
+        item.setY(3);
+        item.setCustom(new TaskCustomData("Halliburton"));
+        series.add(item);
+
+        return series;
+    }
+
+    private Instant todayPlus(int days) {
+        return TODAY.plus(days, ChronoUnit.DAYS);
+    }
+
+    @SuppressWarnings("unused")
+    static class TaskCustomData extends AbstractConfigurationObject {
+        private String assignee;
+
+        public TaskCustomData(String assignee) {
+            this.assignee = assignee;
+        }
+
+        public String getAssignee() {
+            return assignee;
+        }
+
+        public void setAssignee(String assignee) {
+            this.assignee = assignee;
+        }
+    }
+
+}
+
+Drag & Drop Support
+
+You can add drag and drop support to the chart using the dragDrop property in the PlotOptionsGantt class. This feature allows you to move points around, or directly modify them within the chart. You can specify which axes are draggable, and you can set constraints on dragging behavior using properties in the DragDrop class.
+
+You can also attach the drag and drop listeners to the chart to handle events related to dragging.
+
+Table 1. Available Drag&Drop listeners
+Handler Method | Comment
+Chart#addPointDragStartListener | triggered when a drag operation starts on a point.
+Chart#addPointDragListener | triggered continuously while a point is being dragged.
+Chart#addPointDropListener | triggered when a point is dropped after a drag operation.
+
+Every listener has an event parameter that contains data about the dragged object, such as the point ID, the start date of the point, the end date, and data about the series.
+
+[Flow: GanttDragAndDropDemo.java]
+package com.vaadin.demo.component.charts.charttypes.gantt;
+
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Route;
+
+import java.time.Instant;
+import java.util.ArrayList;
+
+@Route("chart-gantt-drag-and-drop")
+public class GanttDragAndDropDemo extends Div {
+
+    public GanttDragAndDropDemo() {
+        Chart chart = new Chart(ChartType.GANTT);
+        configureEvents(chart);
+
+        final Configuration configuration = chart.getConfiguration();
+        var tooltip = new Tooltip(true);
+        tooltip.setXDateFormat("%a %b %d, %H:%M");
+        configuration.setTooltip(tooltip);
+
+        configuration.setTitle("Gantt Chart Drag&Drop");
+
+        XAxis xAxis = configuration.getxAxis();
+        xAxis.setCurrentDateIndicator(true);
+
+        YAxis yAxis = configuration.getyAxis();
+        yAxis.setType(AxisType.CATEGORY);
+        yAxis.setCategories("Tech", "Marketing", "Sales");
+        yAxis.setMin(0);
+        yAxis.setMax(2);
+
+        // tag::snippet[]
+        PlotOptionsGantt plotOptionsGantt = new PlotOptionsGantt();
+        // Do not animate dependency connectors
+        plotOptionsGantt.setAnimation(false);
+        final DragDrop dragDrop = plotOptionsGantt.getDragDrop();
+        dragDrop.setDraggableX(true);
+        dragDrop.setDraggableY(true);
+        dragDrop.setDragMinY(0);
+        dragDrop.setDragMaxY(2);
+        dragDrop.setDragPrecisionX(1000 * 60 * 60 * 8); // Snap to eight hours
+
+        plotOptionsGantt.setAllowPointSelect(true);
+        configuration.setPlotOptions(plotOptionsGantt);
+        // end::snippet[]
+
+        final GanttSeries series = createSeries();
+        configureDataLabels(series);
+        configuration.addSeries(series);
+
+        add(chart);
+    }
+
+    private void configureEvents(Chart chart) {
+        chart.addPointDragStartListener(event -> {
+            final GanttSeriesItem ganttSeriesItem = ((GanttSeries) event
+                    .getSeries()).get(event.getItemIndex());
+            var taskId = ganttSeriesItem.getId();
+            System.out.println("Task with id " + taskId + " dragging started: "
+                    + event.getStart() + " - " + event.getEnd());
+        });
+
+        chart.addPointDropListener(event -> {
+            final GanttSeriesItem ganttSeriesItem = ((GanttSeries) event
+                    .getSeries()).get(event.getItemIndex());
+            var taskId = ganttSeriesItem.getId();
+            System.out.println("Task with id " + taskId + " was dropped: "
+                    + event.getStart() + " - " + event.getEnd());
+        });
+    }
+
+    private void configureDataLabels(GanttSeries series) {
+        var plotOptions = new PlotOptionsGantt();
+        var dataLabels = new ArrayList<DataLabels>();
+        var pointNameDataLabel = new DataLabels(true);
+        pointNameDataLabel.setAlign(HorizontalAlign.CENTER);
+        pointNameDataLabel.setFormat("{point.name}");
+        dataLabels.add(pointNameDataLabel);
+        plotOptions.setDataLabels(dataLabels);
+        series.setPlotOptions(plotOptions);
+    }
+
+    private GanttSeries createSeries() {
+        GanttSeries series = new GanttSeries();
+        final GanttSeriesItem tech1 = new GanttSeriesItem(0,
+                Instant.parse("2014-10-18T00:00:00Z"),
+                Instant.parse("2014-10-20T00:00:00Z"));
+        tech1.setId("tech1");
+        tech1.setName("Prototype");
+        series.add(tech1);
+
+        final GanttSeriesItem tech2 = new GanttSeriesItem();
+        tech2.setMilestone(true);
+        tech2.setStart(Instant.parse("2014-10-22T00:00:00Z"));
+        tech2.setY(0);
+        tech2.setId("tech2");
+        tech2.addDependency("tech1");
+        tech1.setName("Prototype done");
+        series.add(tech2);
+
+        final GanttSeriesItem tech3 = new GanttSeriesItem(0,
+                Instant.parse("2014-10-24T00:00:00Z"),
+                Instant.parse("2014-10-27T00:00:00Z"));
+        tech3.setId("tech3");
+        tech3.setName("Testing");
+        tech3.addDependency("tech2");
+
+        series.add(tech3);
+
+        final GanttSeriesItem marketing1 = new GanttSeriesItem(1,
+                Instant.parse("2014-10-20T00:00:00Z"),
+                Instant.parse("2014-10-23T00:00:00Z"));
+        marketing1.setId("marketing1");
+        marketing1.setName("Product pages");
+        series.add(marketing1);
+
+        final GanttSeriesItem marketing2 = new GanttSeriesItem(1,
+                Instant.parse("2014-10-25T00:00:00Z"),
+                Instant.parse("2014-10-29T00:00:00Z"));
+        marketing2.setId("marketing2");
+        marketing2.setName("Newsletter");
+        series.add(marketing2);
+
+        final GanttSeriesItem sales1 = new GanttSeriesItem(2,
+                Instant.parse("2014-10-23T00:00:00Z"),
+                Instant.parse("2014-10-26T00:00:00Z"));
+        sales1.setId("sales1");
+        sales1.setName("Licensing");
+        series.add(sales1);
+        return series;
+    }
+
+}

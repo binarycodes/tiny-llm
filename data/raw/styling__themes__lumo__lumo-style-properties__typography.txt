@@ -1,0 +1,75 @@
+Lumo Typography
+
+Tables of Lumo style properties related to displaying and formatting text.
+
+[lumo-tokens.ts]
+import colorScheme from '@vaadin/vaadin-lumo-styles/src/global/color-scheme.css?inline';
+import propsStyles from '@vaadin/vaadin-lumo-styles/src/props/index.css?inline';
+import utilityStyles from '@vaadin/vaadin-lumo-styles/utility.css?inline';
+import { addStylesheet } from 'Frontend/demo/theme';
+
+// Extract dark theme properties. Exclude non-custom properties, so that we don't override docs
+// styles (color, background) with Lumo styles.
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
+const darkThemeProps = colorScheme
+  .toString()
+  .split('\n')
+  .filter((line) => line.trim().startsWith('--'));
+const darkThemeStyles = `
+[theme~='dark'] {
+${darkThemeProps.join('\n')}
+}
+`;
+
+// Include styles in the page
+addStylesheet(propsStyles);
+addStylesheet(utilityStyles);
+addStylesheet(darkThemeStyles);
+
+// Notify DSP CustomPropertyPreview React component after custom properties have been loaded
+window.dispatchEvent(new CustomEvent('custom-properties-changed'));
+
+// Dummy element so that this module can be included as a rendered example in a docs page
+export default class LumoTokens extends HTMLElement {}
+
+[lumo-tokens.ts]
+
+Lumo defines a set of style properties for font family, font size, and line height. You can use these CSS custom properties to apply consistent typographic styles across your application.
+
+You can load the built-in Lumo compact preset to reduce the font size and the sizing and spacing of all components, allowing you to place more components on the screen.
+
+Lumo Font Family
+
+The system font stack is used by default:
+
+- Segoe UI on Windows
+- Roboto on Android and Chrome OS
+- San Francisco on macOS, iOS, and iPadOS
+
+On other systems, Helvetica and Arial are used as fallbacks.
+
+Description | CSS Custom Property
+Main font Headings, body and UI text | --lumo-font-family:
+
+Lumo Font Size
+
+The following font sizes are available to use. M is the standard size, and is used by most elements by default.
+
+Description | CSS Custom Property
+XXXL Heading text | --lumo-font-size-xxxl:
+XXL Heading text | --lumo-font-size-xxl:
+XL Heading text | --lumo-font-size-xl:
+L Heading text | --lumo-font-size-l:
+M Body/UI text | --lumo-font-size-m:
+S Label text | --lumo-font-size-s:
+XS Help text, field validation text, badges | --lumo-font-size-xs:
+XXS Small badges | --lumo-font-size-xxs:
+
+Lumo Line Height
+
+The following line heights are available to use. M is the standard size, and is used by most elements by default.
+
+Description | CSS Custom Property
+M | --lumo-line-height-m:
+S | --lumo-line-height-s:
+XS | --lumo-line-height-xs:

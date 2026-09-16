@@ -1,0 +1,115 @@
+Cross-Communication between Vaadin & Swing
+
+How to communicate between Vaadin views and Swing applications.
+
+You can send events from Vaadin views to a Swing application. You can also call methods in a Vaadin view from Swing. These are explained here.
+
+Send Events from Vaadin to Swing
+
+You can send events from Vaadin to Swing using the VaadinSwingEvent class. For example, to create a button that sends an event to Swing when clicked:
+
+[Java]
+...
+import com.vaadin.swingkit.server.EventEmitter;
+import com.vaadin.swingkit.server.EventEmitterFactory;
+import com.vaadin.swingkit.core.VaadinSwingEvent;
+
+...
+    new Button("Send event", event -> {
+        EventEmitter actionEmitter = EventEmitterFactory.newEventEmitter();
+        actionEmitter.emit(new VaadinSwingEvent("myEvent")); // asynchronously sends an action event to Swing
+    });
+...
+
+You can add details to the event with parameters using VaadinSwingEventBuilder:
+
+[Java]
+...
+import com.vaadin.swingkit.core.VaadinSwingEventBuilder;
+
+...
+        EventEmitter actionEmitter = EventEmitterFactory.newEventEmitter();
+        VaadinSwingEventBuilder myEvent = new VaadinSwingEventBuilder("myEvent");
+        myEvent.addParam("detail1", "someDetail");
+        myEvent.addParam("eventDate", new Date());
+        actionEmitter.emit(myEvent.build());
+...
+
+The instances contained inside VaadinSwingEvent must always be Serializable to allow the Swing application to parse the data.
+
+Listening to Events
+
+Events emitted from the Vaadin application can be handled with JVaadinPanel.addEventListener(). For example:
+
+[Java]
+...
+import com.vaadin.swingkit.core.VaadinSwingEvent;
+
+...
+    JVaadinPanel vaadinPanel = SwingVaadinClient.getBuilder().build('example-view');
+    vaadinPanel.addEventListener("myEvent", (VaadinSwingEvent event) -> {
+        // Handle received event
+    });
+...
+
+Calling Vaadin Methods from Swing
+
+You can call specific Vaadin application methods from your Swing application. These methods are exposed using an interface that extends SwingVaadinCallable. For example:
+
+[Java]
+...
+import com.vaadin.swingkit.core.SwingVaadinCallable;
+
+public interface NameProvider extends SwingVaadinCallable {
+    String getFirstName();
+    String getLastName();
+}
+
+This interface must be accessible from both your Vaadin server and your Swing application. The best way to achieve this is to have the interface built in an artifact, which is then added as a dependency of both.
+
+Define Callable Methods
+
+Once you have an interface with the methods you want to call from Swing, you need to implement that interface on a view that can be rendered inside a Swing application (see Adding Views). For example:
+
+[Java]
+@Route("example-view")
+@Bridge
+public class MainView extends VerticalLayout implements NameProvider { 1
+
+    private TextField firstName = new TextField("First name");
+    private TextField lastName = new TextField("Last name");
+
+    public MainView() {
+        firstName.setValue("John");
+        lastName.setValue("Doe");
+        add(firstName, lastName);
+    }
+
+    @Override
+    public String getFirstName() {
+        return firstName.getValue(); 2
+    }
+
+    @Override
+    public String getLastName() {
+        return lastName.getValue(); 3
+    }
+}
+
+1. Implement the shared NameProvider interface.
+2. Return the value of the firstName field.
+3. Return the value of the lastName field.
+
+Calling Methods from Swing
+
+To access the methods exposed from the Vaadin application, use JVaadinPanel.as(SwingVaadinCallable). It returns an instance of the shared interface, and you can then call the exposed methods on that instance. For example:
+
+[Java]
+// Create the view
+JVaadinPanel vaadinPanel = SwingVaadinClient.getBuilder().build("example-view");
+// Add the panel to your swing application
+// ...
+// Query Vaadin using your NameProvider interface
+NameProvider np = vaadinPanel.as(NameProvider.class);
+// This returns "John", or whatever the user has typed to the field
+np.getFirstName();

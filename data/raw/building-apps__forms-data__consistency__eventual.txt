@@ -1,0 +1,9 @@
+Eventual Consistency
+
+Learn about eventual consistency and how to achieve it.
+
+Eventual consistency means that the effects of an update are not immediately observable across the entire system. Instead, it takes some time for changes to propagate. This time can be from a few milliseconds to several days, depending on the business requirements.
+
+Important: Work in progress
+
+This page is a stub. It’ll be expanded later.

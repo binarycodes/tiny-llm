@@ -1,0 +1,13 @@
+Create a Project by Cloning a Template
+
+Clone a template project to create a Vaadin application with a different technology stack.
+
+If you prefer a different technology stack than Spring Boot and Maven, you can find Hello World starter templates for other frameworks here:
+
+- Flow / Java, Maven, and Jetty
+- Flow / Java, Maven, and Quarkus
+- Flow / Java, Gradle, and Spring Boot
+- Flow / Kotlin, Maven, and Spring Boot
+- Hilla / React, Gradle, and Spring Boot
+
+Important: Some guides, such as Getting Started and Building Apps, may not fully apply to projects that are not based on Spring Boot and Maven.

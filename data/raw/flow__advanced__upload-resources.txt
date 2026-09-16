@@ -1,0 +1,97 @@
+Using UploadHandler to Receive an Incoming Data Stream
+
+Using UploadHandler to receive an incoming data stream.
+
+To receive an upload from the client, you need to register an UploadHandler that accepts a URL to handle receiving an upload stream. The recommended way to upload files is to use the Upload component, where as this documentation shows use of more customized components.
+
+To create an UploadHandler, you need implement the handleUploadRequest to handle the upload or use one of the provided UploadHandlers. The existing UploadHandler implementations are accessible through the static methods in UploadHandler, e.g. UploadHandler.toTempFile(FileUploadCallback successCallback)
+
+Note: When receiving a multipart upload the handleUploadRequest will be called separately for each file in the upload.
+
+Then the handler can be registered through the Element API by setting it as an attribute.
+
+[Java]
+List<File> outputFiles = new ArrayList<>(1);
+UploadHandler uploadHandler = UploadHandler.toTempFile((uploadMetadata, file) -> outputFiles.add(file));
+
+getElement().setAttribute("target", uploadHandler);
+
+The Upload element can be composed from an Input of type file and a Button that sends the file to the server using JavaScript.
+
+[Java]
+Span container = new Span();
+Input input = new Input();
+input.setType("file");
+
+Button uploadButton = new Button("Upload",
+    (event) -> event.getSource().getElement().executeJs("""
+        const file = $0.files[0];
+        if (!file) {
+          alert("No file selected");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        fetch(this.getAttribute("endpoint"), {
+          method: "POST",
+          body: formData
+        }).then(response => {
+          if (response.ok) {
+            alert("Upload successful");
+          } else {
+            alert("Upload failed");
+          }
+        });
+        """, input.getElement()));
+
+InMemoryUploadHandler inMemoryUploadHandler = UploadHandler.inMemory(
+    (uploadMetadata, bytes) -> {
+        // handle Uploaded data here
+    });
+
+uploadButton.getElement()
+    .setAttribute("endpoint", inMemoryUploadHandler);
+
+container.add(input, uploadButton);
+
+Another possibility is to do a form action to upload the data to the server.
+
+This could be done as:
+
+[HTML]
+<iframe name="dummyFrame" id="dummyFrame" display="none"/>
+<form method="post" enctype="multipart/form-data" action="Element.getAttribute('target')" target="dummyFrame">
+  <input type="file" name="file"/>
+  <input type="submit"/>
+</form>
+
+Note: The dummyFrame iframe is to keep the post from navigating to the action url on submit.
+
+Note: For multiple files add the attribute multiple to the file type input e.g. <input type="file" name="file" multiple/>.
+
+Using the element API this could be done as:
+
+[Java]
+InMemoryUploadHandler inMemoryUploadHandler = UploadHandler.inMemory(
+    (uploadMetadata, bytes) -> {
+        // handle Uploaded data here
+    });
+
+// Generate dummy iframe for navigation on submit action
+IFrame dummy = new IFrame();
+dummy.setName("dummy");
+dummy.setId("dummy");
+dummy.getStyle().set("display", "none");
+
+// Setup the form using the element api
+Element formElement = new Element("form").setAttribute("method", "post")
+    .setAttribute("enctype", "multipart/form-data")
+    .setAttribute("action", inMemoryUploadHandler)
+    .setAttribute("target", "dummy");
+Element files = new Element("input").setAttribute("type", "file")
+    .setAttribute("name", "file");
+Element submit = new Element("input").setAttribute("type", "submit");
+formElement.appendChild(files).appendChild(submit);
+
+add(dummy);
+getElement().appendChild(formElement);
