@@ -43,10 +43,7 @@ def check(raw: str) -> str | None:
     if len(lines) > 1:
         return "commit message must be a single line, no body or footer"
     if not HEADER.match(lines[0]):
-        return (
-            f"header must look like '<type>[(scope)][!]: <description>' "
-            f"with type one of: {', '.join(TYPES)}"
-        )
+        return f"header must look like '<type>[(scope)][!]: <description>' with type one of: {', '.join(TYPES)}"
     return None
 
 

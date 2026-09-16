@@ -26,6 +26,7 @@ dev = [
 
 [tool.ruff]
 target-version = "py313"
+line-length = 120
 src = ["src"]
 
 [tool.ruff.lint]
@@ -37,3 +38,5 @@ include = ["src", "tools"]
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportUnknownMemberType = false

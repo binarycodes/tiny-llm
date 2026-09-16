@@ -1,7 +1,7 @@
 from tokenizers import Tokenizer
-from tokenizers.decoders import ByteLevel as ByteLevelDecoder
-from tokenizers.models import BPE
-from tokenizers.pre_tokenizers import ByteLevel
+from tokenizers.decoders import ByteLevel as ByteLevelDecoder  # pyright: ignore[reportUnknownVariableType]
+from tokenizers.models import BPE  # pyright: ignore[reportUnknownVariableType]
+from tokenizers.pre_tokenizers import ByteLevel  # pyright: ignore[reportUnknownVariableType]
 from tokenizers.trainers import BpeTrainer
 
 from tiny_llm.config import (
@@ -17,7 +17,7 @@ if not files:
     raise RuntimeError(f"No .txt files found under {RAW_DIR}")
 
 tokenizer = Tokenizer(
-    BPE(
+    BPE(  # pyright: ignore[reportUnknownArgumentType]
         unk_token="<unk>",
     )
 )
