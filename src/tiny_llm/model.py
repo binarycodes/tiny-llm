@@ -3,7 +3,6 @@ import mlx.nn as nn
 
 
 class TinyLM(nn.Module):
-
     def __init__(
         self,
         vocab_size: int,

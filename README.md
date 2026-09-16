@@ -5,7 +5,8 @@
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
+pip install -e ".[dev]"
+pre-commit install
 ```
 
 ## Run
@@ -20,3 +21,13 @@ python -m tiny_llm.generate          # prompt is hard-coded in generate.py
 ```
 
 Settings: `src/tiny_llm/config.py`
+
+## Checks
+
+```bash
+ruff check src
+ruff format src
+pyright
+```
+
+The pre-commit hook runs the same three on every commit.

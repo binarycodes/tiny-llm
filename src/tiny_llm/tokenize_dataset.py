@@ -94,6 +94,6 @@ if __name__ == "__main__":
     training_token_count = tokenize_files(tokenizer, training_files, TRAIN_FILE)
     validation_token_count = tokenize_files(tokenizer, validation_files, VALID_FILE)
 
-    print(f"Total tokens: {training_token_count+validation_token_count:,}")
+    print(f"Total tokens: {training_token_count + validation_token_count:,}")
     print(f"Training tokens: {training_token_count:,}")
     print(f"Validation tokens: {validation_token_count:,}")

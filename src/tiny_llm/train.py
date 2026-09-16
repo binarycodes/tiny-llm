@@ -9,9 +9,8 @@ import mlx.optimizers as optim
 import numpy as np
 from mlx.utils import tree_flatten
 
-from tiny_llm.model import TinyLM
-
 from tiny_llm.config import (
+    BATCH_SIZE,
     CONFIG_FILE,
     CONTEXT_SIZE,
     DIMS,
@@ -21,7 +20,6 @@ from tiny_llm.config import (
     NUM_LAYERS,
     PATIENCE,
     RANDOM_SEED,
-    BATCH_SIZE,
     REPORT_EVERY,
     TENSORS_FILE,
     TRAIN_FILE,
@@ -31,6 +29,7 @@ from tiny_llm.config import (
     WEIGHT_DECAY,
     create_directories,
 )
+from tiny_llm.model import TinyLM
 
 create_directories()
 
@@ -95,7 +94,7 @@ model = TinyLM(
 
 mx.eval(model.parameters())
 parameter_count = sum(value.size for _, value in tree_flatten(model.parameters()))
-print(f"Parameters: " f"{parameter_count:,}")
+print(f"Parameters: {parameter_count:,}")
 
 
 def loss_fn(
@@ -192,7 +191,7 @@ for step in range(
     if step % EVAL_EVERY == 0:
         validation_loss = evaluate()
         perplexity = math.exp(validation_loss)
-        print(f"validation " f"loss={validation_loss:.4f} " f"ppl={perplexity:.2f}")
+        print(f"validation loss={validation_loss:.4f} ppl={perplexity:.2f}")
 
         # early stopping implementation
         if validation_loss < best_validation_loss:
@@ -206,9 +205,7 @@ for step in range(
                 weights,
             )
 
-            print(
-                f"Saved new best checkpoint " f"(validation loss={validation_loss:.4f})"
-            )
+            print(f"Saved new best checkpoint (validation loss={validation_loss:.4f})")
         else:
             evaluations_without_improvement += 1
 

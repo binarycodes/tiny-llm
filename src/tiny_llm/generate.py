@@ -1,8 +1,7 @@
 import argparse
 import json
-from pathlib import Path
-import mlx.core as mx
 
+import mlx.core as mx
 from mlx.utils import tree_unflatten
 from tokenizers import Tokenizer
 
