@@ -1,17 +1,19 @@
 import json
 import math
 import time
+from collections.abc import Callable, Iterator
 from functools import partial
+from pathlib import Path
+from typing import Any, cast
 
 import mlx.core as mx
 import mlx.nn as nn
 import mlx.optimizers as optim
+import mlx.utils
 import numpy as np
-from mlx.utils import tree_flatten
-
-from tiny_llm.model import TinyLM
 
 from tiny_llm.config import (
+    BATCH_SIZE,
     CONFIG_FILE,
     CONTEXT_SIZE,
     DIMS,
@@ -21,7 +23,6 @@ from tiny_llm.config import (
     NUM_LAYERS,
     PATIENCE,
     RANDOM_SEED,
-    BATCH_SIZE,
     REPORT_EVERY,
     TENSORS_FILE,
     TRAIN_FILE,
@@ -31,6 +32,10 @@ from tiny_llm.config import (
     WEIGHT_DECAY,
     create_directories,
 )
+from tiny_llm.model import TinyLM
+
+type TokenArray = np.ndarray[tuple[int], np.dtype[np.int32]]
+type SequenceArray = np.ndarray[tuple[int, int], np.dtype[np.int32]]
 
 create_directories()
 
@@ -39,8 +44,8 @@ np.random.seed(RANDOM_SEED)
 
 
 def load_tokens(
-    path: str,
-):
+    path: Path,
+) -> TokenArray:
     data = np.fromfile(
         path,
         dtype=np.uint32,
@@ -49,8 +54,8 @@ def load_tokens(
 
 
 def make_sequences(
-    dataset,
-):
+    dataset: TokenArray,
+) -> SequenceArray:
     window = CONTEXT_SIZE + 1
     count = len(dataset) // window
     trimmed = dataset[: count * window]
@@ -73,8 +78,8 @@ print("valid sequences:", len(valid_sequences))
 
 
 def batches(
-    sequences,
-):
+    sequences: SequenceArray,
+) -> Iterator[mx.array]:
     while True:
         indexes = np.random.permutation(len(sequences))
         for start in range(
@@ -93,15 +98,20 @@ model = TinyLM(
     num_heads=NUM_HEADS,
 )
 
+
+def flat_parameters(module: nn.Module) -> dict[str, mx.array]:
+    return dict(mlx.utils.tree_flatten(module.parameters()))
+
+
 mx.eval(model.parameters())
-parameter_count = sum(value.size for _, value in tree_flatten(model.parameters()))
-print(f"Parameters: " f"{parameter_count:,}")
+parameter_count = sum(value.size for value in flat_parameters(model).values())
+print(f"Parameters: {parameter_count:,}")
 
 
 def loss_fn(
-    model,
-    batch,
-):
+    model: TinyLM,
+    batch: mx.array,
+) -> mx.array:
     x = batch[:, :-1]
     y = batch[:, 1:]
     logits = model(x)
@@ -118,10 +128,18 @@ optimizer = optim.AdamW(
     weight_decay=WEIGHT_DECAY,
 )
 
-state = [
+state: list[object] = [
     model.state,
     optimizer.state,
 ]
+
+loss_and_grad = cast(
+    Callable[[TinyLM, mx.array], tuple[mx.array, dict[str, Any]]],
+    nn.value_and_grad(
+        model,
+        loss_fn,
+    ),
+)
 
 
 @partial(
@@ -130,12 +148,8 @@ state = [
     outputs=state,
 )
 def train_step(
-    batch,
-):
-    loss_and_grad = nn.value_and_grad(
-        model,
-        loss_fn,
-    )
+    batch: mx.array,
+) -> mx.array:
     loss, gradients = loss_and_grad(
         model,
         batch,
@@ -147,8 +161,8 @@ def train_step(
     return loss
 
 
-def evaluate():
-    losses = []
+def evaluate() -> float:
+    losses: list[float] = []
     max_batches = min(
         20,
         len(valid_sequences) // BATCH_SIZE,
@@ -161,7 +175,7 @@ def evaluate():
             batch,
         )
         mx.eval(loss)
-        losses.append(loss.item())
+        losses.append(float(loss))
     return sum(losses) / len(losses)
 
 
@@ -181,34 +195,25 @@ for step in range(
     mx.eval(state)
     if step % REPORT_EVERY == 0:
         elapsed = time.perf_counter() - start_time
-        print(
-            f"step={step:6d} "
-            f"loss={loss.item():.4f} "
-            f"steps/s="
-            f"{REPORT_EVERY / elapsed:.2f}"
-        )
+        print(f"step={step:6d} loss={loss.item():.4f} steps/s={REPORT_EVERY / elapsed:.2f}")
         start_time = time.perf_counter()
 
     if step % EVAL_EVERY == 0:
         validation_loss = evaluate()
         perplexity = math.exp(validation_loss)
-        print(f"validation " f"loss={validation_loss:.4f} " f"ppl={perplexity:.2f}")
+        print(f"validation loss={validation_loss:.4f} ppl={perplexity:.2f}")
 
         # early stopping implementation
         if validation_loss < best_validation_loss:
             best_validation_loss = validation_loss
             evaluations_without_improvement = 0
 
-            weights = dict(tree_flatten(model.parameters()))
-
             mx.save_safetensors(
                 str(TENSORS_FILE),
-                weights,
+                flat_parameters(model),
             )
 
-            print(
-                f"Saved new best checkpoint " f"(validation loss={validation_loss:.4f})"
-            )
+            print(f"Saved new best checkpoint (validation loss={validation_loss:.4f})")
         else:
             evaluations_without_improvement += 1
 

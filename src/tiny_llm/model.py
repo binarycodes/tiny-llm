@@ -3,14 +3,13 @@ import mlx.nn as nn
 
 
 class TinyLM(nn.Module):
-
     def __init__(
         self,
         vocab_size: int,
         num_layers: int,
         dims: int,
         num_heads: int,
-    ):
+    ) -> None:
         super().__init__()
 
         self.vocab_size = vocab_size
@@ -34,8 +33,8 @@ class TinyLM(nn.Module):
 
     def __call__(
         self,
-        tokens,
-    ):
+        tokens: mx.array,
+    ) -> mx.array:
         length = tokens.shape[1]
         mask = nn.MultiHeadAttention.create_additive_causal_mask(length)
         x = self.embedding(tokens)
