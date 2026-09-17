@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import numpy as np
+
 PROJECT_ROOT = Path.cwd()
 
 CHECKPOINT_DIR = PROJECT_ROOT / "checkpoints"
@@ -15,17 +17,19 @@ VALID_FILE = TOKENIZED_DIR / "valid.bin"
 TENSORS_FILE = CHECKPOINT_DIR / "best.safetensors"
 CONFIG_FILE = CHECKPOINT_DIR / "config.json"
 
-MINIMUM_TRAINING_FILES = 100
-
-VOCAB_SIZE = 4096
+VOCAB_SIZE = 16384
+TOKEN_DTYPE = np.uint16
 VALIDATION_RATIO = 0.05
 RANDOM_SEED = 42
+
+SEQUENCE_SEPARATOR = "<eos>"
+DOCUMENT_SEPARATOR = "<|endoftext|>"
 
 SPECIAL_TOKENS = [
     "<pad>",
     "<unk>",
     "<bos>",
-    "<eos>",
+    SEQUENCE_SEPARATOR,
 ]
 
 CONTEXT_SIZE = 256

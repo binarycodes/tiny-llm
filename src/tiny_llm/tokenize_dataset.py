@@ -1,13 +1,18 @@
+import hashlib
+import time
+from collections.abc import Generator
 from io import BufferedWriter
 from pathlib import Path
+from typing import NamedTuple
 
 import numpy as np
 from tokenizers import Tokenizer
 
 from tiny_llm.config import (
-    MINIMUM_TRAINING_FILES,
-    RANDOM_SEED,
+    DOCUMENT_SEPARATOR,
     RAW_DIR,
+    SEQUENCE_SEPARATOR,
+    TOKEN_DTYPE,
     TOKENIZER_FILE,
     TRAIN_FILE,
     VALID_FILE,
@@ -16,82 +21,145 @@ from tiny_llm.config import (
 )
 
 
-def tokenize_file(tokenizer: Tokenizer, eos_id: int, file_path: Path, out: BufferedWriter):
-    with file_path.open("r", encoding="utf-8") as file:
-        file_text = file.read()
-
-    token_ids = tokenizer.encode(file_text).ids
-    token_ids.append(eos_id)
-
-    np.asarray(
-        token_ids,
-        dtype=np.uint32,
-    ).tofile(out)
-
-    return len(token_ids)
+class Split[T](NamedTuple):
+    training: T
+    validation: T
 
 
-def tokenize_files(tokenizer: Tokenizer, files: list[Path], bin_path: Path):
-    eos_id = tokenizer.token_to_id("<eos>")
+def iter_documents(path: Path, chunk_size: int = 4 * 1024 * 1024) -> Generator[str]:
+    buffer: str = ""
+
+    with path.open("r", encoding="utf-8") as file:
+        while chunk := file.read(chunk_size):
+            *documents, buffer = (buffer + chunk).split(DOCUMENT_SEPARATOR)
+            yield from (doc for document in documents if (doc := document.strip()))
+
+        if doc := buffer.strip():
+            yield doc
+
+
+def is_validation(data: bytes) -> bool:
+    """Deterministic coin flip baked into the document text.
+
+    Hash the text to 8 bytes, read them as an integer, scale to [0, 1) and
+    compare with VALIDATION_RATIO. A good hash is uniform, so about 5% of
+    documents fall below. Unlike a seeded RNG, the result depends only on the
+    text. Adding or reordering files never moves a document across the split,
+    and duplicate documents always land on the same side.
+    """
+    digest = hashlib.blake2b(data, digest_size=8).digest()
+    return int.from_bytes(digest, "big") / 2**64 < VALIDATION_RATIO
+
+
+class Progress:
+    def __init__(self, total_bytes: int, interval_seconds: float = 10.0) -> None:
+        self.total_bytes = total_bytes
+        self.interval_seconds = interval_seconds
+        self.bytes = 0
+        self.documents = 0
+        self.tokens = 0
+        self.start = time.perf_counter()
+        self.last_report = self.start
+
+    def update(self, byte_count: int, token_count: int) -> None:
+        self.bytes += byte_count
+        self.documents += 1
+        self.tokens += token_count
+
+        now = time.perf_counter()
+        if now - self.last_report >= self.interval_seconds:
+            self.last_report = now
+            self.report()
+
+    def report(self) -> None:
+        elapsed = time.perf_counter() - self.start
+        percent = min(100.0, 100.0 * self.bytes / self.total_bytes)
+        rate = self.tokens / elapsed / 1e6 if elapsed else 0.0
+        print(
+            f"{percent:5.1f}%  {self.documents:,} documents  {self.tokens:,} tokens  "
+            f"{rate:.2f}M tokens/s  {elapsed:,.0f}s",
+            flush=True,
+        )
+
+
+def eos_token_id(tokenizer: Tokenizer) -> int:
+    eos_id = tokenizer.token_to_id(SEQUENCE_SEPARATOR)
     if eos_id is None:
-        raise RuntimeError(f"Tokenizer {TOKENIZER_FILE} has no <eos> token")
+        raise RuntimeError(f"Tokenizer {TOKENIZER_FILE} has no {SEQUENCE_SEPARATOR} token")
 
-    token_count = 0
-    with open(bin_path, "wb") as out:
-        for path in files:
-            token_count += tokenize_file(tokenizer, eos_id, path, out)
-    return token_count
+    max_id = np.iinfo(TOKEN_DTYPE).max
+    if tokenizer.get_vocab_size() - 1 > max_id:
+        raise RuntimeError(f"Vocabulary of {tokenizer.get_vocab_size()} does not fit in {np.dtype(TOKEN_DTYPE).name}")
+
+    return eos_id
 
 
-def split_source(rng: np.random.Generator, source_dir: Path, validation_ratio: float):
-    files = sorted(source_dir.rglob("*.txt"))
+def tokenize_file(
+    tokenizer: Tokenizer,
+    eos_id: int,
+    file_path: Path,
+    outputs: Split[BufferedWriter],
+    progress: Progress,
+) -> Split[int]:
+    training_token_count = 0
+    validation_token_count = 0
 
+    for doc in iter_documents(file_path):
+        data = doc.encode("utf-8")
+        token_ids = tokenizer.encode(doc).ids
+        token_ids.append(eos_id)
+        tokens = np.asarray(token_ids, dtype=TOKEN_DTYPE)
+
+        if is_validation(data):
+            tokens.tofile(outputs.validation)
+            validation_token_count += len(token_ids)
+        else:
+            tokens.tofile(outputs.training)
+            training_token_count += len(token_ids)
+
+        progress.update(len(data) + len(DOCUMENT_SEPARATOR), len(token_ids))
+
+    return Split(training_token_count, validation_token_count)
+
+
+def tokenize_raw_directory() -> Split[int]:
+    files = sorted(RAW_DIR.rglob("*.txt"))
     if not files:
-        raise RuntimeError(f"No .txt files found under {source_dir}")
-    elif len(files) < MINIMUM_TRAINING_FILES:
-        raise RuntimeError(f"Found {len(files)} .txt files under {source_dir}, need at least {MINIMUM_TRAINING_FILES}")
+        raise RuntimeError(f"No .txt files found under {RAW_DIR}")
 
-    rng.shuffle(files)
+    tokenizer = Tokenizer.from_file(str(TOKENIZER_FILE))
+    eos_id = eos_token_id(tokenizer)
 
-    split = int(len(files) * (1.0 - validation_ratio))
-    split = max(1, min(split, len(files) - 1))
+    total_bytes = sum(path.stat().st_size for path in files)
+    print(f"Tokenizing {len(files):,} files ({total_bytes / 1e9:.2f} GB)", flush=True)
+    progress = Progress(total_bytes)
 
-    training_files = files[:split]
-    validation_files = files[split:]
+    training_token_count = 0
+    validation_token_count = 0
+    with open(TRAIN_FILE, "wb") as train_out, open(VALID_FILE, "wb") as valid_out:
+        outputs = Split(train_out, valid_out)
+        for path in files:
+            counts = tokenize_file(tokenizer, eos_id, path, outputs, progress)
+            training_token_count += counts.training
+            validation_token_count += counts.validation
+    progress.report()
 
-    if len(training_files) == 0 or len(validation_files) == 0:
-        raise RuntimeError(f"Found {len(training_files)} training files, and {len(validation_files)} validation files.")
+    if not training_token_count or not validation_token_count:
+        raise RuntimeError(
+            f"Split produced {training_token_count:,} training and {validation_token_count:,} validation tokens"
+        )
 
-    return training_files, validation_files
-
-
-def split_raw_to_source(rng: np.random.Generator) -> tuple[list[Path], list[Path]]:
-    training_files: list[Path] = []
-    validation_files: list[Path] = []
-
-    for source_dir in sorted(RAW_DIR.iterdir()):
-        if not source_dir.is_dir():
-            continue
-        source_training, source_validation = split_source(rng, source_dir, VALIDATION_RATIO)
-        training_files.extend(source_training)
-        validation_files.extend(source_validation)
-
-    return training_files, validation_files
+    return Split(training_token_count, validation_token_count)
 
 
 def main() -> None:
     create_directories()
 
-    rng = np.random.default_rng(RANDOM_SEED)
-    tokenizer = Tokenizer.from_file(str(TOKENIZER_FILE))
+    counts = tokenize_raw_directory()
 
-    training_files, validation_files = split_raw_to_source(rng)
-    training_token_count = tokenize_files(tokenizer, training_files, TRAIN_FILE)
-    validation_token_count = tokenize_files(tokenizer, validation_files, VALID_FILE)
-
-    print(f"Total tokens: {training_token_count + validation_token_count:,}")
-    print(f"Training tokens: {training_token_count:,}")
-    print(f"Validation tokens: {validation_token_count:,}")
+    print(f"Total tokens: {counts.training + counts.validation:,}")
+    print(f"Training tokens: {counts.training:,}")
+    print(f"Validation tokens: {counts.validation:,}")
 
 
 if __name__ == "__main__":
