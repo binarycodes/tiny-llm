@@ -18,7 +18,9 @@ def sample(
     temperature: float = 0.8,
 ):
     ids = tokenizer.encode(prompt).ids
+    prompt_len = len(ids)
     tokens = mx.array([ids])
+
     for _ in range(max_tokens):
         context = tokens[:, -context_size:]
         logits = model(context)
@@ -33,7 +35,8 @@ def sample(
         )
         mx.eval(tokens)
 
-    return tokenizer.decode(cast(list[int], tokens[0].tolist()))
+    generated = cast(list[int], tokens[0].tolist())[prompt_len:]
+    return tokenizer.decode(generated)
 
 
 def main():

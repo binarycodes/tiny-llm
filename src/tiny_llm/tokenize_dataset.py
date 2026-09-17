@@ -3,7 +3,6 @@ import time
 from collections.abc import Generator
 from io import BufferedWriter
 from pathlib import Path
-from typing import NamedTuple
 
 import numpy as np
 from tokenizers import Tokenizer
@@ -14,16 +13,11 @@ from tiny_llm.config import (
     SEQUENCE_SEPARATOR,
     TOKEN_DTYPE,
     TOKENIZER_FILE,
-    TRAIN_FILE,
-    VALID_FILE,
     VALIDATION_RATIO,
+    Split,
     create_directories,
+    tokenized_files,
 )
-
-
-class Split[T](NamedTuple):
-    training: T
-    validation: T
 
 
 def iter_documents(path: Path, chunk_size: int = 4 * 1024 * 1024) -> Generator[str]:
@@ -76,7 +70,7 @@ class Progress:
         percent = min(100.0, 100.0 * self.bytes / self.total_bytes)
         rate = self.tokens / elapsed / 1e6 if elapsed else 0.0
         print(
-            f"{percent:5.1f}%  {self.documents:,} documents  {self.tokens:,} tokens  "
+            f"{percent:5.1f}%  {self.documents:12,d} documents  {self.tokens:12,d} tokens  "
             f"{rate:.2f}M tokens/s  {elapsed:,.0f}s",
             flush=True,
         )
@@ -122,34 +116,55 @@ def tokenize_file(
     return Split(training_token_count, validation_token_count)
 
 
-def tokenize_raw_directory() -> Split[int]:
-    files = sorted(RAW_DIR.rglob("*.txt"))
-    if not files:
-        raise RuntimeError(f"No .txt files found under {RAW_DIR}")
-
-    tokenizer = Tokenizer.from_file(str(TOKENIZER_FILE))
-    eos_id = eos_token_id(tokenizer)
-
-    total_bytes = sum(path.stat().st_size for path in files)
-    print(f"Tokenizing {len(files):,} files ({total_bytes / 1e9:.2f} GB)", flush=True)
-    progress = Progress(total_bytes)
-
+def tokenize_source(
+    tokenizer: Tokenizer,
+    eos_id: int,
+    source_dir: Path,
+    files: list[Path],
+    progress: Progress,
+) -> Split[int]:
     training_token_count = 0
     validation_token_count = 0
-    with open(TRAIN_FILE, "wb") as train_out, open(VALID_FILE, "wb") as valid_out:
+
+    paths = tokenized_files(source_dir.name)
+    with open(paths.training, "wb") as train_out, open(paths.validation, "wb") as valid_out:
         outputs = Split(train_out, valid_out)
         for path in files:
             counts = tokenize_file(tokenizer, eos_id, path, outputs, progress)
             training_token_count += counts.training
             validation_token_count += counts.validation
-    progress.report()
 
     if not training_token_count or not validation_token_count:
         raise RuntimeError(
-            f"Split produced {training_token_count:,} training and {validation_token_count:,} validation tokens"
+            f"{source_dir.name}: split produced {training_token_count:,} training "
+            f"and {validation_token_count:,} validation tokens"
         )
 
     return Split(training_token_count, validation_token_count)
+
+
+def tokenize_raw_directory() -> dict[str, Split[int]]:
+    sources = {
+        source_dir: sorted(source_dir.rglob("*.txt")) for source_dir in sorted(RAW_DIR.iterdir()) if source_dir.is_dir()
+    }
+    sources = {source_dir: files for source_dir, files in sources.items() if files}
+    if not sources:
+        raise RuntimeError(f"No source directories with .txt files found under {RAW_DIR}")
+
+    tokenizer = Tokenizer.from_file(str(TOKENIZER_FILE))
+    eos_id = eos_token_id(tokenizer)
+
+    file_count = sum(len(files) for files in sources.values())
+    total_bytes = sum(path.stat().st_size for files in sources.values() for path in files)
+    print(f"Tokenizing {file_count:,} files ({total_bytes / 1e9:.2f} GB) from {len(sources)} sources", flush=True)
+    progress = Progress(total_bytes)
+
+    counts = {
+        source_dir.name: tokenize_source(tokenizer, eos_id, source_dir, files, progress)
+        for source_dir, files in sources.items()
+    }
+    progress.report()
+    return counts
 
 
 def main() -> None:
@@ -157,9 +172,14 @@ def main() -> None:
 
     counts = tokenize_raw_directory()
 
-    print(f"Total tokens: {counts.training + counts.validation:,}")
-    print(f"Training tokens: {counts.training:,}")
-    print(f"Validation tokens: {counts.validation:,}")
+    for source, split in counts.items():
+        print(f"{source}: training tokens {split.training:,}, validation tokens {split.validation:,}")
+
+    training_token_count = sum(split.training for split in counts.values())
+    validation_token_count = sum(split.validation for split in counts.values())
+    print(f"Total tokens: {training_token_count + validation_token_count:,}")
+    print(f"Training tokens: {training_token_count:,}")
+    print(f"Validation tokens: {validation_token_count:,}")
 
 
 if __name__ == "__main__":

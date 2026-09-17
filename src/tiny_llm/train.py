@@ -24,20 +24,22 @@ from tiny_llm.config import (
     PATIENCE,
     RANDOM_SEED,
     REPORT_EVERY,
+    SOURCE_WEIGHTS,
     TENSORS_FILE,
     TOKEN_DTYPE,
-    TRAIN_FILE,
     TRAIN_STEPS,
-    VALID_FILE,
     VOCAB_SIZE,
     WEIGHT_DECAY,
+    Split,
     create_directories,
+    tokenized_files,
 )
 from tiny_llm.model import TinyLM
 
 type TokenArray = np.ndarray[tuple[int], np.dtype[TOKEN_DTYPE]]
 type SequenceArray = np.ndarray[tuple[int, int], np.dtype[TOKEN_DTYPE]]
 type TrainStep = Callable[[mx.array], mx.array]
+type Sources = dict[str, Split[SequenceArray]]
 
 
 def load_tokens(
@@ -62,33 +64,48 @@ def make_sequences(
     )
 
 
-def load_data() -> tuple[SequenceArray, SequenceArray]:
-    train_data = load_tokens(TRAIN_FILE)
-    valid_data = load_tokens(VALID_FILE)
+def source_weights() -> dict[str, float]:
+    if not SOURCE_WEIGHTS or any(weight <= 0 for weight in SOURCE_WEIGHTS.values()):
+        raise RuntimeError("SOURCE_WEIGHTS must name at least one source and every weight must be positive")
+    total = sum(SOURCE_WEIGHTS.values())
+    return {source: weight / total for source, weight in SOURCE_WEIGHTS.items()}
 
-    train_sequences = make_sequences(train_data)
-    valid_sequences = make_sequences(valid_data)
 
-    print("train tokens:", len(train_data))
-    print("valid tokens:", len(valid_data))
-    print("train sequences:", len(train_sequences))
-    print("valid sequences:", len(valid_sequences))
+def load_data() -> Sources:
+    sources: Sources = {}
+    for source in SOURCE_WEIGHTS:
+        paths = tokenized_files(source)
+        train_data = load_tokens(paths.training)
+        valid_data = load_tokens(paths.validation)
+        sources[source] = Split(make_sequences(train_data), make_sequences(valid_data))
 
-    return train_sequences, valid_sequences
+        print(f"{source}: train tokens:", len(train_data))
+        print(f"{source}: valid tokens:", len(valid_data))
+        print(f"{source}: train sequences:", len(sources[source].training))
+        print(f"{source}: valid sequences:", len(sources[source].validation))
+
+    return sources
+
+
+def sequence_stream(
+    sequences: SequenceArray,
+) -> Iterator[TokenArray]:
+    while True:
+        for index in np.random.permutation(len(sequences)):
+            yield sequences[index]
 
 
 def batches(
-    sequences: SequenceArray,
+    sources: Sources,
 ) -> Iterator[mx.array]:
+    weights = source_weights()
+    names = list(weights)
+    probabilities = np.array([weights[name] for name in names])
+    streams = {name: sequence_stream(sources[name].training) for name in names}
+
     while True:
-        indexes = np.random.permutation(len(sequences))
-        for start in range(
-            0,
-            len(indexes) - BATCH_SIZE + 1,
-            BATCH_SIZE,
-        ):
-            selected = indexes[start : start + BATCH_SIZE]
-            yield mx.array(sequences[selected])
+        chosen = np.random.choice(names, size=BATCH_SIZE, p=probabilities)
+        yield mx.array(np.stack([next(streams[name]) for name in chosen]))
 
 
 def flat_parameters(module: nn.Module) -> dict[str, mx.array]:
@@ -163,7 +180,7 @@ def make_train_step(
     return train_step, state
 
 
-def evaluate(
+def evaluate_source(
     model: TinyLM,
     valid_sequences: SequenceArray,
 ) -> float:
@@ -184,10 +201,23 @@ def evaluate(
     return sum(losses) / len(losses)
 
 
+def evaluate(
+    model: TinyLM,
+    sources: Sources,
+) -> float:
+    """Validation loss per source, combined with the sampling weights so it matches the training objective."""
+    weights = source_weights()
+    combined = 0.0
+    for source, weight in weights.items():
+        loss = evaluate_source(model, sources[source].validation)
+        print(f"  {source}: validation loss={loss:.4f} perplexity={math.exp(loss):.2f}")
+        combined += weight * loss
+    return combined
+
+
 def train(
     model: TinyLM,
-    train_sequences: SequenceArray,
-    valid_sequences: SequenceArray,
+    sources: Sources,
 ) -> None:
     optimizer = optim.AdamW(
         learning_rate=LEARNING_RATE,
@@ -195,7 +225,7 @@ def train(
     )
     train_step, state = make_train_step(model, optimizer)
 
-    train_batches = batches(train_sequences)
+    train_batches = batches(sources)
 
     # early stopping parmeters
     best_validation_loss = float("inf")
@@ -215,9 +245,9 @@ def train(
             start_time = time.perf_counter()
 
         if step % EVAL_EVERY == 0:
-            validation_loss = evaluate(model, valid_sequences)
+            validation_loss = evaluate(model, sources)
             perplexity = math.exp(validation_loss)
-            print(f"validation loss={validation_loss:.4f} ppl={perplexity:.2f}")
+            print(f"weighted validation loss={validation_loss:.4f} perplexity={perplexity:.2f}")
 
             # early stopping implementation
             if validation_loss < best_validation_loss:
@@ -264,9 +294,9 @@ def main() -> None:
     mx.random.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
 
-    train_sequences, valid_sequences = load_data()
+    sources = load_data()
     model = build_model()
-    train(model, train_sequences, valid_sequences)
+    train(model, sources)
     save_config()
 
 
