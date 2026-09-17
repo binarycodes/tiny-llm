@@ -21,11 +21,18 @@ def sample(
     prompt_len = len(ids)
     tokens = mx.array([ids])
 
+    eos_token_id = tokenizer.token_to_id("<eos>")
+
     for _ in range(max_tokens):
         context = tokens[:, -context_size:]
         logits = model(context)
         logits = logits[:, -1, :] / temperature
         next_token = mx.reshape(mx.random.categorical(logits), (1, 1))
+        next_token_id = cast(int, next_token.item())
+
+        if next_token_id == eos_token_id:
+            break
+
         tokens = mx.concatenate(
             [
                 tokens,
