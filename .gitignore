@@ -10,3 +10,7 @@ data/tokenized/
 checkpoints/
 docs/
 build/
+
+
+# too big for git - download instructions in README
+data/raw/tinystories/

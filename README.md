@@ -9,6 +9,12 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
+
+```bash
+mkdir -p ./data/raw/tinystories
+curl -L -o ./data/raw/tinystories/TinyStoriesV2-GPT4-train.txt https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt
+```
+
 ## Run
 
 From the project root, in order:
