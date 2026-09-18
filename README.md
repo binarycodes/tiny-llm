@@ -6,8 +6,7 @@ Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
-source .venv/bin/activate
-pre-commit install
+uv run pre-commit install
 ```
 
 
@@ -21,10 +20,10 @@ curl -L -o ./data/raw/tinystories/TinyStoriesV2-GPT4-train.txt https://huggingfa
 From the project root, in order:
 
 ```bash
-train-tokenizer   # data/raw/*.txt -> data/tokenizer.json
-tokenize          # -> data/tokenized/<source>.{train,valid}.bin; skips unchanged sources, --force redoes all
-train             # -> checkpoints/best.safetensors
-generate          # prompt is hard-coded in generate.py
+uv run train-tokenizer   # data/raw/*.txt -> data/tokenizer.json
+uv run tokenize          # -> data/tokenized/<source>.{train,valid}.bin; skips unchanged sources, --force redoes all
+uv run train             # -> checkpoints/best.safetensors
+uv run generate          # prompt is hard-coded in generate.py
 ```
 
 Settings: `src/tiny_llm/config.py`
@@ -32,9 +31,9 @@ Settings: `src/tiny_llm/config.py`
 ## Checks
 
 ```bash
-ruff check src tools
-ruff format src tools
-pyright
+uv run ruff check src tools
+uv run ruff format src tools
+uv run pyright
 ```
 
 The pre-commit hook runs the same checks on every commit.
