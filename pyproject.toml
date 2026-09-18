@@ -14,10 +14,16 @@ dependencies = [
     "tokenizers",
 ]
 
+[project.scripts]
+train-tokenizer = "tiny_llm.train_tokenizer:main"
+tokenize = "tiny_llm.tokenize_dataset:main"
+train = "tiny_llm.train:main"
+generate = "tiny_llm.generate:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pre-commit",
     "pyright",
@@ -30,7 +36,9 @@ line-length = 120
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "PL"]
+# MLX documents `import mlx.nn as nn`
+ignore = ["PLR0402"]
 
 [tool.pyright]
 pythonVersion = "3.13"

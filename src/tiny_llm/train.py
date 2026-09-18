@@ -1,5 +1,6 @@
 import json
 import math
+import shutil
 import time
 from collections.abc import Callable, Iterator
 from functools import partial
@@ -215,6 +216,17 @@ def evaluate(
     return combined
 
 
+def save_checkpoint(model: TinyLM, step: int) -> None:
+    checkpoint_file_path = TENSORS_FILE.with_stem(f"{TENSORS_FILE.stem}-step{step}")
+
+    mx.save_safetensors(
+        str(TENSORS_FILE),
+        flat_parameters(model),
+    )
+
+    shutil.copy2(TENSORS_FILE, checkpoint_file_path)
+
+
 def train(
     model: TinyLM,
     sources: Sources,
@@ -231,7 +243,8 @@ def train(
     best_validation_loss = float("inf")
     evaluations_without_improvement = 0
 
-    start_time = time.perf_counter()
+    training_start = time.perf_counter()
+    start_time = training_start
     for step in range(
         1,
         TRAIN_STEPS + 1,
@@ -254,11 +267,7 @@ def train(
                 best_validation_loss = validation_loss
                 evaluations_without_improvement = 0
 
-                mx.save_safetensors(
-                    str(TENSORS_FILE),
-                    flat_parameters(model),
-                )
-
+                save_checkpoint(model, step)
                 print(f"Saved new best checkpoint (validation loss={validation_loss:.4f})")
             else:
                 evaluations_without_improvement += 1
@@ -267,6 +276,11 @@ def train(
                 if evaluations_without_improvement >= PATIENCE:
                     print("Early stopping.")
                     break
+
+    total_seconds = time.perf_counter() - training_start
+    hours, remainder = divmod(int(total_seconds), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    print(f"Total training time: {hours}h {minutes:02d}m {seconds:02d}s ({total_seconds:.1f}s)")
 
 
 def save_config() -> None:

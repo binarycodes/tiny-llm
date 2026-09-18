@@ -6,25 +6,15 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v3
-        with:
-          args: check src
-      - uses: astral-sh/ruff-action@v3
-        with:
-          args: format --check src
-
-  typecheck:
+  checks:
     # mlx only installs on macOS, and pyright needs it importable
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.13"
-      - run: python -m venv .venv
-      - run: .venv/bin/pip install -e ".[dev]"
-      - run: .venv/bin/pyright
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check src tools
+      - run: uv run ruff format --check src tools
+      - run: uv run pyright

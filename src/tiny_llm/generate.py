@@ -9,7 +9,7 @@ from tiny_llm.config import CONFIG_FILE, TENSORS_FILE, TOKENIZER_FILE
 from tiny_llm.model import TinyLM
 
 
-def sample(
+def sample(  # noqa: PLR0913, PLR0917
     model: TinyLM,
     tokenizer: Tokenizer,
     context_size: int,
