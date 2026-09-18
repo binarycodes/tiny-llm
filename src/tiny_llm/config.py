@@ -32,8 +32,8 @@ RANDOM_SEED = 42
 
 # Sampling probability per source directory under RAW_DIR, normalised at load time.
 SOURCE_WEIGHTS = {
-    "tinystories": 0.75,
-    "technical": 0.25,
+    "tinystories": 0.60,
+    "technical": 0.40,
 }
 
 SEQUENCE_SEPARATOR = "<eos>"
