@@ -1,3 +1,4 @@
+import argparse
 import hashlib
 import time
 from collections.abc import Generator
@@ -18,6 +19,7 @@ from tiny_llm.config import (
     create_directories,
     tokenized_files,
 )
+from tiny_llm.manifest import Inputs, TokenCounts, tokenizer_digest
 
 
 def iter_documents(path: Path, chunk_size: int = 4 * 1024 * 1024) -> Generator[str]:
@@ -94,7 +96,7 @@ def tokenize_file(
     file_path: Path,
     outputs: Split[BufferedWriter],
     progress: Progress,
-) -> Split[int]:
+) -> TokenCounts:
     training_token_count = 0
     validation_token_count = 0
 
@@ -113,7 +115,7 @@ def tokenize_file(
 
         progress.update(len(data) + len(DOCUMENT_SEPARATOR), len(token_ids))
 
-    return Split(training_token_count, validation_token_count)
+    return TokenCounts(training=training_token_count, validation=validation_token_count)
 
 
 def tokenize_source(
@@ -122,7 +124,7 @@ def tokenize_source(
     source_dir: Path,
     files: list[Path],
     progress: Progress,
-) -> Split[int]:
+) -> TokenCounts:
     training_token_count = 0
     validation_token_count = 0
 
@@ -140,10 +142,10 @@ def tokenize_source(
             f"and {validation_token_count:,} validation tokens"
         )
 
-    return Split(training_token_count, validation_token_count)
+    return TokenCounts(training=training_token_count, validation=validation_token_count)
 
 
-def tokenize_raw_directory() -> dict[str, Split[int]]:
+def tokenize_raw_directory(force: bool) -> dict[str, TokenCounts]:
     sources = {
         source_dir: sorted(source_dir.rglob("*.txt")) for source_dir in sorted(RAW_DIR.iterdir()) if source_dir.is_dir()
     }
@@ -151,26 +153,46 @@ def tokenize_raw_directory() -> dict[str, Split[int]]:
     if not sources:
         raise RuntimeError(f"No source directories with .txt files found under {RAW_DIR}")
 
+    digest = tokenizer_digest()
+    manifests = {source_dir: Inputs.build(source_dir, files, digest) for source_dir, files in sources.items()}
+
+    counts: dict[str, TokenCounts] = {}
+    pending: dict[Path, list[Path]] = {}
+    for source_dir, files in sources.items():
+        if not force and (stored := manifests[source_dir].stored_counts(source_dir.name)) is not None:
+            print(f"{source_dir.name}: unchanged, skipping", flush=True)
+            counts[source_dir.name] = stored
+        else:
+            pending[source_dir] = files
+
+    if not pending:
+        return counts
+
     tokenizer = Tokenizer.from_file(str(TOKENIZER_FILE))
     eos_id = eos_token_id(tokenizer)
 
-    file_count = sum(len(files) for files in sources.values())
-    total_bytes = sum(path.stat().st_size for files in sources.values() for path in files)
-    print(f"Tokenizing {file_count:,} files ({total_bytes / 1e9:.2f} GB) from {len(sources)} sources", flush=True)
+    file_count = sum(len(files) for files in pending.values())
+    total_bytes = sum(path.stat().st_size for files in pending.values() for path in files)
+    print(f"Tokenizing {file_count:,} files ({total_bytes / 1e9:.2f} GB) from {len(pending)} sources", flush=True)
     progress = Progress(total_bytes)
 
-    counts = {
-        source_dir.name: tokenize_source(tokenizer, eos_id, source_dir, files, progress)
-        for source_dir, files in sources.items()
-    }
+    for source_dir, files in pending.items():
+        split = tokenize_source(tokenizer, eos_id, source_dir, files, progress)
+        counts[source_dir.name] = split
+        manifests[source_dir].save(source_dir.name, split)
     progress.report()
-    return counts
+
+    return dict(sorted(counts.items()))
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Tokenize data/raw into per-source training and validation files")
+    parser.add_argument("--force", action="store_true", help="retokenize sources even if their inputs are unchanged")
+    args = parser.parse_args()
+
     create_directories()
 
-    counts = tokenize_raw_directory()
+    counts = tokenize_raw_directory(args.force)
 
     for source, split in counts.items():
         print(f"{source}: training tokens {split.training:,}, validation tokens {split.validation:,}")

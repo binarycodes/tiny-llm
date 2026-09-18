@@ -22,7 +22,7 @@ From the project root, in order:
 
 ```bash
 train-tokenizer   # data/raw/*.txt -> data/tokenizer.json
-tokenize          # -> data/tokenized/<source>.{train,valid}.bin
+tokenize          # -> data/tokenized/<source>.{train,valid}.bin; skips unchanged sources, --force redoes all
 train             # -> checkpoints/best.safetensors
 generate          # prompt is hard-coded in generate.py
 ```

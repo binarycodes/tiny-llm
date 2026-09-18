@@ -22,6 +22,10 @@ def tokenized_files(source: str) -> Split[Path]:
     return Split(TOKENIZED_DIR / f"{source}.train.bin", TOKENIZED_DIR / f"{source}.valid.bin")
 
 
+def manifest_file(source: str) -> Path:
+    return TOKENIZED_DIR / f"{source}.manifest.json"
+
+
 TENSORS_FILE = CHECKPOINT_DIR / "best.safetensors"
 CONFIG_FILE = CHECKPOINT_DIR / "config.json"
 
